@@ -151,10 +151,6 @@
           <span style="color: #909399; font-size: 12px;">根据产品单价和数量自动计算</span>
         </el-form-item>
 
-        <el-form-item label="负责人">
-          <el-input v-model="form.manager" placeholder="负责人ID（可选）"></el-input>
-        </el-form-item>
-
         <el-form-item label="备注">
           <el-input
             v-model="form.notes"
@@ -200,7 +196,6 @@ export default {
         delivery_date: '',
         actual_delivery_date: '',
         total_amount: 0,
-        manager: null,
         notes: ''
       },
       rules: {
@@ -301,7 +296,6 @@ export default {
           delivery_date: data.delivery_date,
           actual_delivery_date: data.actual_delivery_date || '',
           total_amount: parseFloat(data.total_amount),
-          manager: data.manager,
           notes: data.notes || ''
         }
         
@@ -332,9 +326,6 @@ export default {
           // 清理空值
           if (!data.actual_delivery_date) {
             delete data.actual_delivery_date
-          }
-          if (!data.manager) {
-            delete data.manager
           }
           
           if (this.isEdit) {

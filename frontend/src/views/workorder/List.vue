@@ -88,7 +88,7 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="manager_name" label="负责人" width="100"></el-table-column>
+        <el-table-column prop="manager_name" label="制表人" width="100"></el-table-column>
         <el-table-column label="操作" width="180" fixed="right">
           <template slot-scope="scope">
             <el-button type="text" size="small" @click.stop="handleView(scope.row)">
