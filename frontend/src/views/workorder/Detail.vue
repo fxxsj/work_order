@@ -53,14 +53,65 @@
         <el-descriptions-item label="产品规格" :span="3">{{ workOrder.specification || '-' }}</el-descriptions-item>
       </el-descriptions>
 
-      <!-- 物料信息 -->
-      <el-descriptions title="物料信息" :column="3" border style="margin-top: 20px;" v-if="workOrder.materials && workOrder.materials.length > 0">
-        <template v-for="(material, index) in workOrder.materials">
-          <el-descriptions-item :key="`material-${index}-name`" label="物料名称">{{ material.material_name || '-' }}</el-descriptions-item>
-          <el-descriptions-item :key="`material-${index}-size`" label="尺寸">{{ material.material_size || '-' }}</el-descriptions-item>
-          <el-descriptions-item :key="`material-${index}-usage`" label="用量">{{ material.material_usage || '-' }}</el-descriptions-item>
-        </template>
+      <!-- 图稿和刀模信息 -->
+      <el-descriptions title="图稿和刀模" :column="3" border style="margin-top: 20px;">
+        <el-descriptions-item label="图稿（CTP版）">
+          <span v-if="workOrder.artwork_code">{{ workOrder.artwork_code }} - {{ workOrder.artwork_name }}</span>
+          <span v-else style="color: #909399;">-</span>
+        </el-descriptions-item>
+        <el-descriptions-item label="刀模">
+          <span v-if="workOrder.die_code">{{ workOrder.die_code }} - {{ workOrder.die_name }}</span>
+          <span v-else style="color: #909399;">-</span>
+        </el-descriptions-item>
+        <el-descriptions-item label="拼版数量">{{ workOrder.imposition_quantity || 1 }}拼</el-descriptions-item>
       </el-descriptions>
+
+      <!-- 物料信息 -->
+      <el-card style="margin-top: 20px;" v-if="workOrder.materials && workOrder.materials.length > 0">
+        <div slot="header">物料信息</div>
+        <el-table :data="workOrder.materials" border style="width: 100%">
+          <el-table-column prop="material_name" label="物料名称" width="200">
+            <template slot-scope="scope">
+              {{ scope.row.material_name }} ({{ scope.row.material_code }})
+            </template>
+          </el-table-column>
+          <el-table-column prop="material_size" label="尺寸" width="150"></el-table-column>
+          <el-table-column prop="material_usage" label="用量" width="150"></el-table-column>
+          <el-table-column prop="planned_quantity" label="计划用量" width="120" align="right">
+            <template slot-scope="scope">
+              {{ scope.row.planned_quantity }} {{ scope.row.material_unit }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="actual_quantity" label="实际用量" width="120" align="right">
+            <template slot-scope="scope">
+              {{ scope.row.actual_quantity }} {{ scope.row.material_unit }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="purchase_status_display" label="采购状态" width="120">
+            <template slot-scope="scope">
+              <el-tag :type="getPurchaseStatusType(scope.row.purchase_status)" size="small">
+                {{ scope.row.purchase_status_display }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="purchase_date" label="采购日期" width="120">
+            <template slot-scope="scope">
+              {{ scope.row.purchase_date | formatDate || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="received_date" label="回料日期" width="120">
+            <template slot-scope="scope">
+              {{ scope.row.received_date | formatDate || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="cut_date" label="开料日期" width="120">
+            <template slot-scope="scope">
+              {{ scope.row.cut_date | formatDate || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="notes" label="备注" show-overflow-tooltip></el-table-column>
+        </el-table>
+      </el-card>
       <el-card v-else style="margin-top: 20px;">
         <div slot="header">物料信息</div>
         <p style="color: #909399; text-align: center;">暂无物料信息</p>
@@ -433,6 +484,16 @@ export default {
         skipped: '#E6A23C'
       }
       return colorMap[status] || '#909399'
+    },
+    getPurchaseStatusType(status) {
+      const typeMap = {
+        pending: 'info',
+        ordered: 'primary',
+        received: 'success',
+        cut: 'warning',
+        completed: 'success'
+      }
+      return typeMap[status] || 'info'
     }
   }
 }

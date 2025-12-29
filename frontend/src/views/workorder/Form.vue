@@ -63,6 +63,75 @@
           ></el-input>
         </el-form-item>
 
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="数量">
+              <el-input-number
+                v-model="form.quantity"
+                :min="1"
+                style="width: 100%;"
+                @change="calculateTotalPrice"
+              ></el-input-number>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="单位">
+              <el-input v-model="form.unit" disabled></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-divider content-position="left">图稿和刀模</el-divider>
+        
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="图稿（CTP版）">
+              <el-select
+                v-model="form.artwork"
+                placeholder="请选择图稿"
+                filterable
+                clearable
+                style="width: 100%;"
+              >
+                <el-option
+                  v-for="artwork in artworkList"
+                  :key="artwork.id"
+                  :label="`${artwork.code} - ${artwork.name}`"
+                  :value="artwork.id"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="刀模">
+              <el-select
+                v-model="form.die"
+                placeholder="请选择刀模"
+                filterable
+                clearable
+                style="width: 100%;"
+              >
+                <el-option
+                  v-for="die in dieList"
+                  :key="die.id"
+                  :label="`${die.code} - ${die.name}`"
+                  :value="die.id"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-form-item label="拼版数量">
+          <el-input-number
+            v-model="form.imposition_quantity"
+            :min="1"
+            style="width: 100%;"
+            placeholder="如：2拼、4拼等"
+          ></el-input-number>
+          <span style="color: #909399; font-size: 12px; margin-left: 10px;">如：2拼、4拼等</span>
+        </el-form-item>
+
         <!-- 物料信息 -->
         <el-divider content-position="left">物料信息</el-divider>
         
@@ -312,7 +381,7 @@
 </template>
 
 <script>
-import { workOrderAPI, customerAPI, productAPI, processCategoryAPI, processAPI, materialAPI, workOrderMaterialAPI } from '@/api/workorder'
+import { workOrderAPI, customerAPI, productAPI, processCategoryAPI, processAPI, materialAPI, workOrderMaterialAPI, artworkAPI, dieAPI } from '@/api/workorder'
 
 export default {
   name: 'WorkOrderForm',
@@ -323,6 +392,8 @@ export default {
       customerList: [],
       productList: [],
       materialList: [],
+      artworkList: [],
+      dieList: [],
       processCategories: [],
       allProcesses: [],
       selectedProduct: null,
@@ -342,6 +413,9 @@ export default {
         specification: '',
         quantity: 1,
         unit: '件',
+        artwork: null,
+        die: null,
+        imposition_quantity: 1,
         status: 'pending',
         priority: 'normal',
         order_date: '',
@@ -380,6 +454,8 @@ export default {
     this.loadCustomerList()
     this.loadProductList()
     this.loadMaterialList()
+    this.loadArtworkList()
+    this.loadDieList()
     this.loadProcessCategories()
     this.loadAllProcesses()
     
@@ -418,6 +494,22 @@ export default {
         this.materialList = response.results || []
       } catch (error) {
         console.error('加载物料列表失败:', error)
+      }
+    },
+    async loadArtworkList() {
+      try {
+        const response = await artworkAPI.getList({ page_size: 100 })
+        this.artworkList = response.results || []
+      } catch (error) {
+        console.error('加载图稿列表失败:', error)
+      }
+    },
+    async loadDieList() {
+      try {
+        const response = await dieAPI.getList({ page_size: 100 })
+        this.dieList = response.results || []
+      } catch (error) {
+        console.error('加载刀模列表失败:', error)
       }
     },
     async loadProcessCategories() {
@@ -521,6 +613,9 @@ export default {
           specification: data.specification || '',
           quantity: data.quantity,
           unit: data.unit,
+          artwork: data.artwork || null,
+          die: data.die || null,
+          imposition_quantity: data.imposition_quantity || 1,
           status: data.status,
           priority: data.priority,
           order_date: data.order_date,
