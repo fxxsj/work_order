@@ -95,8 +95,37 @@
           ></el-input-number>
         </el-form-item>
         <el-form-item label="产品描述">
-          <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入产品描述"></el-input>
+          <el-input v-model="form.description" type="textarea" :rows="2" placeholder="请输入产品描述"></el-input>
         </el-form-item>
+        
+        <el-divider content-position="left">默认主材信息</el-divider>
+        
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="纸张类型">
+              <el-input v-model="form.paper_type" placeholder="如：铜版纸"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="纸张克数">
+              <el-input v-model="form.paper_weight" placeholder="如：157g"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="纸张品牌">
+              <el-input v-model="form.paper_brand" placeholder="如：金东"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="板材厚度">
+              <el-input v-model="form.board_thickness" placeholder="如：3mm"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        
         <el-form-item label="是否启用">
           <el-switch v-model="form.is_active"></el-switch>
         </el-form-item>
@@ -131,6 +160,10 @@ export default {
         specification: '',
         unit: '件',
         unit_price: 0,
+        paper_type: '',
+        paper_weight: '',
+        paper_brand: '',
+        board_thickness: '',
         description: '',
         is_active: true
       },
@@ -202,6 +235,10 @@ export default {
           specification: row.specification || '',
           unit: row.unit,
           unit_price: parseFloat(row.unit_price),
+          paper_type: row.paper_type || '',
+          paper_weight: row.paper_weight || '',
+          paper_brand: row.paper_brand || '',
+          board_thickness: row.board_thickness || '',
           description: row.description || '',
           is_active: row.is_active
         }
@@ -214,6 +251,10 @@ export default {
           specification: '',
           unit: '件',
           unit_price: 0,
+          paper_type: '',
+          paper_weight: '',
+          paper_brand: '',
+          board_thickness: '',
           description: '',
           is_active: true
         }

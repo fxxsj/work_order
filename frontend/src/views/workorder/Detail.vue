@@ -51,7 +51,20 @@
           {{ workOrder.actual_delivery_date ? (workOrder.actual_delivery_date | formatDate) : '-' }}
         </el-descriptions-item>
         <el-descriptions-item label="产品规格" :span="3">{{ workOrder.specification || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="备注" :span="3">{{ workOrder.notes || '-' }}</el-descriptions-item>
+      </el-descriptions>
+
+      <!-- 主材信息 -->
+      <el-descriptions title="主材信息" :column="3" border style="margin-top: 20px;">
+        <el-descriptions-item label="纸张类型">{{ workOrder.paper_type || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="纸张克数">{{ workOrder.paper_weight || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="纸张品牌">{{ workOrder.paper_brand || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="板材厚度">{{ workOrder.board_thickness || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="主材备注" :span="2">{{ workOrder.material_notes || '-' }}</el-descriptions-item>
+      </el-descriptions>
+
+      <!-- 其他信息 -->
+      <el-descriptions title="其他信息" :column="1" border style="margin-top: 20px;">
+        <el-descriptions-item label="备注">{{ workOrder.notes || '-' }}</el-descriptions-item>
       </el-descriptions>
     </el-card>
 
