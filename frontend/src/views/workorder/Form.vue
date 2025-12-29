@@ -12,8 +12,9 @@
         label-width="120px"
         class="form-container"
       >
-        <el-form-item label="施工单号" prop="order_number">
-          <el-input v-model="form.order_number" placeholder="请输入施工单号"></el-input>
+        <el-form-item label="施工单号" v-if="isEdit">
+          <el-input v-model="form.order_number" disabled></el-input>
+          <span style="color: #909399; font-size: 12px;">系统自动生成</span>
         </el-form-item>
 
         <el-form-item label="客户" prop="customer">
@@ -165,7 +166,6 @@ export default {
       submitting: false,
       customerList: [],
       form: {
-        order_number: '',
         customer: null,
         product_name: '',
         specification: '',
@@ -181,9 +181,6 @@ export default {
         notes: ''
       },
       rules: {
-        order_number: [
-          { required: true, message: '请输入施工单号', trigger: 'blur' }
-        ],
         customer: [
           { required: true, message: '请选择客户', trigger: 'change' }
         ],
@@ -242,7 +239,7 @@ export default {
         const data = await workOrderAPI.getDetail(id)
         
         this.form = {
-          order_number: data.order_number,
+          order_number: data.order_number,  // 只读显示
           customer: data.customer,
           product_name: data.product_name,
           specification: data.specification || '',
@@ -272,6 +269,11 @@ export default {
         try {
           const data = { ...this.form }
           
+          // 创建时删除 order_number 字段（由后端自动生成）
+          if (!this.isEdit) {
+            delete data.order_number
+          }
+          
           // 清理空值
           if (!data.actual_delivery_date) {
             delete data.actual_delivery_date
@@ -285,7 +287,7 @@ export default {
             this.$message.success('保存成功')
           } else {
             await workOrderAPI.create(data)
-            this.$message.success('创建成功')
+            this.$message.success('创建成功，单号自动生成')
           }
           
           this.$router.push('/workorders')
