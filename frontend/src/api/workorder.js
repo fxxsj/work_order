@@ -320,11 +320,30 @@ export const workOrderMaterialAPI = {
       params
     })
   },
+  getDetail(id) {
+    return request({
+      url: `/workorder-materials/${id}/`,
+      method: 'get'
+    })
+  },
+  create(data) {
+    return request({
+      url: '/workorder-materials/',
+      method: 'post',
+      data
+    })
+  },
   update(id, data) {
     return request({
       url: `/workorder-materials/${id}/`,
       method: 'patch',
       data
+    })
+  },
+  delete(id) {
+    return request({
+      url: `/workorder-materials/${id}/`,
+      method: 'delete'
     })
   }
 }

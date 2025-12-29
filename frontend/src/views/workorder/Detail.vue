@@ -64,6 +64,19 @@
         <el-descriptions-item label="主材备注" :span="3">{{ workOrder.material_notes || '-' }}</el-descriptions-item>
       </el-descriptions>
 
+      <!-- 物料信息 -->
+      <el-descriptions title="物料信息" :column="3" border style="margin-top: 20px;" v-if="workOrder.materials && workOrder.materials.length > 0">
+        <template v-for="(material, index) in workOrder.materials">
+          <el-descriptions-item :key="`material-${index}-name`" label="物料名称">{{ material.material_name || '-' }}</el-descriptions-item>
+          <el-descriptions-item :key="`material-${index}-size`" label="尺寸">{{ material.material_size || '-' }}</el-descriptions-item>
+          <el-descriptions-item :key="`material-${index}-usage`" label="用量">{{ material.material_usage || '-' }}</el-descriptions-item>
+        </template>
+      </el-descriptions>
+      <el-card v-else style="margin-top: 20px;">
+        <div slot="header">物料信息</div>
+        <p style="color: #909399; text-align: center;">暂无物料信息</p>
+      </el-card>
+
       <!-- 其他信息 -->
       <el-descriptions title="其他信息" :column="1" border style="margin-top: 20px;">
         <el-descriptions-item label="备注">{{ workOrder.notes || '-' }}</el-descriptions-item>

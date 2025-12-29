@@ -114,6 +114,69 @@
           ></el-input>
         </el-form-item>
 
+        <!-- 物料信息 -->
+        <el-divider content-position="left">物料信息</el-divider>
+        
+        <el-form-item label="物料列表">
+          <el-button type="primary" size="small" icon="el-icon-plus" @click="addMaterialItem">
+            添加物料
+          </el-button>
+          <div style="margin-top: 15px;">
+            <el-table
+              :data="materialItems"
+              border
+              style="width: 100%"
+            >
+              <el-table-column label="物料名称" width="200">
+                <template slot-scope="scope">
+                  <el-select
+                    v-model="scope.row.material"
+                    placeholder="请选择物料"
+                    filterable
+                    style="width: 100%;"
+                    @change="handleMaterialChange(scope.$index)"
+                  >
+                    <el-option
+                      v-for="material in materialList"
+                      :key="material.id"
+                      :label="`${material.name} (${material.code})`"
+                      :value="material.id"
+                    ></el-option>
+                  </el-select>
+                </template>
+              </el-table-column>
+              <el-table-column label="尺寸" width="180">
+                <template slot-scope="scope">
+                  <el-input
+                    v-model="scope.row.material_size"
+                    placeholder="如：A4、210x297mm"
+                    size="small"
+                  ></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column label="用量" width="180">
+                <template slot-scope="scope">
+                  <el-input
+                    v-model="scope.row.material_usage"
+                    placeholder="如：1000张、50平方米"
+                    size="small"
+                  ></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="100" align="center">
+                <template slot-scope="scope">
+                  <el-button
+                    type="danger"
+                    size="mini"
+                    icon="el-icon-delete"
+                    @click="removeMaterialItem(scope.$index)"
+                  ></el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-form-item>
+
         <!-- 工序选择 -->
         <el-divider content-position="left">工序选择</el-divider>
         
@@ -300,7 +363,7 @@
 </template>
 
 <script>
-import { workOrderAPI, customerAPI, productAPI, processCategoryAPI, processAPI } from '@/api/workorder'
+import { workOrderAPI, customerAPI, productAPI, processCategoryAPI, processAPI, materialAPI, workOrderMaterialAPI } from '@/api/workorder'
 
 export default {
   name: 'WorkOrderForm',
@@ -310,9 +373,11 @@ export default {
       submitting: false,
       customerList: [],
       productList: [],
+      materialList: [],
       processCategories: [],
       allProcesses: [],
       selectedProduct: null,
+      materialItems: [], // 物料列表
       selectedProcesses: {
         prepress: [],
         printing: [],
@@ -372,6 +437,7 @@ export default {
     this.isEdit = !!this.$route.params.id
     this.loadCustomerList()
     this.loadProductList()
+    this.loadMaterialList()
     this.loadProcessCategories()
     this.loadAllProcesses()
     
@@ -402,6 +468,14 @@ export default {
         this.productList = response.results || []
       } catch (error) {
         console.error('加载产品列表失败:', error)
+      }
+    },
+    async loadMaterialList() {
+      try {
+        const response = await materialAPI.getList({ page_size: 100 })
+        this.materialList = response.results || []
+      } catch (error) {
+        console.error('加载物料列表失败:', error)
       }
     },
     async loadProcessCategories() {
@@ -551,6 +625,21 @@ export default {
             }
           })
         }
+        
+        // 加载物料信息
+        if (data.materials && data.materials.length > 0) {
+          this.materialItems = data.materials.map(m => ({
+            id: m.id, // 编辑时保留ID
+            material: m.material,
+            material_size: m.material_size || '',
+            material_usage: m.material_usage || '',
+            planned_quantity: m.planned_quantity || 0,
+            actual_quantity: m.actual_quantity || 0,
+            notes: m.notes || ''
+          }))
+        } else {
+          this.materialItems = []
+        }
       } catch (error) {
         this.$message.error('加载数据失败')
         console.error(error)
@@ -592,6 +681,9 @@ export default {
             await this.addSelectedProcesses(workOrderId)
           }
           
+          // 保存物料信息
+          await this.saveMaterials(workOrderId)
+          
           this.$router.push('/workorders')
         } catch (error) {
           this.$message.error(this.isEdit ? '保存失败' : '创建失败')
@@ -626,6 +718,56 @@ export default {
     },
     handleCancel() {
       this.$router.back()
+    },
+    addMaterialItem() {
+      this.materialItems.push({
+        material: null,
+        material_size: '',
+        material_usage: '',
+        planned_quantity: 0,
+        actual_quantity: 0,
+        notes: ''
+      })
+    },
+    removeMaterialItem(index) {
+      this.materialItems.splice(index, 1)
+    },
+    handleMaterialChange(index) {
+      // 物料选择变化时的处理（如果需要）
+    },
+    async saveMaterials(workOrderId) {
+      // 如果是编辑模式，先删除所有现有物料，然后重新添加
+      if (this.isEdit) {
+        try {
+          // 获取现有物料列表
+          const existingMaterials = await workOrderMaterialAPI.getList({ work_order: workOrderId })
+          // 删除现有物料
+          for (const material of existingMaterials.results || []) {
+            await workOrderMaterialAPI.delete(material.id)
+          }
+        } catch (error) {
+          console.error('删除现有物料失败:', error)
+        }
+      }
+      
+      // 添加新物料
+      for (const item of this.materialItems) {
+        if (item.material) {
+          try {
+            await workOrderMaterialAPI.create({
+              work_order: workOrderId,
+              material: item.material,
+              material_size: item.material_size || '',
+              material_usage: item.material_usage || '',
+              planned_quantity: item.planned_quantity || 0,
+              actual_quantity: item.actual_quantity || 0,
+              notes: item.notes || ''
+            })
+          } catch (error) {
+            console.error('保存物料失败:', error)
+          }
+        }
+      }
     },
     formatDate(date) {
       const year = date.getFullYear()
