@@ -185,7 +185,7 @@
 </template>
 
 <script>
-import { artworkAPI, artworkProductAPI, productAPI } from '@/api/workorder'
+import { artworkAPI, productAPI } from '@/api/workorder'
 
 export default {
   name: 'ArtworkList',
