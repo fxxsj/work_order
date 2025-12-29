@@ -1,0 +1,97 @@
+/* 全局样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* 状态徽章样式 */
+.status-badge {
+  padding: 3px 8px;
+  border-radius: 3px;
+  color: white;
+  font-size: 12px;
+  display: inline-block;
+}
+
+.status-pending {
+  background-color: #909399;
+}
+
+.status-in_progress {
+  background-color: #409EFF;
+}
+
+.status-paused {
+  background-color: #E6A23C;
+}
+
+.status-completed {
+  background-color: #67C23A;
+}
+
+.status-cancelled {
+  background-color: #F56C6C;
+}
+
+.status-skipped {
+  background-color: #E6A23C;
+}
+
+/* 优先级徽章样式 */
+.priority-low {
+  background-color: #909399;
+}
+
+.priority-normal {
+  background-color: #409EFF;
+}
+
+.priority-high {
+  background-color: #E6A23C;
+}
+
+.priority-urgent {
+  background-color: #F56C6C;
+}
+
+/* 卡片间距 */
+.card-container {
+  padding: 20px;
+}
+
+/* 表单样式 */
+.form-container {
+  max-width: 800px;
+}
+
+/* 按钮组样式 */
+.button-group {
+  display: flex;
+  gap: 10px;
+}
+
