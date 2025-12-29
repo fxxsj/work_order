@@ -79,6 +79,43 @@ export const processAPI = {
   }
 }
 
+// 产品管理
+export const productAPI = {
+  getList(params) {
+    return request({
+      url: '/products/',
+      method: 'get',
+      params
+    })
+  },
+  getDetail(id) {
+    return request({
+      url: `/products/${id}/`,
+      method: 'get'
+    })
+  },
+  create(data) {
+    return request({
+      url: '/products/',
+      method: 'post',
+      data
+    })
+  },
+  update(id, data) {
+    return request({
+      url: `/products/${id}/`,
+      method: 'put',
+      data
+    })
+  },
+  delete(id) {
+    return request({
+      url: `/products/${id}/`,
+      method: 'delete'
+    })
+  }
+}
+
 // 物料管理
 export const materialAPI = {
   getList(params) {

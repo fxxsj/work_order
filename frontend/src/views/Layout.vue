@@ -29,6 +29,10 @@
           <i class="el-icon-setting"></i>
           <span>工序管理</span>
         </el-menu-item>
+        <el-menu-item index="/products">
+          <i class="el-icon-shopping-bag-2"></i>
+          <span>产品管理</span>
+        </el-menu-item>
         <el-menu-item index="/materials">
           <i class="el-icon-goods"></i>
           <span>物料管理</span>

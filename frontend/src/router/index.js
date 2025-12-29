@@ -62,6 +62,12 @@ const routes = [
         meta: { title: '工序管理', requiresAuth: true }
       },
       {
+        path: 'products',
+        name: 'ProductList',
+        component: () => import('@/views/product/List.vue'),
+        meta: { title: '产品管理', requiresAuth: true }
+      },
+      {
         path: 'materials',
         name: 'MaterialList',
         component: () => import('@/views/material/List.vue'),

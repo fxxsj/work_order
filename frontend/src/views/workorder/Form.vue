@@ -33,16 +33,33 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="产品名称" prop="product_name">
-          <el-input v-model="form.product_name" placeholder="请输入产品名称"></el-input>
+        <el-form-item label="产品" prop="product">
+          <el-select
+            v-model="form.product"
+            placeholder="请选择产品"
+            filterable
+            style="width: 100%;"
+            @change="handleProductChange"
+          >
+            <el-option
+              v-for="product in productList"
+              :key="product.id"
+              :label="`${product.name} (${product.code})`"
+              :value="product.id"
+            >
+              <span style="float: left">{{ product.name }}</span>
+              <span style="float: right; color: #8492a6; font-size: 13px">¥{{ product.unit_price }}</span>
+            </el-option>
+          </el-select>
         </el-form-item>
 
         <el-form-item label="产品规格">
           <el-input
             v-model="form.specification"
             type="textarea"
-            :rows="3"
-            placeholder="请输入产品规格"
+            :rows="2"
+            placeholder="选择产品后自动填充"
+            :disabled="true"
           ></el-input>
         </el-form-item>
 
@@ -53,12 +70,13 @@
                 v-model="form.quantity"
                 :min="1"
                 style="width: 100%;"
+                @change="calculateTotalAmount"
               ></el-input-number>
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="单位" prop="unit">
-              <el-input v-model="form.unit" placeholder="如：件、张、本"></el-input>
+            <el-form-item label="单位">
+              <el-input v-model="form.unit" placeholder="自动填充" :disabled="true"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
@@ -122,13 +140,15 @@
           ></el-date-picker>
         </el-form-item>
 
-        <el-form-item label="总金额" prop="total_amount">
+        <el-form-item label="总金额">
           <el-input-number
             v-model="form.total_amount"
             :min="0"
             :precision="2"
             style="width: 100%;"
+            :disabled="true"
           ></el-input-number>
+          <span style="color: #909399; font-size: 12px;">根据产品单价和数量自动计算</span>
         </el-form-item>
 
         <el-form-item label="负责人">
@@ -156,7 +176,7 @@
 </template>
 
 <script>
-import { workOrderAPI, customerAPI } from '@/api/workorder'
+import { workOrderAPI, customerAPI, productAPI } from '@/api/workorder'
 
 export default {
   name: 'WorkOrderForm',
@@ -165,8 +185,11 @@ export default {
       isEdit: false,
       submitting: false,
       customerList: [],
+      productList: [],
+      selectedProduct: null,
       form: {
         customer: null,
+        product: null,
         product_name: '',
         specification: '',
         quantity: 1,
@@ -184,14 +207,11 @@ export default {
         customer: [
           { required: true, message: '请选择客户', trigger: 'change' }
         ],
-        product_name: [
-          { required: true, message: '请输入产品名称', trigger: 'blur' }
+        product: [
+          { required: true, message: '请选择产品', trigger: 'change' }
         ],
         quantity: [
           { required: true, message: '请输入数量', trigger: 'blur' }
-        ],
-        unit: [
-          { required: true, message: '请输入单位', trigger: 'blur' }
         ],
         status: [
           { required: true, message: '请选择状态', trigger: 'change' }
@@ -211,6 +231,7 @@ export default {
   created() {
     this.isEdit = !!this.$route.params.id
     this.loadCustomerList()
+    this.loadProductList()
     
     if (this.isEdit) {
       this.loadData()
@@ -233,6 +254,34 @@ export default {
         console.error('加载客户列表失败:', error)
       }
     },
+    async loadProductList() {
+      try {
+        const response = await productAPI.getList({ is_active: true, page_size: 100 })
+        this.productList = response.results || []
+      } catch (error) {
+        console.error('加载产品列表失败:', error)
+      }
+    },
+    handleProductChange(productId) {
+      // 找到选中的产品
+      const product = this.productList.find(p => p.id === productId)
+      if (product) {
+        this.selectedProduct = product
+        // 自动填充产品信息
+        this.form.product_name = product.name
+        this.form.specification = product.specification
+        this.form.unit = product.unit
+        // 自动计算总价
+        this.calculateTotalAmount()
+      }
+    },
+    calculateTotalAmount() {
+      if (this.selectedProduct && this.form.quantity) {
+        this.form.total_amount = parseFloat(
+          (this.selectedProduct.unit_price * this.form.quantity).toFixed(2)
+        )
+      }
+    },
     async loadData() {
       try {
         const id = this.$route.params.id
@@ -241,6 +290,7 @@ export default {
         this.form = {
           order_number: data.order_number,  // 只读显示
           customer: data.customer,
+          product: data.product,
           product_name: data.product_name,
           specification: data.specification || '',
           quantity: data.quantity,
@@ -253,6 +303,11 @@ export default {
           total_amount: parseFloat(data.total_amount),
           manager: data.manager,
           notes: data.notes || ''
+        }
+        
+        // 如果有产品ID，加载产品信息用于计算
+        if (data.product) {
+          this.selectedProduct = data.product_detail
         }
       } catch (error) {
         this.$message.error('加载数据失败')
