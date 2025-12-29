@@ -22,8 +22,15 @@
         style="width: 100%; margin-top: 20px;"
       >
         <el-table-column prop="code" label="工序编码" width="120"></el-table-column>
-        <el-table-column prop="name" label="工序名称" width="200"></el-table-column>
-        <el-table-column prop="description" label="描述" min-width="250"></el-table-column>
+        <el-table-column prop="name" label="工序名称" width="180"></el-table-column>
+        <el-table-column label="工序类别" width="120">
+          <template slot-scope="scope">
+            <el-tag :type="getCategoryType(scope.row.category)">
+              {{ scope.row.category_display }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="description" label="描述" min-width="200"></el-table-column>
         <el-table-column prop="standard_duration" label="标准工时(小时)" width="140" align="right"></el-table-column>
         <el-table-column prop="sort_order" label="排序" width="80" align="center"></el-table-column>
         <el-table-column label="状态" width="100">
@@ -75,6 +82,17 @@
         <el-form-item label="工序名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入工序名称"></el-input>
         </el-form-item>
+        <el-form-item label="工序类别" prop="category">
+          <el-select v-model="form.category" style="width: 100%;">
+            <el-option label="印前" value="prepress"></el-option>
+            <el-option label="印刷" value="printing"></el-option>
+            <el-option label="表面处理" value="surface"></el-option>
+            <el-option label="后道加工" value="postpress"></el-option>
+            <el-option label="复合/裱合" value="laminating"></el-option>
+            <el-option label="成型/包装" value="forming"></el-option>
+            <el-option label="其他" value="other"></el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="工序描述">
           <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入工序描述"></el-input>
         </el-form-item>
@@ -123,6 +141,7 @@ export default {
       form: {
         code: '',
         name: '',
+        category: 'other',
         description: '',
         standard_duration: 0,
         sort_order: 0,
@@ -134,6 +153,9 @@ export default {
         ],
         name: [
           { required: true, message: '请输入工序名称', trigger: 'blur' }
+        ],
+        category: [
+          { required: true, message: '请选择工序类别', trigger: 'change' }
         ]
       }
     }
@@ -147,6 +169,18 @@ export default {
     this.loadData()
   },
   methods: {
+    getCategoryType(category) {
+      const typeMap = {
+        prepress: '',
+        printing: 'success',
+        surface: 'warning',
+        postpress: 'danger',
+        laminating: 'info',
+        forming: 'primary',
+        other: ''
+      }
+      return typeMap[category] || ''
+    },
     async loadData() {
       this.loading = true
       try {
@@ -184,6 +218,7 @@ export default {
         this.form = {
           code: row.code,
           name: row.name,
+          category: row.category,
           description: row.description || '',
           standard_duration: row.standard_duration,
           sort_order: row.sort_order,
@@ -195,6 +230,7 @@ export default {
         this.form = {
           code: '',
           name: '',
+          category: 'other',
           description: '',
           standard_duration: 0,
           sort_order: 0,

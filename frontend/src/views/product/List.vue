@@ -125,30 +125,18 @@
             </el-form-item>
           </el-col>
         </el-row>
-
-        <el-divider content-position="left">默认工艺信息</el-divider>
-        
-        <el-row :gutter="20">
-          <el-col :span="8">
-            <el-form-item label="印刷方式/色数">
-              <el-input v-model="form.printing_method" placeholder="如：双面四色"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="表面处理">
-              <el-input v-model="form.surface_treatment" placeholder="如：覆亮膜"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="后道工艺">
-              <el-input v-model="form.post_processing" placeholder="如：骑马订"></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
         
         <el-form-item label="是否启用">
           <el-switch v-model="form.is_active"></el-switch>
         </el-form-item>
+        
+        <el-alert
+          title="提示"
+          type="info"
+          description="默认工序需要在Django Admin后台配置，创建施工单时会自动添加这些工序"
+          :closable="false"
+          style="margin-top: 10px;"
+        ></el-alert>
       </el-form>
       <div slot="footer">
         <el-button @click="dialogVisible = false">取消</el-button>
@@ -184,9 +172,6 @@ export default {
         paper_weight: '',
         paper_brand: '',
         board_thickness: '',
-        printing_method: '',
-        surface_treatment: '',
-        post_processing: '',
         description: '',
         is_active: true
       },
@@ -262,9 +247,6 @@ export default {
           paper_weight: row.paper_weight || '',
           paper_brand: row.paper_brand || '',
           board_thickness: row.board_thickness || '',
-          printing_method: row.printing_method || '',
-          surface_treatment: row.surface_treatment || '',
-          post_processing: row.post_processing || '',
           description: row.description || '',
           is_active: row.is_active
         }
@@ -281,9 +263,6 @@ export default {
           paper_weight: '',
           paper_brand: '',
           board_thickness: '',
-          printing_method: '',
-          surface_treatment: '',
-          post_processing: '',
           description: '',
           is_active: true
         }

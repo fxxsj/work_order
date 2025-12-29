@@ -101,34 +101,79 @@
           ></el-input>
         </el-form-item>
 
-        <!-- 工艺明细 -->
-        <el-divider content-position="left">工艺明细</el-divider>
+        <!-- 工序选择 -->
+        <el-divider content-position="left">工序选择</el-divider>
         
-        <el-row :gutter="20">
-          <el-col :span="8">
-            <el-form-item label="印刷方式/色数">
-              <el-input v-model="form.printing_method" placeholder="如：双面四色、单面单色"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="表面处理">
-              <el-input v-model="form.surface_treatment" placeholder="如：UV、覆亮膜、覆哑膜"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item label="后道工艺">
-              <el-input v-model="form.post_processing" placeholder="如：烫金、模切、压痕"></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
+        <el-form-item label="印前工序">
+          <el-checkbox-group v-model="selectedProcesses.prepress">
+            <el-checkbox
+              v-for="process in getProcessesByCategory('prepress')"
+              :key="process.id"
+              :label="process.id"
+            >
+              {{ process.name }}
+            </el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
 
-        <el-form-item label="工艺备注">
-          <el-input
-            v-model="form.process_notes"
-            type="textarea"
-            :rows="2"
-            placeholder="其他工艺要求说明"
-          ></el-input>
+        <el-form-item label="印刷工序">
+          <el-checkbox-group v-model="selectedProcesses.printing">
+            <el-checkbox
+              v-for="process in getProcessesByCategory('printing')"
+              :key="process.id"
+              :label="process.id"
+            >
+              {{ process.name }}
+            </el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
+
+        <el-form-item label="表面处理">
+          <el-checkbox-group v-model="selectedProcesses.surface">
+            <el-checkbox
+              v-for="process in getProcessesByCategory('surface')"
+              :key="process.id"
+              :label="process.id"
+            >
+              {{ process.name }}
+            </el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
+
+        <el-form-item label="后道加工">
+          <el-checkbox-group v-model="selectedProcesses.postpress">
+            <el-checkbox
+              v-for="process in getProcessesByCategory('postpress')"
+              :key="process.id"
+              :label="process.id"
+            >
+              {{ process.name }}
+            </el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
+
+        <el-form-item label="复合/裱合">
+          <el-checkbox-group v-model="selectedProcesses.laminating">
+            <el-checkbox
+              v-for="process in getProcessesByCategory('laminating')"
+              :key="process.id"
+              :label="process.id"
+            >
+              {{ process.name }}
+            </el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
+
+        <el-form-item label="成型/包装">
+          <el-checkbox-group v-model="selectedProcesses.forming">
+            <el-checkbox
+              v-for="process in getProcessesByCategory('forming')"
+              :key="process.id"
+              :label="process.id"
+            >
+              {{ process.name }}
+            </el-checkbox>
+          </el-checkbox-group>
         </el-form-item>
 
         <el-divider></el-divider>
@@ -252,7 +297,16 @@ export default {
       submitting: false,
       customerList: [],
       productList: [],
+      allProcesses: [],
       selectedProduct: null,
+      selectedProcesses: {
+        prepress: [],
+        printing: [],
+        surface: [],
+        postpress: [],
+        laminating: [],
+        forming: []
+      },
       form: {
         customer: null,
         product: null,
@@ -265,10 +319,6 @@ export default {
         paper_brand: '',
         board_thickness: '',
         material_notes: '',
-        printing_method: '',
-        surface_treatment: '',
-        post_processing: '',
-        process_notes: '',
         status: 'pending',
         priority: 'normal',
         order_date: '',
@@ -306,6 +356,7 @@ export default {
     this.isEdit = !!this.$route.params.id
     this.loadCustomerList()
     this.loadProductList()
+    this.loadAllProcesses()
     
     if (this.isEdit) {
       this.loadData()
@@ -336,7 +387,18 @@ export default {
         console.error('加载产品列表失败:', error)
       }
     },
-    handleProductChange(productId) {
+    async loadAllProcesses() {
+      try {
+        const response = await processAPI.getList({ is_active: true, page_size: 100 })
+        this.allProcesses = response.results || []
+      } catch (error) {
+        console.error('加载工序列表失败:', error)
+      }
+    },
+    getProcessesByCategory(category) {
+      return this.allProcesses.filter(p => p.category === category)
+    },
+    async handleProductChange(productId) {
       // 找到选中的产品
       const product = this.productList.find(p => p.id === productId)
       if (product) {
@@ -360,15 +422,30 @@ export default {
           this.form.board_thickness = product.board_thickness
         }
         
-        // 自动填充工艺信息（如果产品有默认值）
-        if (product.printing_method) {
-          this.form.printing_method = product.printing_method
-        }
-        if (product.surface_treatment) {
-          this.form.surface_treatment = product.surface_treatment
-        }
-        if (product.post_processing) {
-          this.form.post_processing = product.post_processing
+        // 获取产品详情（包含默认工序）
+        try {
+          const productDetail = await productAPI.getDetail(productId)
+          if (productDetail.default_processes && productDetail.default_processes.length > 0) {
+            // 清空之前的选择
+            this.selectedProcesses = {
+              prepress: [],
+              printing: [],
+              surface: [],
+              postpress: [],
+              laminating: [],
+              forming: []
+            }
+            
+            // 按类别分组选中的工序
+            productDetail.default_processes.forEach(processId => {
+              const process = this.allProcesses.find(p => p.id === processId)
+              if (process) {
+                this.selectedProcesses[process.category].push(processId)
+              }
+            })
+          }
+        } catch (error) {
+          console.error('加载产品默认工序失败:', error)
         }
         
         // 自动计算总价
@@ -400,10 +477,6 @@ export default {
           paper_brand: data.paper_brand || '',
           board_thickness: data.board_thickness || '',
           material_notes: data.material_notes || '',
-          printing_method: data.printing_method || '',
-          surface_treatment: data.surface_treatment || '',
-          post_processing: data.post_processing || '',
-          process_notes: data.process_notes || '',
           status: data.status,
           priority: data.priority,
           order_date: data.order_date,
@@ -416,6 +489,25 @@ export default {
         // 如果有产品ID，加载产品信息用于计算
         if (data.product) {
           this.selectedProduct = data.product_detail
+        }
+        
+        // 加载已选择的工序
+        if (data.order_processes && data.order_processes.length > 0) {
+          this.selectedProcesses = {
+            prepress: [],
+            printing: [],
+            surface: [],
+            postpress: [],
+            laminating: [],
+            forming: []
+          }
+          
+          data.order_processes.forEach(op => {
+            const process = this.allProcesses.find(p => p.id === op.process)
+            if (process) {
+              this.selectedProcesses[process.category].push(op.process)
+            }
+          })
         }
       } catch (error) {
         this.$message.error('加载数据失败')
@@ -442,12 +534,20 @@ export default {
             delete data.actual_delivery_date
           }
           
+          let workOrderId
           if (this.isEdit) {
             await workOrderAPI.update(this.$route.params.id, data)
+            workOrderId = this.$route.params.id
             this.$message.success('保存成功')
           } else {
-            await workOrderAPI.create(data)
+            const result = await workOrderAPI.create(data)
+            workOrderId = result.id
             this.$message.success('创建成功，单号自动生成')
+          }
+          
+          // 添加选中的工序
+          if (!this.isEdit) {
+            await this.addSelectedProcesses(workOrderId)
           }
           
           this.$router.push('/workorders')
@@ -457,6 +557,30 @@ export default {
         } finally {
           this.submitting = false
         }
+      })
+    },
+    async addSelectedProcesses(workOrderId) {
+      // 收集所有选中的工序ID
+      const allSelectedIds = [
+        ...this.selectedProcesses.prepress,
+        ...this.selectedProcesses.printing,
+        ...this.selectedProcesses.surface,
+        ...this.selectedProcesses.postpress,
+        ...this.selectedProcesses.laminating,
+        ...this.selectedProcesses.forming
+      ]
+      
+      // 按顺序添加工序
+      for (let i = 0; i < allSelectedIds.length; i++) {
+        try {
+          await workOrderAPI.addProcess(workOrderId, {
+            process_id: allSelectedIds[i],
+            sequence: i + 1
+          })
+        } catch (error) {
+          console.error('添加工序失败:', error)
+        }
+      }
       })
     },
     handleCancel() {

@@ -62,14 +62,6 @@
         <el-descriptions-item label="主材备注" :span="2">{{ workOrder.material_notes || '-' }}</el-descriptions-item>
       </el-descriptions>
 
-      <!-- 工艺明细 -->
-      <el-descriptions title="工艺明细" :column="3" border style="margin-top: 20px;">
-        <el-descriptions-item label="印刷方式/色数">{{ workOrder.printing_method || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="表面处理">{{ workOrder.surface_treatment || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="后道工艺">{{ workOrder.post_processing || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="工艺备注" :span="3">{{ workOrder.process_notes || '-' }}</el-descriptions-item>
-      </el-descriptions>
-
       <!-- 其他信息 -->
       <el-descriptions title="其他信息" :column="1" border style="margin-top: 20px;">
         <el-descriptions-item label="备注">{{ workOrder.notes || '-' }}</el-descriptions-item>
