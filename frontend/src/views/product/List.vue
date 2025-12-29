@@ -126,6 +126,19 @@
           </el-col>
         </el-row>
         
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="尺寸">
+              <el-input v-model="form.material_size" placeholder="如：A4、210x297mm"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="用量">
+              <el-input v-model="form.material_usage" placeholder="如：1000张、50平方米"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        
         <el-divider content-position="left">默认工序配置</el-divider>
         
         <div v-for="category in processCategories" :key="category.id" style="margin-bottom: 15px;">
@@ -182,6 +195,8 @@ export default {
         paper_weight: '',
         paper_brand: '',
         board_thickness: '',
+        material_size: '',
+        material_usage: '',
         description: '',
         is_active: true,
         default_processes: []
@@ -283,6 +298,8 @@ export default {
             paper_weight: detail.paper_weight || '',
             paper_brand: detail.paper_brand || '',
             board_thickness: detail.board_thickness || '',
+            material_size: detail.material_size || '',
+            material_usage: detail.material_usage || '',
             description: detail.description || '',
             is_active: detail.is_active,
             default_processes: detail.default_processes || []
@@ -303,6 +320,8 @@ export default {
           paper_weight: '',
           paper_brand: '',
           board_thickness: '',
+          material_size: '',
+          material_usage: '',
           description: '',
           is_active: true,
           default_processes: []

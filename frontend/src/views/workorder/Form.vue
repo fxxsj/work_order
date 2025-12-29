@@ -319,6 +319,8 @@ export default {
         paper_weight: '',
         paper_brand: '',
         board_thickness: '',
+        material_size: '',
+        material_usage: '',
         material_notes: '',
         status: 'pending',
         priority: 'normal',
@@ -434,6 +436,12 @@ export default {
         if (product.board_thickness) {
           this.form.board_thickness = product.board_thickness
         }
+        if (product.material_size) {
+          this.form.material_size = product.material_size
+        }
+        if (product.material_usage) {
+          this.form.material_usage = product.material_usage
+        }
         
         // 获取产品详情（包含默认工序）
         try {
@@ -492,6 +500,8 @@ export default {
           paper_weight: data.paper_weight || '',
           paper_brand: data.paper_brand || '',
           board_thickness: data.board_thickness || '',
+          material_size: data.material_size || '',
+          material_usage: data.material_usage || '',
           material_notes: data.material_notes || '',
           status: data.status,
           priority: data.priority,

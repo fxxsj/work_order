@@ -59,7 +59,9 @@
         <el-descriptions-item label="纸张克数">{{ workOrder.paper_weight || '-' }}</el-descriptions-item>
         <el-descriptions-item label="纸张品牌">{{ workOrder.paper_brand || '-' }}</el-descriptions-item>
         <el-descriptions-item label="板材厚度">{{ workOrder.board_thickness || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="主材备注" :span="2">{{ workOrder.material_notes || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="尺寸">{{ workOrder.material_size || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="用量">{{ workOrder.material_usage || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="主材备注" :span="3">{{ workOrder.material_notes || '-' }}</el-descriptions-item>
       </el-descriptions>
 
       <!-- 其他信息 -->
