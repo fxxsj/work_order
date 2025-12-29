@@ -45,6 +45,10 @@
           <i class="el-icon-picture"></i>
           <span>图稿管理</span>
         </el-menu-item>
+        <el-menu-item index="/dies">
+          <i class="el-icon-scissors"></i>
+          <span>刀模管理</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
 
@@ -102,6 +106,9 @@ export default {
       }
       if (path.startsWith('/artworks')) {
         return '/artworks'
+      }
+      if (path.startsWith('/dies')) {
+        return '/dies'
       }
       return path
     },

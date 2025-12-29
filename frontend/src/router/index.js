@@ -84,6 +84,12 @@ const routes = [
         name: 'ArtworkList',
         component: () => import('@/views/artwork/List.vue'),
         meta: { title: '图稿管理', requiresAuth: true }
+      },
+      {
+        path: 'dies',
+        name: 'DieList',
+        component: () => import('@/views/die/List.vue'),
+        meta: { title: '刀模管理', requiresAuth: true }
       }
     ]
   }

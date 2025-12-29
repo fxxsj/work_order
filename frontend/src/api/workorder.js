@@ -470,3 +470,77 @@ export const artworkProductAPI = {
   }
 }
 
+// 刀模管理
+export const dieAPI = {
+  getList(params) {
+    return request({
+      url: '/dies/',
+      method: 'get',
+      params
+    })
+  },
+  getDetail(id) {
+    return request({
+      url: `/dies/${id}/`,
+      method: 'get'
+    })
+  },
+  create(data) {
+    return request({
+      url: '/dies/',
+      method: 'post',
+      data
+    })
+  },
+  update(id, data) {
+    return request({
+      url: `/dies/${id}/`,
+      method: 'put',
+      data
+    })
+  },
+  delete(id) {
+    return request({
+      url: `/dies/${id}/`,
+      method: 'delete'
+    })
+  }
+}
+
+// 刀模产品管理
+export const dieProductAPI = {
+  getList(params) {
+    return request({
+      url: '/die-products/',
+      method: 'get',
+      params
+    })
+  },
+  getDetail(id) {
+    return request({
+      url: `/die-products/${id}/`,
+      method: 'get'
+    })
+  },
+  create(data) {
+    return request({
+      url: '/die-products/',
+      method: 'post',
+      data
+    })
+  },
+  update(id, data) {
+    return request({
+      url: `/die-products/${id}/`,
+      method: 'put',
+      data
+    })
+  },
+  delete(id) {
+    return request({
+      url: `/die-products/${id}/`,
+      method: 'delete'
+    })
+  }
+}
+
