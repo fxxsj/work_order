@@ -84,10 +84,9 @@
           <el-input
             v-model="form.code"
             placeholder="留空则系统自动生成（格式：DIE + yyyymm + 序号）"
-            :disabled="isEdit"
           ></el-input>
           <div style="font-size: 12px; color: #909399; margin-top: 5px;">
-            {{ isEdit ? '编码不可修改' : '留空则自动生成，格式：DIE202412001' }}
+            留空则自动生成，格式：DIE202412001
           </div>
         </el-form-item>
         <el-form-item label="刀模名称" prop="name">
