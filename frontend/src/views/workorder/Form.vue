@@ -101,6 +101,36 @@
           ></el-input>
         </el-form-item>
 
+        <!-- 工艺明细 -->
+        <el-divider content-position="left">工艺明细</el-divider>
+        
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <el-form-item label="印刷方式/色数">
+              <el-input v-model="form.printing_method" placeholder="如：双面四色、单面单色"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="表面处理">
+              <el-input v-model="form.surface_treatment" placeholder="如：UV、覆亮膜、覆哑膜"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="后道工艺">
+              <el-input v-model="form.post_processing" placeholder="如：烫金、模切、压痕"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-form-item label="工艺备注">
+          <el-input
+            v-model="form.process_notes"
+            type="textarea"
+            :rows="2"
+            placeholder="其他工艺要求说明"
+          ></el-input>
+        </el-form-item>
+
         <el-divider></el-divider>
 
         <el-row :gutter="20">
@@ -235,6 +265,10 @@ export default {
         paper_brand: '',
         board_thickness: '',
         material_notes: '',
+        printing_method: '',
+        surface_treatment: '',
+        post_processing: '',
+        process_notes: '',
         status: 'pending',
         priority: 'normal',
         order_date: '',
@@ -326,6 +360,17 @@ export default {
           this.form.board_thickness = product.board_thickness
         }
         
+        // 自动填充工艺信息（如果产品有默认值）
+        if (product.printing_method) {
+          this.form.printing_method = product.printing_method
+        }
+        if (product.surface_treatment) {
+          this.form.surface_treatment = product.surface_treatment
+        }
+        if (product.post_processing) {
+          this.form.post_processing = product.post_processing
+        }
+        
         // 自动计算总价
         this.calculateTotalAmount()
       }
@@ -355,6 +400,10 @@ export default {
           paper_brand: data.paper_brand || '',
           board_thickness: data.board_thickness || '',
           material_notes: data.material_notes || '',
+          printing_method: data.printing_method || '',
+          surface_treatment: data.surface_treatment || '',
+          post_processing: data.post_processing || '',
+          process_notes: data.process_notes || '',
           status: data.status,
           priority: data.priority,
           order_date: data.order_date,
