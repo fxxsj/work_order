@@ -42,6 +42,17 @@ export const customerAPI = {
   }
 }
 
+// 工序分类管理
+export const processCategoryAPI = {
+  getList(params) {
+    return request({
+      url: '/process-categories/',
+      method: 'get',
+      params
+    })
+  }
+}
+
 // 工序管理
 export const processAPI = {
   getList(params) {

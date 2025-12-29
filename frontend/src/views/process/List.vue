@@ -25,8 +25,8 @@
         <el-table-column prop="name" label="工序名称" width="180"></el-table-column>
         <el-table-column label="工序类别" width="120">
           <template slot-scope="scope">
-            <el-tag :type="getCategoryType(scope.row.category)">
-              {{ scope.row.category_display }}
+            <el-tag :type="getCategoryType(scope.row.category_code)">
+              {{ scope.row.category_name }}
             </el-tag>
           </template>
         </el-table-column>
@@ -84,13 +84,12 @@
         </el-form-item>
         <el-form-item label="工序类别" prop="category">
           <el-select v-model="form.category" style="width: 100%;">
-            <el-option label="印前" value="prepress"></el-option>
-            <el-option label="印刷" value="printing"></el-option>
-            <el-option label="表面处理" value="surface"></el-option>
-            <el-option label="后道加工" value="postpress"></el-option>
-            <el-option label="复合/裱合" value="laminating"></el-option>
-            <el-option label="成型/包装" value="forming"></el-option>
-            <el-option label="其他" value="other"></el-option>
+            <el-option
+              v-for="cat in categoryList"
+              :key="cat.id"
+              :label="cat.name"
+              :value="cat.id"
+            ></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="工序描述">
@@ -123,7 +122,7 @@
 </template>
 
 <script>
-import { processAPI } from '@/api/workorder'
+import { processAPI, processCategoryAPI } from '@/api/workorder'
 
 export default {
   name: 'ProcessList',
@@ -131,6 +130,7 @@ export default {
     return {
       loading: false,
       tableData: [],
+      categoryList: [],
       currentPage: 1,
       pageSize: 20,
       total: 0,
@@ -141,7 +141,7 @@ export default {
       form: {
         code: '',
         name: '',
-        category: 'other',
+        category: null,
         description: '',
         standard_duration: 0,
         sort_order: 0,
@@ -167,9 +167,18 @@ export default {
   },
   created() {
     this.loadData()
+    this.loadCategoryList()
   },
   methods: {
-    getCategoryType(category) {
+    async loadCategoryList() {
+      try {
+        const response = await processCategoryAPI.getList({ is_active: true, page_size: 100 })
+        this.categoryList = response.results || []
+      } catch (error) {
+        console.error('加载工序分类失败:', error)
+      }
+    },
+    getCategoryType(categoryCode) {
       const typeMap = {
         prepress: '',
         printing: 'success',
@@ -179,7 +188,7 @@ export default {
         forming: 'primary',
         other: ''
       }
-      return typeMap[category] || ''
+      return typeMap[categoryCode] || ''
     },
     async loadData() {
       this.loading = true
@@ -227,10 +236,12 @@ export default {
       } else {
         this.isEdit = false
         this.editId = null
+        // 默认选择"其他"分类
+        const otherCategory = this.categoryList.find(c => c.code === 'other')
         this.form = {
           code: '',
           name: '',
-          category: 'other',
+          category: otherCategory ? otherCategory.id : null,
           description: '',
           standard_duration: 0,
           sort_order: 0,

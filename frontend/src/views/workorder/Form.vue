@@ -287,7 +287,7 @@
 </template>
 
 <script>
-import { workOrderAPI, customerAPI, productAPI, processAPI } from '@/api/workorder'
+import { workOrderAPI, customerAPI, productAPI, processCategoryAPI, processAPI } from '@/api/workorder'
 
 export default {
   name: 'WorkOrderForm',
@@ -297,6 +297,7 @@ export default {
       submitting: false,
       customerList: [],
       productList: [],
+      processCategories: [],
       allProcesses: [],
       selectedProduct: null,
       selectedProcesses: {
@@ -356,6 +357,7 @@ export default {
     this.isEdit = !!this.$route.params.id
     this.loadCustomerList()
     this.loadProductList()
+    this.loadProcessCategories()
     this.loadAllProcesses()
     
     if (this.isEdit) {
@@ -387,6 +389,14 @@ export default {
         console.error('加载产品列表失败:', error)
       }
     },
+    async loadProcessCategories() {
+      try {
+        const response = await processCategoryAPI.getList({ is_active: true, page_size: 100 })
+        this.processCategories = response.results || []
+      } catch (error) {
+        console.error('加载工序分类失败:', error)
+      }
+    },
     async loadAllProcesses() {
       try {
         const response = await processAPI.getList({ is_active: true, page_size: 100 })
@@ -395,8 +405,11 @@ export default {
         console.error('加载工序列表失败:', error)
       }
     },
-    getProcessesByCategory(category) {
-      return this.allProcesses.filter(p => p.category === category)
+    getProcessesByCategory(categoryCode) {
+      // 根据分类code获取工序
+      const category = this.processCategories.find(c => c.code === categoryCode)
+      if (!category) return []
+      return this.allProcesses.filter(p => p.category === category.id)
     },
     async handleProductChange(productId) {
       // 找到选中的产品
@@ -440,7 +453,10 @@ export default {
             productDetail.default_processes.forEach(processId => {
               const process = this.allProcesses.find(p => p.id === processId)
               if (process) {
-                this.selectedProcesses[process.category].push(processId)
+                const category = this.processCategories.find(c => c.id === process.category)
+                if (category && this.selectedProcesses[category.code]) {
+                  this.selectedProcesses[category.code].push(processId)
+                }
               }
             })
           }
@@ -505,7 +521,10 @@ export default {
           data.order_processes.forEach(op => {
             const process = this.allProcesses.find(p => p.id === op.process)
             if (process) {
-              this.selectedProcesses[process.category].push(op.process)
+              const category = this.processCategories.find(c => c.id === process.category)
+              if (category && this.selectedProcesses[category.code]) {
+                this.selectedProcesses[category.code].push(op.process)
+              }
             }
           })
         }

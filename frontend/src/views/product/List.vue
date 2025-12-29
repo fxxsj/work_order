@@ -126,17 +126,25 @@
           </el-col>
         </el-row>
         
+        <el-divider content-position="left">默认工序配置</el-divider>
+        
+        <div v-for="category in processCategories" :key="category.id" style="margin-bottom: 15px;">
+          <el-form-item :label="category.name">
+            <el-checkbox-group v-model="form.default_processes">
+              <el-checkbox
+                v-for="process in getProcessesByCategory(category.id)"
+                :key="process.id"
+                :label="process.id"
+              >
+                {{ process.name }}
+              </el-checkbox>
+            </el-checkbox-group>
+          </el-form-item>
+        </div>
+        
         <el-form-item label="是否启用">
           <el-switch v-model="form.is_active"></el-switch>
         </el-form-item>
-        
-        <el-alert
-          title="提示"
-          type="info"
-          description="默认工序需要在Django Admin后台配置，创建施工单时会自动添加这些工序"
-          :closable="false"
-          style="margin-top: 10px;"
-        ></el-alert>
       </el-form>
       <div slot="footer">
         <el-button @click="dialogVisible = false">取消</el-button>
@@ -147,7 +155,7 @@
 </template>
 
 <script>
-import { productAPI } from '@/api/workorder'
+import { productAPI, processCategoryAPI, processAPI } from '@/api/workorder'
 
 export default {
   name: 'ProductList',
@@ -162,6 +170,8 @@ export default {
       dialogVisible: false,
       isEdit: false,
       editId: null,
+      processCategories: [],
+      allProcesses: [],
       form: {
         code: '',
         name: '',
@@ -173,7 +183,8 @@ export default {
         paper_brand: '',
         board_thickness: '',
         description: '',
-        is_active: true
+        is_active: true,
+        default_processes: []
       },
       rules: {
         code: [
@@ -201,8 +212,29 @@ export default {
   },
   created() {
     this.loadData()
+    this.loadProcessCategories()
+    this.loadAllProcesses()
   },
   methods: {
+    async loadProcessCategories() {
+      try {
+        const response = await processCategoryAPI.getList({ is_active: true, page_size: 100 })
+        this.processCategories = response.results || []
+      } catch (error) {
+        console.error('加载工序分类失败:', error)
+      }
+    },
+    async loadAllProcesses() {
+      try {
+        const response = await processAPI.getList({ is_active: true, page_size: 100 })
+        this.allProcesses = response.results || []
+      } catch (error) {
+        console.error('加载工序列表失败:', error)
+      }
+    },
+    getProcessesByCategory(categoryId) {
+      return this.allProcesses.filter(p => p.category === categoryId)
+    },
     async loadData() {
       this.loading = true
       try {
@@ -233,22 +265,30 @@ export default {
       this.currentPage = page
       this.loadData()
     },
-    showDialog(row = null) {
+    async showDialog(row = null) {
       if (row) {
         this.isEdit = true
         this.editId = row.id
-        this.form = {
-          code: row.code,
-          name: row.name,
-          specification: row.specification || '',
-          unit: row.unit,
-          unit_price: parseFloat(row.unit_price),
-          paper_type: row.paper_type || '',
-          paper_weight: row.paper_weight || '',
-          paper_brand: row.paper_brand || '',
-          board_thickness: row.board_thickness || '',
-          description: row.description || '',
-          is_active: row.is_active
+        
+        // 加载产品详情（包含default_processes）
+        try {
+          const detail = await productAPI.getDetail(row.id)
+          this.form = {
+            code: detail.code,
+            name: detail.name,
+            specification: detail.specification || '',
+            unit: detail.unit,
+            unit_price: parseFloat(detail.unit_price),
+            paper_type: detail.paper_type || '',
+            paper_weight: detail.paper_weight || '',
+            paper_brand: detail.paper_brand || '',
+            board_thickness: detail.board_thickness || '',
+            description: detail.description || '',
+            is_active: detail.is_active,
+            default_processes: detail.default_processes || []
+          }
+        } catch (error) {
+          console.error('加载产品详情失败:', error)
         }
       } else {
         this.isEdit = false
@@ -264,7 +304,8 @@ export default {
           paper_brand: '',
           board_thickness: '',
           description: '',
-          is_active: true
+          is_active: true,
+          default_processes: []
         }
       }
       this.dialogVisible = true
