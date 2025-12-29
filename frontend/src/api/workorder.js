@@ -396,3 +396,77 @@ export const processLogAPI = {
   }
 }
 
+// 图稿管理
+export const artworkAPI = {
+  getList(params) {
+    return request({
+      url: '/artworks/',
+      method: 'get',
+      params
+    })
+  },
+  getDetail(id) {
+    return request({
+      url: `/artworks/${id}/`,
+      method: 'get'
+    })
+  },
+  create(data) {
+    return request({
+      url: '/artworks/',
+      method: 'post',
+      data
+    })
+  },
+  update(id, data) {
+    return request({
+      url: `/artworks/${id}/`,
+      method: 'put',
+      data
+    })
+  },
+  delete(id) {
+    return request({
+      url: `/artworks/${id}/`,
+      method: 'delete'
+    })
+  }
+}
+
+// 图稿产品管理
+export const artworkProductAPI = {
+  getList(params) {
+    return request({
+      url: '/artwork-products/',
+      method: 'get',
+      params
+    })
+  },
+  getDetail(id) {
+    return request({
+      url: `/artwork-products/${id}/`,
+      method: 'get'
+    })
+  },
+  create(data) {
+    return request({
+      url: '/artwork-products/',
+      method: 'post',
+      data
+    })
+  },
+  update(id, data) {
+    return request({
+      url: `/artwork-products/${id}/`,
+      method: 'put',
+      data
+    })
+  },
+  delete(id) {
+    return request({
+      url: `/artwork-products/${id}/`,
+      method: 'delete'
+    })
+  }
+}
+

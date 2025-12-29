@@ -78,6 +78,12 @@ const routes = [
         name: 'MaterialList',
         component: () => import('@/views/material/List.vue'),
         meta: { title: '物料管理', requiresAuth: true }
+      },
+      {
+        path: 'artworks',
+        name: 'ArtworkList',
+        component: () => import('@/views/artwork/List.vue'),
+        meta: { title: '图稿管理', requiresAuth: true }
       }
     ]
   }

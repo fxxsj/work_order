@@ -41,6 +41,10 @@
           <i class="el-icon-goods"></i>
           <span>物料管理</span>
         </el-menu-item>
+        <el-menu-item index="/artworks">
+          <i class="el-icon-picture"></i>
+          <span>图稿管理</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
 
@@ -95,6 +99,9 @@ export default {
       }
       if (path.startsWith('/processes')) {
         return '/processes'
+      }
+      if (path.startsWith('/artworks')) {
+        return '/artworks'
       }
       return path
     },
