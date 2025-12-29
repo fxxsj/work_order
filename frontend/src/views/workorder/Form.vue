@@ -732,8 +732,9 @@ export default {
     removeMaterialItem(index) {
       this.materialItems.splice(index, 1)
     },
-    handleMaterialChange(index) {
+    handleMaterialChange(_index) {
       // 物料选择变化时的处理（如果需要）
+      // 使用 _index 前缀表示参数暂时未使用，避免 ESLint 警告
     },
     async saveMaterials(workOrderId) {
       // 如果是编辑模式，先删除所有现有物料，然后重新添加
