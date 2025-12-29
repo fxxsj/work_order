@@ -52,7 +52,7 @@
 </template>
 
 <script>
-import { login } from '@/api/auth'
+import { login, getCurrentUser } from '@/api/auth'
 
 export default {
   name: 'Login',
@@ -72,6 +72,14 @@ export default {
         ]
       },
       loading: false
+    }
+  },
+  async mounted() {
+    // 页面加载时获取 CSRF token
+    try {
+      await getCurrentUser()
+    } catch (error) {
+      // 忽略错误，只是为了获取 CSRF cookie
     }
   },
   methods: {
