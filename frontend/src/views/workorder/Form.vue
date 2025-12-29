@@ -92,6 +92,19 @@
           </el-col>
         </el-row>
 
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="尺寸">
+              <el-input v-model="form.material_size" placeholder="如：A4、210x297mm"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="用量">
+              <el-input v-model="form.material_usage" placeholder="如：1000张、50平方米"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
         <el-form-item label="主材备注">
           <el-input
             v-model="form.material_notes"
