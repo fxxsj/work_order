@@ -139,6 +139,67 @@
           </el-col>
         </el-row>
         
+        <el-divider content-position="left">默认物料配置</el-divider>
+        
+        <el-form-item label="物料列表">
+          <el-button type="primary" size="small" icon="el-icon-plus" @click="addProductMaterialItem">
+            添加物料
+          </el-button>
+          <div style="margin-top: 15px;">
+            <el-table
+              :data="productMaterialItems"
+              border
+              style="width: 100%"
+            >
+              <el-table-column label="物料名称" width="200">
+                <template slot-scope="scope">
+                  <el-select
+                    v-model="scope.row.material"
+                    placeholder="请选择物料"
+                    filterable
+                    style="width: 100%;"
+                  >
+                    <el-option
+                      v-for="material in materialList"
+                      :key="material.id"
+                      :label="`${material.name} (${material.code})`"
+                      :value="material.id"
+                    ></el-option>
+                  </el-select>
+                </template>
+              </el-table-column>
+              <el-table-column label="尺寸" width="180">
+                <template slot-scope="scope">
+                  <el-input
+                    v-model="scope.row.material_size"
+                    placeholder="如：A4、210x297mm"
+                    size="small"
+                  ></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column label="用量" width="180">
+                <template slot-scope="scope">
+                  <el-input
+                    v-model="scope.row.material_usage"
+                    placeholder="如：1000张、50平方米"
+                    size="small"
+                  ></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="100" align="center">
+                <template slot-scope="scope">
+                  <el-button
+                    type="danger"
+                    size="mini"
+                    icon="el-icon-delete"
+                    @click="removeProductMaterialItem(scope.$index)"
+                  ></el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-form-item>
+        
         <el-divider content-position="left">默认工序配置</el-divider>
         
         <div v-for="category in processCategories" :key="category.id" style="margin-bottom: 15px;">
@@ -168,7 +229,7 @@
 </template>
 
 <script>
-import { productAPI, processCategoryAPI, processAPI } from '@/api/workorder'
+import { productAPI, processCategoryAPI, processAPI, materialAPI, productMaterialAPI } from '@/api/workorder'
 
 export default {
   name: 'ProductList',
@@ -185,6 +246,8 @@ export default {
       editId: null,
       processCategories: [],
       allProcesses: [],
+      materialList: [],
+      productMaterialItems: [], // 产品物料列表
       form: {
         code: '',
         name: '',
@@ -229,6 +292,7 @@ export default {
     this.loadData()
     this.loadProcessCategories()
     this.loadAllProcesses()
+    this.loadMaterialList()
   },
   methods: {
     async loadProcessCategories() {
@@ -249,6 +313,25 @@ export default {
     },
     getProcessesByCategory(categoryId) {
       return this.allProcesses.filter(p => p.category === categoryId)
+    },
+    async loadMaterialList() {
+      try {
+        const response = await materialAPI.getList({ page_size: 100 })
+        this.materialList = response.results || []
+      } catch (error) {
+        console.error('加载物料列表失败:', error)
+      }
+    },
+    addProductMaterialItem() {
+      this.productMaterialItems.push({
+        material: null,
+        material_size: '',
+        material_usage: '',
+        sort_order: this.productMaterialItems.length
+      })
+    },
+    removeProductMaterialItem(index) {
+      this.productMaterialItems.splice(index, 1)
     },
     async loadData() {
       this.loading = true
@@ -304,6 +387,19 @@ export default {
             is_active: detail.is_active,
             default_processes: detail.default_processes || []
           }
+          
+          // 加载产品物料
+          if (detail.default_materials && detail.default_materials.length > 0) {
+            this.productMaterialItems = detail.default_materials.map(m => ({
+              id: m.id, // 编辑时保留ID
+              material: m.material,
+              material_size: m.material_size || '',
+              material_usage: m.material_usage || '',
+              sort_order: m.sort_order || 0
+            }))
+          } else {
+            this.productMaterialItems = []
+          }
         } catch (error) {
           console.error('加载产品详情失败:', error)
         }
@@ -326,23 +422,30 @@ export default {
           is_active: true,
           default_processes: []
         }
+        this.productMaterialItems = []
       }
       this.dialogVisible = true
     },
-    handleSubmit() {
+    async handleSubmit() {
       this.$refs.form.validate(async (valid) => {
         if (!valid) {
           return false
         }
         
         try {
+          let productId
           if (this.isEdit) {
             await productAPI.update(this.editId, this.form)
+            productId = this.editId
             this.$message.success('保存成功')
           } else {
-            await productAPI.create(this.form)
+            const result = await productAPI.create(this.form)
+            productId = result.id
             this.$message.success('创建成功')
           }
+          
+          // 保存产品物料
+          await this.saveProductMaterials(productId)
           
           this.dialogVisible = false
           this.loadData()
@@ -351,6 +454,39 @@ export default {
           console.error(error)
         }
       })
+    },
+    async saveProductMaterials(productId) {
+      // 如果是编辑模式，先删除所有现有物料，然后重新添加
+      if (this.isEdit) {
+        try {
+          // 获取现有物料列表
+          const existingMaterials = await productMaterialAPI.getList({ product: productId })
+          // 删除现有物料
+          for (const material of existingMaterials.results || []) {
+            await productMaterialAPI.delete(material.id)
+          }
+        } catch (error) {
+          console.error('删除现有物料失败:', error)
+        }
+      }
+      
+      // 添加新物料
+      for (let i = 0; i < this.productMaterialItems.length; i++) {
+        const item = this.productMaterialItems[i]
+        if (item.material) {
+          try {
+            await productMaterialAPI.create({
+              product: productId,
+              material: item.material,
+              material_size: item.material_size || '',
+              material_usage: item.material_usage || '',
+              sort_order: i
+            })
+          } catch (error) {
+            console.error('保存物料失败:', error)
+          }
+        }
+      }
     },
     handleDelete(row) {
       this.$confirm(`确定要删除产品 ${row.name} 吗？`, '提示', {

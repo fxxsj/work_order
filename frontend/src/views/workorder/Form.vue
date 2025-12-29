@@ -530,9 +530,11 @@ export default {
           this.form.material_usage = product.material_usage
         }
         
-        // 获取产品详情（包含默认工序）
+        // 获取产品详情（包含默认工序和默认物料）
         try {
           const productDetail = await productAPI.getDetail(productId)
+          
+          // 加载默认工序
           if (productDetail.default_processes && productDetail.default_processes.length > 0) {
             // 清空之前的选择
             this.selectedProcesses = {
@@ -555,8 +557,22 @@ export default {
               }
             })
           }
+          
+          // 加载默认物料
+          if (productDetail.default_materials && productDetail.default_materials.length > 0) {
+            this.materialItems = productDetail.default_materials.map(m => ({
+              material: m.material,
+              material_size: m.material_size || '',
+              material_usage: m.material_usage || '',
+              planned_quantity: 0,
+              actual_quantity: 0,
+              notes: ''
+            }))
+          } else {
+            this.materialItems = []
+          }
         } catch (error) {
-          console.error('加载产品默认工序失败:', error)
+          console.error('加载产品默认信息失败:', error)
         }
         
         // 自动计算总价

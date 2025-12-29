@@ -153,6 +153,43 @@ export const productAPI = {
   }
 }
 
+// 产品物料管理
+export const productMaterialAPI = {
+  getList(params) {
+    return request({
+      url: '/product-materials/',
+      method: 'get',
+      params
+    })
+  },
+  getDetail(id) {
+    return request({
+      url: `/product-materials/${id}/`,
+      method: 'get'
+    })
+  },
+  create(data) {
+    return request({
+      url: '/product-materials/',
+      method: 'post',
+      data
+    })
+  },
+  update(id, data) {
+    return request({
+      url: `/product-materials/${id}/`,
+      method: 'put',
+      data
+    })
+  },
+  delete(id) {
+    return request({
+      url: `/product-materials/${id}/`,
+      method: 'delete'
+    })
+  }
+}
+
 // 物料管理
 export const materialAPI = {
   getList(params) {
