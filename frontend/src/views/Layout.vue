@@ -25,6 +25,10 @@
           <i class="el-icon-user"></i>
           <span>客户管理</span>
         </el-menu-item>
+        <el-menu-item index="/process-categories">
+          <i class="el-icon-menu"></i>
+          <span>工序分类管理</span>
+        </el-menu-item>
         <el-menu-item index="/processes">
           <i class="el-icon-setting"></i>
           <span>工序管理</span>
@@ -85,6 +89,12 @@ export default {
       // 处理详情页等子路由
       if (path.startsWith('/workorders')) {
         return '/workorders'
+      }
+      if (path.startsWith('/process-categories')) {
+        return '/process-categories'
+      }
+      if (path.startsWith('/processes')) {
+        return '/processes'
       }
       return path
     },

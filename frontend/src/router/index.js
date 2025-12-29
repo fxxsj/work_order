@@ -56,6 +56,12 @@ const routes = [
         meta: { title: '客户管理', requiresAuth: true }
       },
       {
+        path: 'process-categories',
+        name: 'ProcessCategoryList',
+        component: () => import('@/views/processCategory/List.vue'),
+        meta: { title: '工序分类管理', requiresAuth: true }
+      },
+      {
         path: 'processes',
         name: 'ProcessList',
         component: () => import('@/views/process/List.vue'),

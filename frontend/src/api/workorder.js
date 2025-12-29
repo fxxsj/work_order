@@ -50,6 +50,32 @@ export const processCategoryAPI = {
       method: 'get',
       params
     })
+  },
+  getDetail(id) {
+    return request({
+      url: `/process-categories/${id}/`,
+      method: 'get'
+    })
+  },
+  create(data) {
+    return request({
+      url: '/process-categories/',
+      method: 'post',
+      data
+    })
+  },
+  update(id, data) {
+    return request({
+      url: `/process-categories/${id}/`,
+      method: 'put',
+      data
+    })
+  },
+  delete(id) {
+    return request({
+      url: `/process-categories/${id}/`,
+      method: 'delete'
+    })
   }
 }
 
