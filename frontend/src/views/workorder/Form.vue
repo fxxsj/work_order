@@ -63,57 +63,6 @@
           ></el-input>
         </el-form-item>
 
-        <!-- 主材信息 -->
-        <el-divider content-position="left">主材信息</el-divider>
-        
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="纸张类型">
-              <el-input v-model="form.paper_type" placeholder="如：铜版纸、哑粉纸、白卡纸"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="纸张克数">
-              <el-input v-model="form.paper_weight" placeholder="如：157g、200g、250g"></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="纸张品牌">
-              <el-input v-model="form.paper_brand" placeholder="如：金东、晨鸣"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="板材厚度">
-              <el-input v-model="form.board_thickness" placeholder="如：3mm、5mm（如适用）"></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="尺寸">
-              <el-input v-model="form.material_size" placeholder="如：A4、210x297mm"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="用量">
-              <el-input v-model="form.material_usage" placeholder="如：1000张、50平方米"></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <el-form-item label="主材备注">
-          <el-input
-            v-model="form.material_notes"
-            type="textarea"
-            :rows="2"
-            placeholder="其他主材信息说明"
-          ></el-input>
-        </el-form-item>
-
         <!-- 物料信息 -->
         <el-divider content-position="left">物料信息</el-divider>
         
@@ -393,13 +342,6 @@ export default {
         specification: '',
         quantity: 1,
         unit: '件',
-        paper_type: '',
-        paper_weight: '',
-        paper_brand: '',
-        board_thickness: '',
-        material_size: '',
-        material_usage: '',
-        material_notes: '',
         status: 'pending',
         priority: 'normal',
         order_date: '',
@@ -510,26 +452,6 @@ export default {
         this.form.specification = product.specification
         this.form.unit = product.unit
         
-        // 自动填充主材信息（如果产品有默认值）
-        if (product.paper_type) {
-          this.form.paper_type = product.paper_type
-        }
-        if (product.paper_weight) {
-          this.form.paper_weight = product.paper_weight
-        }
-        if (product.paper_brand) {
-          this.form.paper_brand = product.paper_brand
-        }
-        if (product.board_thickness) {
-          this.form.board_thickness = product.board_thickness
-        }
-        if (product.material_size) {
-          this.form.material_size = product.material_size
-        }
-        if (product.material_usage) {
-          this.form.material_usage = product.material_usage
-        }
-        
         // 获取产品详情（包含默认工序和默认物料）
         try {
           const productDetail = await productAPI.getDetail(productId)
@@ -599,13 +521,6 @@ export default {
           specification: data.specification || '',
           quantity: data.quantity,
           unit: data.unit,
-          paper_type: data.paper_type || '',
-          paper_weight: data.paper_weight || '',
-          paper_brand: data.paper_brand || '',
-          board_thickness: data.board_thickness || '',
-          material_size: data.material_size || '',
-          material_usage: data.material_usage || '',
-          material_notes: data.material_notes || '',
           status: data.status,
           priority: data.priority,
           order_date: data.order_date,

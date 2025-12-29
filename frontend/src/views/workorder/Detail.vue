@@ -53,17 +53,6 @@
         <el-descriptions-item label="产品规格" :span="3">{{ workOrder.specification || '-' }}</el-descriptions-item>
       </el-descriptions>
 
-      <!-- 主材信息 -->
-      <el-descriptions title="主材信息" :column="3" border style="margin-top: 20px;">
-        <el-descriptions-item label="纸张类型">{{ workOrder.paper_type || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="纸张克数">{{ workOrder.paper_weight || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="纸张品牌">{{ workOrder.paper_brand || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="板材厚度">{{ workOrder.board_thickness || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="尺寸">{{ workOrder.material_size || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="用量">{{ workOrder.material_usage || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="主材备注" :span="3">{{ workOrder.material_notes || '-' }}</el-descriptions-item>
-      </el-descriptions>
-
       <!-- 物料信息 -->
       <el-descriptions title="物料信息" :column="3" border style="margin-top: 20px;" v-if="workOrder.materials && workOrder.materials.length > 0">
         <template v-for="(material, index) in workOrder.materials">
