@@ -287,7 +287,7 @@
 </template>
 
 <script>
-import { workOrderAPI, customerAPI, productAPI } from '@/api/workorder'
+import { workOrderAPI, customerAPI, productAPI, processAPI } from '@/api/workorder'
 
 export default {
   name: 'WorkOrderForm',
@@ -581,7 +581,6 @@ export default {
           console.error('添加工序失败:', error)
         }
       }
-      })
     },
     handleCancel() {
       this.$router.back()
