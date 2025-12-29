@@ -50,7 +50,7 @@
           <el-dropdown @command="handleCommand">
             <span class="user-info">
               <i class="el-icon-user-solid"></i>
-              <span>管理员</span>
+              <span>{{ currentUsername }}</span>
               <i class="el-icon-arrow-down el-icon--right"></i>
             </span>
             <el-dropdown-menu slot="dropdown">
@@ -70,6 +70,8 @@
 </template>
 
 <script>
+import { logout } from '@/api/auth'
+
 export default {
   name: 'Layout',
   computed: {
@@ -81,6 +83,9 @@ export default {
         return '/workorders'
       }
       return path
+    },
+    currentUsername() {
+      return this.$store.state.userInfo?.username || '用户'
     }
   },
   methods: {
@@ -92,9 +97,18 @@ export default {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
-        }).then(() => {
-          // 这里添加退出登录的逻辑
-          this.$message.success('已退出登录')
+        }).then(async () => {
+          try {
+            await logout()
+            this.$store.dispatch('setUserInfo', null)
+            this.$message.success('已退出登录')
+            this.$router.push('/login')
+          } catch (error) {
+            console.error('退出登录失败:', error)
+            // 即使API调用失败，也清除本地状态并跳转
+            this.$store.dispatch('setUserInfo', null)
+            this.$router.push('/login')
+          }
         }).catch(() => {})
       }
     }

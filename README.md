@@ -114,9 +114,17 @@ npm run serve
 
 ### 访问系统
 
-- **前端界面**: http://localhost:8080
+- **前端界面**: http://localhost:8081
 - **Django Admin**: http://localhost:8000/admin
 - **API 文档**: http://localhost:8000/api
+
+### 测试账号
+
+系统已自动创建测试管理员账号：
+- **用户名**: admin
+- **密码**: admin123
+
+⚠️ 生产环境请务必修改默认密码！
 
 ## 项目结构
 

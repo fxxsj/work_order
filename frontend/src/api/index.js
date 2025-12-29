@@ -1,5 +1,7 @@
 import axios from 'axios'
 import { Message } from 'element-ui'
+import router from '@/router'
+import store from '@/store'
 
 // 创建 axios 实例
 const service = axios.create({
@@ -34,9 +36,19 @@ service.interceptors.response.use(
       const { status, data } = error.response
       
       if (status === 401) {
-        Message.error('请先登录')
+        // 清除用户信息
+        store.dispatch('setUserInfo', null)
+        
+        // 如果不是登录页面，跳转到登录页
+        if (router.currentRoute.path !== '/login') {
+          Message.error('登录已过期，请重新登录')
+          router.push({
+            path: '/login',
+            query: { redirect: router.currentRoute.fullPath }
+          })
+        }
       } else if (status === 403) {
-        Message.error('没有权限')
+        Message.error('没有权限执行此操作')
       } else if (status === 404) {
         Message.error('请求的资源不存在')
       } else if (status === 500) {
