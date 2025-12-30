@@ -56,8 +56,7 @@
       <!-- 产品列表（场景2：一个施工单包含多个产品） -->
       <div v-if="workOrder.products && workOrder.products.length > 0" style="margin-top: 20px;">
         <div class="detail-section-title">产品列表</div>
-        <el-card class="detail-section-card">
-          <el-table :data="workOrder.products" border style="width: 100%">
+        <el-table :data="workOrder.products" border style="width: 100%">
           <el-table-column prop="product_name" label="产品名称" width="200">
             <template slot-scope="scope">
               {{ scope.row.product_name }} ({{ scope.row.product_code }})
@@ -78,7 +77,6 @@
             </template>
           </el-table-column>
         </el-table>
-        </el-card>
       </div>
 
       <!-- 图稿和刀模信息 -->
@@ -102,7 +100,6 @@
             添加物料
           </el-button>
         </div>
-        <el-card class="detail-section-card">
         
         <el-table
           v-if="workOrder.materials && workOrder.materials.length > 0"
@@ -165,7 +162,6 @@
         </el-table>
         
         <el-empty v-else-if="workOrder && (!workOrder.materials || workOrder.materials.length === 0)" description="暂无物料信息"></el-empty>
-        </el-card>
       </div>
 
       <!-- 物料状态更新对话框 -->
