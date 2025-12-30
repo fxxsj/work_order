@@ -860,7 +860,7 @@ export default {
       }
     },
     updateProductItemQuantity(index, quantity) {
-      const numValue = parseInt(quantity) || 1
+      let numValue = parseInt(quantity) || 1
       if (numValue < 1) {
         numValue = 1
       }
