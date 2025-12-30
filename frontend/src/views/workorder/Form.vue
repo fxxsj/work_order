@@ -738,12 +738,34 @@ export default {
       }
     },
     async handleArtworkChange(artworkIds) {
-      // 过滤掉 null 值（"不需要图稿"选项）
-      const validArtworkIds = artworkIds ? artworkIds.filter(id => id !== null) : []
+      // 如果选择了"不需要图稿"
+      if (artworkIds && artworkIds.includes(null)) {
+        // 如果同时选择了"不需要图稿"和其他图稿，移除其他图稿，只保留"不需要图稿"
+        if (artworkIds.length > 1) {
+          this.$nextTick(() => {
+            this.form.artworks = [null]
+          })
+        }
+        
+        // 清空产品列表（包括图稿自动填充的产品）
+        this.productItems = [{
+          product: null,
+          quantity: 1,
+          unit: '件',
+          specification: ''
+        }]
+        
+        // 清空工序和物料
+        this.selectedProcesses = []
+        this.materialItems = []
+        this.processAssignments = {}
+        
+        this.calculateTotalAmount()
+        return
+      }
       
-      // 如果选择了"不需要图稿"或没有选择任何图稿
-      if (!artworkIds || artworkIds.length === 0 || (artworkIds.includes(null) && validArtworkIds.length === 0)) {
-        // 清空图稿选择，保留手动输入的产品
+      // 如果没有选择任何图稿
+      if (!artworkIds || artworkIds.length === 0) {
         // 如果产品列表为空，初始化一个空的产品项
         if (this.productItems.length === 0) {
           this.productItems = [{
@@ -757,13 +779,8 @@ export default {
         return
       }
       
-      // 如果同时选择了"不需要图稿"和其他图稿，移除"不需要图稿"选项
-      if (artworkIds.includes(null) && validArtworkIds.length > 0) {
-        this.$nextTick(() => {
-          this.form.artworks = validArtworkIds
-        })
-        artworkIds = validArtworkIds
-      }
+      // 过滤掉 null 值，只处理有效的图稿ID
+      const validArtworkIds = artworkIds.filter(id => id !== null)
       
       if (validArtworkIds.length === 0) {
         this.calculateTotalAmount()
