@@ -193,7 +193,7 @@
         </template>
 
         <!-- 图稿关联的产品列表（自动填充，可修改数量） -->
-        <el-form-item label="产品列表（来自图稿）" v-if="useArtwork && artworkProducts.length > 0">
+        <el-form-item label="产品列表（来自图稿）" v-if="form.artwork && artworkProducts.length > 0">
           <el-table :data="artworkProducts" border style="width: 100%">
             <el-table-column prop="product_name" label="产品名称" width="200">
               <template slot-scope="scope">
@@ -1094,7 +1094,7 @@ export default {
       
       if (!productsToSave) {
         // 如果没有传入，从 productItems 或 artworkProducts 获取
-        if (this.useArtwork && this.artworkProducts.length > 0) {
+        if (this.form.artwork && this.artworkProducts.length > 0) {
           productsToSave = this.artworkProducts
             .filter(item => item.product)
             .map((item, index) => ({
