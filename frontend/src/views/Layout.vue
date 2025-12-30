@@ -25,9 +25,9 @@
           <i class="el-icon-user"></i>
           <span>客户管理</span>
         </el-menu-item>
-        <el-menu-item index="/process-categories">
+        <el-menu-item index="/departments">
           <i class="el-icon-menu"></i>
-          <span>工序分类管理</span>
+          <span>部门管理</span>
         </el-menu-item>
         <el-menu-item index="/processes">
           <i class="el-icon-setting"></i>

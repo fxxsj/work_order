@@ -42,38 +42,38 @@ export const customerAPI = {
   }
 }
 
-// 工序分类管理
-export const processCategoryAPI = {
+// 部门管理
+export const departmentAPI = {
   getList(params) {
     return request({
-      url: '/process-categories/',
+      url: '/departments/',
       method: 'get',
       params
     })
   },
   getDetail(id) {
     return request({
-      url: `/process-categories/${id}/`,
+      url: `/departments/${id}/`,
       method: 'get'
     })
   },
   create(data) {
     return request({
-      url: '/process-categories/',
+      url: '/departments/',
       method: 'post',
       data
     })
   },
   update(id, data) {
     return request({
-      url: `/process-categories/${id}/`,
+      url: `/departments/${id}/`,
       method: 'put',
       data
     })
   },
   delete(id) {
     return request({
-      url: `/process-categories/${id}/`,
+      url: `/departments/${id}/`,
       method: 'delete'
     })
   }

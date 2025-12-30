@@ -188,7 +188,7 @@
 </template>
 
 <script>
-import { productAPI, processCategoryAPI, processAPI, materialAPI, productMaterialAPI } from '@/api/workorder'
+import { productAPI, departmentAPI, processAPI, materialAPI, productMaterialAPI } from '@/api/workorder'
 
 export default {
   name: 'ProductList',
@@ -250,7 +250,7 @@ export default {
   methods: {
     async loadProcessCategories() {
       try {
-        const response = await processCategoryAPI.getList({ is_active: true, page_size: 100 })
+        const response = await departmentAPI.getList({ is_active: true, page_size: 100 })
         this.processCategories = response.results || []
       } catch (error) {
         console.error('加载工序分类失败:', error)

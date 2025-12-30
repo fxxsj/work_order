@@ -381,7 +381,7 @@
 </template>
 
 <script>
-import { workOrderAPI, customerAPI, productAPI, processCategoryAPI, processAPI, materialAPI, workOrderMaterialAPI, artworkAPI, dieAPI } from '@/api/workorder'
+import { workOrderAPI, customerAPI, productAPI, departmentAPI, processAPI, materialAPI, workOrderMaterialAPI, artworkAPI, dieAPI } from '@/api/workorder'
 
 export default {
   name: 'WorkOrderForm',
@@ -394,7 +394,7 @@ export default {
       materialList: [],
       artworkList: [],
       dieList: [],
-      processCategories: [],
+      departments: [],
       allProcesses: [],
       selectedProduct: null,
       materialItems: [], // 物料列表
@@ -456,7 +456,7 @@ export default {
     this.loadMaterialList()
     this.loadArtworkList()
     this.loadDieList()
-    this.loadProcessCategories()
+    this.loadDepartments()
     this.loadAllProcesses()
     
     if (this.isEdit) {
@@ -514,10 +514,10 @@ export default {
     },
     async loadProcessCategories() {
       try {
-        const response = await processCategoryAPI.getList({ is_active: true, page_size: 100 })
-        this.processCategories = response.results || []
+        const response = await departmentAPI.getList({ is_active: true, page_size: 100 })
+        this.departments = response.results || []
       } catch (error) {
-        console.error('加载工序分类失败:', error)
+        console.error('加载部门列表失败:', error)
       }
     },
     async loadAllProcesses() {
@@ -528,11 +528,11 @@ export default {
         console.error('加载工序列表失败:', error)
       }
     },
-    getProcessesByCategory(categoryCode) {
-      // 根据分类code获取工序
-      const category = this.processCategories.find(c => c.code === categoryCode)
-      if (!category) return []
-      return this.allProcesses.filter(p => p.category === category.id)
+    getProcessesByDepartment(departmentCode) {
+      // 根据部门code获取工序
+      const department = this.departments.find(d => d.code === departmentCode)
+      if (!department) return []
+      return this.allProcesses.filter(p => p.department === department.id)
     },
     async handleProductChange(productId) {
       // 找到选中的产品
@@ -564,9 +564,9 @@ export default {
             productDetail.default_processes.forEach(processId => {
               const process = this.allProcesses.find(p => p.id === processId)
               if (process) {
-                const category = this.processCategories.find(c => c.id === process.category)
-                if (category && this.selectedProcesses[category.code]) {
-                  this.selectedProcesses[category.code].push(processId)
+                const department = this.departments.find(d => d.id === process.department)
+                if (department && this.selectedProcesses[department.code]) {
+                  this.selectedProcesses[department.code].push(processId)
                 }
               }
             })

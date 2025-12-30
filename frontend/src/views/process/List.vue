@@ -23,10 +23,10 @@
       >
         <el-table-column prop="code" label="工序编码" width="120"></el-table-column>
         <el-table-column prop="name" label="工序名称" width="180"></el-table-column>
-        <el-table-column label="工序类别" width="120">
+        <el-table-column label="所属部门" width="120">
           <template slot-scope="scope">
-            <el-tag :type="getCategoryType(scope.row.category_code)">
-              {{ scope.row.category_name }}
+            <el-tag :type="getDepartmentType(scope.row.department_code)">
+              {{ scope.row.department_name }}
             </el-tag>
           </template>
         </el-table-column>
@@ -82,10 +82,10 @@
         <el-form-item label="工序名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入工序名称"></el-input>
         </el-form-item>
-        <el-form-item label="工序类别" prop="category">
-          <el-select v-model="form.category" style="width: 100%;">
+        <el-form-item label="所属部门" prop="department">
+          <el-select v-model="form.department" style="width: 100%;">
             <el-option
-              v-for="cat in categoryList"
+              v-for="cat in departmentList"
               :key="cat.id"
               :label="cat.name"
               :value="cat.id"
@@ -122,7 +122,7 @@
 </template>
 
 <script>
-import { processAPI, processCategoryAPI } from '@/api/workorder'
+import { processAPI, departmentAPI } from '@/api/workorder'
 
 export default {
   name: 'ProcessList',
@@ -130,7 +130,7 @@ export default {
     return {
       loading: false,
       tableData: [],
-      categoryList: [],
+      departmentList: [],
       currentPage: 1,
       pageSize: 20,
       total: 0,
@@ -141,7 +141,7 @@ export default {
       form: {
         code: '',
         name: '',
-        category: null,
+        department: null,
         description: '',
         standard_duration: 0,
         sort_order: 0,
@@ -154,8 +154,8 @@ export default {
         name: [
           { required: true, message: '请输入工序名称', trigger: 'blur' }
         ],
-        category: [
-          { required: true, message: '请选择工序类别', trigger: 'change' }
+        department: [
+          { required: true, message: '请选择所属部门', trigger: 'change' }
         ]
       }
     }
@@ -167,18 +167,18 @@ export default {
   },
   created() {
     this.loadData()
-    this.loadCategoryList()
+    this.loadDepartmentList()
   },
   methods: {
-    async loadCategoryList() {
+    async loadDepartmentList() {
       try {
-        const response = await processCategoryAPI.getList({ is_active: true, page_size: 100 })
-        this.categoryList = response.results || []
+        const response = await departmentAPI.getList({ is_active: true, page_size: 100 })
+        this.departmentList = response.results || []
       } catch (error) {
         console.error('加载工序分类失败:', error)
       }
     },
-    getCategoryType(categoryCode) {
+    getDepartmentType(departmentCode) {
       const typeMap = {
         prepress: '',
         printing: 'success',
@@ -188,7 +188,7 @@ export default {
         forming: 'primary',
         other: ''
       }
-      return typeMap[categoryCode] || ''
+      return typeMap[departmentCode] || ''
     },
     async loadData() {
       this.loading = true
@@ -227,7 +227,7 @@ export default {
         this.form = {
           code: row.code,
           name: row.name,
-          category: row.category,
+          department: row.department,
           description: row.description || '',
           standard_duration: row.standard_duration,
           sort_order: row.sort_order,
@@ -237,11 +237,11 @@ export default {
         this.isEdit = false
         this.editId = null
         // 默认选择"其他"分类
-        const otherCategory = this.categoryList.find(c => c.code === 'other')
+        const otherDepartment = this.departmentList.find(d => d.code === 'other')
         this.form = {
           code: '',
           name: '',
-          category: otherCategory ? otherCategory.id : null,
+          department: otherDepartment ? otherDepartment.id : null,
           description: '',
           standard_duration: 0,
           sort_order: 0,
