@@ -33,36 +33,8 @@
           </el-select>
         </el-form-item>
 
-        <!-- 产品组选择（场景1：一个产品需要多个施工单） -->
-        <el-form-item label="产品组">
-          <el-select
-            v-model="form.product_group_item"
-            placeholder="请选择产品组子项（可选，如：天地盒中的天盒）"
-            filterable
-            clearable
-            style="width: 100%;"
-            @change="handleProductGroupItemChange"
-          >
-            <el-option-group
-              v-for="group in productGroupList"
-              :key="group.id"
-              :label="`${group.name} (${group.code})`"
-            >
-              <el-option
-                v-for="item in group.items"
-                :key="item.id"
-                :label="`${item.item_name} - ${item.product_name} (${item.product_code})`"
-                :value="item.id"
-              ></el-option>
-            </el-option-group>
-          </el-select>
-          <span style="color: #909399; font-size: 12px; margin-left: 10px;">
-            如果该施工单是产品组的一部分（如天地盒需要天盒和地盒两个施工单），请选择对应的子项
-          </span>
-        </el-form-item>
-
-        <!-- 单个产品选择（兼容旧模式，仅在未选择产品组时显示） -->
-        <el-form-item label="产品" prop="product" v-if="!form.product_group_item && productItems.length === 0">
+        <!-- 单个产品选择（兼容旧模式，仅在未使用产品列表时显示） -->
+        <el-form-item label="产品" prop="product" v-if="productItems.length === 0">
           <el-select
             v-model="form.product"
             placeholder="请选择产品"
@@ -83,7 +55,7 @@
         </el-form-item>
 
         <!-- 多个产品列表（场景2：一个施工单包含多个产品） -->
-        <el-form-item label="产品列表" v-if="!form.product_group_item">
+        <el-form-item label="产品列表">
           <div v-for="(productItem, index) in productItems" :key="index" style="margin-bottom: 15px;">
             <el-row :gutter="10" type="flex" align="middle">
               <el-col :span="10">
@@ -160,7 +132,7 @@
         </el-form-item>
 
         <!-- 单个产品模式的数量和单位（仅在选择了单个产品时显示） -->
-        <el-row :gutter="20" v-if="form.product && !form.product_group_item && productItems.length === 0">
+        <el-row :gutter="20" v-if="form.product && productItems.length === 0">
           <el-col :span="12">
             <el-form-item label="数量" prop="quantity">
               <el-input-number
@@ -179,7 +151,7 @@
         </el-row>
 
         <!-- 单个产品模式的产品规格（仅在选择了单个产品时显示） -->
-        <el-form-item label="产品规格" v-if="form.product && !form.product_group_item && productItems.length === 0">
+        <el-form-item label="产品规格" v-if="form.product && productItems.length === 0">
           <el-input
             v-model="form.specification"
             type="textarea"
@@ -502,7 +474,7 @@
 </template>
 
 <script>
-import { workOrderAPI, customerAPI, productAPI, processAPI, materialAPI, workOrderMaterialAPI, workOrderProductAPI, artworkAPI, dieAPI, departmentAPI, workOrderProcessAPI, workOrderTaskAPI, productGroupAPI, productGroupItemAPI } from '@/api/workorder'
+import { workOrderAPI, customerAPI, productAPI, processAPI, materialAPI, workOrderMaterialAPI, workOrderProductAPI, artworkAPI, dieAPI, departmentAPI, workOrderProcessAPI, workOrderTaskAPI } from '@/api/workorder'
 
 export default {
   name: 'WorkOrderForm',
@@ -512,7 +484,6 @@ export default {
       submitting: false,
       customerList: [],
       productList: [],
-      productGroupList: [], // 产品组列表
       materialList: [],
       artworkList: [],
       dieList: [],
@@ -526,7 +497,6 @@ export default {
       form: {
         customer: null,
         product: null,
-        product_group_item: null, // 产品组子项（场景1：一个产品需要多个施工单）
         product_name: '',
         specification: '',
         quantity: 1,
@@ -581,7 +551,6 @@ export default {
     this.isEdit = !!this.$route.params.id
     this.loadCustomerList()
     this.loadProductList()
-    this.loadProductGroupList()
     this.loadMaterialList()
     this.loadArtworkList()
     this.loadDieList()
@@ -623,47 +592,6 @@ export default {
         this.productList = response.results || []
       } catch (error) {
         console.error('加载产品列表失败:', error)
-      }
-    },
-    async loadProductGroupList() {
-      try {
-        // 分页加载所有产品组
-        let allGroups = []
-        let page = 1
-        let hasMore = true
-        
-        while (hasMore) {
-          const response = await productGroupAPI.getList({ 
-            is_active: true, 
-            page_size: 100,
-            page: page
-          })
-          
-          if (response.results && response.results.length > 0) {
-            // 为每个产品组加载子项
-            for (const group of response.results) {
-              try {
-                const itemsResponse = await productGroupItemAPI.getList({ 
-                  product_group: group.id,
-                  page_size: 100
-                })
-                group.items = itemsResponse.results || []
-              } catch (error) {
-                console.error(`加载产品组 ${group.id} 的子项失败:`, error)
-                group.items = []
-              }
-            }
-            allGroups = allGroups.concat(response.results)
-            hasMore = response.next !== null && response.next !== undefined
-            page++
-          } else {
-            hasMore = false
-          }
-        }
-        
-        this.productGroupList = allGroups
-      } catch (error) {
-        console.error('加载产品组列表失败:', error)
       }
     },
     async loadMaterialList() {
@@ -746,39 +674,6 @@ export default {
         this.departmentList = allDepartments
       } catch (error) {
         console.error('加载部门列表失败:', error)
-      }
-    },
-    async handleProductGroupItemChange(itemId) {
-      if (itemId) {
-        // 选择了产品组子项，清空单个产品和产品列表
-        this.form.product = null
-        this.productItems = []
-        
-        // 加载产品组子项详情
-        try {
-          const itemDetail = await productGroupItemAPI.getDetail(itemId)
-          const product = this.productList.find(p => p.id === itemDetail.product)
-          if (product) {
-            this.selectedProduct = product
-            this.form.product_name = product.name
-            this.form.specification = product.specification
-            this.form.unit = product.unit
-            
-            // 加载默认工序和物料
-            await this.loadProductDefaults(product.id)
-            this.calculateTotalAmount()
-          }
-        } catch (error) {
-          console.error('加载产品组子项详情失败:', error)
-        }
-      } else {
-        // 清空产品组子项，恢复产品列表模式
-        this.productItems = [{
-          product: null,
-          quantity: 1,
-          unit: '件',
-          specification: ''
-        }]
       }
     },
     async handleProductChange(productId) {
@@ -868,12 +763,7 @@ export default {
       this.calculateTotalAmount()
     },
     calculateTotalAmount() {
-      // 如果选择了产品组子项，使用单个产品模式计算
-      if (this.form.product_group_item && this.selectedProduct && this.form.quantity) {
-        this.form.total_amount = parseFloat(
-          (this.selectedProduct.unit_price * this.form.quantity).toFixed(2)
-        )
-      } else if (this.productItems.length > 0 && this.productItems[0].product) {
+      if (this.productItems.length > 0 && this.productItems[0].product) {
         // 计算所有产品的总金额（场景2：多个产品）
         let total = 0
         this.productItems.forEach(item => {
@@ -901,7 +791,6 @@ export default {
           order_number: data.order_number,  // 只读显示
           customer: data.customer,
           product: data.product,
-          product_group_item: data.product_group_item || null,
           product_name: data.product_name || '',
           specification: data.specification || '',
           quantity: data.quantity,
@@ -943,15 +832,9 @@ export default {
           }]
         }
         
-        // 如果有产品ID或产品组子项，加载产品信息用于计算
+        // 如果有产品ID，加载产品信息用于计算
         if (data.product) {
           this.selectedProduct = data.product_detail
-        } else if (data.product_group_item_detail) {
-          const itemDetail = data.product_group_item_detail
-          const product = this.productList.find(p => p.id === itemDetail.product)
-          if (product) {
-            this.selectedProduct = product
-          }
         }
         
         // 重新计算总金额
@@ -1029,16 +912,8 @@ export default {
           }
           
           // 处理产品数据
-          // 如果选择了产品组子项，不传 products_data
           // 如果使用产品列表模式，传 products_data
-          if (this.form.product_group_item) {
-            // 场景1：产品组模式，不传 products_data
-            delete data.product
-            delete data.product_name
-            delete data.specification
-            delete data.quantity
-            delete data.unit
-          } else if (this.productItems && this.productItems.length > 0 && this.productItems[0].product) {
+          if (this.productItems && this.productItems.length > 0 && this.productItems[0].product) {
             // 场景2：多个产品模式，传 products_data
             data.products_data = this.productItems
               .filter(item => item.product)
