@@ -26,8 +26,11 @@
         <el-descriptions-item label="施工单号">{{ workOrder.order_number }}</el-descriptions-item>
         <el-descriptions-item label="客户">{{ workOrder.customer_name }}</el-descriptions-item>
         <el-descriptions-item label="制表人">{{ workOrder.manager_name || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="产品名称">{{ workOrder.product_name }}</el-descriptions-item>
-        <el-descriptions-item label="数量">{{ workOrder.quantity }} {{ workOrder.unit }}</el-descriptions-item>
+        <el-descriptions-item label="产品组" v-if="workOrder.product_group_name">
+          {{ workOrder.product_group_name }} - {{ workOrder.product_group_item_detail ? workOrder.product_group_item_detail.item_name : '' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="产品名称" v-if="workOrder.product_name">{{ workOrder.product_name }}</el-descriptions-item>
+        <el-descriptions-item label="数量" v-if="workOrder.quantity">{{ workOrder.quantity }} {{ workOrder.unit }}</el-descriptions-item>
         <el-descriptions-item label="总金额">¥{{ workOrder.total_amount }}</el-descriptions-item>
         <el-descriptions-item label="状态">
           <span :class="'status-badge status-' + workOrder.status">
