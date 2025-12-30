@@ -33,33 +33,63 @@
           </el-select>
         </el-form-item>
 
-        <!-- 图稿选择 -->
-        <el-form-item label="图稿（CTP版）">
-          <el-select
-            v-model="form.artworks"
-            placeholder="请选择图稿（可多选）"
-            filterable
-            clearable
-            multiple
-            :collapse-tags="shouldCollapseTags"
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="状态" prop="status">
+              <el-select v-model="form.status" style="width: 100%;">
+                <el-option label="待开始" value="pending"></el-option>
+                <el-option label="进行中" value="in_progress"></el-option>
+                <el-option label="已暂停" value="paused"></el-option>
+                <el-option label="已完成" value="completed"></el-option>
+                <el-option label="已取消" value="cancelled"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="优先级" prop="priority">
+              <el-select v-model="form.priority" style="width: 100%;">
+                <el-option label="低" value="low"></el-option>
+                <el-option label="普通" value="normal"></el-option>
+                <el-option label="高" value="high"></el-option>
+                <el-option label="紧急" value="urgent"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="下单日期" prop="order_date">
+              <el-date-picker
+                v-model="form.order_date"
+                type="date"
+                placeholder="选择下单日期"
+                style="width: 100%;"
+                value-format="yyyy-MM-dd"
+              ></el-date-picker>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="交货日期" prop="delivery_date">
+              <el-date-picker
+                v-model="form.delivery_date"
+                type="date"
+                placeholder="选择交货日期"
+                style="width: 100%;"
+                value-format="yyyy-MM-dd"
+              ></el-date-picker>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-form-item label="实际交货日期" v-if="isEdit">
+          <el-date-picker
+            v-model="form.actual_delivery_date"
+            type="date"
+            placeholder="选择实际交货日期"
             style="width: 100%;"
-            @change="handleArtworkChange"
-            @visible-change="handleArtworkSelectVisible"
-          >
-            <el-option
-              label="不需要图稿"
-              :value="'NO_ARTWORK'"
-            ></el-option>
-            <el-option
-              v-for="artwork in artworkList"
-              :key="artwork.id"
-              :label="`${artwork.code} - ${artwork.name}`"
-              :value="artwork.id"
-            ></el-option>
-          </el-select>
-          <span style="color: #909399; font-size: 12px; margin-left: 10px;">
-            选择"不需要图稿"可手动输入产品，选择具体图稿将自动填充关联的产品信息到下方产品列表，可多选（如纸卡双面印刷的面版和底版）
-          </span>
+            value-format="yyyy-MM-dd"
+          ></el-date-picker>
         </el-form-item>
 
         <el-divider></el-divider>
@@ -195,64 +225,33 @@
         </el-form-item>
         </template>
 
-
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="状态" prop="status">
-              <el-select v-model="form.status" style="width: 100%;">
-                <el-option label="待开始" value="pending"></el-option>
-                <el-option label="进行中" value="in_progress"></el-option>
-                <el-option label="已暂停" value="paused"></el-option>
-                <el-option label="已完成" value="completed"></el-option>
-                <el-option label="已取消" value="cancelled"></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="优先级" prop="priority">
-              <el-select v-model="form.priority" style="width: 100%;">
-                <el-option label="低" value="low"></el-option>
-                <el-option label="普通" value="normal"></el-option>
-                <el-option label="高" value="high"></el-option>
-                <el-option label="紧急" value="urgent"></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="下单日期" prop="order_date">
-              <el-date-picker
-                v-model="form.order_date"
-                type="date"
-                placeholder="选择下单日期"
-                style="width: 100%;"
-                value-format="yyyy-MM-dd"
-              ></el-date-picker>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="交货日期" prop="delivery_date">
-              <el-date-picker
-                v-model="form.delivery_date"
-                type="date"
-                placeholder="选择交货日期"
-                style="width: 100%;"
-                value-format="yyyy-MM-dd"
-              ></el-date-picker>
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <el-form-item label="实际交货日期">
-          <el-date-picker
-            v-model="form.actual_delivery_date"
-            type="date"
-            placeholder="选择实际交货日期"
+        <!-- 图稿选择 -->
+        <el-form-item label="图稿（CTP版）">
+          <el-select
+            v-model="form.artworks"
+            placeholder="请选择图稿（可多选）"
+            filterable
+            clearable
+            multiple
+            :collapse-tags="shouldCollapseTags"
             style="width: 100%;"
-            value-format="yyyy-MM-dd"
-          ></el-date-picker>
+            @change="handleArtworkChange"
+            @visible-change="handleArtworkSelectVisible"
+          >
+            <el-option
+              label="不需要图稿"
+              :value="'NO_ARTWORK'"
+            ></el-option>
+            <el-option
+              v-for="artwork in artworkList"
+              :key="artwork.id"
+              :label="`${artwork.code} - ${artwork.name}`"
+              :value="artwork.id"
+            ></el-option>
+          </el-select>
+          <span style="color: #909399; font-size: 12px; margin-left: 10px;">
+            选择"不需要图稿"可手动输入产品，选择具体图稿将自动填充关联的产品信息到上方产品列表，可多选（如纸卡双面印刷的面版和底版）
+          </span>
         </el-form-item>
 
         <el-form-item label="总金额">
