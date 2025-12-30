@@ -526,16 +526,8 @@ export default {
         actual_delivery_date: '',
         total_amount: 0,
         notes: ''
-      }
-    },
-    computed: {
-      shouldCollapseTags() {
-        // 至少显示3个选中的选项标签后才显示+n标签
-        const validArtworks = this.form.artworks ? this.form.artworks.filter(id => id !== null) : []
-        return validArtworks.length > 3
-      }
-    },
-    methods: {
+      },
+      rules: {
         customer: [
           { required: true, message: '请选择客户', trigger: 'change' }
         ],
