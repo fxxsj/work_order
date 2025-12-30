@@ -792,12 +792,6 @@ export default {
   padding: 0;
 }
 
-.detail-section-card {
-  border: 1px solid #EBEEF5;
-  box-shadow: none;
-  margin-top: 0;
-}
-
 .card-header {
   display: flex;
   justify-content: space-between;
