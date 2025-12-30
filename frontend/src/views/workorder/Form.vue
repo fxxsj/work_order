@@ -41,7 +41,7 @@
             filterable
             clearable
             multiple
-            :collapse-tags="form.artworks && form.artworks.filter(id => id !== null).length > 3"
+            :collapse-tags="shouldCollapseTags"
             style="width: 100%;"
             @change="handleArtworkChange"
           >
@@ -526,8 +526,16 @@ export default {
         actual_delivery_date: '',
         total_amount: 0,
         notes: ''
-      },
-      rules: {
+      }
+    },
+    computed: {
+      shouldCollapseTags() {
+        // 至少显示3个选中的选项标签后才显示+n标签
+        const validArtworks = this.form.artworks ? this.form.artworks.filter(id => id !== null) : []
+        return validArtworks.length > 3
+      }
+    },
+    methods: {
         customer: [
           { required: true, message: '请选择客户', trigger: 'change' }
         ],
