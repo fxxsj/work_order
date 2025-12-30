@@ -953,6 +953,16 @@ export default {
         }
       })
       this.processAssignments = newAssignments
+    },
+    updateProcessDepartment(processId, departmentId) {
+      // 更新工序的部门指派
+      if (!this.processAssignments[processId]) {
+        this.$set(this.processAssignments, processId, {
+          department: null,
+          tasks: []
+        })
+      }
+      this.$set(this.processAssignments[processId], 'department', departmentId)
     }
   }
 }
