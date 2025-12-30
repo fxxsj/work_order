@@ -1092,9 +1092,10 @@ export default {
             delete data.actual_delivery_date
           }
           
-          // 处理图稿数据：后端暂时只支持单个图稿，取第一个
-          if (this.form.artworks && this.form.artworks.length > 0) {
-            data.artwork = this.form.artworks[0]
+          // 处理图稿数据：后端暂时只支持单个图稿，取第一个（排除 'NO_ARTWORK'）
+          const validArtworks = this.form.artworks ? this.form.artworks.filter(id => id !== 'NO_ARTWORK' && id !== null) : []
+          if (validArtworks.length > 0) {
+            data.artwork = validArtworks[0]
           } else {
             data.artwork = null
           }
