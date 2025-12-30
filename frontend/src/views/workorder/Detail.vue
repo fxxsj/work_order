@@ -54,8 +54,8 @@
       </el-descriptions>
 
       <!-- 产品列表（场景2：一个施工单包含多个产品） -->
-      <el-card style="margin-top: 20px;" v-if="workOrder.products && workOrder.products.length > 0">
-        <div slot="header" style="font-size: 16px; font-weight: 500;">产品列表</div>
+      <el-card v-if="workOrder.products && workOrder.products.length > 0" class="detail-section-card">
+        <div slot="header" class="detail-section-header">产品列表</div>
         <el-table :data="workOrder.products" border style="width: 100%">
           <el-table-column prop="product_name" label="产品名称" width="200">
             <template slot-scope="scope">
@@ -93,8 +93,8 @@
       </el-descriptions>
 
       <!-- 物料信息 -->
-      <el-card style="margin-top: 20px;">
-        <div slot="header" class="card-header" style="font-size: 16px; font-weight: 500;">
+      <el-card class="detail-section-card">
+        <div slot="header" class="detail-section-header card-header">
           <span>物料信息</span>
           <el-button size="small" type="primary" icon="el-icon-plus" @click="showAddMaterialDialog">
             添加物料
