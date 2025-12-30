@@ -301,7 +301,7 @@
             
             <el-form-item label="生产部门">
               <el-select
-                v-model="processAssignments[processId].department"
+                v-model="processAssignments[processId] && processAssignments[processId].department"
                 placeholder="请选择生产部门"
                 filterable
                 style="width: 100%;"
