@@ -957,14 +957,9 @@ export default {
             delete data.actual_delivery_date
           }
           
-          // 处理图稿数据：后端暂时只支持单个图稿，取第一个（排除 'NO_ARTWORK'）
+          // 处理图稿数据：过滤掉 'NO_ARTWORK'，保留所有有效的图稿ID
           const validArtworks = this.form.artworks ? this.form.artworks.filter(id => id !== 'NO_ARTWORK' && id !== null) : []
-          if (validArtworks.length > 0) {
-            data.artwork = validArtworks[0]
-          } else {
-            data.artwork = null
-          }
-          delete data.artworks
+          data.artworks = validArtworks.length > 0 ? validArtworks : []
           
           // 处理产品数据
           if (this.productItems && this.productItems.length > 0 && this.productItems[0].product) {
