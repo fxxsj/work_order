@@ -36,17 +36,15 @@
         <!-- 图稿选择 -->
         <el-form-item label="图稿（CTP版）">
           <el-select
-            v-model="form.artwork"
-            placeholder="请选择图稿"
+            v-model="form.artworks"
+            placeholder="请选择图稿（可多选）"
             filterable
             clearable
+            multiple
+            collapse-tags
             style="width: 100%;"
             @change="handleArtworkChange"
           >
-            <el-option
-              label="不需要图稿"
-              :value="null"
-            ></el-option>
             <el-option
               v-for="artwork in artworkList"
               :key="artwork.id"
@@ -55,14 +53,14 @@
             ></el-option>
           </el-select>
           <span style="color: #909399; font-size: 12px; margin-left: 10px;">
-            选择"不需要图稿"可手动输入产品，选择具体图稿将自动填充关联的产品信息
+            选择图稿后将自动填充关联的产品信息到下方产品列表，可多选（如纸卡双面印刷的面版和底版）
           </span>
         </el-form-item>
 
         <el-divider></el-divider>
 
-        <!-- 产品输入（仅在不需要图稿时显示） -->
-        <template v-if="!form.artwork">
+        <!-- 产品输入 -->
+        <template>
           <!-- 单个产品选择（兼容旧模式，仅在未使用产品列表时显示） -->
           <el-form-item label="产品" prop="product" v-if="productItems.length === 0">
           <el-select
@@ -192,43 +190,6 @@
         </el-form-item>
         </template>
 
-        <!-- 图稿关联的产品列表（自动填充，可修改数量） -->
-        <el-form-item label="产品列表（来自图稿）" v-if="form.artwork && artworkProducts.length > 0">
-          <el-table :data="artworkProducts" border style="width: 100%">
-            <el-table-column prop="product_name" label="产品名称" width="200">
-              <template slot-scope="scope">
-                {{ scope.row.product_name }} ({{ scope.row.product_code }})
-              </template>
-            </el-table-column>
-            <el-table-column prop="specification" label="规格" show-overflow-tooltip></el-table-column>
-            <el-table-column prop="imposition_quantity" label="拼版数量" width="120" align="center">
-              <template slot-scope="scope">
-                {{ scope.row.imposition_quantity }}拼
-              </template>
-            </el-table-column>
-            <el-table-column label="数量" width="150">
-              <template slot-scope="scope">
-                <el-input-number
-                  v-model="scope.row.quantity"
-                  :min="1"
-                  @change="calculateTotalAmount"
-                  style="width: 100%;"
-                ></el-input-number>
-              </template>
-            </el-table-column>
-            <el-table-column prop="unit" label="单位" width="100"></el-table-column>
-            <el-table-column label="小计" width="150" align="right">
-              <template slot-scope="scope">
-                <span v-if="scope.row.product_detail">
-                  ¥{{ parseFloat((scope.row.product_detail.unit_price * scope.row.quantity).toFixed(2)) }}
-                </span>
-                <span v-else>-</span>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-form-item>
-
-        <el-divider></el-divider>
 
         <el-row :gutter="20">
           <el-col :span="12">
@@ -540,7 +501,7 @@ export default {
       allProcesses: [],
       departmentList: [],
       selectedProduct: null,
-      productItems: [], // 产品列表（场景2：一个施工单包含多个产品）
+      productItems: [], // 产品列表（可手动添加或从图稿自动填充）
       materialItems: [], // 物料列表
       selectedProcesses: [],
       processAssignments: {}, // 工序指派信息 { processId: { department: id, tasks: [...] } }
@@ -551,7 +512,7 @@ export default {
         specification: '',
         quantity: 1,
         unit: '件',
-        artwork: null,
+        artworks: [], // 图稿列表（支持多选）
         die: null,
         imposition_quantity: 1,
         status: 'pending',
@@ -772,10 +733,9 @@ export default {
         console.error('加载产品默认信息失败:', error)
       }
     },
-    async handleArtworkChange(artworkId) {
-      if (!artworkId) {
-        // 选择了"不需要图稿"，清空图稿产品列表，恢复手动输入模式
-        this.artworkProducts = []
+    async handleArtworkChange(artworkIds) {
+      if (!artworkIds || artworkIds.length === 0) {
+        // 清空图稿选择，保留手动输入的产品
         // 如果产品列表为空，初始化一个空的产品项
         if (this.productItems.length === 0) {
           this.productItems = [{
@@ -789,36 +749,73 @@ export default {
         return
       }
 
-      // 选择了具体图稿，加载图稿关联的产品
+      // 选择了图稿（可能多个），加载所有图稿关联的产品并合并
       try {
-        const artworkDetail = await artworkAPI.getDetail(artworkId)
-        if (artworkDetail.products && artworkDetail.products.length > 0) {
-          // 将图稿关联的产品转换为 artworkProducts 格式
-          this.artworkProducts = artworkDetail.products.map(ap => ({
-            product: ap.product,
-            product_name: ap.product_name,
-            product_code: ap.product_code,
-            product_detail: ap.product_detail,
-            quantity: ap.imposition_quantity || 1, // 默认数量为拼版数量
-            unit: ap.product_detail ? ap.product_detail.unit : '件',
-            specification: ap.product_detail ? ap.product_detail.specification : '',
-            imposition_quantity: ap.imposition_quantity
-          }))
+        const allProducts = []
+        
+        // 遍历所有选中的图稿
+        for (const artworkId of artworkIds) {
+          const artworkDetail = await artworkAPI.getDetail(artworkId)
+          if (artworkDetail.products && artworkDetail.products.length > 0) {
+            // 将图稿关联的产品转换为 productItems 格式
+            artworkDetail.products.forEach(ap => {
+              // 检查是否已存在相同产品，如果存在则合并数量
+              const existingProduct = allProducts.find(p => p.product === ap.product)
+              if (existingProduct) {
+                // 如果已存在，累加数量（使用拼版数量）
+                existingProduct.quantity = (existingProduct.quantity || 1) + (ap.imposition_quantity || 1)
+              } else {
+                // 如果不存在，添加新产品
+                allProducts.push({
+                  product: ap.product,
+                  quantity: ap.imposition_quantity || 1, // 默认数量为拼版数量
+                  unit: ap.product_detail ? ap.product_detail.unit : '件',
+                  specification: ap.product_detail ? ap.product_detail.specification : ''
+                })
+              }
+            })
+          }
+        }
 
-          // 清空手动输入的产品
-          this.form.product = null
-          this.productItems = []
+        // 将图稿关联的产品填充到 productItems
+        if (allProducts.length > 0) {
+          // 保留手动添加的产品（如果存在且不在图稿产品列表中）
+          const manualProducts = this.productItems.filter(item => {
+            // 如果产品项有产品ID，且不在图稿产品列表中，则保留
+            return item.product && !allProducts.find(ap => ap.product === item.product)
+          })
+          
+          // 合并图稿产品和手动添加的产品
+          this.productItems = [...allProducts, ...manualProducts]
+          
+          // 如果合并后列表为空，至少保留一个空项
+          if (this.productItems.length === 0) {
+            this.productItems = [{
+              product: null,
+              quantity: 1,
+              unit: '件',
+              specification: ''
+            }]
+          }
 
           // 自动填充第一个产品的默认工序和物料
-          if (this.artworkProducts.length > 0 && this.artworkProducts[0].product) {
-            await this.loadProductDefaults(this.artworkProducts[0].product)
+          if (this.productItems.length > 0 && this.productItems[0].product) {
+            await this.loadProductDefaults(this.productItems[0].product)
           }
 
           // 自动计算总金额
           this.calculateTotalAmount()
         } else {
-          this.artworkProducts = []
-          this.$message.warning('该图稿未关联任何产品')
+          // 如果所有图稿都没有关联产品，提示用户
+          if (this.productItems.length === 0) {
+            this.productItems = [{
+              product: null,
+              quantity: 1,
+              unit: '件',
+              specification: ''
+            }]
+          }
+          this.$message.warning('所选图稿未关联任何产品')
         }
       } catch (error) {
         console.error('加载图稿详情失败:', error)
@@ -866,16 +863,7 @@ export default {
       this.calculateTotalAmount()
     },
     calculateTotalAmount() {
-      if (this.form.artwork && this.artworkProducts.length > 0) {
-        // 图稿模式：计算图稿关联产品的总金额
-        let total = 0
-        this.artworkProducts.forEach(item => {
-          if (item.product_detail && item.quantity) {
-            total += parseFloat((item.product_detail.unit_price * item.quantity).toFixed(2))
-          }
-        })
-        this.form.total_amount = total
-      } else if (this.productItems.length > 0 && this.productItems[0].product) {
+      if (this.productItems.length > 0 && this.productItems[0].product) {
         // 计算所有产品的总金额（场景2：多个产品）
         let total = 0
         this.productItems.forEach(item => {
@@ -919,73 +907,51 @@ export default {
           notes: data.notes || ''
         }
         
-        // 如果有图稿，加载图稿关联的产品
-        if (data.artwork) {
-          try {
-            const artworkDetail = await artworkAPI.getDetail(data.artwork)
-            if (artworkDetail.products && artworkDetail.products.length > 0) {
-              // 将图稿关联的产品转换为 artworkProducts 格式
-              this.artworkProducts = artworkDetail.products.map(ap => ({
-                product: ap.product,
-                product_name: ap.product_name,
-                product_code: ap.product_code,
-                product_detail: ap.product_detail,
-                quantity: ap.imposition_quantity || 1,
-                unit: ap.product_detail ? ap.product_detail.unit : '件',
-                specification: ap.product_detail ? ap.product_detail.specification : '',
-                imposition_quantity: ap.imposition_quantity
-              }))
-              
-              // 如果有已保存的产品数据，更新数量
-              if (data.products && data.products.length > 0) {
-                data.products.forEach(savedProduct => {
-                  const artworkProduct = this.artworkProducts.find(ap => ap.product === savedProduct.product)
-                  if (artworkProduct) {
-                    artworkProduct.quantity = savedProduct.quantity
-                    artworkProduct.unit = savedProduct.unit
-                    artworkProduct.specification = savedProduct.specification
-                  }
-                })
-              }
-            }
-          } catch (error) {
-            console.error('加载图稿详情失败:', error)
-          }
+        // 加载产品列表
+        if (data.products && data.products.length > 0) {
+          this.productItems = data.products.map((p) => ({
+            product: p.product,
+            quantity: p.quantity,
+            unit: p.unit,
+            specification: p.specification || ''
+          }))
+        } else if (data.product) {
+          // 兼容旧数据：如果只有单个产品
+          this.productItems = [{
+            product: data.product,
+            quantity: data.quantity || 1,
+            unit: data.unit || '件',
+            specification: data.specification || ''
+          }]
+        } else {
+          this.productItems = [{
+            product: null,
+            quantity: 1,
+            unit: '件',
+            specification: ''
+          }]
         }
         
-        // 加载产品列表（场景2：一个施工单包含多个产品，且没有图稿）
-        if (!data.artwork) {
+        // 如果有产品ID，加载产品信息用于计算
+        if (data.product) {
+          this.selectedProduct = data.product_detail
+        }
+        
+        // 如果有图稿，加载图稿关联的产品（如果产品列表为空或需要更新）
+        if (this.form.artworks && this.form.artworks.length > 0) {
+          // 先加载产品列表，然后根据图稿更新
+          await this.handleArtworkChange(this.form.artworks)
+          // 如果有已保存的产品数据，更新数量等信息
           if (data.products && data.products.length > 0) {
-            this.productItems = data.products.map((p) => ({
-              product: p.product,
-              quantity: p.quantity,
-              unit: p.unit,
-              specification: p.specification || ''
-            }))
-          } else if (data.product) {
-            // 兼容旧数据：如果只有单个产品
-            this.productItems = [{
-              product: data.product,
-              quantity: data.quantity || 1,
-              unit: data.unit || '件',
-              specification: data.specification || ''
-            }]
-          } else {
-            this.productItems = [{
-              product: null,
-              quantity: 1,
-              unit: '件',
-              specification: ''
-            }]
+            data.products.forEach(savedProduct => {
+              const productItem = this.productItems.find(p => p.product === savedProduct.product)
+              if (productItem) {
+                productItem.quantity = savedProduct.quantity
+                productItem.unit = savedProduct.unit
+                productItem.specification = savedProduct.specification
+              }
+            })
           }
-          
-          // 如果有产品ID，加载产品信息用于计算
-          if (data.product) {
-            this.selectedProduct = data.product_detail
-          }
-        } else {
-          // 有图稿时，清空手动输入的产品列表
-          this.productItems = []
         }
         
         // 重新计算总金额
@@ -1039,19 +1005,10 @@ export default {
         }
         
         // 验证产品信息
-        if (this.form.artwork) {
-          // 图稿模式：验证图稿是否关联产品
-          if (this.artworkProducts.length === 0) {
-            this.$message.warning('所选图稿未关联任何产品')
+        if (this.productItems.length === 0 || !this.productItems[0].product) {
+          if (!this.form.product) {
+            this.$message.warning('请选择产品或添加产品列表')
             return
-          }
-        } else {
-          // 手动输入模式：验证产品
-          if (this.productItems.length === 0 || !this.productItems[0].product) {
-            if (!this.form.product) {
-              this.$message.warning('请选择产品或添加产品列表')
-              return
-            }
           }
         }
         
@@ -1069,25 +1026,16 @@ export default {
             delete data.actual_delivery_date
           }
           
+          // 处理图稿数据：后端暂时只支持单个图稿，取第一个
+          if (this.form.artworks && this.form.artworks.length > 0) {
+            data.artwork = this.form.artworks[0]
+          } else {
+            data.artwork = null
+          }
+          delete data.artworks
+          
           // 处理产品数据
-          if (this.form.artwork && this.artworkProducts.length > 0) {
-            // 图稿模式：将图稿关联的产品转换为 products_data
-            data.products_data = this.artworkProducts
-              .filter(item => item.product)
-              .map((item, index) => ({
-                product: item.product,
-                quantity: item.quantity || 1,
-                unit: item.unit || '件',
-                specification: item.specification || '',
-                sort_order: index
-              }))
-            // 清空单个产品字段
-            delete data.product
-            delete data.product_name
-            delete data.specification
-            delete data.quantity
-            delete data.unit
-          } else if (this.productItems && this.productItems.length > 0 && this.productItems[0].product) {
+          if (this.productItems && this.productItems.length > 0 && this.productItems[0].product) {
             // 场景2：多个产品模式，传 products_data
             data.products_data = this.productItems
               .filter(item => item.product)
@@ -1164,32 +1112,20 @@ export default {
         }
       }
       
-      // 使用传入的 productsData 或从 productItems/artworkProducts 获取
+      // 使用传入的 productsData 或从 productItems 获取
       let productsToSave = productsData
       
       if (!productsToSave) {
-        // 如果没有传入，从 productItems 或 artworkProducts 获取
-        if (this.form.artwork && this.artworkProducts.length > 0) {
-          productsToSave = this.artworkProducts
-            .filter(item => item.product)
-            .map((item, index) => ({
-              product: item.product,
-              quantity: item.quantity || 1,
-              unit: item.unit || '件',
-              specification: item.specification || '',
-              sort_order: index
-            }))
-        } else {
-          productsToSave = this.productItems
-            .filter(item => item.product)
-            .map((item, index) => ({
-              product: item.product,
-              quantity: item.quantity || 1,
-              unit: item.unit || '件',
-              specification: item.specification || '',
-              sort_order: index
-            }))
-        }
+        // 如果没有传入，从 productItems 获取
+        productsToSave = this.productItems
+          .filter(item => item.product)
+          .map((item, index) => ({
+            product: item.product,
+            quantity: item.quantity || 1,
+            unit: item.unit || '件',
+            specification: item.specification || '',
+            sort_order: index
+          }))
       }
       
       // 添加新产品
