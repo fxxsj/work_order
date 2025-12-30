@@ -1008,10 +1008,8 @@ export default {
             await this.saveProducts(workOrderId, data.products_data)
           }
           
-          // 添加选中的工序
-          if (!this.isEdit) {
-            await this.addSelectedProcesses(workOrderId)
-          }
+          // 添加选中的工序（新建和编辑都需要处理）
+          await this.saveSelectedProcesses(workOrderId)
           
           // 保存物料信息
           await this.saveMaterials(workOrderId)
