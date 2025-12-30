@@ -151,7 +151,7 @@
               v-model="materialStatusForm.purchase_status"
               placeholder="请选择状态"
               style="width: 100%;"
-              @change="handleStatusChange"
+              @change="handleMaterialStatusChange"
             >
               <el-option
                 v-for="status in availableStatuses"
@@ -208,7 +208,9 @@
           </el-button>
         </div>
       </el-dialog>
-      <el-card v-else style="margin-top: 20px;">
+
+      <!-- 无物料信息时的显示 -->
+      <el-card v-if="workOrder && (!workOrder.materials || workOrder.materials.length === 0)" style="margin-top: 20px;">
         <div slot="header">物料信息</div>
         <p style="color: #909399; text-align: center;">暂无物料信息</p>
       </el-card>
@@ -659,8 +661,8 @@ export default {
       }
       this.materialStatusDialogVisible = true
     },
-    handleStatusChange() {
-      // 当状态改变时，自动设置日期为今天（如果为空）
+    handleMaterialStatusChange() {
+      // 当物料状态改变时，自动设置日期为今天（如果为空）
       const today = new Date().toISOString().split('T')[0]
       if (this.materialStatusForm.purchase_status === 'ordered' && !this.materialStatusForm.purchase_date) {
         this.materialStatusForm.purchase_date = today
