@@ -644,9 +644,9 @@ export default {
           data.order_processes.forEach(op => {
             const process = this.allProcesses.find(p => p.id === op.process)
             if (process) {
-              const category = this.processCategories.find(c => c.id === process.category)
-              if (category && this.selectedProcesses[category.code]) {
-                this.selectedProcesses[category.code].push(op.process)
+              const department = this.departments.find(d => d.id === process.department)
+              if (department && this.selectedProcesses[department.code]) {
+                this.selectedProcesses[department.code].push(op.process)
               }
             }
           })
