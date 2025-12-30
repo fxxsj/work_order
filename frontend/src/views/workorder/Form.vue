@@ -1084,7 +1084,7 @@ export default {
         }
       })
     },
-    async saveProducts(workOrderId) {
+    async saveProducts(workOrderId, productsData) {
       // 如果是编辑模式，先删除所有现有产品，然后重新添加
       if (this.isEdit) {
         try {
@@ -1099,9 +1099,37 @@ export default {
         }
       }
       
+      // 使用传入的 productsData 或从 productItems/artworkProducts 获取
+      let productsToSave = productsData
+      
+      if (!productsToSave) {
+        // 如果没有传入，从 productItems 或 artworkProducts 获取
+        if (this.useArtwork && this.artworkProducts.length > 0) {
+          productsToSave = this.artworkProducts
+            .filter(item => item.product)
+            .map((item, index) => ({
+              product: item.product,
+              quantity: item.quantity || 1,
+              unit: item.unit || '件',
+              specification: item.specification || '',
+              sort_order: index
+            }))
+        } else {
+          productsToSave = this.productItems
+            .filter(item => item.product)
+            .map((item, index) => ({
+              product: item.product,
+              quantity: item.quantity || 1,
+              unit: item.unit || '件',
+              specification: item.specification || '',
+              sort_order: index
+            }))
+        }
+      }
+      
       // 添加新产品
-      for (let i = 0; i < this.productItems.length; i++) {
-        const item = this.productItems[i]
+      for (let i = 0; i < productsToSave.length; i++) {
+        const item = productsToSave[i]
         if (item.product) {
           try {
             await workOrderProductAPI.create({
