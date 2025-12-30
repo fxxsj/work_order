@@ -169,7 +169,7 @@
               :label="process.id"
               :disabled="!process.is_active"
             >
-              {{ process.code }} - {{ process.name }}
+              {{ process.name }}
             </el-checkbox>
           </el-checkbox-group>
         </el-form-item>
