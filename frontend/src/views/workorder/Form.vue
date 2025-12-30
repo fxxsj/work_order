@@ -307,88 +307,6 @@
           </el-checkbox-group>
         </el-form-item>
 
-        <!-- 工序派工 -->
-        <div v-if="selectedProcesses.length > 0">
-          <el-card style="margin-top: 20px;">
-            <div slot="header">工序派工</div>
-            <div v-for="processId in selectedProcesses" :key="processId" style="margin-bottom: 20px; padding: 15px; border: 1px solid #e4e7ed; border-radius: 4px;">
-              <h4 style="margin: 0 0 15px 0;">{{ getProcessName(processId) }}</h4>
-              
-              <el-form-item label="生产部门">
-                <el-select
-                  :value="processAssignments[processId] && processAssignments[processId].department"
-                  @input="updateProcessDepartment(processId, $event)"
-                  placeholder="请选择部门"
-                  clearable
-                  style="width: 100%;"
-                >
-                  <el-option
-                    v-for="dept in departmentList"
-                    :key="dept.id"
-                    :label="dept.name"
-                    :value="dept.id"
-                  ></el-option>
-                </el-select>
-              </el-form-item>
-
-              <el-form-item label="任务列表">
-                <el-table
-                  :data="processAssignments[processId] && processAssignments[processId].tasks || []"
-                  border
-                  style="width: 100%;"
-                >
-                  <el-table-column prop="work_content" label="施工内容" width="200">
-                    <template slot-scope="scope">
-                      <el-input
-                        v-model="scope.row.work_content"
-                        placeholder="请输入施工内容"
-                      ></el-input>
-                    </template>
-                  </el-table-column>
-                  <el-table-column prop="production_quantity" label="生产数量" width="150">
-                    <template slot-scope="scope">
-                      <el-input-number
-                        v-model="scope.row.production_quantity"
-                        :min="0"
-                        style="width: 100%;"
-                      ></el-input-number>
-                    </template>
-                  </el-table-column>
-                  <el-table-column prop="production_requirements" label="生产要求">
-                    <template slot-scope="scope">
-                      <el-input
-                        v-model="scope.row.production_requirements"
-                        placeholder="请输入生产要求"
-                      ></el-input>
-                    </template>
-                  </el-table-column>
-                  <el-table-column label="操作" width="100">
-                    <template slot-scope="scope">
-                      <el-button
-                        type="danger"
-                        size="mini"
-                        icon="el-icon-delete"
-                        @click="removeTask(processId, scope.$index)"
-                        circle
-                      ></el-button>
-                    </template>
-                  </el-table-column>
-                </el-table>
-                <el-button
-                  type="primary"
-                  size="mini"
-                  icon="el-icon-plus"
-                  @click="addTask(processId)"
-                  style="margin-top: 10px;"
-                >
-                  添加任务
-                </el-button>
-              </el-form-item>
-            </div>
-          </el-card>
-        </div>
-
-        <el-divider></el-divider>
 
         <!-- 物料信息 -->
         <el-form-item label="物料信息">
@@ -504,12 +422,10 @@ export default {
       artworkList: [],
       dieList: [],
       allProcesses: [],
-      departmentList: [],
       selectedProduct: null,
       productItems: [], // 产品列表（可手动添加或从图稿自动填充）
       materialItems: [], // 物料列表
       selectedProcesses: [],
-      processAssignments: {}, // 工序指派信息 { processId: { department: id, tasks: [...] } }
       hasNoArtworkSelected: false, // 标记是否已选中"不需要图稿"
       form: {
         customer: null,
@@ -562,12 +478,6 @@ export default {
     }
   },
   watch: {
-    selectedProcesses: {
-      handler() {
-        this.updateProcessAssignments()
-      },
-      deep: true
-    }
   },
   created() {
     this.isEdit = !!this.$route.params.id
@@ -669,35 +579,6 @@ export default {
         console.error('加载工序列表失败:', error)
       }
     },
-    async loadDepartmentList() {
-      try {
-        // 分页加载所有部门
-        let allDepartments = []
-        let page = 1
-        let hasMore = true
-        
-        while (hasMore) {
-          const response = await departmentAPI.getList({ 
-            is_active: true, 
-            page_size: 100,
-            page: page
-          })
-          
-          if (response.results && response.results.length > 0) {
-            allDepartments = allDepartments.concat(response.results)
-            // 检查是否还有更多数据
-            hasMore = response.next !== null && response.next !== undefined
-            page++
-          } else {
-            hasMore = false
-          }
-        }
-        
-        this.departmentList = allDepartments
-      } catch (error) {
-        console.error('加载部门列表失败:', error)
-      }
-    },
     async handleProductChange(productId) {
       // 找到选中的产品
       const product = this.productList.find(p => p.id === productId)
@@ -774,7 +655,6 @@ export default {
         // 清空工序和物料
         this.selectedProcesses = []
         this.materialItems = []
-        this.processAssignments = {}
         
         this.calculateTotalAmount()
         return
@@ -1026,23 +906,8 @@ export default {
         // 加载已选择的工序
         if (data.order_processes && data.order_processes.length > 0) {
           this.selectedProcesses = data.order_processes.map(op => op.process)
-          
-          // 加载工序的部门指派和任务
-          const assignments = {}
-          for (const op of data.order_processes) {
-            assignments[op.process] = {
-              department: op.department || null,
-              tasks: (op.tasks || []).map(task => ({
-                work_content: task.work_content || '',
-                production_quantity: task.production_quantity || 0,
-                production_requirements: task.production_requirements || ''
-              }))
-            }
-          }
-          this.processAssignments = assignments
         } else {
           this.selectedProcesses = []
-          this.processAssignments = {}
         }
         
         // 加载物料信息
@@ -1147,9 +1012,6 @@ export default {
           // 添加选中的工序
           if (!this.isEdit) {
             await this.addSelectedProcesses(workOrderId)
-          } else {
-            // 编辑时保存工序指派和任务
-            await this.saveProcessAssignments(workOrderId)
           }
           
           // 保存物料信息
@@ -1244,7 +1106,7 @@ export default {
         return
       }
       
-      // 按顺序添加工序，并保存部门指派和任务
+      // 按顺序添加工序
       for (let i = 0; i < allSelectedIds.length; i++) {
         const processId = allSelectedIds[i]
         try {
@@ -1254,90 +1116,11 @@ export default {
             sequence: i + 1
           }
           
-          const processResult = await workOrderAPI.addProcess(workOrderId, processData)
-          const workOrderProcessId = processResult.id
-          
-          if (!workOrderProcessId) {
-            console.error('添加工序失败：未返回工序ID', processResult)
-            throw new Error('添加工序失败：未返回工序ID')
-          }
-          
-          // 如果有部门指派，更新工序的部门
-          const assignment = this.processAssignments[processId]
-          if (assignment && assignment.department) {
-            await workOrderProcessAPI.update(workOrderProcessId, {
-              department: assignment.department
-            })
-          }
-          
-          // 如果有任务，创建任务
-          if (assignment && assignment.tasks && assignment.tasks.length > 0) {
-            for (const task of assignment.tasks) {
-              if (task.work_content) {
-                await workOrderTaskAPI.create({
-                  work_order_process: workOrderProcessId,
-                  work_content: task.work_content,
-                  production_quantity: task.production_quantity || 0,
-                  production_requirements: task.production_requirements || ''
-                })
-              }
-            }
-          }
+          await workOrderAPI.addProcess(workOrderId, processData)
         } catch (error) {
           console.error('添加工序失败:', error)
           throw error // 重新抛出错误，让上层处理
         }
-      }
-    },
-    async saveProcessAssignments(workOrderId) {
-      // 编辑时保存工序的部门指派和任务
-      try {
-        // 获取现有的工序列表
-        const processesResponse = await workOrderProcessAPI.getList({ work_order: workOrderId })
-        const existingProcesses = processesResponse.results || []
-        
-        for (const processId of this.selectedProcesses) {
-          const assignment = this.processAssignments[processId]
-          if (!assignment) continue
-          
-          // 找到对应的工序记录
-          const existingProcess = existingProcesses.find(ep => ep.process === processId)
-          if (!existingProcess) continue
-          
-          const workOrderProcessId = existingProcess.id
-          
-          // 更新部门
-          if (assignment.department) {
-            await workOrderProcessAPI.update(workOrderProcessId, {
-              department: assignment.department
-            })
-          }
-          
-          // 获取现有任务
-          const tasksResponse = await workOrderTaskAPI.getList({ work_order_process: workOrderProcessId })
-          const existingTasks = tasksResponse.results || []
-          
-          // 删除现有任务
-          for (const task of existingTasks) {
-            await workOrderTaskAPI.delete(task.id)
-          }
-          
-          // 创建新任务
-          if (assignment.tasks && assignment.tasks.length > 0) {
-            for (const task of assignment.tasks) {
-              if (task.work_content) {
-                await workOrderTaskAPI.create({
-                  work_order_process: workOrderProcessId,
-                  work_content: task.work_content,
-                  production_quantity: task.production_quantity || 0,
-                  production_requirements: task.production_requirements || ''
-                })
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('保存工序指派失败:', error)
       }
     },
     handleCancel() {
@@ -1394,49 +1177,6 @@ export default {
           }
         }
       }
-    },
-    addTask(processId) {
-      if (!this.processAssignments[processId]) {
-        this.$set(this.processAssignments, processId, {
-          department: null,
-          tasks: []
-        })
-      }
-      this.processAssignments[processId].tasks.push({
-        work_content: '',
-        production_quantity: 0,
-        production_requirements: ''
-      })
-    },
-    removeTask(processId, taskIndex) {
-      if (this.processAssignments[processId] && this.processAssignments[processId].tasks) {
-        this.processAssignments[processId].tasks.splice(taskIndex, 1)
-      }
-    },
-    updateProcessAssignments() {
-      // 当工序选择变化时，更新工序指派信息
-      const newAssignments = {}
-      this.selectedProcesses.forEach(processId => {
-        if (this.processAssignments[processId]) {
-          newAssignments[processId] = this.processAssignments[processId]
-        } else {
-          newAssignments[processId] = {
-            department: null,
-            tasks: []
-          }
-        }
-      })
-      this.processAssignments = newAssignments
-    },
-    updateProcessDepartment(processId, departmentId) {
-      // 更新工序的部门指派
-      if (!this.processAssignments[processId]) {
-        this.$set(this.processAssignments, processId, {
-          department: null,
-          tasks: []
-        })
-      }
-      this.$set(this.processAssignments[processId], 'department', departmentId)
     },
     formatDate(date) {
       if (!date) return ''
