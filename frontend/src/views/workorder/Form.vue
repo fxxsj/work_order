@@ -1202,18 +1202,27 @@ export default {
         if (item.product) {
           try {
             // 确保数据类型正确
+            const quantity = parseInt(item.quantity) || 1
+            const sortOrder = parseInt(item.sort_order) !== undefined ? parseInt(item.sort_order) : i
+            
             const productData = {
               work_order: workOrderId,
               product: item.product,
-              quantity: parseInt(item.quantity) || 1,
-              unit: item.unit || '件',
-              specification: item.specification || '',
-              sort_order: parseInt(item.sort_order) || i
+              quantity: quantity,
+              unit: (item.unit || '件').toString().substring(0, 20), // 确保不超过20字符
+              specification: (item.specification || '').toString(),
+              sort_order: sortOrder
+            }
+            
+            // 验证必填字段
+            if (!productData.work_order || !productData.product) {
+              throw new Error('施工单ID和产品ID不能为空')
             }
             
             await workOrderProductAPI.create(productData)
           } catch (error) {
             console.error('保存产品失败:', error)
+            console.error('错误详情:', error.response?.data)
             console.error('产品数据:', {
               work_order: workOrderId,
               product: item.product,
