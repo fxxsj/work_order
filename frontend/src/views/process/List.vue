@@ -135,9 +135,6 @@ export default {
         name: [
           { required: true, message: '请输入工序名称', trigger: 'blur' }
         ],
-        department: [
-          { required: true, message: '请选择所属部门', trigger: 'change' }
-        ]
       }
     }
   },

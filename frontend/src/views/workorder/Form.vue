@@ -444,14 +444,6 @@ export default {
         console.error('加载刀模列表失败:', error)
       }
     },
-    async loadProcessCategories() {
-      try {
-        const response = await departmentAPI.getList({ is_active: true, page_size: 100 })
-        this.departments = response.results || []
-      } catch (error) {
-        console.error('加载部门列表失败:', error)
-      }
-    },
     async loadAllProcesses() {
       try {
         const response = await processAPI.getList({ is_active: true, page_size: 100 })

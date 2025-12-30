@@ -187,7 +187,7 @@
 </template>
 
 <script>
-import { productAPI, departmentAPI, processAPI, materialAPI, productMaterialAPI } from '@/api/workorder'
+import { productAPI, processAPI, materialAPI, productMaterialAPI } from '@/api/workorder'
 
 export default {
   name: 'ProductList',
@@ -202,7 +202,6 @@ export default {
       dialogVisible: false,
       isEdit: false,
       editId: null,
-      departments: [],
       allProcesses: [],
       materialList: [],
       productMaterialItems: [], // 产品物料列表
