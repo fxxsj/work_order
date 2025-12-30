@@ -460,12 +460,6 @@ export default {
         console.error('加载工序列表失败:', error)
       }
     },
-    getProcessesByDepartment(departmentCode) {
-      // 根据部门code获取工序
-      const department = this.departments.find(d => d.code === departmentCode)
-      if (!department) return []
-      return this.allProcesses.filter(p => p.department === department.id)
-    },
     async handleProductChange(productId) {
       // 找到选中的产品
       const product = this.productList.find(p => p.id === productId)
