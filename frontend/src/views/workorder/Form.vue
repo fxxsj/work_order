@@ -301,23 +301,6 @@
 
         <el-divider></el-divider>
 
-        <el-form-item label="图稿（CTP版）">
-          <el-select
-            v-model="form.artwork"
-            placeholder="请选择图稿"
-            filterable
-            clearable
-            style="width: 100%;"
-          >
-            <el-option
-              v-for="artwork in artworkList"
-              :key="artwork.id"
-              :label="`${artwork.code} - ${artwork.name}`"
-              :value="artwork.id"
-            ></el-option>
-          </el-select>
-        </el-form-item>
-
         <el-form-item label="刀模">
           <el-select
             v-model="form.die"
@@ -789,6 +772,59 @@ export default {
         console.error('加载产品默认信息失败:', error)
       }
     },
+    async handleArtworkChange(artworkId) {
+      if (!artworkId) {
+        // 选择了"不需要图稿"，清空图稿产品列表，恢复手动输入模式
+        this.artworkProducts = []
+        // 如果产品列表为空，初始化一个空的产品项
+        if (this.productItems.length === 0) {
+          this.productItems = [{
+            product: null,
+            quantity: 1,
+            unit: '件',
+            specification: ''
+          }]
+        }
+        this.calculateTotalAmount()
+        return
+      }
+
+      // 选择了具体图稿，加载图稿关联的产品
+      try {
+        const artworkDetail = await artworkAPI.getDetail(artworkId)
+        if (artworkDetail.products && artworkDetail.products.length > 0) {
+          // 将图稿关联的产品转换为 artworkProducts 格式
+          this.artworkProducts = artworkDetail.products.map(ap => ({
+            product: ap.product,
+            product_name: ap.product_name,
+            product_code: ap.product_code,
+            product_detail: ap.product_detail,
+            quantity: ap.imposition_quantity || 1, // 默认数量为拼版数量
+            unit: ap.product_detail ? ap.product_detail.unit : '件',
+            specification: ap.product_detail ? ap.product_detail.specification : '',
+            imposition_quantity: ap.imposition_quantity
+          }))
+
+          // 清空手动输入的产品
+          this.form.product = null
+          this.productItems = []
+
+          // 自动填充第一个产品的默认工序和物料
+          if (this.artworkProducts.length > 0 && this.artworkProducts[0].product) {
+            await this.loadProductDefaults(this.artworkProducts[0].product)
+          }
+
+          // 自动计算总金额
+          this.calculateTotalAmount()
+        } else {
+          this.artworkProducts = []
+          this.$message.warning('该图稿未关联任何产品')
+        }
+      } catch (error) {
+        console.error('加载图稿详情失败:', error)
+        this.$message.error('加载图稿详情失败')
+      }
+    },
     addProductItem() {
       this.productItems.push({
         product: null,
@@ -883,34 +919,73 @@ export default {
           notes: data.notes || ''
         }
         
-        // 加载产品列表（场景2：一个施工单包含多个产品）
-        if (data.products && data.products.length > 0) {
-          this.productItems = data.products.map((p) => ({
-            product: p.product,
-            quantity: p.quantity,
-            unit: p.unit,
-            specification: p.specification || ''
-          }))
-        } else if (data.product) {
-          // 兼容旧数据：如果只有单个产品
-          this.productItems = [{
-            product: data.product,
-            quantity: data.quantity || 1,
-            unit: data.unit || '件',
-            specification: data.specification || ''
-          }]
-        } else {
-          this.productItems = [{
-            product: null,
-            quantity: 1,
-            unit: '件',
-            specification: ''
-          }]
+        // 如果有图稿，加载图稿关联的产品
+        if (data.artwork) {
+          try {
+            const artworkDetail = await artworkAPI.getDetail(data.artwork)
+            if (artworkDetail.products && artworkDetail.products.length > 0) {
+              // 将图稿关联的产品转换为 artworkProducts 格式
+              this.artworkProducts = artworkDetail.products.map(ap => ({
+                product: ap.product,
+                product_name: ap.product_name,
+                product_code: ap.product_code,
+                product_detail: ap.product_detail,
+                quantity: ap.imposition_quantity || 1,
+                unit: ap.product_detail ? ap.product_detail.unit : '件',
+                specification: ap.product_detail ? ap.product_detail.specification : '',
+                imposition_quantity: ap.imposition_quantity
+              }))
+              
+              // 如果有已保存的产品数据，更新数量
+              if (data.products && data.products.length > 0) {
+                data.products.forEach(savedProduct => {
+                  const artworkProduct = this.artworkProducts.find(ap => ap.product === savedProduct.product)
+                  if (artworkProduct) {
+                    artworkProduct.quantity = savedProduct.quantity
+                    artworkProduct.unit = savedProduct.unit
+                    artworkProduct.specification = savedProduct.specification
+                  }
+                })
+              }
+            }
+          } catch (error) {
+            console.error('加载图稿详情失败:', error)
+          }
         }
         
-        // 如果有产品ID，加载产品信息用于计算
-        if (data.product) {
-          this.selectedProduct = data.product_detail
+        // 加载产品列表（场景2：一个施工单包含多个产品，且没有图稿）
+        if (!data.artwork) {
+          if (data.products && data.products.length > 0) {
+            this.productItems = data.products.map((p) => ({
+              product: p.product,
+              quantity: p.quantity,
+              unit: p.unit,
+              specification: p.specification || ''
+            }))
+          } else if (data.product) {
+            // 兼容旧数据：如果只有单个产品
+            this.productItems = [{
+              product: data.product,
+              quantity: data.quantity || 1,
+              unit: data.unit || '件',
+              specification: data.specification || ''
+            }]
+          } else {
+            this.productItems = [{
+              product: null,
+              quantity: 1,
+              unit: '件',
+              specification: ''
+            }]
+          }
+          
+          // 如果有产品ID，加载产品信息用于计算
+          if (data.product) {
+            this.selectedProduct = data.product_detail
+          }
+        } else {
+          // 有图稿时，清空手动输入的产品列表
+          this.productItems = []
         }
         
         // 重新计算总金额
