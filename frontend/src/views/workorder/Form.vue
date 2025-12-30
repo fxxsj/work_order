@@ -201,7 +201,7 @@
         <el-form-item label="印前工序">
           <el-checkbox-group v-model="selectedProcesses.prepress">
             <el-checkbox
-              v-for="process in getProcessesByCategory('prepress')"
+              v-for="process in getProcessesByDepartment('prepress')"
               :key="process.id"
               :label="process.id"
             >
@@ -213,7 +213,7 @@
         <el-form-item label="印刷工序">
           <el-checkbox-group v-model="selectedProcesses.printing">
             <el-checkbox
-              v-for="process in getProcessesByCategory('printing')"
+              v-for="process in getProcessesByDepartment('printing')"
               :key="process.id"
               :label="process.id"
             >
@@ -225,7 +225,7 @@
         <el-form-item label="表面处理">
           <el-checkbox-group v-model="selectedProcesses.surface">
             <el-checkbox
-              v-for="process in getProcessesByCategory('surface')"
+              v-for="process in getProcessesByDepartment('surface')"
               :key="process.id"
               :label="process.id"
             >
@@ -237,7 +237,7 @@
         <el-form-item label="后道加工">
           <el-checkbox-group v-model="selectedProcesses.postpress">
             <el-checkbox
-              v-for="process in getProcessesByCategory('postpress')"
+              v-for="process in getProcessesByDepartment('postpress')"
               :key="process.id"
               :label="process.id"
             >
@@ -249,7 +249,7 @@
         <el-form-item label="复合/裱合">
           <el-checkbox-group v-model="selectedProcesses.laminating">
             <el-checkbox
-              v-for="process in getProcessesByCategory('laminating')"
+              v-for="process in getProcessesByDepartment('laminating')"
               :key="process.id"
               :label="process.id"
             >
@@ -261,7 +261,7 @@
         <el-form-item label="成型/包装">
           <el-checkbox-group v-model="selectedProcesses.forming">
             <el-checkbox
-              v-for="process in getProcessesByCategory('forming')"
+              v-for="process in getProcessesByDepartment('forming')"
               :key="process.id"
               :label="process.id"
             >

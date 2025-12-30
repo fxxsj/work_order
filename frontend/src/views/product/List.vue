@@ -203,7 +203,7 @@ export default {
       dialogVisible: false,
       isEdit: false,
       editId: null,
-      processCategories: [],
+      departments: [],
       allProcesses: [],
       materialList: [],
       productMaterialItems: [], // 产品物料列表
@@ -243,15 +243,15 @@ export default {
   },
   created() {
     this.loadData()
-    this.loadProcessCategories()
+    this.loadDepartments()
     this.loadAllProcesses()
     this.loadMaterialList()
   },
   methods: {
-    async loadProcessCategories() {
+    async loadDepartments() {
       try {
         const response = await departmentAPI.getList({ is_active: true, page_size: 100 })
-        this.processCategories = response.results || []
+        this.departments = response.results || []
       } catch (error) {
         console.error('加载工序分类失败:', error)
       }
@@ -264,8 +264,8 @@ export default {
         console.error('加载工序列表失败:', error)
       }
     },
-    getProcessesByCategory(categoryId) {
-      return this.allProcesses.filter(p => p.category === categoryId)
+    getProcessesByDepartment(departmentId) {
+      return this.allProcesses.filter(p => p.department === departmentId)
     },
     async loadMaterialList() {
       try {
