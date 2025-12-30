@@ -402,7 +402,7 @@
 </template>
 
 <script>
-import { workOrderAPI, customerAPI, productAPI, processAPI, materialAPI, workOrderMaterialAPI, artworkAPI, dieAPI, departmentAPI, workOrderProcessAPI, workOrderTaskAPI } from '@/api/workorder'
+import { workOrderAPI, customerAPI, productAPI, processAPI, materialAPI, workOrderMaterialAPI, workOrderProductAPI, artworkAPI, dieAPI, departmentAPI, workOrderProcessAPI, workOrderTaskAPI, productGroupAPI, productGroupItemAPI } from '@/api/workorder'
 
 export default {
   name: 'WorkOrderForm',

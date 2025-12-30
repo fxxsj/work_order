@@ -350,6 +350,117 @@ export const workOrderProcessAPI = {
 
 // 施工单物料管理
 // 施工单任务管理
+// 产品组管理
+export const productGroupAPI = {
+  getList(params) {
+    return request({
+      url: '/product-groups/',
+      method: 'get',
+      params
+    })
+  },
+  getDetail(id) {
+    return request({
+      url: `/product-groups/${id}/`,
+      method: 'get'
+    })
+  },
+  create(data) {
+    return request({
+      url: '/product-groups/',
+      method: 'post',
+      data
+    })
+  },
+  update(id, data) {
+    return request({
+      url: `/product-groups/${id}/`,
+      method: 'put',
+      data
+    })
+  },
+  delete(id) {
+    return request({
+      url: `/product-groups/${id}/`,
+      method: 'delete'
+    })
+  }
+}
+
+// 产品组子项管理
+export const productGroupItemAPI = {
+  getList(params) {
+    return request({
+      url: '/product-group-items/',
+      method: 'get',
+      params
+    })
+  },
+  getDetail(id) {
+    return request({
+      url: `/product-group-items/${id}/`,
+      method: 'get'
+    })
+  },
+  create(data) {
+    return request({
+      url: '/product-group-items/',
+      method: 'post',
+      data
+    })
+  },
+  update(id, data) {
+    return request({
+      url: `/product-group-items/${id}/`,
+      method: 'put',
+      data
+    })
+  },
+  delete(id) {
+    return request({
+      url: `/product-group-items/${id}/`,
+      method: 'delete'
+    })
+  }
+}
+
+// 施工单产品管理
+export const workOrderProductAPI = {
+  getList(params) {
+    return request({
+      url: '/workorder-products/',
+      method: 'get',
+      params
+    })
+  },
+  getDetail(id) {
+    return request({
+      url: `/workorder-products/${id}/`,
+      method: 'get'
+    })
+  },
+  create(data) {
+    return request({
+      url: '/workorder-products/',
+      method: 'post',
+      data
+    })
+  },
+  update(id, data) {
+    return request({
+      url: `/workorder-products/${id}/`,
+      method: 'put',
+      data
+    })
+  },
+  delete(id) {
+    return request({
+      url: `/workorder-products/${id}/`,
+      method: 'delete'
+    })
+  }
+}
+
 export const workOrderTaskAPI = {
   getList(params) {
     return request({

@@ -90,6 +90,12 @@ const routes = [
         name: 'DieList',
         component: () => import('@/views/die/List.vue'),
         meta: { title: '刀模管理', requiresAuth: true }
+      },
+      {
+        path: 'product-groups',
+        name: 'ProductGroupList',
+        component: () => import('@/views/productGroup/List.vue'),
+        meta: { title: '产品组管理', requiresAuth: true }
       }
     ]
   }

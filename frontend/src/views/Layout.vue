@@ -49,6 +49,10 @@
           <i class="el-icon-scissors"></i>
           <span>刀模管理</span>
         </el-menu-item>
+        <el-menu-item index="/product-groups">
+          <i class="el-icon-collection"></i>
+          <span>产品组管理</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
 
