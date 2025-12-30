@@ -54,9 +54,10 @@
       </el-descriptions>
 
       <!-- 产品列表（场景2：一个施工单包含多个产品） -->
-      <el-card v-if="workOrder.products && workOrder.products.length > 0" class="detail-section-card">
-        <div slot="header" class="detail-section-header">产品列表</div>
-        <el-table :data="workOrder.products" border style="width: 100%">
+      <div v-if="workOrder.products && workOrder.products.length > 0" style="margin-top: 20px;">
+        <div class="detail-section-title">产品列表</div>
+        <el-card class="detail-section-card">
+          <el-table :data="workOrder.products" border style="width: 100%">
           <el-table-column prop="product_name" label="产品名称" width="200">
             <template slot-scope="scope">
               {{ scope.row.product_name }} ({{ scope.row.product_code }})
@@ -77,7 +78,8 @@
             </template>
           </el-table-column>
         </el-table>
-      </el-card>
+        </el-card>
+      </div>
 
       <!-- 图稿和刀模信息 -->
       <el-descriptions title="图稿和刀模" :column="3" border style="margin-top: 20px;">
@@ -93,13 +95,14 @@
       </el-descriptions>
 
       <!-- 物料信息 -->
-      <el-card class="detail-section-card">
-        <div slot="header" class="detail-section-header card-header">
+      <div style="margin-top: 20px;">
+        <div class="detail-section-title card-header">
           <span>物料信息</span>
           <el-button size="small" type="primary" icon="el-icon-plus" @click="showAddMaterialDialog">
             添加物料
           </el-button>
         </div>
+        <el-card class="detail-section-card">
         
         <el-table
           v-if="workOrder.materials && workOrder.materials.length > 0"
@@ -162,7 +165,8 @@
         </el-table>
         
         <el-empty v-else-if="workOrder && (!workOrder.materials || workOrder.materials.length === 0)" description="暂无物料信息"></el-empty>
-      </el-card>
+        </el-card>
+      </div>
 
       <!-- 物料状态更新对话框 -->
       <el-dialog
@@ -782,6 +786,20 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+}
+
+.detail-section-card {
+  margin-top: 20px;
+  border: 1px solid #EBEEF5;
+  box-shadow: none;
+}
+
+.detail-section-header {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+  padding: 0;
+  margin: 0;
 }
 
 .card-header {
