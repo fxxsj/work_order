@@ -1059,9 +1059,9 @@ export default {
             this.$message.success('创建成功，单号自动生成')
           }
           
-          // 保存产品信息（场景2：多个产品模式，如果后端没有自动处理）
+          // 保存产品信息（图稿模式或多产品模式，如果后端没有自动处理）
           if (data.products_data && data.products_data.length > 0) {
-            await this.saveProducts(workOrderId)
+            await this.saveProducts(workOrderId, data.products_data)
           }
           
           // 添加选中的工序
