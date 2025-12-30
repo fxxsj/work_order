@@ -196,6 +196,43 @@
             :disabled="true"
           ></el-input>
         </el-form-item>
+        </template>
+
+        <!-- 图稿关联的产品列表（自动填充，可修改数量） -->
+        <el-form-item label="产品列表（来自图稿）" v-if="useArtwork && artworkProducts.length > 0">
+          <el-table :data="artworkProducts" border style="width: 100%">
+            <el-table-column prop="product_name" label="产品名称" width="200">
+              <template slot-scope="scope">
+                {{ scope.row.product_name }} ({{ scope.row.product_code }})
+              </template>
+            </el-table-column>
+            <el-table-column prop="specification" label="规格" show-overflow-tooltip></el-table-column>
+            <el-table-column prop="imposition_quantity" label="拼版数量" width="120" align="center">
+              <template slot-scope="scope">
+                {{ scope.row.imposition_quantity }}拼
+              </template>
+            </el-table-column>
+            <el-table-column label="数量" width="150">
+              <template slot-scope="scope">
+                <el-input-number
+                  v-model="scope.row.quantity"
+                  :min="1"
+                  @change="calculateTotalAmount"
+                  style="width: 100%;"
+                ></el-input-number>
+              </template>
+            </el-table-column>
+            <el-table-column prop="unit" label="单位" width="100"></el-table-column>
+            <el-table-column label="小计" width="150" align="right">
+              <template slot-scope="scope">
+                <span v-if="scope.row.product_detail">
+                  ¥{{ parseFloat((scope.row.product_detail.unit_price * scope.row.quantity).toFixed(2)) }}
+                </span>
+                <span v-else>-</span>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-form-item>
 
         <el-divider></el-divider>
 
