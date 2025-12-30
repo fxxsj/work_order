@@ -81,7 +81,6 @@
           border
           style="width: 100%"
         >
-        <el-table :data="workOrder.materials" border style="width: 100%">
           <el-table-column prop="material_name" label="物料名称" width="200">
             <template slot-scope="scope">
               {{ scope.row.material_name }} ({{ scope.row.material_code }})
@@ -136,7 +135,7 @@
           </el-table-column>
         </el-table>
         
-        <el-empty v-else description="暂无物料信息"></el-empty>
+        <el-empty v-else-if="workOrder && (!workOrder.materials || workOrder.materials.length === 0)" description="暂无物料信息"></el-empty>
       </el-card>
 
       <!-- 物料状态更新对话框 -->
