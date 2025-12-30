@@ -322,7 +322,7 @@
 </template>
 
 <script>
-import { workOrderAPI, customerAPI, productAPI, departmentAPI, processAPI, materialAPI, workOrderMaterialAPI, artworkAPI, dieAPI } from '@/api/workorder'
+import { workOrderAPI, customerAPI, productAPI, processAPI, materialAPI, workOrderMaterialAPI, artworkAPI, dieAPI } from '@/api/workorder'
 
 export default {
   name: 'WorkOrderForm',
@@ -335,18 +335,10 @@ export default {
       materialList: [],
       artworkList: [],
       dieList: [],
-      departments: [],
       allProcesses: [],
       selectedProduct: null,
       materialItems: [], // 物料列表
-      selectedProcesses: {
-        prepress: [],
-        printing: [],
-        surface: [],
-        postpress: [],
-        laminating: [],
-        forming: []
-      },
+      selectedProcesses: [],
       form: {
         customer: null,
         product: null,
@@ -397,7 +389,6 @@ export default {
     this.loadMaterialList()
     this.loadArtworkList()
     this.loadDieList()
-    this.loadDepartments()
     this.loadAllProcesses()
     
     if (this.isEdit) {
@@ -491,26 +482,9 @@ export default {
           
           // 加载默认工序
           if (productDetail.default_processes && productDetail.default_processes.length > 0) {
-            // 清空之前的选择
-            this.selectedProcesses = {
-              prepress: [],
-              printing: [],
-              surface: [],
-              postpress: [],
-              laminating: [],
-              forming: []
-            }
-            
-            // 按类别分组选中的工序
-            productDetail.default_processes.forEach(processId => {
-              const process = this.allProcesses.find(p => p.id === processId)
-              if (process) {
-                const department = this.departments.find(d => d.id === process.department)
-                if (department && this.selectedProcesses[department.code]) {
-                  this.selectedProcesses[department.code].push(processId)
-                }
-              }
-            })
+            this.selectedProcesses = productDetail.default_processes
+          } else {
+            this.selectedProcesses = []
           }
           
           // 加载默认物料
@@ -573,24 +547,9 @@ export default {
         
         // 加载已选择的工序
         if (data.order_processes && data.order_processes.length > 0) {
-          this.selectedProcesses = {
-            prepress: [],
-            printing: [],
-            surface: [],
-            postpress: [],
-            laminating: [],
-            forming: []
-          }
-          
-          data.order_processes.forEach(op => {
-            const process = this.allProcesses.find(p => p.id === op.process)
-            if (process) {
-              const department = this.departments.find(d => d.id === process.department)
-              if (department && this.selectedProcesses[department.code]) {
-                this.selectedProcesses[department.code].push(op.process)
-              }
-            }
-          })
+          this.selectedProcesses = data.order_processes.map(op => op.process)
+        } else {
+          this.selectedProcesses = []
         }
         
         // 加载物料信息
@@ -662,14 +621,7 @@ export default {
     },
     async addSelectedProcesses(workOrderId) {
       // 收集所有选中的工序ID
-      const allSelectedIds = [
-        ...this.selectedProcesses.prepress,
-        ...this.selectedProcesses.printing,
-        ...this.selectedProcesses.surface,
-        ...this.selectedProcesses.postpress,
-        ...this.selectedProcesses.laminating,
-        ...this.selectedProcesses.forming
-      ]
+      const allSelectedIds = this.selectedProcesses
       
       // 按顺序添加工序
       for (let i = 0; i < allSelectedIds.length; i++) {

@@ -242,7 +242,6 @@ export default {
   },
   created() {
     this.loadData()
-    this.loadDepartments()
     this.loadAllProcesses()
     this.loadMaterialList()
   },

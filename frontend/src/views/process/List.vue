@@ -75,16 +75,6 @@
         <el-form-item label="工序名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入工序名称"></el-input>
         </el-form-item>
-        <el-form-item label="所属部门" prop="department">
-          <el-select v-model="form.department" style="width: 100%;">
-            <el-option
-              v-for="cat in departmentList"
-              :key="cat.id"
-              :label="cat.name"
-              :value="cat.id"
-            ></el-option>
-          </el-select>
-        </el-form-item>
         <el-form-item label="工序描述">
           <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入工序描述"></el-input>
         </el-form-item>
@@ -115,7 +105,7 @@
 </template>
 
 <script>
-import { processAPI, departmentAPI } from '@/api/workorder'
+import { processAPI } from '@/api/workorder'
 
 export default {
   name: 'ProcessList',
@@ -123,7 +113,6 @@ export default {
     return {
       loading: false,
       tableData: [],
-      departmentList: [],
       currentPage: 1,
       pageSize: 20,
       total: 0,
@@ -159,29 +148,8 @@ export default {
   },
   created() {
     this.loadData()
-    this.loadDepartmentList()
   },
   methods: {
-    async loadDepartmentList() {
-      try {
-        const response = await departmentAPI.getList({ is_active: true, page_size: 100 })
-        this.departmentList = response.results || []
-      } catch (error) {
-        console.error('加载工序分类失败:', error)
-      }
-    },
-    getDepartmentType(departmentCode) {
-      const typeMap = {
-        prepress: '',
-        printing: 'success',
-        surface: 'warning',
-        postpress: 'danger',
-        laminating: 'info',
-        forming: 'primary',
-        other: ''
-      }
-      return typeMap[departmentCode] || ''
-    },
     async loadData() {
       this.loading = true
       try {
@@ -228,12 +196,9 @@ export default {
       } else {
         this.isEdit = false
         this.editId = null
-        // 默认选择"其他"分类
-        const otherDepartment = this.departmentList.find(d => d.code === 'other')
         this.form = {
           code: '',
           name: '',
-          department: otherDepartment ? otherDepartment.id : null,
           description: '',
           standard_duration: 0,
           sort_order: 0,
