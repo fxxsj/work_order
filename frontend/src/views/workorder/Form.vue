@@ -46,6 +46,10 @@
             @change="handleArtworkChange"
           >
             <el-option
+              label="不需要图稿"
+              :value="null"
+            ></el-option>
+            <el-option
               v-for="artwork in artworkList"
               :key="artwork.id"
               :label="`${artwork.code} - ${artwork.name}`"
@@ -53,7 +57,7 @@
             ></el-option>
           </el-select>
           <span style="color: #909399; font-size: 12px; margin-left: 10px;">
-            选择图稿后将自动填充关联的产品信息到下方产品列表，可多选（如纸卡双面印刷的面版和底版）
+            选择"不需要图稿"可手动输入产品，选择具体图稿将自动填充关联的产品信息到下方产品列表，可多选（如纸卡双面印刷的面版和底版）
           </span>
         </el-form-item>
 
