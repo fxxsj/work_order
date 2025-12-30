@@ -561,6 +561,35 @@ export default {
         console.error('加载工序列表失败:', error)
       }
     },
+    async loadDepartmentList() {
+      try {
+        // 分页加载所有部门
+        let allDepartments = []
+        let page = 1
+        let hasMore = true
+        
+        while (hasMore) {
+          const response = await departmentAPI.getList({ 
+            is_active: true, 
+            page_size: 100,
+            page: page
+          })
+          
+          if (response.results && response.results.length > 0) {
+            allDepartments = allDepartments.concat(response.results)
+            // 检查是否还有更多数据
+            hasMore = response.next !== null && response.next !== undefined
+            page++
+          } else {
+            hasMore = false
+          }
+        }
+        
+        this.departmentList = allDepartments
+      } catch (error) {
+        console.error('加载部门列表失败:', error)
+      }
+    },
     async handleProductChange(productId) {
       // 找到选中的产品
       const product = this.productList.find(p => p.id === productId)
