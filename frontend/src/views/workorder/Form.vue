@@ -53,6 +53,24 @@
           </el-select>
         </el-form-item>
 
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="数量" prop="quantity">
+              <el-input-number
+                v-model="form.quantity"
+                :min="1"
+                style="width: 100%;"
+                @change="calculateTotalAmount"
+              ></el-input-number>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="单位">
+              <el-input v-model="form.unit" placeholder="自动填充" :disabled="true"></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
         <el-form-item label="产品规格">
           <el-input
             v-model="form.specification"
@@ -62,24 +80,6 @@
             :disabled="true"
           ></el-input>
         </el-form-item>
-
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="数量">
-              <el-input-number
-                v-model="form.quantity"
-                :min="1"
-                style="width: 100%;"
-                @change="calculateTotalPrice"
-              ></el-input-number>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="单位">
-              <el-input v-model="form.unit" disabled></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
 
         <el-divider content-position="left">图稿和刀模</el-divider>
         
@@ -212,24 +212,6 @@
         </el-form-item>
 
         <el-divider></el-divider>
-
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="数量" prop="quantity">
-              <el-input-number
-                v-model="form.quantity"
-                :min="1"
-                style="width: 100%;"
-                @change="calculateTotalAmount"
-              ></el-input-number>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="单位">
-              <el-input v-model="form.unit" placeholder="自动填充" :disabled="true"></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
 
         <el-row :gutter="20">
           <el-col :span="12">
