@@ -1219,6 +1219,10 @@ export default {
       // 收集所有选中的工序ID
       const allSelectedIds = this.selectedProcesses
       
+      if (!allSelectedIds || allSelectedIds.length === 0) {
+        return
+      }
+      
       // 按顺序添加工序，并保存部门指派和任务
       for (let i = 0; i < allSelectedIds.length; i++) {
         const processId = allSelectedIds[i]
@@ -1230,7 +1234,12 @@ export default {
           }
           
           const processResult = await workOrderAPI.addProcess(workOrderId, processData)
-          const workOrderProcessId = processResult.id || processResult.process_id
+          const workOrderProcessId = processResult.id
+          
+          if (!workOrderProcessId) {
+            console.error('添加工序失败：未返回工序ID', processResult)
+            throw new Error('添加工序失败：未返回工序ID')
+          }
           
           // 如果有部门指派，更新工序的部门
           const assignment = this.processAssignments[processId]
@@ -1255,6 +1264,7 @@ export default {
           }
         } catch (error) {
           console.error('添加工序失败:', error)
+          throw error // 重新抛出错误，让上层处理
         }
       }
     },
