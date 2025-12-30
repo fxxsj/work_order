@@ -788,18 +788,18 @@ export default {
   margin-bottom: 20px;
 }
 
-.detail-section-card {
-  margin-top: 20px;
-  border: 1px solid #EBEEF5;
-  box-shadow: none;
-}
-
-.detail-section-header {
+.detail-section-title {
   font-size: 16px;
   font-weight: 500;
   color: #303133;
+  margin-bottom: 16px;
   padding: 0;
-  margin: 0;
+}
+
+.detail-section-card {
+  border: 1px solid #EBEEF5;
+  box-shadow: none;
+  margin-top: 0;
 }
 
 .card-header {
