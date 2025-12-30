@@ -1189,7 +1189,7 @@ export default {
           .filter(item => item.product)
           .map((item, index) => ({
             product: item.product,
-            quantity: item.quantity || 1,
+            quantity: parseInt(item.quantity) || 1,
             unit: item.unit || '件',
             specification: item.specification || '',
             sort_order: index
@@ -1201,16 +1201,27 @@ export default {
         const item = productsToSave[i]
         if (item.product) {
           try {
-            await workOrderProductAPI.create({
+            // 确保数据类型正确
+            const productData = {
               work_order: workOrderId,
               product: item.product,
-              quantity: item.quantity || 1,
+              quantity: parseInt(item.quantity) || 1,
               unit: item.unit || '件',
               specification: item.specification || '',
-              sort_order: i
-            })
+              sort_order: parseInt(item.sort_order) || i
+            }
+            
+            await workOrderProductAPI.create(productData)
           } catch (error) {
             console.error('保存产品失败:', error)
+            console.error('产品数据:', {
+              work_order: workOrderId,
+              product: item.product,
+              quantity: item.quantity,
+              unit: item.unit,
+              specification: item.specification,
+              sort_order: item.sort_order
+            })
             throw error
           }
         }
