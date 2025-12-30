@@ -408,7 +408,7 @@
 </template>
 
 <script>
-import { workOrderAPI, customerAPI, productAPI, processAPI, materialAPI, workOrderMaterialAPI, workOrderProductAPI, artworkAPI, dieAPI } from '@/api/workorder'
+import { workOrderAPI, customerAPI, productAPI, processAPI, materialAPI, workOrderMaterialAPI, workOrderProductAPI, artworkAPI, dieAPI, workOrderProcessAPI } from '@/api/workorder'
 
 export default {
   name: 'WorkOrderForm',

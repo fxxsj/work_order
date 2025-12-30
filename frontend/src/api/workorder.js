@@ -323,6 +323,12 @@ export const workOrderProcessAPI = {
       data
     })
   },
+  delete(id) {
+    return request({
+      url: `/workorder-processes/${id}/`,
+      method: 'delete'
+    })
+  },
   // 开始工序
   start(id) {
     return request({
