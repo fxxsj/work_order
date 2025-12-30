@@ -44,10 +44,11 @@
             :collapse-tags="shouldCollapseTags"
             style="width: 100%;"
             @change="handleArtworkChange"
+            @visible-change="handleArtworkSelectVisible"
           >
             <el-option
               label="不需要图稿"
-              :value="null"
+              :value="'NO_ARTWORK'"
             ></el-option>
             <el-option
               v-for="artwork in artworkList"
@@ -509,6 +510,7 @@ export default {
       materialItems: [], // 物料列表
       selectedProcesses: [],
       processAssignments: {}, // 工序指派信息 { processId: { department: id, tasks: [...] } }
+      hasNoArtworkSelected: false, // 标记是否已选中"不需要图稿"
       form: {
         customer: null,
         product: null,
