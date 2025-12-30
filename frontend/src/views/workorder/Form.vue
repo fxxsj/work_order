@@ -840,7 +840,8 @@ export default {
           specification: data.specification || '',
           quantity: data.quantity,
           unit: data.unit,
-          artwork: data.artwork || null,
+          // 图稿：后端返回的是单个 artwork ID，需要转换为数组格式
+          artworks: data.artwork ? [data.artwork] : [],
           die: data.die || null,
           imposition_quantity: data.imposition_quantity || 1,
           status: data.status,
