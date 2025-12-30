@@ -310,12 +310,19 @@
 
         <!-- 物料信息 -->
         <el-form-item label="物料信息">
-          <div v-for="(item, index) in materialItems" :key="index" style="margin-bottom: 15px; padding: 15px; border: 1px solid #e4e7ed; border-radius: 4px;">
-            <el-row :gutter="20">
-              <el-col :span="6">
-                <el-form-item :label="index === 0 ? '物料' : ''">
+          <el-button type="primary" size="small" icon="el-icon-plus" @click="addMaterialItem">
+            添加物料
+          </el-button>
+          <div style="margin-top: 15px;">
+            <el-table
+              :data="materialItems"
+              border
+              style="width: 100%"
+            >
+              <el-table-column label="物料名称" width="200">
+                <template slot-scope="scope">
                   <el-select
-                    v-model="item.material"
+                    v-model="scope.row.material"
                     placeholder="请选择物料"
                     filterable
                     style="width: 100%;"
@@ -327,63 +334,59 @@
                       :value="material.id"
                     ></el-option>
                   </el-select>
-                </el-form-item>
-              </el-col>
-              <el-col :span="4">
-                <el-form-item :label="index === 0 ? '尺寸' : ''">
-                  <el-input v-model="item.material_size" placeholder="如：A4"></el-input>
-                </el-form-item>
-              </el-col>
-              <el-col :span="4">
-                <el-form-item :label="index === 0 ? '用量' : ''">
-                  <el-input v-model="item.material_usage" placeholder="如：1000张"></el-input>
-                </el-form-item>
-              </el-col>
-              <el-col :span="4">
-                <el-form-item :label="index === 0 ? '计划用量' : ''">
+                </template>
+              </el-table-column>
+              <el-table-column label="尺寸" width="180">
+                <template slot-scope="scope">
+                  <el-input
+                    v-model="scope.row.material_size"
+                    placeholder="如：A4、210x297mm"
+                    size="small"
+                  ></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column label="用量" width="180">
+                <template slot-scope="scope">
+                  <el-input
+                    v-model="scope.row.material_usage"
+                    placeholder="如：1000张、50平方米"
+                    size="small"
+                  ></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column label="计划用量" width="150">
+                <template slot-scope="scope">
                   <el-input-number
-                    v-model="item.planned_quantity"
+                    v-model="scope.row.planned_quantity"
                     :min="0"
                     :precision="2"
+                    size="small"
                     style="width: 100%;"
                   ></el-input-number>
-                </el-form-item>
-              </el-col>
-              <el-col :span="4">
-                <el-form-item :label="index === 0 ? '实际用量' : ''">
+                </template>
+              </el-table-column>
+              <el-table-column label="实际用量" width="150">
+                <template slot-scope="scope">
                   <el-input-number
-                    v-model="item.actual_quantity"
+                    v-model="scope.row.actual_quantity"
                     :min="0"
                     :precision="2"
+                    size="small"
                     style="width: 100%;"
                   ></el-input-number>
-                </el-form-item>
-              </el-col>
-              <el-col :span="2" style="text-align: right; padding-top: 30px;">
-                <el-button
-                  v-if="materialItems.length > 1"
-                  type="danger"
-                  size="mini"
-                  icon="el-icon-delete"
-                  @click="removeMaterialItem(index)"
-                  circle
-                ></el-button>
-                <el-button
-                  v-if="index === materialItems.length - 1"
-                  type="primary"
-                  size="mini"
-                  icon="el-icon-plus"
-                  @click="addMaterialItem"
-                  circle
-                ></el-button>
-              </el-col>
-            </el-row>
-          </div>
-          
-          <div v-if="materialItems.length === 0" style="text-align: center; padding: 20px;">
-            <el-button type="primary" icon="el-icon-plus" @click="addMaterialItem">
-              添加物料
-            </el-button>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="100" align="center">
+                <template slot-scope="scope">
+                  <el-button
+                    type="danger"
+                    size="mini"
+                    icon="el-icon-delete"
+                    @click="removeMaterialItem(scope.$index)"
+                  ></el-button>
+                </template>
+              </el-table-column>
+            </el-table>
           </div>
         </el-form-item>
 
