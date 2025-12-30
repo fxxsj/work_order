@@ -283,6 +283,103 @@
           </el-checkbox-group>
         </el-form-item>
 
+        <!-- 工序部门指派和任务 -->
+        <el-divider content-position="left">工序派工</el-divider>
+        
+        <div v-if="selectedProcesses.length > 0" style="margin-bottom: 20px;">
+          <el-card
+            v-for="processId in selectedProcesses"
+            :key="processId"
+            shadow="hover"
+            style="margin-bottom: 15px;"
+          >
+            <div slot="header" style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: bold;">
+                {{ getProcessName(processId) }}
+              </span>
+            </div>
+            
+            <el-form-item label="生产部门">
+              <el-select
+                v-model="processAssignments[processId].department"
+                placeholder="请选择生产部门"
+                filterable
+                style="width: 100%;"
+              >
+                <el-option
+                  v-for="dept in departmentList"
+                  :key="dept.id"
+                  :label="dept.name"
+                  :value="dept.id"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+
+            <el-form-item label="任务列表">
+              <el-button
+                type="primary"
+                size="small"
+                icon="el-icon-plus"
+                @click="addTask(processId)"
+              >
+                添加任务
+              </el-button>
+              
+              <div style="margin-top: 15px;">
+                <el-table
+                  :data="processAssignments[processId].tasks"
+                  border
+                  style="width: 100%"
+                >
+                  <el-table-column label="施工内容" min-width="200">
+                    <template slot-scope="scope">
+                      <el-input
+                        v-model="scope.row.work_content"
+                        placeholder="请输入施工内容"
+                        size="small"
+                      ></el-input>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="生产数量" width="150">
+                    <template slot-scope="scope">
+                      <el-input-number
+                        v-model="scope.row.production_quantity"
+                        :min="0"
+                        size="small"
+                        style="width: 100%;"
+                      ></el-input-number>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="生产要求" min-width="200">
+                    <template slot-scope="scope">
+                      <el-input
+                        v-model="scope.row.production_requirements"
+                        type="textarea"
+                        :rows="2"
+                        placeholder="请输入生产要求"
+                        size="small"
+                      ></el-input>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="操作" width="100" align="center">
+                    <template slot-scope="scope">
+                      <el-button
+                        type="danger"
+                        size="mini"
+                        icon="el-icon-delete"
+                        @click="removeTask(processId, scope.$index)"
+                      ></el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+            </el-form-item>
+          </el-card>
+        </div>
+        <div v-else style="color: #909399; text-align: center; padding: 20px;">
+          请先选择工序
+        </div>
+
         <el-form-item label="备注">
           <el-input
             v-model="form.notes"
@@ -304,7 +401,7 @@
 </template>
 
 <script>
-import { workOrderAPI, customerAPI, productAPI, processAPI, materialAPI, workOrderMaterialAPI, artworkAPI, dieAPI } from '@/api/workorder'
+import { workOrderAPI, customerAPI, productAPI, processAPI, materialAPI, workOrderMaterialAPI, artworkAPI, dieAPI, departmentAPI, workOrderProcessAPI, workOrderTaskAPI } from '@/api/workorder'
 
 export default {
   name: 'WorkOrderForm',
@@ -364,6 +461,14 @@ export default {
       }
     }
   },
+  watch: {
+    selectedProcesses: {
+      handler() {
+        this.updateProcessAssignments()
+      },
+      deep: true
+    }
+  },
   created() {
     this.isEdit = !!this.$route.params.id
     this.loadCustomerList()
@@ -372,6 +477,7 @@ export default {
     this.loadArtworkList()
     this.loadDieList()
     this.loadAllProcesses()
+    this.loadDepartmentList()
     
     if (this.isEdit) {
       this.loadData()
@@ -594,6 +700,9 @@ export default {
           // 添加选中的工序
           if (!this.isEdit) {
             await this.addSelectedProcesses(workOrderId)
+          } else {
+            // 编辑时保存工序指派和任务
+            await this.saveProcessAssignments(workOrderId)
           }
           
           // 保存物料信息
@@ -612,16 +721,94 @@ export default {
       // 收集所有选中的工序ID
       const allSelectedIds = this.selectedProcesses
       
-      // 按顺序添加工序
+      // 按顺序添加工序，并保存部门指派和任务
       for (let i = 0; i < allSelectedIds.length; i++) {
+        const processId = allSelectedIds[i]
         try {
-          await workOrderAPI.addProcess(workOrderId, {
-            process_id: allSelectedIds[i],
+          // 添加工序
+          const processData = {
+            process_id: processId,
             sequence: i + 1
-          })
+          }
+          
+          const processResult = await workOrderAPI.addProcess(workOrderId, processData)
+          const workOrderProcessId = processResult.id || processResult.process_id
+          
+          // 如果有部门指派，更新工序的部门
+          const assignment = this.processAssignments[processId]
+          if (assignment && assignment.department) {
+            await workOrderProcessAPI.update(workOrderProcessId, {
+              department: assignment.department
+            })
+          }
+          
+          // 保存任务
+          if (assignment && assignment.tasks && assignment.tasks.length > 0) {
+            for (const task of assignment.tasks) {
+              if (task.work_content) {
+                await workOrderTaskAPI.create({
+                  work_order_process: workOrderProcessId,
+                  work_content: task.work_content,
+                  production_quantity: task.production_quantity || 0,
+                  production_requirements: task.production_requirements || ''
+                })
+              }
+            }
+          }
         } catch (error) {
           console.error('添加工序失败:', error)
         }
+      }
+    },
+    async saveProcessAssignments(workOrderId) {
+      // 编辑时保存工序的部门指派和任务
+      try {
+        // 获取现有的工序列表
+        const processesResponse = await workOrderProcessAPI.getList({ work_order: workOrderId })
+        const existingProcesses = processesResponse.results || []
+        
+        for (const processId of this.selectedProcesses) {
+          const assignment = this.processAssignments[processId]
+          if (!assignment) continue
+          
+          // 找到对应的工序记录
+          const existingProcess = existingProcesses.find(ep => ep.process === processId)
+          if (!existingProcess) continue
+          
+          const workOrderProcessId = existingProcess.id
+          
+          // 更新部门
+          if (assignment.department !== existingProcess.department) {
+            await workOrderProcessAPI.update(workOrderProcessId, {
+              department: assignment.department
+            })
+          }
+          
+          // 获取现有任务
+          const tasksResponse = await workOrderTaskAPI.getList({ work_order_process: workOrderProcessId })
+          const existingTasks = tasksResponse.results || []
+          
+          // 删除现有任务
+          for (const task of existingTasks) {
+            await workOrderTaskAPI.delete(task.id)
+          }
+          
+          // 创建新任务
+          if (assignment.tasks && assignment.tasks.length > 0) {
+            for (const task of assignment.tasks) {
+              if (task.work_content) {
+                await workOrderTaskAPI.create({
+                  work_order_process: workOrderProcessId,
+                  work_content: task.work_content,
+                  production_quantity: task.production_quantity || 0,
+                  production_requirements: task.production_requirements || ''
+                })
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('保存工序指派失败:', error)
       }
     },
     handleCancel() {

@@ -349,6 +349,43 @@ export const workOrderProcessAPI = {
 }
 
 // 施工单物料管理
+// 施工单任务管理
+export const workOrderTaskAPI = {
+  getList(params) {
+    return request({
+      url: '/workorder-tasks/',
+      method: 'get',
+      params
+    })
+  },
+  getDetail(id) {
+    return request({
+      url: `/workorder-tasks/${id}/`,
+      method: 'get'
+    })
+  },
+  create(data) {
+    return request({
+      url: '/workorder-tasks/',
+      method: 'post',
+      data
+    })
+  },
+  update(id, data) {
+    return request({
+      url: `/workorder-tasks/${id}/`,
+      method: 'put',
+      data
+    })
+  },
+  delete(id) {
+    return request({
+      url: `/workorder-tasks/${id}/`,
+      method: 'delete'
+    })
+  }
+}
+
 export const workOrderMaterialAPI = {
   getList(params) {
     return request({
