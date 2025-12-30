@@ -198,74 +198,15 @@
         <!-- 工序选择 -->
         <el-divider content-position="left">工序选择</el-divider>
         
-        <el-form-item label="印前工序">
-          <el-checkbox-group v-model="selectedProcesses.prepress">
+        <el-form-item label="工序">
+          <el-checkbox-group v-model="selectedProcesses" style="width: 100%;">
             <el-checkbox
-              v-for="process in getProcessesByDepartment('prepress')"
+              v-for="process in allProcesses"
               :key="process.id"
               :label="process.id"
+              :disabled="!process.is_active"
             >
-              {{ process.name }}
-            </el-checkbox>
-          </el-checkbox-group>
-        </el-form-item>
-
-        <el-form-item label="印刷工序">
-          <el-checkbox-group v-model="selectedProcesses.printing">
-            <el-checkbox
-              v-for="process in getProcessesByDepartment('printing')"
-              :key="process.id"
-              :label="process.id"
-            >
-              {{ process.name }}
-            </el-checkbox>
-          </el-checkbox-group>
-        </el-form-item>
-
-        <el-form-item label="表面处理">
-          <el-checkbox-group v-model="selectedProcesses.surface">
-            <el-checkbox
-              v-for="process in getProcessesByDepartment('surface')"
-              :key="process.id"
-              :label="process.id"
-            >
-              {{ process.name }}
-            </el-checkbox>
-          </el-checkbox-group>
-        </el-form-item>
-
-        <el-form-item label="后道加工">
-          <el-checkbox-group v-model="selectedProcesses.postpress">
-            <el-checkbox
-              v-for="process in getProcessesByDepartment('postpress')"
-              :key="process.id"
-              :label="process.id"
-            >
-              {{ process.name }}
-            </el-checkbox>
-          </el-checkbox-group>
-        </el-form-item>
-
-        <el-form-item label="复合/裱合">
-          <el-checkbox-group v-model="selectedProcesses.laminating">
-            <el-checkbox
-              v-for="process in getProcessesByDepartment('laminating')"
-              :key="process.id"
-              :label="process.id"
-            >
-              {{ process.name }}
-            </el-checkbox>
-          </el-checkbox-group>
-        </el-form-item>
-
-        <el-form-item label="成型/包装">
-          <el-checkbox-group v-model="selectedProcesses.forming">
-            <el-checkbox
-              v-for="process in getProcessesByDepartment('forming')"
-              :key="process.id"
-              :label="process.id"
-            >
-              {{ process.name }}
+              {{ process.code }} - {{ process.name }}
             </el-checkbox>
           </el-checkbox-group>
         </el-form-item>

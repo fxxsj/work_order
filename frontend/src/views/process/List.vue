@@ -23,13 +23,6 @@
       >
         <el-table-column prop="code" label="工序编码" width="120"></el-table-column>
         <el-table-column prop="name" label="工序名称" width="180"></el-table-column>
-        <el-table-column label="所属部门" width="120">
-          <template slot-scope="scope">
-            <el-tag :type="getDepartmentType(scope.row.department_code)">
-              {{ scope.row.department_name }}
-            </el-tag>
-          </template>
-        </el-table-column>
         <el-table-column prop="description" label="描述" min-width="200"></el-table-column>
         <el-table-column prop="standard_duration" label="标准工时(小时)" width="140" align="right"></el-table-column>
         <el-table-column prop="sort_order" label="排序" width="80" align="center"></el-table-column>
@@ -141,7 +134,6 @@ export default {
       form: {
         code: '',
         name: '',
-        department: null,
         description: '',
         standard_duration: 0,
         sort_order: 0,

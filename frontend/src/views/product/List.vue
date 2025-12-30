@@ -161,19 +161,18 @@
         
         <el-divider content-position="left">默认工序配置</el-divider>
         
-        <div v-for="department in departments" :key="department.id" style="margin-bottom: 15px;">
-          <el-form-item :label="department.name">
-            <el-checkbox-group v-model="form.default_processes">
-              <el-checkbox
-                v-for="process in getProcessesByDepartment(department.id)"
-                :key="process.id"
-                :label="process.id"
-              >
-                {{ process.name }}
-              </el-checkbox>
-            </el-checkbox-group>
-          </el-form-item>
-        </div>
+        <el-form-item label="默认工序">
+          <el-checkbox-group v-model="form.default_processes" style="width: 100%;">
+            <el-checkbox
+              v-for="process in allProcesses"
+              :key="process.id"
+              :label="process.id"
+              :disabled="!process.is_active"
+            >
+              {{ process.code }} - {{ process.name }}
+            </el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
         
         <el-form-item label="是否启用">
           <el-switch v-model="form.is_active"></el-switch>
