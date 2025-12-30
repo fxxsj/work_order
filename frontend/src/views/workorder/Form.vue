@@ -738,7 +738,11 @@ export default {
       }
     },
     async handleArtworkChange(artworkIds) {
-      if (!artworkIds || artworkIds.length === 0) {
+      // 过滤掉 null 值（"不需要图稿"选项）
+      const validArtworkIds = artworkIds ? artworkIds.filter(id => id !== null) : []
+      
+      // 如果选择了"不需要图稿"或没有选择任何图稿
+      if (!artworkIds || artworkIds.length === 0 || (artworkIds.includes(null) && validArtworkIds.length === 0)) {
         // 清空图稿选择，保留手动输入的产品
         // 如果产品列表为空，初始化一个空的产品项
         if (this.productItems.length === 0) {
@@ -752,13 +756,26 @@ export default {
         this.calculateTotalAmount()
         return
       }
+      
+      // 如果同时选择了"不需要图稿"和其他图稿，移除"不需要图稿"选项
+      if (artworkIds.includes(null) && validArtworkIds.length > 0) {
+        this.$nextTick(() => {
+          this.form.artworks = validArtworkIds
+        })
+        artworkIds = validArtworkIds
+      }
+      
+      if (validArtworkIds.length === 0) {
+        this.calculateTotalAmount()
+        return
+      }
 
       // 选择了图稿（可能多个），加载所有图稿关联的产品并合并
       try {
         const allProducts = []
         
         // 遍历所有选中的图稿
-        for (const artworkId of artworkIds) {
+        for (const artworkId of validArtworkIds) {
           const artworkDetail = await artworkAPI.getDetail(artworkId)
           if (artworkDetail.products && artworkDetail.products.length > 0) {
             // 将图稿关联的产品转换为 productItems 格式
