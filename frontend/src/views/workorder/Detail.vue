@@ -518,8 +518,29 @@ export default {
     },
     async loadProcessList() {
       try {
-        const response = await processAPI.getList({ is_active: true, page_size: 100 })
-        this.processList = response.results || []
+        // 分页加载所有工序
+        let allProcesses = []
+        let page = 1
+        let hasMore = true
+        
+        while (hasMore) {
+          const response = await processAPI.getList({ 
+            is_active: true, 
+            page_size: 100,
+            page: page
+          })
+          
+          if (response.results && response.results.length > 0) {
+            allProcesses = allProcesses.concat(response.results)
+            // 检查是否还有更多数据
+            hasMore = response.next !== null && response.next !== undefined
+            page++
+          } else {
+            hasMore = false
+          }
+        }
+        
+        this.processList = allProcesses
       } catch (error) {
         console.error('加载工序列表失败:', error)
       }
