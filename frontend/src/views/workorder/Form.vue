@@ -41,7 +41,7 @@
             filterable
             clearable
             multiple
-            collapse-tags
+            :collapse-tags="form.artworks && form.artworks.filter(id => id !== null).length > 3"
             style="width: 100%;"
             @change="handleArtworkChange"
           >
