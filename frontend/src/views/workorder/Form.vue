@@ -266,14 +266,23 @@
 
         <el-divider></el-divider>
 
+        <!-- 刀模选择 -->
         <el-form-item label="刀模">
           <el-select
-            v-model="form.die"
-            placeholder="请选择刀模"
+            v-model="form.dies"
+            placeholder="请选择刀模（可多选）"
             filterable
             clearable
+            multiple
+            :collapse-tags="shouldCollapseDieTags"
             style="width: 100%;"
+            @change="handleDieChange"
+            @visible-change="handleDieSelectVisible"
           >
+            <el-option
+              label="不需要刀模"
+              :value="'NO_DIE'"
+            ></el-option>
             <el-option
               v-for="die in dieList"
               :key="die.id"
@@ -281,6 +290,9 @@
               :value="die.id"
             ></el-option>
           </el-select>
+          <span style="color: #909399; font-size: 12px; margin-left: 10px;">
+            选择"不需要刀模"表示该施工单不需要模切工序，选择具体刀模可多选
+          </span>
         </el-form-item>
 
         <el-form-item label="拼版数量">
@@ -432,6 +444,7 @@ export default {
       materialItems: [], // 物料列表
       selectedProcesses: [],
       hasNoArtworkSelected: false, // 标记是否已选中"不需要图稿"
+      hasNoDieSelected: false, // 标记是否已选中"不需要刀模"
       form: {
         customer: null,
         product: null,
@@ -440,7 +453,7 @@ export default {
         quantity: 1,
         unit: '件',
         artworks: [], // 图稿列表（支持多选）
-        die: null,
+        dies: [], // 刀模列表（支持多选）
         imposition_quantity: 1,
         status: 'pending',
         priority: 'normal',
@@ -480,6 +493,11 @@ export default {
       // 至少显示3个选中的选项标签后才显示+n标签
       const validArtworks = this.form.artworks ? this.form.artworks.filter(id => id !== 'NO_ARTWORK' && id !== null) : []
       return validArtworks.length > 3
+    },
+    shouldCollapseDieTags() {
+      // 至少显示3个选中的选项标签后才显示+n标签
+      const validDies = this.form.dies ? this.form.dies.filter(id => id !== 'NO_DIE' && id !== null) : []
+      return validDies.length > 3
     }
   },
   watch: {
@@ -847,7 +865,8 @@ export default {
           unit: data.unit,
           // 图稿：后端现在返回的是 artworks 数组
           artworks: data.artworks || [],
-          die: data.die || null,
+          // 刀模：后端现在返回的是 dies 数组
+          dies: data.dies || [],
           imposition_quantity: data.imposition_quantity || 1,
           status: data.status,
           priority: data.priority,
@@ -965,6 +984,10 @@ export default {
           // 处理图稿数据：过滤掉 'NO_ARTWORK'，保留所有有效的图稿ID
           const validArtworks = this.form.artworks ? this.form.artworks.filter(id => id !== 'NO_ARTWORK' && id !== null) : []
           data.artworks = validArtworks.length > 0 ? validArtworks : []
+          
+          // 处理刀模数据：过滤掉 'NO_DIE'，保留所有有效的刀模ID
+          const validDies = this.form.dies ? this.form.dies.filter(id => id !== 'NO_DIE' && id !== null) : []
+          data.dies = validDies.length > 0 ? validDies : []
           
           // 处理产品数据
           if (this.productItems && this.productItems.length > 0 && this.productItems[0].product) {

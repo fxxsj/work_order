@@ -86,11 +86,21 @@
       <!-- 图稿和刀模信息 -->
       <el-descriptions title="图稿和刀模" :column="3" border style="margin-top: 20px;">
         <el-descriptions-item label="图稿（CTP版）">
-          <span v-if="workOrder.artwork_code">{{ workOrder.artwork_code }} - {{ workOrder.artwork_name }}</span>
+          <span v-if="workOrder.artwork_codes && workOrder.artwork_codes.length > 0">
+            <span v-for="(code, index) in workOrder.artwork_codes" :key="index">
+              {{ code }}<span v-if="workOrder.artwork_names && workOrder.artwork_names[index]"> - {{ workOrder.artwork_names[index] }}</span>
+              <span v-if="index < workOrder.artwork_codes.length - 1">、</span>
+            </span>
+          </span>
           <span v-else style="color: #909399;">-</span>
         </el-descriptions-item>
         <el-descriptions-item label="刀模">
-          <span v-if="workOrder.die_code">{{ workOrder.die_code }} - {{ workOrder.die_name }}</span>
+          <span v-if="workOrder.die_codes && workOrder.die_codes.length > 0">
+            <span v-for="(code, index) in workOrder.die_codes" :key="index">
+              {{ code }}<span v-if="workOrder.die_names && workOrder.die_names[index]"> - {{ workOrder.die_names[index] }}</span>
+              <span v-if="index < workOrder.die_codes.length - 1">、</span>
+            </span>
+          </span>
           <span v-else style="color: #909399;">-</span>
         </el-descriptions-item>
         <el-descriptions-item label="拼版数量">{{ workOrder.imposition_quantity || 1 }}拼</el-descriptions-item>
