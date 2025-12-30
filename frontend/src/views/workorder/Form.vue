@@ -1157,8 +1157,9 @@ export default {
           
           this.$router.push('/workorders')
         } catch (error) {
-          this.$message.error(this.isEdit ? '保存失败' : '创建失败')
-          console.error(error)
+          const errorMessage = error.response?.data?.error || error.response?.data?.detail || error.message || (this.isEdit ? '保存失败' : '创建失败')
+          this.$message.error(errorMessage)
+          console.error('保存施工单失败:', error)
         } finally {
           this.submitting = false
         }
