@@ -245,14 +245,6 @@ export default {
     this.loadMaterialList()
   },
   methods: {
-    async loadDepartments() {
-      try {
-        const response = await departmentAPI.getList({ is_active: true, page_size: 100 })
-        this.departments = response.results || []
-      } catch (error) {
-        console.error('加载工序分类失败:', error)
-      }
-    },
     async loadAllProcesses() {
       try {
         const response = await processAPI.getList({ is_active: true, page_size: 100 })
@@ -260,9 +252,6 @@ export default {
       } catch (error) {
         console.error('加载工序列表失败:', error)
       }
-    },
-    getProcessesByDepartment(departmentId) {
-      return this.allProcesses.filter(p => p.department === departmentId)
     },
     async loadMaterialList() {
       try {
