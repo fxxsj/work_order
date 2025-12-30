@@ -33,18 +33,8 @@
           </el-select>
         </el-form-item>
 
-        <el-divider></el-divider>
-
-        <!-- 图稿选择（优先） -->
-        <el-form-item label="是否需要图稿（CTP版）">
-          <el-radio-group v-model="useArtwork" @change="handleArtworkModeChange">
-            <el-radio :label="true">需要图稿</el-radio>
-            <el-radio :label="false">不需要图稿</el-radio>
-          </el-radio-group>
-        </el-form-item>
-
         <!-- 图稿选择 -->
-        <el-form-item label="图稿（CTP版）" v-if="useArtwork">
+        <el-form-item label="图稿（CTP版）">
           <el-select
             v-model="form.artwork"
             placeholder="请选择图稿"
@@ -54,6 +44,10 @@
             @change="handleArtworkChange"
           >
             <el-option
+              label="不需要图稿"
+              :value="null"
+            ></el-option>
+            <el-option
               v-for="artwork in artworkList"
               :key="artwork.id"
               :label="`${artwork.code} - ${artwork.name}`"
@@ -61,14 +55,14 @@
             ></el-option>
           </el-select>
           <span style="color: #909399; font-size: 12px; margin-left: 10px;">
-            选择图稿后，将自动填充关联的产品信息
+            选择"不需要图稿"可手动输入产品，选择具体图稿将自动填充关联的产品信息
           </span>
         </el-form-item>
 
-        <el-divider v-if="useArtwork"></el-divider>
+        <el-divider></el-divider>
 
         <!-- 产品输入（仅在不需要图稿时显示） -->
-        <template v-if="!useArtwork">
+        <template v-if="!form.artwork">
           <!-- 单个产品选择（兼容旧模式，仅在未使用产品列表时显示） -->
           <el-form-item label="产品" prop="product" v-if="productItems.length === 0">
           <el-select
@@ -836,7 +830,7 @@ export default {
       this.calculateTotalAmount()
     },
     calculateTotalAmount() {
-      if (this.useArtwork && this.artworkProducts.length > 0) {
+      if (this.form.artwork && this.artworkProducts.length > 0) {
         // 图稿模式：计算图稿关联产品的总金额
         let total = 0
         this.artworkProducts.forEach(item => {
@@ -970,12 +964,8 @@ export default {
         }
         
         // 验证产品信息
-        if (this.useArtwork) {
-          // 图稿模式：验证是否选择了图稿
-          if (!this.form.artwork) {
-            this.$message.warning('请选择图稿')
-            return
-          }
+        if (this.form.artwork) {
+          // 图稿模式：验证图稿是否关联产品
           if (this.artworkProducts.length === 0) {
             this.$message.warning('所选图稿未关联任何产品')
             return
@@ -1005,7 +995,7 @@ export default {
           }
           
           // 处理产品数据
-          if (this.useArtwork && this.artworkProducts.length > 0) {
+          if (this.form.artwork && this.artworkProducts.length > 0) {
             // 图稿模式：将图稿关联的产品转换为 products_data
             data.products_data = this.artworkProducts
               .filter(item => item.product)
