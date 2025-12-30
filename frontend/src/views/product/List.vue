@@ -161,11 +161,11 @@
         
         <el-divider content-position="left">默认工序配置</el-divider>
         
-        <div v-for="category in processCategories" :key="category.id" style="margin-bottom: 15px;">
-          <el-form-item :label="category.name">
+        <div v-for="department in departments" :key="department.id" style="margin-bottom: 15px;">
+          <el-form-item :label="department.name">
             <el-checkbox-group v-model="form.default_processes">
               <el-checkbox
-                v-for="process in getProcessesByCategory(category.id)"
+                v-for="process in getProcessesByDepartment(department.id)"
                 :key="process.id"
                 :label="process.id"
               >
