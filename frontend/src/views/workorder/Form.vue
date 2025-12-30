@@ -744,13 +744,22 @@ export default {
         console.error('加载产品默认信息失败:', error)
       }
     },
+    handleArtworkSelectVisible(visible) {
+      // 当下拉框打开时，如果已选中"不需要图稿"，准备处理互斥逻辑
+      if (visible && this.form.artworks && this.form.artworks.includes('NO_ARTWORK')) {
+        this.hasNoArtworkSelected = true
+      } else {
+        this.hasNoArtworkSelected = false
+      }
+    },
     async handleArtworkChange(artworkIds) {
       // 如果选择了"不需要图稿"
-      if (artworkIds && artworkIds.includes(null)) {
+      if (artworkIds && artworkIds.includes('NO_ARTWORK')) {
         // 如果同时选择了"不需要图稿"和其他图稿，移除其他图稿，只保留"不需要图稿"
-        if (artworkIds.length > 1) {
+        const otherArtworks = artworkIds.filter(id => id !== 'NO_ARTWORK')
+        if (otherArtworks.length > 0) {
           this.$nextTick(() => {
-            this.form.artworks = [null]
+            this.form.artworks = ['NO_ARTWORK']
           })
         }
         
@@ -771,6 +780,18 @@ export default {
         return
       }
       
+      // 如果之前选择了"不需要图稿"，现在选择了其他图稿，移除"不需要图稿"
+      if (this.hasNoArtworkSelected && artworkIds && artworkIds.length > 0) {
+        const validArtworkIds = artworkIds.filter(id => id !== 'NO_ARTWORK')
+        if (validArtworkIds.length > 0) {
+          this.$nextTick(() => {
+            this.form.artworks = validArtworkIds
+          })
+          artworkIds = validArtworkIds
+          this.hasNoArtworkSelected = false
+        }
+      }
+      
       // 如果没有选择任何图稿
       if (!artworkIds || artworkIds.length === 0) {
         // 如果产品列表为空，初始化一个空的产品项
@@ -786,8 +807,8 @@ export default {
         return
       }
       
-      // 过滤掉 null 值，只处理有效的图稿ID
-      const validArtworkIds = artworkIds.filter(id => id !== null)
+      // 过滤掉 'NO_ARTWORK' 值，只处理有效的图稿ID
+      const validArtworkIds = artworkIds.filter(id => id !== 'NO_ARTWORK' && id !== null)
       
       if (validArtworkIds.length === 0) {
         this.calculateTotalAmount()
