@@ -67,8 +67,20 @@
       </el-descriptions>
 
       <!-- 物料信息 -->
-      <el-card style="margin-top: 20px;" v-if="workOrder.materials && workOrder.materials.length > 0">
-        <div slot="header">物料信息</div>
+      <el-card style="margin-top: 20px;">
+        <div slot="header" class="card-header">
+          <span>物料信息</span>
+          <el-button size="small" type="primary" icon="el-icon-plus" @click="showAddMaterialDialog">
+            添加物料
+          </el-button>
+        </div>
+        
+        <el-table
+          v-if="workOrder.materials && workOrder.materials.length > 0"
+          :data="workOrder.materials"
+          border
+          style="width: 100%"
+        >
         <el-table :data="workOrder.materials" border style="width: 100%">
           <el-table-column prop="material_name" label="物料名称" width="200">
             <template slot-scope="scope">
@@ -123,6 +135,8 @@
             </template>
           </el-table-column>
         </el-table>
+        
+        <el-empty v-else description="暂无物料信息"></el-empty>
       </el-card>
 
       <!-- 物料状态更新对话框 -->
@@ -208,12 +222,6 @@
           </el-button>
         </div>
       </el-dialog>
-
-      <!-- 无物料信息时的显示 -->
-      <el-card v-if="workOrder && (!workOrder.materials || workOrder.materials.length === 0)" style="margin-top: 20px;">
-        <div slot="header">物料信息</div>
-        <p style="color: #909399; text-align: center;">暂无物料信息</p>
-      </el-card>
 
       <!-- 其他信息 -->
       <el-descriptions title="其他信息" :column="1" border style="margin-top: 20px;">
@@ -307,38 +315,6 @@
       </el-timeline>
       
       <el-empty v-else description="暂无工序信息"></el-empty>
-    </el-card>
-
-    <!-- 物料信息 -->
-    <el-card style="margin-top: 20px;">
-      <div slot="header" class="card-header">
-        <span>物料清单</span>
-        <el-button size="small" type="primary" icon="el-icon-plus" @click="showAddMaterialDialog">
-          添加物料
-        </el-button>
-      </div>
-      
-      <el-table
-        v-if="workOrder && workOrder.materials && workOrder.materials.length > 0"
-        :data="workOrder.materials"
-        style="width: 100%"
-      >
-        <el-table-column prop="material_code" label="物料编码" width="150"></el-table-column>
-        <el-table-column prop="material_name" label="物料名称"></el-table-column>
-        <el-table-column prop="planned_quantity" label="计划用量" align="right">
-          <template slot-scope="scope">
-            {{ scope.row.planned_quantity }} {{ scope.row.material_unit }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="actual_quantity" label="实际用量" align="right">
-          <template slot-scope="scope">
-            {{ scope.row.actual_quantity }} {{ scope.row.material_unit }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="notes" label="备注"></el-table-column>
-      </el-table>
-      
-      <el-empty v-else description="暂无物料信息"></el-empty>
     </el-card>
 
     <!-- 添加工序对话框 -->
