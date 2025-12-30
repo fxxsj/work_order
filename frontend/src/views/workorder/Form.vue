@@ -327,7 +327,7 @@
               
               <div style="margin-top: 15px;">
                 <el-table
-                  :data="processAssignments[processId].tasks"
+                  :data="processAssignments[processId] && processAssignments[processId].tasks || []"
                   border
                   style="width: 100%"
                 >
@@ -915,6 +915,43 @@ export default {
       const month = String(date.getMonth() + 1).padStart(2, '0')
       const day = String(date.getDate()).padStart(2, '0')
       return `${year}-${month}-${day}`
+    },
+    getProcessName(processId) {
+      const process = this.allProcesses.find(p => p.id === processId)
+      return process ? process.name : `工序 ${processId}`
+    },
+    addTask(processId) {
+      if (!this.processAssignments[processId]) {
+        this.$set(this.processAssignments, processId, {
+          department: null,
+          tasks: []
+        })
+      }
+      this.processAssignments[processId].tasks.push({
+        work_content: '',
+        production_quantity: 0,
+        production_requirements: ''
+      })
+    },
+    removeTask(processId, taskIndex) {
+      if (this.processAssignments[processId] && this.processAssignments[processId].tasks) {
+        this.processAssignments[processId].tasks.splice(taskIndex, 1)
+      }
+    },
+    updateProcessAssignments() {
+      // 当工序选择变化时，更新工序指派信息
+      const newAssignments = {}
+      this.selectedProcesses.forEach(processId => {
+        if (this.processAssignments[processId]) {
+          newAssignments[processId] = this.processAssignments[processId]
+        } else {
+          newAssignments[processId] = {
+            department: null,
+            tasks: []
+          }
+        }
+      })
+      this.processAssignments = newAssignments
     }
   }
 }
