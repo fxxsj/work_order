@@ -1095,28 +1095,91 @@ export default {
         }
       }
     },
-    async addSelectedProcesses(workOrderId) {
+    async saveSelectedProcesses(workOrderId) {
       // 收集所有选中的工序ID
       const allSelectedIds = this.selectedProcesses
       
       if (!allSelectedIds || allSelectedIds.length === 0) {
+        // 如果没有选中工序，在编辑模式下删除所有现有工序
+        if (this.isEdit) {
+          try {
+            const response = await workOrderAPI.getDetail(workOrderId)
+            if (response.order_processes && response.order_processes.length > 0) {
+              // 删除所有现有工序
+              for (const existingProcess of response.order_processes) {
+                if (existingProcess.id) {
+                  try {
+                    await workOrderProcessAPI.delete(existingProcess.id)
+                  } catch (error) {
+                    console.error('删除工序失败:', error)
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            console.error('获取施工单工序失败:', error)
+          }
+        }
         return
       }
       
-      // 按顺序添加工序
-      for (let i = 0; i < allSelectedIds.length; i++) {
-        const processId = allSelectedIds[i]
+      // 如果是编辑模式，先获取现有工序，删除不在新列表中的工序，添加新工序
+      if (this.isEdit) {
         try {
-          // 添加工序
-          const processData = {
-            process_id: processId,
-            sequence: i + 1
+          const response = await workOrderAPI.getDetail(workOrderId)
+          const existingProcesses = response.order_processes || []
+          
+          // 找出需要删除的工序（现有但不在新列表中的）
+          const existingProcessIds = existingProcesses.map(ep => ep.process)
+          const processesToDelete = existingProcessIds.filter(pid => !allSelectedIds.includes(pid))
+          
+          // 删除不需要的工序
+          for (const processToDelete of processesToDelete) {
+            const existingProcess = existingProcesses.find(ep => ep.process === processToDelete)
+            if (existingProcess && existingProcess.id) {
+              try {
+                await workOrderProcessAPI.delete(existingProcess.id)
+              } catch (error) {
+                console.error('删除工序失败:', error)
+              }
+            }
           }
           
-          await workOrderAPI.addProcess(workOrderId, processData)
+          // 找出需要添加的工序（新列表中有但现有中没有的）
+          const processesToAdd = allSelectedIds.filter(pid => !existingProcessIds.includes(pid))
+          
+          // 添加新工序
+          let nextSequence = existingProcesses.length + 1
+          for (const processId of processesToAdd) {
+            try {
+              const processData = {
+                process_id: processId,
+                sequence: nextSequence++
+              }
+              await workOrderAPI.addProcess(workOrderId, processData)
+            } catch (error) {
+              console.error('添加工序失败:', error)
+              throw error
+            }
+          }
         } catch (error) {
-          console.error('添加工序失败:', error)
-          throw error // 重新抛出错误，让上层处理
+          console.error('保存工序失败:', error)
+          throw error
+        }
+      } else {
+        // 新建模式：直接添加所有工序
+        for (let i = 0; i < allSelectedIds.length; i++) {
+          const processId = allSelectedIds[i]
+          try {
+            const processData = {
+              process_id: processId,
+              sequence: i + 1
+            }
+            await workOrderAPI.addProcess(workOrderId, processData)
+          } catch (error) {
+            console.error('添加工序失败:', error)
+            throw error // 重新抛出错误，让上层处理
+          }
         }
       }
     },
