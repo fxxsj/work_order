@@ -53,8 +53,34 @@
         <el-descriptions-item label="实际交货日期">
           {{ workOrder.actual_delivery_date ? (workOrder.actual_delivery_date | formatDate) : '-' }}
         </el-descriptions-item>
-        <el-descriptions-item label="产品规格" :span="3">{{ workOrder.specification || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="产品规格" :span="3" v-if="workOrder.specification">{{ workOrder.specification }}</el-descriptions-item>
       </el-descriptions>
+
+      <!-- 产品列表（场景2：一个施工单包含多个产品） -->
+      <el-card style="margin-top: 20px;" v-if="workOrder.products && workOrder.products.length > 0">
+        <div slot="header">产品列表</div>
+        <el-table :data="workOrder.products" border style="width: 100%">
+          <el-table-column prop="product_name" label="产品名称" width="200">
+            <template slot-scope="scope">
+              {{ scope.row.product_name }} ({{ scope.row.product_code }})
+            </template>
+          </el-table-column>
+          <el-table-column prop="specification" label="规格" show-overflow-tooltip></el-table-column>
+          <el-table-column prop="quantity" label="数量" width="120" align="right">
+            <template slot-scope="scope">
+              {{ scope.row.quantity }} {{ scope.row.unit }}
+            </template>
+          </el-table-column>
+          <el-table-column label="小计" width="150" align="right">
+            <template slot-scope="scope">
+              <span v-if="scope.row.product_detail">
+                ¥{{ parseFloat((scope.row.product_detail.unit_price * scope.row.quantity).toFixed(2)) }}
+              </span>
+              <span v-else>-</span>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-card>
 
       <!-- 图稿和刀模信息 -->
       <el-descriptions title="图稿和刀模" :column="3" border style="margin-top: 20px;">
