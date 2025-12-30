@@ -557,7 +557,7 @@ export default {
     },
     shouldCollapseTags() {
       // 至少显示3个选中的选项标签后才显示+n标签
-      const validArtworks = this.form.artworks ? this.form.artworks.filter(id => id !== null) : []
+      const validArtworks = this.form.artworks ? this.form.artworks.filter(id => id !== 'NO_ARTWORK' && id !== null) : []
       return validArtworks.length > 3
     }
   },
