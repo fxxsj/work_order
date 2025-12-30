@@ -62,7 +62,11 @@
               {{ scope.row.product_name }} ({{ scope.row.product_code }})
             </template>
           </el-table-column>
-          <el-table-column prop="specification" label="规格" show-overflow-tooltip></el-table-column>
+          <el-table-column prop="specification" label="规格" show-overflow-tooltip>
+            <template slot-scope="scope">
+              {{ scope.row.specification || '-' }}
+            </template>
+          </el-table-column>
           <el-table-column prop="quantity" label="数量" width="120" align="right">
             <template slot-scope="scope">
               {{ scope.row.quantity }} {{ scope.row.unit }}
