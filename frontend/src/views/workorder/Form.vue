@@ -408,7 +408,7 @@
 </template>
 
 <script>
-import { workOrderAPI, customerAPI, productAPI, processAPI, materialAPI, workOrderMaterialAPI, workOrderProductAPI, artworkAPI, dieAPI, departmentAPI, workOrderProcessAPI, workOrderTaskAPI } from '@/api/workorder'
+import { workOrderAPI, customerAPI, productAPI, processAPI, materialAPI, workOrderMaterialAPI, workOrderProductAPI, artworkAPI, dieAPI } from '@/api/workorder'
 
 export default {
   name: 'WorkOrderForm',
@@ -487,7 +487,6 @@ export default {
     this.loadArtworkList()
     this.loadDieList()
     this.loadAllProcesses()
-    this.loadDepartmentList()
     
     if (this.isEdit) {
       this.loadData()
