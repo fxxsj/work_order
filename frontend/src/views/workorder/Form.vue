@@ -643,8 +643,23 @@ export default {
         // 加载已选择的工序
         if (data.order_processes && data.order_processes.length > 0) {
           this.selectedProcesses = data.order_processes.map(op => op.process)
+          
+          // 加载工序的部门指派和任务
+          const assignments = {}
+          for (const op of data.order_processes) {
+            assignments[op.process] = {
+              department: op.department || null,
+              tasks: (op.tasks || []).map(task => ({
+                work_content: task.work_content || '',
+                production_quantity: task.production_quantity || 0,
+                production_requirements: task.production_requirements || ''
+              }))
+            }
+          }
+          this.processAssignments = assignments
         } else {
           this.selectedProcesses = []
+          this.processAssignments = {}
         }
         
         // 加载物料信息
