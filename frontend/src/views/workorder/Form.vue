@@ -81,6 +81,78 @@
           ></el-input>
         </el-form-item>
 
+        <el-divider></el-divider>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="状态" prop="status">
+              <el-select v-model="form.status" style="width: 100%;">
+                <el-option label="待开始" value="pending"></el-option>
+                <el-option label="进行中" value="in_progress"></el-option>
+                <el-option label="已暂停" value="paused"></el-option>
+                <el-option label="已完成" value="completed"></el-option>
+                <el-option label="已取消" value="cancelled"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="优先级" prop="priority">
+              <el-select v-model="form.priority" style="width: 100%;">
+                <el-option label="低" value="low"></el-option>
+                <el-option label="普通" value="normal"></el-option>
+                <el-option label="高" value="high"></el-option>
+                <el-option label="紧急" value="urgent"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="下单日期" prop="order_date">
+              <el-date-picker
+                v-model="form.order_date"
+                type="date"
+                placeholder="选择日期"
+                style="width: 100%;"
+                value-format="yyyy-MM-dd"
+              ></el-date-picker>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="交货日期" prop="delivery_date">
+              <el-date-picker
+                v-model="form.delivery_date"
+                type="date"
+                placeholder="选择日期"
+                style="width: 100%;"
+                value-format="yyyy-MM-dd"
+              ></el-date-picker>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-form-item label="实际交货日期" v-if="isEdit">
+          <el-date-picker
+            v-model="form.actual_delivery_date"
+            type="date"
+            placeholder="选择日期"
+            style="width: 100%;"
+            value-format="yyyy-MM-dd"
+          ></el-date-picker>
+        </el-form-item>
+
+        <el-form-item label="总金额">
+          <el-input-number
+            v-model="form.total_amount"
+            :min="0"
+            :precision="2"
+            style="width: 100%;"
+            :disabled="true"
+          ></el-input-number>
+          <span style="color: #909399; font-size: 12px;">根据产品单价和数量自动计算</span>
+        </el-form-item>
+
         <el-divider content-position="left">图稿和刀模</el-divider>
         
         <el-row :gutter="20">
@@ -209,78 +281,6 @@
               {{ process.name }}
             </el-checkbox>
           </el-checkbox-group>
-        </el-form-item>
-
-        <el-divider></el-divider>
-
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="状态" prop="status">
-              <el-select v-model="form.status" style="width: 100%;">
-                <el-option label="待开始" value="pending"></el-option>
-                <el-option label="进行中" value="in_progress"></el-option>
-                <el-option label="已暂停" value="paused"></el-option>
-                <el-option label="已完成" value="completed"></el-option>
-                <el-option label="已取消" value="cancelled"></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="优先级" prop="priority">
-              <el-select v-model="form.priority" style="width: 100%;">
-                <el-option label="低" value="low"></el-option>
-                <el-option label="普通" value="normal"></el-option>
-                <el-option label="高" value="high"></el-option>
-                <el-option label="紧急" value="urgent"></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="下单日期" prop="order_date">
-              <el-date-picker
-                v-model="form.order_date"
-                type="date"
-                placeholder="选择日期"
-                style="width: 100%;"
-                value-format="yyyy-MM-dd"
-              ></el-date-picker>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="交货日期" prop="delivery_date">
-              <el-date-picker
-                v-model="form.delivery_date"
-                type="date"
-                placeholder="选择日期"
-                style="width: 100%;"
-                value-format="yyyy-MM-dd"
-              ></el-date-picker>
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <el-form-item label="实际交货日期" v-if="isEdit">
-          <el-date-picker
-            v-model="form.actual_delivery_date"
-            type="date"
-            placeholder="选择日期"
-            style="width: 100%;"
-            value-format="yyyy-MM-dd"
-          ></el-date-picker>
-        </el-form-item>
-
-        <el-form-item label="总金额">
-          <el-input-number
-            v-model="form.total_amount"
-            :min="0"
-            :precision="2"
-            style="width: 100%;"
-            :disabled="true"
-          ></el-input-number>
-          <span style="color: #909399; font-size: 12px;">根据产品单价和数量自动计算</span>
         </el-form-item>
 
         <el-form-item label="备注">
