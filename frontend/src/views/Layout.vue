@@ -41,7 +41,7 @@
           <i class="el-icon-goods"></i>
           <span>物料管理</span>
         </el-menu-item>
-        <el-menu-item index="/artworks">
+        <el-menu-item v-if="canViewArtwork" index="/artworks">
           <i class="el-icon-picture"></i>
           <span>图稿管理</span>
         </el-menu-item>
@@ -138,6 +138,10 @@ export default {
     // 检查是否有查看物料的权限
     canViewMaterial() {
       return this.hasPermission('workorder.view_material')
+    },
+    // 检查是否有查看图稿的权限
+    canViewArtwork() {
+      return this.hasPermission('workorder.view_artwork')
     }
   },
   methods: {
