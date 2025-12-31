@@ -29,7 +29,7 @@
           <i class="el-icon-menu"></i>
           <span>部门管理</span>
         </el-menu-item>
-        <el-menu-item index="/processes">
+        <el-menu-item v-if="canViewProcess" index="/processes">
           <i class="el-icon-setting"></i>
           <span>工序管理</span>
         </el-menu-item>
@@ -126,6 +126,10 @@ export default {
     // 检查是否有查看部门的权限
     canViewDepartment() {
       return this.hasPermission('workorder.view_department')
+    },
+    // 检查是否有查看工序的权限
+    canViewProcess() {
+      return this.hasPermission('workorder.view_process')
     }
   },
   methods: {

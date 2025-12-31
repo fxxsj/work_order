@@ -11,7 +11,11 @@
         >
           <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
         </el-input>
-        <el-button type="primary" icon="el-icon-plus" @click="showDialog()">
+        <el-button 
+          v-if="canCreate" 
+          type="primary" 
+          icon="el-icon-plus" 
+          @click="showDialog()">
           新建工序
         </el-button>
       </div>
@@ -35,10 +39,19 @@
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template slot-scope="scope">
-            <el-button type="text" size="small" @click="showDialog(scope.row)">
+            <el-button 
+              v-if="canEdit" 
+              type="text" 
+              size="small" 
+              @click="showDialog(scope.row)">
               编辑
             </el-button>
-            <el-button type="text" size="small" style="color: #F56C6C;" @click="handleDelete(scope.row)">
+            <el-button 
+              v-if="canDelete" 
+              type="text" 
+              size="small" 
+              style="color: #F56C6C;" 
+              @click="handleDelete(scope.row)">
               删除
             </el-button>
           </template>
@@ -141,12 +154,35 @@ export default {
   computed: {
     dialogTitle() {
       return this.isEdit ? '编辑工序' : '新建工序'
+    },
+    canCreate() {
+      return this.hasPermission('workorder.add_process')
+    },
+    canEdit() {
+      return this.hasPermission('workorder.change_process')
+    },
+    canDelete() {
+      return this.hasPermission('workorder.delete_process')
     }
   },
   created() {
     this.loadData()
   },
   methods: {
+    // 检查用户是否有指定权限
+    hasPermission(permission) {
+      const userInfo = this.$store.getters.currentUser
+      if (!userInfo) return false
+      
+      // 超级用户拥有所有权限
+      if (userInfo.is_superuser) return true
+      
+      // 检查权限列表
+      const permissions = userInfo.permissions || []
+      if (permissions.includes('*')) return true
+      
+      return permissions.includes(permission)
+    },
     async loadData() {
       this.loading = true
       try {
