@@ -27,7 +27,9 @@
         <el-descriptions-item label="客户">{{ workOrder.customer_name }}</el-descriptions-item>
         <el-descriptions-item label="制表人">{{ workOrder.manager_name || '-' }}</el-descriptions-item>
         <el-descriptions-item label="产品名称" v-if="workOrder.product_name">{{ workOrder.product_name }}</el-descriptions-item>
-        <el-descriptions-item label="数量" v-if="workOrder.quantity">{{ workOrder.quantity }} {{ workOrder.unit }}</el-descriptions-item>
+        <el-descriptions-item label="生产数量" v-if="workOrder.production_quantity !== null || workOrder.defective_quantity !== null">
+          {{ ((workOrder.production_quantity || 0) + (workOrder.defective_quantity || 0)) }} 车
+        </el-descriptions-item>
         <el-descriptions-item label="总金额">¥{{ workOrder.total_amount }}</el-descriptions-item>
         <el-descriptions-item label="状态">
           <span :class="'status-badge status-' + workOrder.status">

@@ -49,9 +49,9 @@
         <el-table-column prop="order_number" label="施工单号" width="150" fixed></el-table-column>
         <el-table-column prop="customer_name" label="客户" width="150"></el-table-column>
         <el-table-column prop="product_name" label="产品名称" min-width="200"></el-table-column>
-        <el-table-column prop="quantity" label="数量" width="100" align="right">
+        <el-table-column prop="quantity" label="生产数量" width="120" align="right">
           <template slot-scope="scope">
-            {{ scope.row.quantity }} {{ scope.row.unit }}
+            {{ (scope.row.production_quantity || 0) + (scope.row.defective_quantity || 0) }} 车
           </template>
         </el-table-column>
         <el-table-column label="状态" width="100">

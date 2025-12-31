@@ -92,6 +92,31 @@
           ></el-date-picker>
         </el-form-item>
 
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="生产数量">
+              <el-input-number
+                v-model="form.production_quantity"
+                :min="0"
+                :precision="0"
+                style="width: 100%;"
+              ></el-input-number>
+              <span style="color: #909399; font-size: 12px; margin-left: 10px;">单位：车</span>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="预损数量">
+              <el-input-number
+                v-model="form.defective_quantity"
+                :min="0"
+                :precision="0"
+                style="width: 100%;"
+              ></el-input-number>
+              <span style="color: #909399; font-size: 12px; margin-left: 10px;">单位：车</span>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
         <el-divider></el-divider>
 
         <!-- 图稿选择 -->
@@ -460,6 +485,8 @@ export default {
         order_date: '',
         delivery_date: '',
         actual_delivery_date: '',
+        production_quantity: null,
+        defective_quantity: null,
         total_amount: 0,
         notes: ''
       },
@@ -905,6 +932,8 @@ export default {
           order_date: data.order_date,
           delivery_date: data.delivery_date,
           actual_delivery_date: data.actual_delivery_date || '',
+          production_quantity: data.production_quantity || null,
+          defective_quantity: data.defective_quantity || null,
           total_amount: parseFloat(data.total_amount),
           notes: data.notes || ''
         }
