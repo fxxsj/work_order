@@ -54,6 +54,22 @@
           </div>
         </el-card>
       </el-col>
+      <!-- 未审核施工单（仅业务员可见） -->
+      <el-col :span="6" v-if="isSalesperson">
+        <el-card class="stat-card pending-approval-card" @click.native="goToPendingApprovals">
+          <div class="stat-content">
+            <div class="stat-icon" style="background-color: #E6A23C;">
+              <i class="el-icon-document-checked"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value" style="color: #E6A23C;">
+                {{ statistics.pending_approval_count || 0 }}
+              </div>
+              <div class="stat-label">待审核施工单</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
     </el-row>
 
     <!-- 图表和列表 -->
@@ -183,6 +199,11 @@ export default {
     }
   },
   computed: {
+    // 检查用户是否为业务员
+    isSalesperson() {
+      const userInfo = this.$store.getters.currentUser
+      return userInfo && userInfo.is_salesperson
+    },
     statusTableData() {
       if (!this.statistics.status_statistics) return []
       return this.statistics.status_statistics.map(item => ({
@@ -230,6 +251,13 @@ export default {
       const total = this.statistics.total_count || 0
       if (total === 0) return 0
       return ((count / total) * 100).toFixed(1)
+    },
+    goToPendingApprovals() {
+      // 跳转到施工单列表，并筛选出待审核的施工单
+      this.$router.push({
+        path: '/workorders',
+        query: { approval_status: 'pending' }
+      })
     }
   }
 }
@@ -291,6 +319,25 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.pending-approval-card {
+  border: 2px solid #E6A23C;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(230, 162, 60, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(230, 162, 60, 0);
+  }
+}
+
+.pending-approval-card:hover {
+  border-color: #E6A23C;
+  box-shadow: 0 4px 12px rgba(230, 162, 60, 0.3);
 }
 </style>
 

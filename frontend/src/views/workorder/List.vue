@@ -31,7 +31,14 @@
               <el-option label="紧急" value="urgent"></el-option>
             </el-select>
           </el-col>
-          <el-col :span="10" style="text-align: right;">
+          <el-col :span="4" v-if="isSalesperson">
+            <el-select v-model="filters.approval_status" placeholder="审核状态" clearable @change="handleSearch">
+              <el-option label="待审核" value="pending"></el-option>
+              <el-option label="已通过" value="approved"></el-option>
+              <el-option label="已拒绝" value="rejected"></el-option>
+            </el-select>
+          </el-col>
+          <el-col :span="isSalesperson ? 6 : 10" style="text-align: right;">
             <el-button type="primary" icon="el-icon-plus" @click="handleCreate">
               新建施工单
             </el-button>
@@ -150,11 +157,17 @@ export default {
       filters: {
         search: '',
         status: '',
-        priority: ''
+        priority: '',
+        approval_status: ''
       }
     }
   },
   computed: {
+    // 检查用户是否为业务员
+    isSalesperson() {
+      const userInfo = this.$store.getters.currentUser
+      return userInfo && userInfo.is_salesperson
+    },
     // 检查是否有编辑权限
     canEdit() {
       return this.hasPermission('workorder.change_workorder')
@@ -165,6 +178,10 @@ export default {
     }
   },
   created() {
+    // 检查URL参数中是否有审核状态筛选
+    if (this.$route.query.approval_status) {
+      this.filters.approval_status = this.$route.query.approval_status
+    }
     this.loadData()
   },
   methods: {
@@ -199,6 +216,9 @@ export default {
         }
         if (this.filters.priority) {
           params.priority = this.filters.priority
+        }
+        if (this.filters.approval_status) {
+          params.approval_status = this.filters.approval_status
         }
         
         const response = await workOrderAPI.getList(params)
