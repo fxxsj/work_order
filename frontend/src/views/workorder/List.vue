@@ -48,6 +48,11 @@
       >
         <el-table-column prop="order_number" label="施工单号" width="150" fixed></el-table-column>
         <el-table-column prop="customer_name" label="客户" width="150"></el-table-column>
+        <el-table-column prop="salesperson_name" label="业务员" width="100">
+          <template slot-scope="scope">
+            {{ scope.row.salesperson_name || '-' }}
+          </template>
+        </el-table-column>
         <el-table-column prop="product_name" label="产品名称" min-width="200"></el-table-column>
         <el-table-column prop="quantity" label="生产数量" width="120" align="right">
           <template slot-scope="scope">

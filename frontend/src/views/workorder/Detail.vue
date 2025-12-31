@@ -25,6 +25,7 @@
       <el-descriptions title="基本信息" :column="3" border style="margin-top: 20px;">
         <el-descriptions-item label="施工单号">{{ workOrder.order_number }}</el-descriptions-item>
         <el-descriptions-item label="客户">{{ workOrder.customer_name }}</el-descriptions-item>
+        <el-descriptions-item label="业务员">{{ workOrder.customer_detail && workOrder.customer_detail.salesperson_name ? workOrder.customer_detail.salesperson_name : '-' }}</el-descriptions-item>
         <el-descriptions-item label="制表人">{{ workOrder.manager_name || '-' }}</el-descriptions-item>
         <el-descriptions-item label="产品名称" v-if="workOrder.product_name">{{ workOrder.product_name }}</el-descriptions-item>
         <el-descriptions-item label="生产数量" v-if="workOrder.production_quantity !== null || workOrder.defective_quantity !== null">
