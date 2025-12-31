@@ -37,7 +37,7 @@
           <i class="el-icon-shopping-bag-2"></i>
           <span>产品管理</span>
         </el-menu-item>
-        <el-menu-item index="/materials">
+        <el-menu-item v-if="canViewMaterial" index="/materials">
           <i class="el-icon-goods"></i>
           <span>物料管理</span>
         </el-menu-item>
@@ -134,6 +134,10 @@ export default {
     // 检查是否有查看产品的权限
     canViewProduct() {
       return this.hasPermission('workorder.view_product')
+    },
+    // 检查是否有查看物料的权限
+    canViewMaterial() {
+      return this.hasPermission('workorder.view_material')
     }
   },
   methods: {
