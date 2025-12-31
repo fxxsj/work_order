@@ -4,7 +4,7 @@
   "description": "印刷施工单跟踪系统 - 前端",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
+    "serve": "NODE_OPTIONS=--no-deprecation vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },

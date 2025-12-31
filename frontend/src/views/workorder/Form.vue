@@ -1088,10 +1088,8 @@ export default {
             this.$message.success('创建成功，单号自动生成')
           }
           
-          // 保存产品信息（图稿模式或多产品模式，如果后端没有自动处理）
-          if (data.products_data && data.products_data.length > 0) {
-            await this.saveProducts(workOrderId, data.products_data)
-          }
+          // 注意：products_data 已经在后端的 create/update 方法中自动处理了
+          // 不需要再次调用 saveProducts，否则会导致重复创建和 400 错误
           
           // 添加选中的工序（新建和编辑都需要处理）
           await this.saveSelectedProcesses(workOrderId)
