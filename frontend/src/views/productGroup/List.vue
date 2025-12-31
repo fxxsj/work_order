@@ -3,7 +3,11 @@
     <el-card>
       <div slot="header" class="card-header">
         <span>产品组管理</span>
-        <el-button type="primary" icon="el-icon-plus" @click="handleAdd">新增产品组</el-button>
+        <el-button 
+          v-if="canCreate" 
+          type="primary" 
+          icon="el-icon-plus" 
+          @click="handleAdd">新增产品组</el-button>
       </div>
 
       <el-table :data="list" border style="width: 100%" v-loading="loading">
@@ -24,8 +28,15 @@
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template slot-scope="scope">
-            <el-button size="mini" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+            <el-button 
+              v-if="canEdit" 
+              size="mini" 
+              @click="handleEdit(scope.row)">编辑</el-button>
+            <el-button 
+              v-if="canDelete" 
+              size="mini" 
+              type="danger" 
+              @click="handleDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -177,11 +188,36 @@ export default {
       }
     }
   },
+  computed: {
+    canCreate() {
+      return this.hasPermission('workorder.add_productgroup')
+    },
+    canEdit() {
+      return this.hasPermission('workorder.change_productgroup')
+    },
+    canDelete() {
+      return this.hasPermission('workorder.delete_productgroup')
+    }
+  },
   created() {
     this.loadData()
     this.loadProductList()
   },
   methods: {
+    // 检查用户是否有指定权限
+    hasPermission(permission) {
+      const userInfo = this.$store.getters.currentUser
+      if (!userInfo) return false
+      
+      // 超级用户拥有所有权限
+      if (userInfo.is_superuser) return true
+      
+      // 检查权限列表
+      const permissions = userInfo.permissions || []
+      if (permissions.includes('*')) return true
+      
+      return permissions.includes(permission)
+    },
     async loadData() {
       this.loading = true
       try {

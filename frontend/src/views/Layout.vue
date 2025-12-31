@@ -49,7 +49,7 @@
           <i class="el-icon-scissors"></i>
           <span>刀模管理</span>
         </el-menu-item>
-        <el-menu-item index="/product-groups">
+        <el-menu-item v-if="canViewProductGroup" index="/product-groups">
           <i class="el-icon-collection"></i>
           <span>产品组管理</span>
         </el-menu-item>
@@ -146,6 +146,10 @@ export default {
     // 检查是否有查看刀模的权限
     canViewDie() {
       return this.hasPermission('workorder.view_die')
+    },
+    // 检查是否有查看产品组的权限
+    canViewProductGroup() {
+      return this.hasPermission('workorder.view_productgroup')
     }
   },
   methods: {
