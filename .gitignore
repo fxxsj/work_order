@@ -51,6 +51,9 @@ yarn-error.log*
 .env.local
 .env.*.local
 
+# Frontend config
+frontend/src/config/index.js
+
 # Testing
 .coverage
 htmlcov/

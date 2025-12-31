@@ -5,7 +5,8 @@
       <div class="header-actions">
         <el-button icon="el-icon-back" @click="$router.back()">返回</el-button>
         <div>
-          <el-button type="primary" icon="el-icon-edit" @click="handleEdit">编辑</el-button>
+          <el-button icon="el-icon-printer" @click="handlePrint">打印</el-button>
+          <el-button type="primary" icon="el-icon-edit" @click="handleEdit" style="margin-left: 10px;">编辑</el-button>
           <el-dropdown @command="handleStatusChange" style="margin-left: 10px;">
             <el-button type="success">
               更改状态<i class="el-icon-arrow-down el-icon--right"></i>
@@ -329,7 +330,172 @@
       </el-descriptions>
     </el-card>
 
-    <!-- 工序信息 -->
+    <!-- 打印区域（隐藏，仅在打印时显示） -->
+    <div id="print-area" class="print-area" v-if="workOrder">
+      <div class="print-header">
+        <div class="print-company">{{ companyName }}</div>
+        <div class="print-title">生产施工单</div>
+        <div class="print-order-number">No: {{ workOrder.order_number }}</div>
+      </div>
+      
+      <div class="print-dates">
+        <span>下单日期：{{ workOrder.order_date | formatDate }}</span>
+        <span>交货日期：{{ workOrder.delivery_date | formatDate }}</span>
+      </div>
+
+      <div class="print-content">
+        <!-- 基本信息 -->
+        <div class="print-section">
+          <div class="print-section-title">基本信息</div>
+          <table class="print-info-table">
+            <tr>
+              <td class="print-label">客户：</td>
+              <td class="print-value">{{ workOrder.customer_name }}</td>
+              <td class="print-label">产品名称：</td>
+              <td class="print-value">{{ workOrder.product_name || '-' }}</td>
+            </tr>
+            <tr>
+              <td class="print-label">生产数量：</td>
+              <td class="print-value">{{ ((workOrder.production_quantity || 0) + (workOrder.defective_quantity || 0)) }} 车</td>
+              <td class="print-label">优先级：</td>
+              <td class="print-value">{{ workOrder.priority_display }}</td>
+            </tr>
+            <tr v-if="workOrder.actual_delivery_date">
+              <td class="print-label">实际交货日期：</td>
+              <td class="print-value">{{ workOrder.actual_delivery_date | formatDate }}</td>
+              <td class="print-label"></td>
+              <td class="print-value"></td>
+            </tr>
+            <tr v-if="workOrder.approval_comment">
+              <td class="print-label">审核意见：</td>
+              <td class="print-value" colspan="3">{{ workOrder.approval_comment }}</td>
+            </tr>
+            <tr v-if="workOrder.specification">
+              <td class="print-label">产品规格：</td>
+              <td class="print-value" colspan="3">{{ workOrder.specification }}</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- 工序信息 -->
+        <div class="print-section" v-if="workOrder.order_processes && workOrder.order_processes.length > 0">
+          <div class="print-section-title">工序信息</div>
+          <div class="print-processes-list">
+            <span v-for="(process, index) in workOrder.order_processes" :key="process.id" class="print-process-item">
+              <span class="print-checkbox">☑</span>{{ process.process_name }}<span v-if="index < workOrder.order_processes.length - 1">、</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- 产品列表 -->
+        <div class="print-section" v-if="workOrder.products && workOrder.products.length > 0">
+          <div class="print-section-title">产品列表</div>
+          <table class="print-data-table">
+            <thead>
+              <tr>
+                <th>产品名称</th>
+                <th>规格</th>
+                <th>数量</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="product in workOrder.products" :key="product.id">
+                <td>{{ product.product_name }} ({{ product.product_code }})</td>
+                <td>{{ product.specification || '-' }}</td>
+                <td>{{ product.quantity }} {{ product.unit }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 图稿和刀模信息 -->
+        <div class="print-section">
+          <div class="print-section-title">图稿和刀模</div>
+          <table class="print-info-table">
+            <tr>
+              <td class="print-label">图稿（CTP版）：</td>
+              <td class="print-value">
+                <span v-if="workOrder.artwork_codes && workOrder.artwork_codes.length > 0">
+                  <span v-for="(code, index) in workOrder.artwork_codes" :key="index">
+                    {{ code }}<span v-if="workOrder.artwork_names && workOrder.artwork_names[index]"> - {{ workOrder.artwork_names[index] }}</span>
+                    <span v-if="index < workOrder.artwork_codes.length - 1">、</span>
+                  </span>
+                </span>
+                <span v-else>-</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="print-label">刀模：</td>
+              <td class="print-value">
+                <span v-if="workOrder.die_codes && workOrder.die_codes.length > 0">
+                  <span v-for="(code, index) in workOrder.die_codes" :key="index">
+                    {{ code }}<span v-if="workOrder.die_names && workOrder.die_names[index]"> - {{ workOrder.die_names[index] }}</span>
+                    <span v-if="index < workOrder.die_codes.length - 1">、</span>
+                  </span>
+                </span>
+                <span v-else>-</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="print-label">拼版数量：</td>
+              <td class="print-value">{{ workOrder.imposition_quantity || 1 }}拼</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- 物料信息 -->
+        <div class="print-section" v-if="workOrder.materials && workOrder.materials.length > 0">
+          <div class="print-section-title">物料信息</div>
+          <table class="print-data-table">
+            <thead>
+              <tr>
+                <th>物料名称</th>
+                <th>尺寸</th>
+                <th>用量</th>
+                <th>计划用量</th>
+                <th>实际用量</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="material in workOrder.materials" :key="material.id">
+                <td>{{ material.material_name }} ({{ material.material_code }})</td>
+                <td>{{ material.material_size || '-' }}</td>
+                <td>{{ material.material_usage || '-' }}</td>
+                <td>{{ material.planned_quantity }} {{ material.material_unit }}</td>
+                <td>{{ material.actual_quantity }} {{ material.material_unit }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 备注 -->
+        <div class="print-section" v-if="workOrder.notes">
+          <div class="print-section-title">备注</div>
+          <div class="print-notes">{{ workOrder.notes }}</div>
+        </div>
+      </div>
+
+      <!-- 底部信息（固定在A4底部） -->
+      <div class="print-footer">
+        <table class="print-footer-table">
+          <tr>
+            <td class="print-label">业务员：</td>
+            <td class="print-value">{{ workOrder.customer_detail && workOrder.customer_detail.salesperson_name ? workOrder.customer_detail.salesperson_name : '-' }}</td>
+            <td class="print-label">制表：</td>
+            <td class="print-value">{{ workOrder.manager_name || '-' }}</td>
+            <td class="print-label">审核：</td>
+            <td class="print-value">
+              <span v-if="workOrder.approval_status === 'pending'">待审核</span>
+              <span v-else-if="workOrder.approval_status === 'approved'">{{ workOrder.approved_by_name || '-' }}</span>
+              <span v-else-if="workOrder.approval_status === 'rejected'">已拒绝</span>
+              <span v-else>-</span>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- 工序跟踪 -->
     <el-card style="margin-top: 20px;">
       <div slot="header" class="card-header">
         <span>工序跟踪</span>
@@ -501,6 +667,16 @@
 
 <script>
 import { workOrderAPI, processAPI, materialAPI, workOrderProcessAPI, workOrderMaterialAPI } from '@/api/workorder'
+// 导入配置文件，如果不存在则使用默认值
+let config
+try {
+  config = require('@/config').default
+} catch (e) {
+  // 如果配置文件不存在，使用默认配置
+  config = {
+    companyName: '肇庆市高要区新西彩包装有限公司'
+  }
+}
 
 export default {
   name: 'WorkOrderDetail',
@@ -558,6 +734,10 @@ export default {
     }
   },
   computed: {
+    // 公司名称（从配置文件读取）
+    companyName() {
+      return config.companyName
+    },
     // 检查是否可以审核（用户是业务员且负责该施工单的客户）
     canApprove() {
       const userInfo = this.$store.getters.currentUser
@@ -878,6 +1058,210 @@ export default {
       } finally {
         this.approving = false
       }
+    },
+    handlePrint() {
+      // 创建新窗口用于打印
+      const printWindow = window.open('', '_blank')
+      const printContent = document.getElementById('print-area')
+      
+      if (!printContent) {
+        this.$message.error('打印内容不存在')
+        return
+      }
+      
+      // 获取打印内容的HTML
+      const printHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>施工单详情 - ${this.workOrder.order_number}</title>
+          <style>
+            @page {
+              size: A4;
+              margin: 10mm;
+            }
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            body {
+              font-family: "Microsoft YaHei", "SimSun", Arial, sans-serif;
+              font-size: 13px;
+              line-height: 1.8;
+              color: #000;
+            }
+            .print-header {
+              position: relative;
+              margin-bottom: 15px;
+              padding-bottom: 10px;
+              border-bottom: 2px solid #000;
+            }
+            .print-company {
+              position: absolute;
+              left: 0;
+              top: 0;
+              font-size: 14px;
+              font-weight: bold;
+            }
+            .print-title {
+              text-align: center;
+              font-size: 22px;
+              font-weight: bold;
+              margin: 0 auto;
+            }
+            .print-order-number {
+              position: absolute;
+              right: 0;
+              top: 0;
+              font-size: 16px;
+              font-weight: bold;
+              color: #f00;
+            }
+            .print-dates {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 15px;
+              font-size: 13px;
+            }
+            .print-content {
+              min-height: calc(100vh - 200px);
+              margin-bottom: 60px;
+            }
+            .print-section {
+              margin-bottom: 15px;
+              page-break-inside: avoid;
+            }
+            .print-section-title {
+              font-weight: bold;
+              font-size: 14px;
+              margin-bottom: 8px;
+              padding: 3px 0;
+              border-bottom: 1px solid #000;
+            }
+            .print-info-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 10px;
+            }
+            .print-info-table td {
+              padding: 5px 8px;
+              border: 1px solid #000;
+              font-size: 13px;
+            }
+            .print-label {
+              width: 120px;
+              font-weight: bold;
+              background-color: #f0f0f0;
+            }
+            .print-value {
+              width: auto;
+            }
+            .print-data-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 10px;
+            }
+            .print-data-table thead {
+              background-color: #f0f0f0;
+            }
+            .print-data-table th {
+              padding: 8px;
+              border: 1px solid #000;
+              text-align: center;
+              font-weight: bold;
+              font-size: 13px;
+            }
+            .print-data-table td {
+              padding: 6px 8px;
+              border: 1px solid #000;
+              font-size: 13px;
+              text-align: center;
+            }
+            .print-data-table tbody td:first-child {
+              text-align: left;
+            }
+            .print-notes {
+              padding: 8px;
+              border: 1px solid #000;
+              font-size: 13px;
+              white-space: pre-wrap;
+              line-height: 1.6;
+            }
+            .print-processes-list {
+              padding: 8px;
+              border: 1px solid #000;
+              font-size: 13px;
+              line-height: 2;
+            }
+            .print-process-item {
+              display: inline;
+            }
+            .print-checkbox {
+              display: inline-block;
+              width: 16px;
+              height: 16px;
+              border: 1px solid #000;
+              margin-right: 8px;
+              text-align: center;
+              line-height: 14px;
+              font-size: 14px;
+              vertical-align: middle;
+              color: #0066cc;
+            }
+            .print-footer {
+              position: fixed;
+              bottom: 0;
+              left: 0;
+              right: 0;
+              padding: 10px 0;
+              border-top: 1px solid #000;
+              background-color: #fff;
+              margin-top: 20px;
+            }
+            .print-footer-table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+            .print-footer-table td {
+              padding: 5px 10px;
+              font-size: 13px;
+            }
+            .print-footer-table .print-label {
+              width: 80px;
+              font-weight: bold;
+            }
+            @media print {
+              body {
+                margin: 0;
+              }
+              .print-content {
+                margin-bottom: 80px;
+              }
+              .print-footer {
+                position: fixed;
+                bottom: 0;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          ${printContent.innerHTML}
+        </body>
+        </html>
+      `
+      
+      printWindow.document.write(printHTML)
+      printWindow.document.close()
+      
+      // 等待内容加载完成后打印
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print()
+          printWindow.close()
+        }, 250)
+      }
     }
   }
 }
@@ -945,6 +1329,20 @@ export default {
 .log-operator {
   color: #909399;
   margin-left: 10px;
+}
+
+/* 打印区域样式（屏幕显示时隐藏） */
+.print-area {
+  display: none;
+}
+
+@media print {
+  .print-area {
+    display: block;
+  }
+  .workorder-detail > .el-card {
+    display: none;
+  }
 }
 </style>
 
