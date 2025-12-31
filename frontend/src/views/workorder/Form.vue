@@ -397,26 +397,13 @@
                   ></el-input>
                 </template>
               </el-table-column>
-              <el-table-column label="计划用量" width="150">
+              <el-table-column label="备注" min-width="200">
                 <template slot-scope="scope">
-                  <el-input-number
-                    v-model="scope.row.planned_quantity"
-                    :min="0"
-                    :precision="2"
+                  <el-input
+                    v-model="scope.row.notes"
+                    placeholder="请输入备注"
                     size="small"
-                    style="width: 100%;"
-                  ></el-input-number>
-                </template>
-              </el-table-column>
-              <el-table-column label="实际用量" width="150">
-                <template slot-scope="scope">
-                  <el-input-number
-                    v-model="scope.row.actual_quantity"
-                    :min="0"
-                    :precision="2"
-                    size="small"
-                    style="width: 100%;"
-                  ></el-input-number>
+                  ></el-input>
                 </template>
               </el-table-column>
               <el-table-column label="操作" width="100" align="center">
@@ -686,8 +673,6 @@ export default {
             material: m.material,
             material_size: m.material_size || '',
             material_usage: m.material_usage || '',
-            planned_quantity: 0,
-            actual_quantity: 0,
             notes: ''
           }))
         } else {
@@ -1117,8 +1102,6 @@ export default {
             material: m.material,
             material_size: m.material_size || '',
             material_usage: m.material_usage || '',
-            planned_quantity: m.planned_quantity || 0,
-            actual_quantity: m.actual_quantity || 0,
             notes: m.notes || ''
           }))
         } else {
@@ -1447,8 +1430,6 @@ export default {
         material: null,
         material_size: '',
         material_usage: '',
-        planned_quantity: 0,
-        actual_quantity: 0,
         notes: ''
       })
     },
@@ -1493,8 +1474,6 @@ export default {
               material: item.material,
               material_size: item.material_size || '',
               material_usage: item.material_usage || '',
-              planned_quantity: item.planned_quantity || 0,
-              actual_quantity: item.actual_quantity || 0,
               notes: item.notes || ''
             })
           } catch (error) {

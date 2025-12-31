@@ -194,14 +194,9 @@
           </el-table-column>
           <el-table-column prop="material_size" label="尺寸" width="150"></el-table-column>
           <el-table-column prop="material_usage" label="用量" width="150"></el-table-column>
-          <el-table-column prop="planned_quantity" label="计划用量" width="120" align="right">
+          <el-table-column prop="notes" label="备注" min-width="200" show-overflow-tooltip>
             <template slot-scope="scope">
-              {{ scope.row.planned_quantity }} {{ scope.row.material_unit }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="actual_quantity" label="实际用量" width="120" align="right">
-            <template slot-scope="scope">
-              {{ scope.row.actual_quantity }} {{ scope.row.material_unit }}
+              {{ scope.row.notes || '-' }}
             </template>
           </el-table-column>
           <el-table-column prop="purchase_status_display" label="采购状态" width="120">
@@ -471,8 +466,7 @@
                 <th>物料名称</th>
                 <th>尺寸</th>
                 <th>用量</th>
-                <th>计划用量</th>
-                <th>实际用量</th>
+                <th>备注</th>
               </tr>
             </thead>
             <tbody>
@@ -480,8 +474,7 @@
                 <td>{{ material.material_name }} ({{ material.material_code }})</td>
                 <td>{{ material.material_size || '-' }}</td>
                 <td>{{ material.material_usage || '-' }}</td>
-                <td>{{ material.planned_quantity }} {{ material.material_unit }}</td>
-                <td>{{ material.actual_quantity }} {{ material.material_unit }}</td>
+                <td>{{ material.notes || '-' }}</td>
               </tr>
             </tbody>
           </table>
@@ -667,13 +660,13 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="计划用量">
-          <el-input-number
-            v-model="materialForm.planned_quantity"
-            :min="0"
-            :precision="2"
-            style="width: 100%;"
-          ></el-input-number>
+        <el-form-item label="备注">
+          <el-input
+            v-model="materialForm.notes"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入备注（可选）"
+          ></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer">
@@ -908,7 +901,7 @@ export default {
     showAddMaterialDialog() {
       this.materialForm = {
         material_id: null,
-        planned_quantity: 0
+        notes: ''
       }
       this.addMaterialDialog = true
     },
