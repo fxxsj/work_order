@@ -33,6 +33,20 @@ export default new Vuex.Store({
       state.materialList = list
     }
   },
+  getters: {
+    // 判断当前用户是否为业务员
+    isSalesperson: (state) => {
+      return state.userInfo && state.userInfo.is_salesperson === true
+    },
+    // 获取当前用户的角色列表
+    userGroups: (state) => {
+      return state.userInfo && state.userInfo.groups ? state.userInfo.groups : []
+    },
+    // 获取当前用户信息
+    currentUser: (state) => {
+      return state.userInfo
+    }
+  },
   actions: {
     setUserInfo({ commit }, userInfo) {
       commit('SET_USER_INFO', userInfo)
