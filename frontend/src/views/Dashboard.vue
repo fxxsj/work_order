@@ -1,5 +1,19 @@
 <template>
   <div class="dashboard">
+    <!-- 待审核施工单提醒（仅业务员可见） -->
+    <el-alert
+      v-if="isSalesperson && statistics.pending_approval_count > 0"
+      type="warning"
+      :closable="false"
+      show-icon
+      style="margin-bottom: 20px;"
+    >
+      <template slot="title">
+        <span>您有 <strong style="color: #E6A23C; font-size: 16px;">{{ statistics.pending_approval_count }}</strong> 个待审核的施工单，请及时处理。</span>
+        <el-link type="primary" :underline="false" style="margin-left: 10px;" @click="goToPendingApprovals">点击查看</el-link>
+      </template>
+    </el-alert>
+
     <!-- 统计卡片 -->
     <el-row :gutter="20" class="stat-cards">
       <el-col :span="6">
@@ -50,22 +64,6 @@
             <div class="stat-info">
               <div class="stat-value">{{ statistics.upcoming_deadline_count || 0 }}</div>
               <div class="stat-label">即将到期</div>
-            </div>
-          </div>
-        </el-card>
-      </el-col>
-      <!-- 未审核施工单（仅业务员可见） -->
-      <el-col :span="6" v-if="isSalesperson">
-        <el-card class="stat-card pending-approval-card" @click.native="goToPendingApprovals">
-          <div class="stat-content">
-            <div class="stat-icon" style="background-color: #E6A23C;">
-              <i class="el-icon-document-checked"></i>
-            </div>
-            <div class="stat-info">
-              <div class="stat-value" style="color: #E6A23C;">
-                {{ statistics.pending_approval_count || 0 }}
-              </div>
-              <div class="stat-label">待审核施工单</div>
             </div>
           </div>
         </el-card>
@@ -319,25 +317,6 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.pending-approval-card {
-  border: 2px solid #E6A23C;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(230, 162, 60, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 10px rgba(230, 162, 60, 0);
-  }
-}
-
-.pending-approval-card:hover {
-  border-color: #E6A23C;
-  box-shadow: 0 4px 12px rgba(230, 162, 60, 0.3);
 }
 </style>
 

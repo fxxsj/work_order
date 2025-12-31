@@ -558,11 +558,13 @@ export default {
     }
   },
   computed: {
-    // 检查是否可以审核（用户是业务员）
+    // 检查是否可以审核（用户是业务员且负责该施工单的客户）
     canApprove() {
       const userInfo = this.$store.getters.currentUser
-      if (!userInfo) return false
-      return userInfo.is_salesperson || false
+      if (!userInfo || !userInfo.is_salesperson) return false
+      if (!this.workOrder || !this.workOrder.customer_detail) return false
+      // 检查施工单的客户对应的业务员是否是当前登录的业务员
+      return this.workOrder.customer_detail.salesperson === userInfo.id
     },
     availableStatuses() {
       const currentStatus = this.materialStatusForm.current_status
