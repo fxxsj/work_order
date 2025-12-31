@@ -170,7 +170,6 @@
           </span>
           <span v-else style="color: #909399;">-</span>
         </el-descriptions-item>
-        <el-descriptions-item label="拼版数量">{{ workOrder.imposition_quantity || 1 }}拼</el-descriptions-item>
       </el-descriptions>
 
       <!-- 物料信息 -->
@@ -459,10 +458,6 @@
                 </span>
                 <span v-else>-</span>
               </td>
-            </tr>
-            <tr>
-              <td class="print-label">拼版数量：</td>
-              <td class="print-value">{{ workOrder.imposition_quantity || 1 }}拼</td>
             </tr>
           </table>
         </div>

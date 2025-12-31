@@ -334,14 +334,6 @@
           </span>
         </el-form-item>
 
-        <el-form-item label="拼版数量">
-          <el-input-number
-            v-model="form.imposition_quantity"
-            :min="1"
-            style="width: 100%;"
-          ></el-input-number>
-        </el-form-item>
-
         <el-divider></el-divider>
 
         <!-- 工序选择 -->
