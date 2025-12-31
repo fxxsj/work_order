@@ -790,6 +790,38 @@ export default {
         this.$message.error('加载图稿详情失败')
       }
     },
+    handleDieSelectVisible(visible) {
+      // 当下拉框打开时，如果已选中"不需要刀模"，准备处理互斥逻辑
+      if (visible && this.form.dies && this.form.dies.includes('NO_DIE')) {
+        this.hasNoDieSelected = true
+      } else {
+        this.hasNoDieSelected = false
+      }
+    },
+    handleDieChange(dieIds) {
+      // 如果选择了"不需要刀模"
+      if (dieIds && dieIds.includes('NO_DIE')) {
+        // 如果同时选择了"不需要刀模"和其他刀模，移除其他刀模，只保留"不需要刀模"
+        const otherDies = dieIds.filter(id => id !== 'NO_DIE')
+        if (otherDies.length > 0) {
+          this.$nextTick(() => {
+            this.form.dies = ['NO_DIE']
+          })
+        }
+        return
+      }
+      
+      // 如果之前选择了"不需要刀模"，现在选择了其他刀模，移除"不需要刀模"
+      if (this.hasNoDieSelected && dieIds && dieIds.length > 0) {
+        const validDieIds = dieIds.filter(id => id !== 'NO_DIE')
+        if (validDieIds.length > 0) {
+          this.$nextTick(() => {
+            this.form.dies = validDieIds
+          })
+          this.hasNoDieSelected = false
+        }
+      }
+    },
     addProductItem() {
       this.productItems.push({
         product: null,

@@ -84,7 +84,7 @@
       </div>
 
       <!-- 图稿和刀模信息 -->
-      <el-descriptions title="图稿和刀模" :column="3" border style="margin-top: 20px;">
+      <el-descriptions title="图稿和刀模" :column="1" border style="margin-top: 20px;">
         <el-descriptions-item label="图稿（CTP版）">
           <span v-if="workOrder.artwork_codes && workOrder.artwork_codes.length > 0">
             <span v-for="(code, index) in workOrder.artwork_codes" :key="index">
