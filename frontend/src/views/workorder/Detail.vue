@@ -129,6 +129,11 @@
               {{ scope.row.specification || '-' }}
             </template>
           </el-table-column>
+          <el-table-column prop="imposition_quantity" label="拼版" width="100" align="center">
+            <template slot-scope="scope">
+              {{ (scope.row.imposition_quantity || 1) }}拼
+            </template>
+          </el-table-column>
           <el-table-column prop="quantity" label="数量" width="120" align="right">
             <template slot-scope="scope">
               {{ scope.row.quantity }} {{ scope.row.unit }}
@@ -395,6 +400,7 @@
               <tr>
                 <th>产品名称</th>
                 <th>规格</th>
+                <th>拼版</th>
                 <th>数量</th>
               </tr>
             </thead>
@@ -402,6 +408,7 @@
               <tr v-for="product in workOrder.products" :key="product.id">
                 <td>{{ product.product_name }} ({{ product.product_code }})</td>
                 <td>{{ product.specification || '-' }}</td>
+                <td>{{ (product.imposition_quantity || 1) }}拼</td>
                 <td>{{ product.quantity }} {{ product.unit }}</td>
               </tr>
             </tbody>

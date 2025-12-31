@@ -95,24 +95,30 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="生产数量">
-              <el-input-number
+              <el-input
                 v-model="form.production_quantity"
-                :min="0"
-                :precision="0"
+                type="number"
+                placeholder="请输入生产数量"
                 style="width: 100%;"
-              ></el-input-number>
-              <span style="color: #909399; font-size: 12px; margin-left: 10px;">单位：车</span>
+              >
+                <template slot="suffix">
+                  <span style="color: #909399; padding-right: 8px;">车</span>
+                </template>
+              </el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="预损数量">
-              <el-input-number
+              <el-input
                 v-model="form.defective_quantity"
-                :min="0"
-                :precision="0"
+                type="number"
+                placeholder="请输入预损数量"
                 style="width: 100%;"
-              ></el-input-number>
-              <span style="color: #909399; font-size: 12px; margin-left: 10px;">单位：车</span>
+              >
+                <template slot="suffix">
+                  <span style="color: #909399; padding-right: 8px;">车</span>
+                </template>
+              </el-input>
             </el-form-item>
           </el-col>
         </el-row>
@@ -175,7 +181,7 @@
         <el-form-item label="产品列表">
           <div v-for="(productItem, index) in productItems" :key="index" style="margin-bottom: 15px;">
             <el-row :gutter="10" type="flex" align="middle">
-              <el-col :span="10">
+              <el-col :span="9">
                 <el-select
                   :value="productItem.product"
                   @input="handleProductItemChange(index, $event)"
@@ -194,7 +200,7 @@
                   </el-option>
                 </el-select>
               </el-col>
-              <el-col :span="6">
+              <el-col :span="5">
                 <el-input
                   :value="productItem.specification"
                   placeholder="选择产品后自动填充"
@@ -202,19 +208,27 @@
                   style="color: #909399;"
                 ></el-input>
               </el-col>
-              <el-col :span="3">
+              <el-col :span="4">
+                <el-input
+                  :value="(productItem.imposition_quantity || 1) + '拼'"
+                  placeholder="选择产品后自动填充"
+                  :disabled="true"
+                  style="color: #909399;"
+                ></el-input>
+              </el-col>
+              <el-col :span="4">
                 <el-input
                   :value="productItem.quantity"
                   @input="updateProductItemQuantity(index, $event)"
                   type="number"
-                  :min="1"
                   placeholder="数量"
                   @change="calculateTotalAmount"
                   style="width: 100%;"
-                ></el-input>
-              </el-col>
-              <el-col :span="3">
-                <el-input :value="productItem.unit" placeholder="单位" :disabled="true" style="color: #909399;"></el-input>
+                >
+                  <template slot="suffix">
+                    <span style="color: #909399; padding-right: 8px;">{{ productItem.unit || '件' }}</span>
+                  </template>
+                </el-input>
               </el-col>
               <el-col :span="2" style="text-align: right;">
                 <el-button
@@ -528,6 +542,23 @@ export default {
     }
   },
   watch: {
+    // 监听生产数量变化，自动更新产品数量
+    'form.production_quantity'(newVal, oldVal) {
+      // 将字符串转换为数字
+      const newNum = newVal !== null && newVal !== undefined && newVal !== '' ? parseFloat(newVal) : 0
+      const oldNum = oldVal !== null && oldVal !== undefined && oldVal !== '' ? parseFloat(oldVal) : 0
+      
+      if (newNum !== oldNum && !isNaN(newNum)) {
+        // 更新所有产品的数量（如果数量没有被手动修改过）
+        this.productItems.forEach((item, index) => {
+          if (!item.isQuantityManuallyModified && item.imposition_quantity) {
+            const calculatedQuantity = this.calculateProductQuantity(item.imposition_quantity)
+            this.$set(this.productItems[index], 'quantity', calculatedQuantity)
+          }
+        })
+        this.calculateTotalAmount()
+      }
+    }
   },
   created() {
     this.isEdit = !!this.$route.params.id
@@ -757,15 +788,20 @@ export default {
               // 检查是否已存在相同产品，如果存在则合并数量
               const existingProduct = allProducts.find(p => p.product === ap.product)
               if (existingProduct) {
-                // 如果已存在，累加数量（使用拼版数量）
-                existingProduct.quantity = (existingProduct.quantity || 1) + (ap.imposition_quantity || 1)
+                // 如果已存在，累加拼版数量（用于显示）
+                existingProduct.imposition_quantity = (existingProduct.imposition_quantity || 1) + (ap.imposition_quantity || 1)
+                // 重新计算数量：生产数量 * 拼版数量
+                existingProduct.quantity = this.calculateProductQuantity(existingProduct.imposition_quantity)
               } else {
                 // 如果不存在，添加新产品
+                const impositionQty = ap.imposition_quantity || 1
                 allProducts.push({
                   product: ap.product,
-                  quantity: ap.imposition_quantity || 1, // 默认数量为拼版数量
+                  imposition_quantity: impositionQty, // 保存拼版数量
+                  quantity: this.calculateProductQuantity(impositionQty), // 计算数量：生产数量 * 拼版数量
                   unit: ap.product_detail ? ap.product_detail.unit : '件',
-                  specification: ap.product_detail ? ap.product_detail.specification : ''
+                  specification: ap.product_detail ? ap.product_detail.specification : '',
+                  isQuantityManuallyModified: false // 标记数量是否被手动修改
                 })
               }
             })
@@ -789,7 +825,9 @@ export default {
               product: null,
               quantity: 1,
               unit: '件',
-              specification: ''
+              specification: '',
+              imposition_quantity: 1,
+              isQuantityManuallyModified: false
             }]
           }
 
@@ -807,7 +845,9 @@ export default {
               product: null,
               quantity: 1,
               unit: '件',
-              specification: ''
+              specification: '',
+              imposition_quantity: 1,
+              isQuantityManuallyModified: false
             }]
           }
           this.$message.warning('所选图稿未关联任何产品')
@@ -852,9 +892,11 @@ export default {
     addProductItem() {
       this.productItems.push({
         product: null,
-        quantity: 1,
+        quantity: this.calculateProductQuantity(1), // 默认数量：生产数量 * 1拼
         unit: '件',
-        specification: ''
+        specification: '',
+        imposition_quantity: 1, // 默认拼版数量为1
+        isQuantityManuallyModified: false // 标记数量是否被手动修改
       })
     },
     removeProductItem(index) {
@@ -872,6 +914,17 @@ export default {
         this.$set(this.productItems[index], 'specification', product.specification || '')
         this.$set(this.productItems[index], 'unit', product.unit || '件')
         
+        // 如果没有设置拼版数量，默认为1
+        if (!this.productItems[index].imposition_quantity) {
+          this.$set(this.productItems[index], 'imposition_quantity', 1)
+        }
+        
+        // 如果数量没有被手动修改过，自动计算数量：生产数量 * 拼版数量
+        if (!this.productItems[index].isQuantityManuallyModified) {
+          const calculatedQuantity = this.calculateProductQuantity(this.productItems[index].imposition_quantity || 1)
+          this.$set(this.productItems[index], 'quantity', calculatedQuantity)
+        }
+        
         // 如果是第一个产品，加载默认工序和物料
         if (index === 0) {
           await this.loadProductDefaults(productId)
@@ -887,7 +940,31 @@ export default {
         numValue = 1
       }
       this.$set(this.productItems[index], 'quantity', numValue)
+      // 标记数量已被手动修改
+      this.$set(this.productItems[index], 'isQuantityManuallyModified', true)
       this.calculateTotalAmount()
+    },
+    updateProductItemImpositionQuantity(index, impositionQuantity) {
+      let numValue = parseInt(impositionQuantity) || 1
+      if (numValue < 1) {
+        numValue = 1
+      }
+      this.$set(this.productItems[index], 'imposition_quantity', numValue)
+      
+      // 如果数量没有被手动修改过，自动计算数量：生产数量 * 拼版数量
+      if (!this.productItems[index].isQuantityManuallyModified) {
+        const calculatedQuantity = this.calculateProductQuantity(numValue)
+        this.$set(this.productItems[index], 'quantity', calculatedQuantity)
+      }
+      
+      this.calculateTotalAmount()
+    },
+    // 计算产品数量：生产数量 * 拼版数量
+    calculateProductQuantity(impositionQuantity) {
+      const productionQty = this.form.production_quantity !== null && this.form.production_quantity !== undefined && this.form.production_quantity !== '' 
+        ? parseFloat(this.form.production_quantity) || 0 
+        : 0
+      return productionQty * (impositionQuantity || 1)
     },
     calculateTotalAmount() {
       if (this.productItems.length > 0 && this.productItems[0].product) {
@@ -940,19 +1017,65 @@ export default {
         
         // 加载产品列表
         if (data.products && data.products.length > 0) {
-          this.productItems = data.products.map((p) => ({
-            product: p.product,
-            quantity: p.quantity,
-            unit: p.unit,
-            specification: p.specification || ''
-          }))
+          // 从图稿产品关联中获取拼版数量
+          const loadProductItemsWithImposition = async () => {
+            const productItemsWithImposition = []
+            
+            // 如果有图稿，先批量加载所有图稿的产品关联信息
+            const artworkProductsMap = new Map() // productId -> imposition_quantity
+            if (data.artworks && data.artworks.length > 0) {
+              try {
+                // 并行加载所有图稿详情
+                const artworkDetailsPromises = data.artworks.map(artworkId => 
+                  artworkAPI.getDetail(artworkId).catch(err => {
+                    console.warn(`加载图稿 ${artworkId} 失败:`, err)
+                    return null
+                  })
+                )
+                const artworkDetails = await Promise.all(artworkDetailsPromises)
+                
+                // 构建产品到拼版数量的映射（如果同一产品在多个图稿中，使用第一个找到的）
+                artworkDetails.forEach(artworkDetail => {
+                  if (artworkDetail && artworkDetail.products) {
+                    artworkDetail.products.forEach(ap => {
+                      if (!artworkProductsMap.has(ap.product)) {
+                        artworkProductsMap.set(ap.product, ap.imposition_quantity || 1)
+                      }
+                    })
+                  }
+                })
+              } catch (error) {
+                console.warn('加载图稿产品关联失败:', error)
+              }
+            }
+            
+            // 构建产品列表
+            for (const p of data.products) {
+              const impositionQuantity = artworkProductsMap.get(p.product) || 1
+              
+              productItemsWithImposition.push({
+                product: p.product,
+                quantity: p.quantity,
+                unit: p.unit,
+                specification: p.specification || '',
+                imposition_quantity: impositionQuantity,
+                isQuantityManuallyModified: true // 编辑模式下，数量已经被保存过，视为手动修改
+              })
+            }
+            
+            this.productItems = productItemsWithImposition
+          }
+          
+          await loadProductItemsWithImposition()
         } else if (data.product) {
           // 兼容旧数据：如果只有单个产品
           this.productItems = [{
             product: data.product,
             quantity: data.quantity || 1,
             unit: data.unit || '件',
-            specification: data.specification || ''
+            specification: data.specification || '',
+            imposition_quantity: 1, // 默认拼版数量为1
+            isQuantityManuallyModified: true // 编辑模式下，数量已经被保存过，视为手动修改
           }]
         } else {
           this.productItems = [{
