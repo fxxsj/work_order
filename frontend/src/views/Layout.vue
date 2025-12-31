@@ -45,7 +45,7 @@
           <i class="el-icon-picture"></i>
           <span>图稿管理</span>
         </el-menu-item>
-        <el-menu-item index="/dies">
+        <el-menu-item v-if="canViewDie" index="/dies">
           <i class="el-icon-scissors"></i>
           <span>刀模管理</span>
         </el-menu-item>
@@ -142,6 +142,10 @@ export default {
     // 检查是否有查看图稿的权限
     canViewArtwork() {
       return this.hasPermission('workorder.view_artwork')
+    },
+    // 检查是否有查看刀模的权限
+    canViewDie() {
+      return this.hasPermission('workorder.view_die')
     }
   },
   methods: {
