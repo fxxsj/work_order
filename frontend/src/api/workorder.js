@@ -283,6 +283,14 @@ export const workOrderAPI = {
       data
     })
   },
+  // 业务员审核施工单
+  approve(id, data) {
+    return request({
+      url: `/workorders/${id}/approve/`,
+      method: 'post',
+      data
+    })
+  },
   // 更新状态
   updateStatus(id, status) {
     return request({

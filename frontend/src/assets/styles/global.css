@@ -79,6 +79,19 @@ html, body {
   background-color: #F56C6C;
 }
 
+/* 审核状态徽章样式 */
+.approval-pending {
+  background-color: #909399;
+}
+
+.approval-approved {
+  background-color: #67C23A;
+}
+
+.approval-rejected {
+  background-color: #F56C6C;
+}
+
 /* 卡片间距 */
 .card-container {
   padding: 20px;

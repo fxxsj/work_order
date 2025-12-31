@@ -37,6 +37,11 @@
             {{ workOrder.status_display }}
           </span>
         </el-descriptions-item>
+        <el-descriptions-item label="审核状态">
+          <span :class="'status-badge approval-' + workOrder.approval_status">
+            {{ workOrder.approval_status_display || '待审核' }}
+          </span>
+        </el-descriptions-item>
         <el-descriptions-item label="优先级">
           <span :class="'status-badge priority-' + workOrder.priority">
             {{ workOrder.priority_display }}
@@ -53,8 +58,42 @@
         <el-descriptions-item label="实际交货日期">
           {{ workOrder.actual_delivery_date ? (workOrder.actual_delivery_date | formatDate) : '-' }}
         </el-descriptions-item>
+        <el-descriptions-item label="审核人" v-if="workOrder.approved_by_name">
+          {{ workOrder.approved_by_name }}
+        </el-descriptions-item>
+        <el-descriptions-item label="审核时间" v-if="workOrder.approved_at">
+          {{ workOrder.approved_at | formatDateTime }}
+        </el-descriptions-item>
+        <el-descriptions-item label="审核意见" :span="3" v-if="workOrder.approval_comment">
+          {{ workOrder.approval_comment }}
+        </el-descriptions-item>
         <el-descriptions-item label="产品规格" :span="3" v-if="workOrder.specification">{{ workOrder.specification }}</el-descriptions-item>
       </el-descriptions>
+
+      <!-- 业务员审核操作 -->
+      <el-card v-if="canApprove && workOrder.approval_status === 'pending'" style="margin-top: 20px;">
+        <div slot="header" class="card-header">
+          <span>业务员审核</span>
+        </div>
+        <el-form :model="approvalForm" label-width="100px">
+          <el-form-item label="审核意见">
+            <el-input
+              v-model="approvalForm.comment"
+              type="textarea"
+              :rows="3"
+              placeholder="请输入审核意见（可选）"
+            ></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="success" @click="handleApprove('approved')" :loading="approving">
+              <i class="el-icon-check"></i> 通过审核
+            </el-button>
+            <el-button type="danger" @click="handleApprove('rejected')" :loading="approving" style="margin-left: 10px;">
+              <i class="el-icon-close"></i> 拒绝审核
+            </el-button>
+          </el-form-item>
+        </el-form>
+      </el-card>
 
       <!-- 工序信息 -->
       <el-descriptions title="工序信息" :column="1" border style="margin-top: 20px;">
@@ -511,10 +550,20 @@ export default {
         quantity_completed: 0,
         quantity_defective: 0
       },
-      currentProcess: null
+      currentProcess: null,
+      approving: false,
+      approvalForm: {
+        comment: ''
+      }
     }
   },
   computed: {
+    // 检查是否可以审核（用户是业务员）
+    canApprove() {
+      const userInfo = this.$store.getters.currentUser
+      if (!userInfo) return false
+      return userInfo.is_salesperson || false
+    },
     availableStatuses() {
       const currentStatus = this.materialStatusForm.current_status
       const statusMap = {
@@ -803,6 +852,30 @@ export default {
           this.updatingMaterialStatus = false
         }
       })
+    },
+    async handleApprove(status) {
+      // status: 'approved' 或 'rejected'
+      if (!this.workOrder) return
+      
+      this.approving = true
+      try {
+        await workOrderAPI.approve(this.workOrder.id, {
+          approval_status: status,
+          approval_comment: this.approvalForm.comment || ''
+        })
+        
+        this.$message.success(status === 'approved' ? '审核通过' : '审核已拒绝')
+        this.approvalForm.comment = ''
+        
+        // 重新加载数据
+        await this.loadData()
+      } catch (error) {
+        const errorMsg = error.response?.data?.error || error.response?.data?.detail || '审核失败'
+        this.$message.error(errorMsg)
+        console.error('审核失败:', error)
+      } finally {
+        this.approving = false
+      }
     }
   }
 }
