@@ -118,23 +118,16 @@
           </div>
         </el-form-item>
         <el-form-item label="工序">
-          <el-select
-            v-model="form.processes"
-            multiple
-            placeholder="请选择工序"
-            style="width: 100%;"
-            collapse-tags
-          >
-            <el-option
-              v-for="process in processList"
+          <el-checkbox-group v-model="form.processes" style="width: 100%;">
+            <el-checkbox
+              v-for="process in allProcesses"
               :key="process.id"
-              :label="`${process.code} - ${process.name}`"
-              :value="process.id"
-            ></el-option>
-          </el-select>
-          <div style="font-size: 12px; color: #909399; margin-top: 5px;">
-            选择该部门负责的工序（可多选）
-          </div>
+              :label="process.id"
+              :disabled="!process.is_active"
+            >
+              {{ process.name }}
+            </el-checkbox>
+          </el-checkbox-group>
         </el-form-item>
         <el-form-item label="是否启用">
           <el-switch v-model="form.is_active"></el-switch>
@@ -164,7 +157,7 @@ export default {
       dialogVisible: false,
       isEdit: false,
       editId: null,
-      processList: [],
+      allProcesses: [],
       form: {
         code: '',
         name: '',
@@ -198,7 +191,7 @@ export default {
     }
   },
   created() {
-    this.loadProcessList()
+    this.loadAllProcesses()
     this.loadData()
   },
   methods: {
@@ -265,13 +258,34 @@ export default {
       this.currentPage = page
       this.loadData()
     },
-    async loadProcessList() {
+    async loadAllProcesses() {
       try {
-        const response = await processAPI.getList({ page_size: 1000 })
-        this.processList = response.results || []
+        // 分页加载所有工序
+        let allProcesses = []
+        let page = 1
+        let hasMore = true
+        
+        while (hasMore) {
+          const response = await processAPI.getList({ 
+            is_active: true, 
+            page_size: 100,
+            page: page
+          })
+          
+          if (response.results && response.results.length > 0) {
+            allProcesses = allProcesses.concat(response.results)
+            // 检查是否还有更多数据
+            hasMore = response.next !== null && response.next !== undefined
+            page++
+          } else {
+            hasMore = false
+          }
+        }
+        
+        this.allProcesses = allProcesses
       } catch (error) {
         console.error('加载工序列表失败:', error)
-        this.processList = []
+        this.allProcesses = []
       }
     },
     showDialog(row = null) {
