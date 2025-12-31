@@ -53,6 +53,25 @@
         <el-descriptions-item label="产品规格" :span="3" v-if="workOrder.specification">{{ workOrder.specification }}</el-descriptions-item>
       </el-descriptions>
 
+      <!-- 工序信息 -->
+      <el-descriptions title="工序信息" :column="1" border style="margin-top: 20px;">
+        <el-descriptions-item label="工序">
+          <span v-if="workOrder.order_processes && workOrder.order_processes.length > 0">
+            <el-checkbox
+              v-for="process in workOrder.order_processes"
+              :key="process.id"
+              :value="true"
+              :checked="true"
+              :disabled="true"
+              style="margin-right: 15px;"
+            >
+              <span style="font-weight: bold;">{{ process.process_name }}</span>
+            </el-checkbox>
+          </span>
+          <span v-else style="color: #909399;">-</span>
+        </el-descriptions-item>
+      </el-descriptions>
+
       <!-- 产品列表（场景2：一个施工单包含多个产品） -->
       <div v-if="workOrder.products && workOrder.products.length > 0" style="margin-top: 20px;">
         <div class="detail-section-title">产品列表</div>
