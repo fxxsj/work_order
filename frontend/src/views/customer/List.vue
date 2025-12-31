@@ -25,6 +25,11 @@
         <el-table-column prop="contact_person" label="联系人" width="120"></el-table-column>
         <el-table-column prop="phone" label="联系电话" width="150"></el-table-column>
         <el-table-column prop="email" label="邮箱" width="200"></el-table-column>
+        <el-table-column prop="salesperson_name" label="业务员" width="120">
+          <template slot-scope="scope">
+            {{ scope.row.salesperson_name || '-' }}
+          </template>
+        </el-table-column>
         <el-table-column prop="address" label="地址" min-width="200"></el-table-column>
         <el-table-column prop="created_at" label="创建时间" width="180">
           <template slot-scope="scope">
@@ -79,6 +84,22 @@
         <el-form-item label="邮箱">
           <el-input v-model="form.email" placeholder="请输入邮箱"></el-input>
         </el-form-item>
+        <el-form-item label="业务员">
+          <el-select
+            v-model="form.salesperson"
+            placeholder="请选择业务员"
+            filterable
+            clearable
+            style="width: 100%;"
+          >
+            <el-option
+              v-for="user in salespersonList"
+              :key="user.id"
+              :label="user.username"
+              :value="user.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="地址">
           <el-input v-model="form.address" type="textarea" :rows="2" placeholder="请输入地址"></el-input>
         </el-form-item>
@@ -96,6 +117,7 @@
 
 <script>
 import { customerAPI } from '@/api/workorder'
+import { getSalespersons } from '@/api/auth'
 
 export default {
   name: 'CustomerList',
@@ -116,8 +138,10 @@ export default {
         phone: '',
         email: '',
         address: '',
+        salesperson: null,
         notes: ''
       },
+      salespersonList: [],
       rules: {
         name: [
           { required: true, message: '请输入客户名称', trigger: 'blur' }
@@ -132,6 +156,7 @@ export default {
   },
   created() {
     this.loadData()
+    this.loadSalespersons()
   },
   methods: {
     async loadData() {
@@ -164,6 +189,14 @@ export default {
       this.currentPage = page
       this.loadData()
     },
+    async loadSalespersons() {
+      try {
+        const salespersons = await getSalespersons()
+        this.salespersonList = salespersons || []
+      } catch (error) {
+        console.error('加载业务员列表失败:', error)
+      }
+    },
     showDialog(row = null) {
       if (row) {
         this.isEdit = true
@@ -174,6 +207,7 @@ export default {
           phone: row.phone || '',
           email: row.email || '',
           address: row.address || '',
+          salesperson: row.salesperson || null,
           notes: row.notes || ''
         }
       } else {
@@ -185,6 +219,7 @@ export default {
           phone: '',
           email: '',
           address: '',
+          salesperson: null,
           notes: ''
         }
       }

@@ -34,3 +34,11 @@ export function register(data) {
   })
 }
 
+// 获取业务员列表
+export function getSalespersons() {
+  return request({
+    url: '/auth/salespersons/',
+    method: 'get'
+  })
+}
+
