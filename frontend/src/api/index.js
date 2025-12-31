@@ -72,8 +72,17 @@ service.interceptors.response.use(
         }
       } else if (status === 403) {
         // 如果不是登录页面，才显示错误提示
+        // 但对于某些辅助操作（如工序、物料），不显示错误消息，因为这些错误已经在业务逻辑中处理
         if (router.currentRoute.path !== '/login') {
-          Message.error('没有权限执行此操作')
+          // 检查是否是辅助操作的 API（工序、物料等），这些错误已经在业务逻辑中静默处理
+          const url = error.config?.url || ''
+          const isAuxiliaryOperation = url.includes('/workorder-processes/') || 
+                                       url.includes('/workorder-materials/') ||
+                                       url.includes('/workorder-products/')
+          
+          if (!isAuxiliaryOperation) {
+            Message.error('没有权限执行此操作')
+          }
         }
       } else if (status === 404) {
         Message.error('请求的资源不存在')

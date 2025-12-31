@@ -94,10 +94,19 @@
             <el-button type="text" size="small" @click.stop="handleView(scope.row)">
               查看
             </el-button>
-            <el-button type="text" size="small" @click.stop="handleEdit(scope.row)">
+            <el-button 
+              v-if="canEdit" 
+              type="text" 
+              size="small" 
+              @click.stop="handleEdit(scope.row)">
               编辑
             </el-button>
-            <el-button type="text" size="small" style="color: #F56C6C;" @click.stop="handleDelete(scope.row)">
+            <el-button 
+              v-if="canDelete" 
+              type="text" 
+              size="small" 
+              style="color: #F56C6C;" 
+              @click.stop="handleDelete(scope.row)">
               删除
             </el-button>
           </template>
@@ -140,10 +149,34 @@ export default {
       }
     }
   },
+  computed: {
+    // 检查是否有编辑权限
+    canEdit() {
+      return this.hasPermission('workorder.change_workorder')
+    },
+    // 检查是否有删除权限
+    canDelete() {
+      return this.hasPermission('workorder.delete_workorder')
+    }
+  },
   created() {
     this.loadData()
   },
   methods: {
+    // 检查用户是否有指定权限
+    hasPermission(permission) {
+      const userInfo = this.$store.getters.currentUser
+      if (!userInfo) return false
+      
+      // 超级用户拥有所有权限
+      if (userInfo.is_superuser) return true
+      
+      // 检查权限列表
+      const permissions = userInfo.permissions || []
+      if (permissions.includes('*')) return true
+      
+      return permissions.includes(permission)
+    },
     async loadData() {
       this.loading = true
       try {

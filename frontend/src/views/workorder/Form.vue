@@ -1091,11 +1091,48 @@ export default {
           // 注意：products_data 已经在后端的 create/update 方法中自动处理了
           // 不需要再次调用 saveProducts，否则会导致重复创建和 400 错误
           
+          // 检查并保存工序和物料，收集所有错误信息
+          const permissionErrors = []
+          const otherErrors = []
+          
           // 添加选中的工序（新建和编辑都需要处理）
-          await this.saveSelectedProcesses(workOrderId)
+          try {
+            await this.saveSelectedProcesses(workOrderId)
+          } catch (error) {
+            if (error.response?.status === 403) {
+              permissionErrors.push('工序信息')
+            } else {
+              otherErrors.push('工序信息')
+              console.error('保存工序失败:', error)
+            }
+          }
           
           // 保存物料信息
-          await this.saveMaterials(workOrderId)
+          try {
+            await this.saveMaterials(workOrderId)
+          } catch (error) {
+            if (error.response?.status === 403) {
+              permissionErrors.push('物料信息')
+            } else {
+              otherErrors.push('物料信息')
+              console.error('保存物料失败:', error)
+            }
+          }
+          
+          // 根据错误类型显示不同的提示信息
+          if (permissionErrors.length > 0 && otherErrors.length > 0) {
+            this.$message.warning(
+              `施工单已保存，但以下内容无法保存：${permissionErrors.join('、')}（权限不足），${otherErrors.join('、')}（保存失败）`
+            )
+          } else if (permissionErrors.length > 0) {
+            this.$message.warning(
+              `施工单已保存，但以下内容因权限不足无法保存：${permissionErrors.join('、')}`
+            )
+          } else if (otherErrors.length > 0) {
+            this.$message.warning(
+              `施工单已保存，但以下内容保存失败：${otherErrors.join('、')}`
+            )
+          }
           
           this.$router.push('/workorders')
         } catch (error) {
@@ -1194,13 +1231,20 @@ export default {
                   try {
                     await workOrderProcessAPI.delete(existingProcess.id)
                   } catch (error) {
-                    console.error('删除工序失败:', error)
+                    // 如果是权限错误，抛出错误以便上层处理
+                    if (error.response?.status === 403) {
+                      throw error
+                    } else {
+                      console.error('删除工序失败:', error)
+                      throw error
+                    }
                   }
                 }
               }
             }
           } catch (error) {
             console.error('获取施工单工序失败:', error)
+            throw error
           }
         }
         return
@@ -1223,8 +1267,16 @@ export default {
               try {
                 await workOrderProcessAPI.delete(existingProcess.id)
               } catch (error) {
-                console.error('删除工序失败:', error)
+                // 如果是权限错误，抛出错误以便上层处理
+                if (error.response?.status === 403) {
+                  throw error
+                } else {
+                  console.error('删除工序失败:', error)
+                  throw error
+                }
               }
+            } else {
+              console.warn('找不到要删除的工序，process ID:', processToDelete, 'existingProcess:', existingProcess)
             }
           }
           
@@ -1232,7 +1284,13 @@ export default {
           const processesToAdd = allSelectedIds.filter(pid => !existingProcessIds.includes(pid))
           
           // 添加新工序
-          let nextSequence = existingProcesses.length + 1
+          // 计算下一个序号：应该是现有工序的最大序号+1
+          let maxSequence = 0
+          if (existingProcesses.length > 0) {
+            maxSequence = Math.max(...existingProcesses.map(ep => ep.sequence || 0))
+          }
+          let nextSequence = maxSequence + 1
+          
           for (const processId of processesToAdd) {
             try {
               const processData = {
@@ -1261,7 +1319,7 @@ export default {
             await workOrderAPI.addProcess(workOrderId, processData)
           } catch (error) {
             console.error('添加工序失败:', error)
-            throw error // 重新抛出错误，让上层处理
+            throw error
           }
         }
       }
@@ -1295,7 +1353,16 @@ export default {
           const existingMaterials = await workOrderMaterialAPI.getList({ work_order: workOrderId })
           // 删除现有物料
           for (const material of existingMaterials.results || []) {
-            await workOrderMaterialAPI.delete(material.id)
+            try {
+              await workOrderMaterialAPI.delete(material.id)
+            } catch (error) {
+              // 如果是权限错误，静默处理
+              if (error.response?.status === 403) {
+                console.warn('没有权限删除物料，跳过:', material.id)
+              } else {
+                console.error('删除物料失败:', error)
+              }
+            }
           }
         } catch (error) {
           console.error('删除现有物料失败:', error)
