@@ -158,7 +158,8 @@ export default {
         search: '',
         status: '',
         priority: '',
-        approval_status: ''
+        approval_status: '',
+        customer__salesperson: ''
       }
     }
   },
@@ -178,9 +179,12 @@ export default {
     }
   },
   created() {
-    // 检查URL参数中是否有审核状态筛选
+    // 检查URL参数中是否有筛选条件
     if (this.$route.query.approval_status) {
       this.filters.approval_status = this.$route.query.approval_status
+    }
+    if (this.$route.query.customer__salesperson) {
+      this.filters.customer__salesperson = this.$route.query.customer__salesperson
     }
     this.loadData()
   },
@@ -219,6 +223,9 @@ export default {
         }
         if (this.filters.approval_status) {
           params.approval_status = this.filters.approval_status
+        }
+        if (this.filters.customer__salesperson) {
+          params.customer__salesperson = this.filters.customer__salesperson
         }
         
         const response = await workOrderAPI.getList(params)

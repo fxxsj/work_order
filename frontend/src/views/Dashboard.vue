@@ -251,10 +251,16 @@ export default {
       return ((count / total) * 100).toFixed(1)
     },
     goToPendingApprovals() {
-      // 跳转到施工单列表，并筛选出待审核的施工单
+      // 跳转到施工单列表，并筛选出当前业务员负责的待审核施工单
+      const userInfo = this.$store.getters.currentUser
+      if (!userInfo || !userInfo.id) return
+      
       this.$router.push({
         path: '/workorders',
-        query: { approval_status: 'pending' }
+        query: {
+          approval_status: 'pending',
+          customer__salesperson: userInfo.id
+        }
       })
     }
   }
