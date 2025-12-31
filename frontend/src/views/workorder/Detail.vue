@@ -385,11 +385,28 @@
         <!-- 工序信息 -->
         <div class="print-section" v-if="workOrder.order_processes && workOrder.order_processes.length > 0">
           <div class="print-section-title">工序信息</div>
-          <div class="print-processes-list">
-            <span v-for="(process, index) in workOrder.order_processes" :key="process.id" class="print-process-item">
-              <span class="print-checkbox">☑</span>{{ process.process_name }}<span v-if="index < workOrder.order_processes.length - 1">、</span>
-            </span>
-          </div>
+          <table class="print-data-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th v-for="process in workOrder.order_processes" :key="process.id">{{ process.process_name }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="print-label" style="font-weight: bold;">完成数量</td>
+                <td v-for="process in workOrder.order_processes" :key="process.id">
+                  {{ process.quantity_completed || '' }}
+                </td>
+              </tr>
+              <tr>
+                <td class="print-label" style="font-weight: bold;">完成日期</td>
+                <td v-for="process in workOrder.order_processes" :key="process.id">
+                  {{ process.actual_end_time ? (process.actual_end_time | formatDate) : '' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <!-- 产品列表 -->
@@ -1188,6 +1205,11 @@ export default {
             }
             .print-data-table tbody td:first-child {
               text-align: left;
+              background-color: #f0f0f0;
+              font-weight: bold;
+            }
+            .print-data-table thead th:first-child {
+              background-color: #f0f0f0;
             }
             .print-notes {
               padding: 8px;
