@@ -25,7 +25,7 @@
           <i class="el-icon-user"></i>
           <span>客户管理</span>
         </el-menu-item>
-        <el-menu-item index="/departments">
+        <el-menu-item v-if="canViewDepartment" index="/departments">
           <i class="el-icon-menu"></i>
           <span>部门管理</span>
         </el-menu-item>
@@ -122,6 +122,10 @@ export default {
     // 检查是否有查看客户的权限
     canViewCustomer() {
       return this.hasPermission('workorder.view_customer')
+    },
+    // 检查是否有查看部门的权限
+    canViewDepartment() {
+      return this.hasPermission('workorder.view_department')
     }
   },
   methods: {
