@@ -21,7 +21,7 @@
           <i class="el-icon-document"></i>
           <span>施工单</span>
         </el-menu-item>
-        <el-menu-item index="/customers">
+        <el-menu-item v-if="canViewCustomer" index="/customers">
           <i class="el-icon-user"></i>
           <span>客户管理</span>
         </el-menu-item>
@@ -118,9 +118,27 @@ export default {
     },
     currentUsername() {
       return this.$store.state.userInfo?.username || '用户'
+    },
+    // 检查是否有查看客户的权限
+    canViewCustomer() {
+      return this.hasPermission('workorder.view_customer')
     }
   },
   methods: {
+    // 检查用户是否有指定权限
+    hasPermission(permission) {
+      const userInfo = this.$store.getters.currentUser
+      if (!userInfo) return false
+      
+      // 超级用户拥有所有权限
+      if (userInfo.is_superuser) return true
+      
+      // 检查权限列表
+      const permissions = userInfo.permissions || []
+      if (permissions.includes('*')) return true
+      
+      return permissions.includes(permission)
+    },
     handleCommand(command) {
       if (command === 'admin') {
         window.open('/admin/', '_blank')

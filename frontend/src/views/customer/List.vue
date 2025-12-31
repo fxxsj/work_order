@@ -11,7 +11,11 @@
         >
           <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
         </el-input>
-        <el-button type="primary" icon="el-icon-plus" @click="showDialog()">
+        <el-button 
+          v-if="canCreate" 
+          type="primary" 
+          icon="el-icon-plus" 
+          @click="showDialog()">
           新建客户
         </el-button>
       </div>
@@ -38,10 +42,19 @@
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template slot-scope="scope">
-            <el-button type="text" size="small" @click="showDialog(scope.row)">
+            <el-button 
+              v-if="canEdit" 
+              type="text" 
+              size="small" 
+              @click="showDialog(scope.row)">
               编辑
             </el-button>
-            <el-button type="text" size="small" style="color: #F56C6C;" @click="handleDelete(scope.row)">
+            <el-button 
+              v-if="canDelete" 
+              type="text" 
+              size="small" 
+              style="color: #F56C6C;" 
+              @click="handleDelete(scope.row)">
               删除
             </el-button>
           </template>
@@ -152,6 +165,18 @@ export default {
   computed: {
     dialogTitle() {
       return this.isEdit ? '编辑客户' : '新建客户'
+    },
+    // 检查是否有创建权限
+    canCreate() {
+      return this.hasPermission('workorder.add_customer')
+    },
+    // 检查是否有编辑权限
+    canEdit() {
+      return this.hasPermission('workorder.change_customer')
+    },
+    // 检查是否有删除权限
+    canDelete() {
+      return this.hasPermission('workorder.delete_customer')
     }
   },
   created() {
@@ -159,6 +184,20 @@ export default {
     this.loadSalespersons()
   },
   methods: {
+    // 检查用户是否有指定权限
+    hasPermission(permission) {
+      const userInfo = this.$store.getters.currentUser
+      if (!userInfo) return false
+      
+      // 超级用户拥有所有权限
+      if (userInfo.is_superuser) return true
+      
+      // 检查权限列表
+      const permissions = userInfo.permissions || []
+      if (permissions.includes('*')) return true
+      
+      return permissions.includes(permission)
+    },
     async loadData() {
       this.loading = true
       try {
