@@ -49,7 +49,7 @@
             </el-select>
           </el-col>
           <el-col :span="isSalesperson ? 7 : 10" style="text-align: right;">
-            <el-button icon="el-icon-refresh" @click="handleReset">重置筛选</el-button>
+            <el-button icon="el-icon-refresh" circle @click="handleReset" title="重置筛选"></el-button>
             <el-button type="primary" icon="el-icon-plus" @click="handleCreate" style="margin-left: 10px;">
               新建施工单
             </el-button>
@@ -277,8 +277,16 @@ export default {
         customer__salesperson: ''
       }
       this.currentPage = 1
-      // 清除URL参数
-      this.$router.replace({ query: {} })
+      // 清除URL参数，避免重复导航错误
+      const hasQueryParams = Object.keys(this.$route.query).length > 0
+      if (hasQueryParams) {
+        this.$router.replace({ query: {} }).catch(err => {
+          // 忽略 NavigationDuplicated 错误
+          if (err.name !== 'NavigationDuplicated') {
+            console.error('导航错误:', err)
+          }
+        })
+      }
       this.loadData()
     },
     handleSizeChange(size) {
