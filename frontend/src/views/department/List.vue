@@ -27,6 +27,19 @@
       >
         <el-table-column prop="code" label="部门编码" width="150"></el-table-column>
         <el-table-column prop="name" label="部门名称" width="180"></el-table-column>
+        <el-table-column label="工序" min-width="200">
+          <template slot-scope="scope">
+            <el-tag
+              v-for="processName in scope.row.process_names"
+              :key="processName"
+              size="small"
+              style="margin-right: 5px; margin-bottom: 5px;"
+            >
+              {{ processName }}
+            </el-tag>
+            <span v-if="!scope.row.process_names || scope.row.process_names.length === 0" style="color: #909399;">-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="sort_order" label="排序" width="100" align="center"></el-table-column>
         <el-table-column label="状态" width="100">
           <template slot-scope="scope">
@@ -104,6 +117,25 @@
             数字越小越靠前显示
           </div>
         </el-form-item>
+        <el-form-item label="工序">
+          <el-select
+            v-model="form.processes"
+            multiple
+            placeholder="请选择工序"
+            style="width: 100%;"
+            collapse-tags
+          >
+            <el-option
+              v-for="process in processList"
+              :key="process.id"
+              :label="`${process.code} - ${process.name}`"
+              :value="process.id"
+            ></el-option>
+          </el-select>
+          <div style="font-size: 12px; color: #909399; margin-top: 5px;">
+            选择该部门负责的工序（可多选）
+          </div>
+        </el-form-item>
         <el-form-item label="是否启用">
           <el-switch v-model="form.is_active"></el-switch>
         </el-form-item>
@@ -117,7 +149,7 @@
 </template>
 
 <script>
-import { departmentAPI } from '@/api/workorder'
+import { departmentAPI, processAPI } from '@/api/workorder'
 
 export default {
   name: 'DepartmentList',
@@ -132,11 +164,13 @@ export default {
       dialogVisible: false,
       isEdit: false,
       editId: null,
+      processList: [],
       form: {
         code: '',
         name: '',
         sort_order: 0,
-        is_active: true
+        is_active: true,
+        processes: []
       },
       rules: {
         code: [
@@ -164,6 +198,7 @@ export default {
     }
   },
   created() {
+    this.loadProcessList()
     this.loadData()
   },
   methods: {
@@ -230,6 +265,15 @@ export default {
       this.currentPage = page
       this.loadData()
     },
+    async loadProcessList() {
+      try {
+        const response = await processAPI.getList({ page_size: 1000 })
+        this.processList = response.results || []
+      } catch (error) {
+        console.error('加载工序列表失败:', error)
+        this.processList = []
+      }
+    },
     showDialog(row = null) {
       if (row) {
         this.isEdit = true
@@ -238,7 +282,8 @@ export default {
           code: row.code,
           name: row.name,
           sort_order: row.sort_order,
-          is_active: row.is_active
+          is_active: row.is_active,
+          processes: row.processes || []
         }
       } else {
         this.isEdit = false
@@ -247,7 +292,8 @@ export default {
           code: '',
           name: '',
           sort_order: 0,
-          is_active: true
+          is_active: true,
+          processes: []
         }
       }
       this.dialogVisible = true
