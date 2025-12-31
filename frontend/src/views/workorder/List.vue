@@ -4,7 +4,7 @@
       <!-- 搜索和筛选 -->
       <div class="filter-section">
         <el-row :gutter="20">
-          <el-col :span="6">
+          <el-col :span="5">
             <el-input
               v-model="filters.search"
               placeholder="搜索施工单号、产品名称、客户"
@@ -14,7 +14,7 @@
               <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
             </el-input>
           </el-col>
-          <el-col :span="4">
+          <el-col :span="3">
             <el-select v-model="filters.status" placeholder="状态" clearable @change="handleSearch">
               <el-option label="待开始" value="pending"></el-option>
               <el-option label="进行中" value="in_progress"></el-option>
@@ -23,7 +23,7 @@
               <el-option label="已取消" value="cancelled"></el-option>
             </el-select>
           </el-col>
-          <el-col :span="4">
+          <el-col :span="3">
             <el-select v-model="filters.priority" placeholder="优先级" clearable @change="handleSearch">
               <el-option label="低" value="low"></el-option>
               <el-option label="普通" value="normal"></el-option>
@@ -31,15 +31,26 @@
               <el-option label="紧急" value="urgent"></el-option>
             </el-select>
           </el-col>
-          <el-col :span="4" v-if="isSalesperson">
+          <el-col :span="3" v-if="isSalesperson">
             <el-select v-model="filters.approval_status" placeholder="审核状态" clearable @change="handleSearch">
               <el-option label="待审核" value="pending"></el-option>
               <el-option label="已通过" value="approved"></el-option>
               <el-option label="已拒绝" value="rejected"></el-option>
             </el-select>
           </el-col>
-          <el-col :span="isSalesperson ? 6 : 10" style="text-align: right;">
-            <el-button type="primary" icon="el-icon-plus" @click="handleCreate">
+          <el-col :span="3">
+            <el-select v-model="filters.customer__salesperson" placeholder="业务员" clearable @change="handleSearch">
+              <el-option
+                v-for="salesperson in salespersons"
+                :key="salesperson.id"
+                :label="salesperson.username"
+                :value="salesperson.id"
+              ></el-option>
+            </el-select>
+          </el-col>
+          <el-col :span="isSalesperson ? 7 : 10" style="text-align: right;">
+            <el-button icon="el-icon-refresh" @click="handleReset">重置筛选</el-button>
+            <el-button type="primary" icon="el-icon-plus" @click="handleCreate" style="margin-left: 10px;">
               新建施工单
             </el-button>
           </el-col>
@@ -144,6 +155,7 @@
 
 <script>
 import { workOrderAPI } from '@/api/workorder'
+import { getSalespersons } from '@/api/auth'
 
 export default {
   name: 'WorkOrderList',
@@ -154,6 +166,7 @@ export default {
       currentPage: 1,
       pageSize: 20,
       total: 0,
+      salespersons: [],
       filters: {
         search: '',
         status: '',
@@ -178,7 +191,10 @@ export default {
       return this.hasPermission('workorder.delete_workorder')
     }
   },
-  created() {
+  async created() {
+    // 加载业务员列表
+    await this.loadSalespersons()
+    
     // 检查URL参数中是否有筛选条件
     if (this.$route.query.approval_status) {
       this.filters.approval_status = this.$route.query.approval_status
@@ -238,8 +254,31 @@ export default {
         this.loading = false
       }
     },
+    async loadSalespersons() {
+      try {
+        const response = await getSalespersons()
+        this.salespersons = response || []
+      } catch (error) {
+        console.error('加载业务员列表失败:', error)
+        this.salespersons = []
+      }
+    },
     handleSearch() {
       this.currentPage = 1
+      this.loadData()
+    },
+    handleReset() {
+      // 重置所有筛选条件
+      this.filters = {
+        search: '',
+        status: '',
+        priority: '',
+        approval_status: '',
+        customer__salesperson: ''
+      }
+      this.currentPage = 1
+      // 清除URL参数
+      this.$router.replace({ query: {} })
       this.loadData()
     },
     handleSizeChange(size) {
