@@ -33,7 +33,7 @@
           <i class="el-icon-setting"></i>
           <span>工序管理</span>
         </el-menu-item>
-        <el-menu-item index="/products">
+        <el-menu-item v-if="canViewProduct" index="/products">
           <i class="el-icon-shopping-bag-2"></i>
           <span>产品管理</span>
         </el-menu-item>
@@ -130,6 +130,10 @@ export default {
     // 检查是否有查看工序的权限
     canViewProcess() {
       return this.hasPermission('workorder.view_process')
+    },
+    // 检查是否有查看产品的权限
+    canViewProduct() {
+      return this.hasPermission('workorder.view_product')
     }
   },
   methods: {
