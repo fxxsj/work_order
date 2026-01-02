@@ -96,6 +96,12 @@ const routes = [
         name: 'ProductGroupList',
         component: () => import('@/views/productGroup/List.vue'),
         meta: { title: '产品组管理', requiresAuth: true }
+      },
+      {
+        path: 'tasks',
+        name: 'TaskList',
+        component: () => import('@/views/task/List.vue'),
+        meta: { title: '任务管理', requiresAuth: true }
       }
     ]
   }

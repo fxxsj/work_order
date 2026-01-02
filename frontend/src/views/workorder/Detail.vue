@@ -96,24 +96,157 @@
         </el-form>
       </el-card>
 
-      <!-- 工序信息 -->
-      <el-descriptions title="工序信息" :column="1" border style="margin-top: 20px;">
-        <el-descriptions-item label="工序">
-          <span v-if="workOrder.order_processes && workOrder.order_processes.length > 0">
-            <el-checkbox
-              v-for="process in workOrder.order_processes"
-              :key="process.id"
-              :value="true"
-              :checked="true"
-              :disabled="true"
-              style="margin-right: 15px;"
-            >
-              <span style="font-weight: bold;">{{ process.process_name }}</span>
-            </el-checkbox>
-          </span>
-          <span v-else style="color: #909399;">-</span>
-        </el-descriptions-item>
-      </el-descriptions>
+      <!-- 工序和任务管理 -->
+      <el-card style="margin-top: 20px;" v-if="workOrder.order_processes && workOrder.order_processes.length > 0">
+        <div slot="header" class="card-header">
+          <span>工序和任务管理</span>
+        </div>
+        
+        <el-collapse v-model="activeProcesses" accordion>
+          <el-collapse-item
+            v-for="process in workOrder.order_processes"
+            :key="process.id"
+            :name="process.id"
+          >
+            <template slot="title">
+              <div style="display: flex; align-items: center; width: 100%;">
+                <el-tag
+                  :type="getProcessStatusType(process.status)"
+                  size="small"
+                  style="margin-right: 10px;"
+                >
+                  {{ process.status_display }}
+                </el-tag>
+                <span style="font-weight: bold; margin-right: 10px;">{{ process.process_name }}</span>
+                <span style="color: #909399; font-size: 12px; margin-right: 10px;">
+                  {{ process.department_name || '未分配部门' }}
+                </span>
+                <span style="color: #909399; font-size: 12px;" v-if="process.operator_name">
+                  操作员：{{ process.operator_name }}
+                </span>
+              </div>
+            </template>
+            
+            <div style="padding: 10px 0;">
+              <!-- 工序操作按钮 -->
+              <div style="margin-bottom: 15px;">
+                <el-button
+                  v-if="process.status === 'pending'"
+                  type="primary"
+                  size="small"
+                  @click="handleStartProcess(process)"
+                  :disabled="!process.can_start"
+                >
+                  <i class="el-icon-video-play"></i> 开始工序
+                </el-button>
+                <el-button
+                  v-if="process.status === 'in_progress'"
+                  type="success"
+                  size="small"
+                  @click="showCompleteProcessDialog(process)"
+                >
+                  <i class="el-icon-check"></i> 完成工序
+                </el-button>
+                <el-button
+                  v-if="process.status === 'pending' && !process.can_start"
+                  type="info"
+                  size="small"
+                  disabled
+                >
+                  等待前置工序完成
+                </el-button>
+              </div>
+              
+              <!-- 任务列表 -->
+              <div v-if="process.tasks && process.tasks.length > 0">
+                <el-table :data="process.tasks" border size="small" style="margin-top: 10px;">
+                  <el-table-column prop="work_content" label="任务内容" min-width="200"></el-table-column>
+                  <el-table-column prop="task_type_display" label="任务类型" width="100"></el-table-column>
+                  <el-table-column label="关联对象" width="150">
+                    <template slot-scope="scope">
+                      <div v-if="scope.row.artwork_code">
+                        <span>{{ scope.row.artwork_code }}</span>
+                        <el-tag
+                          v-if="scope.row.artwork_code && isPlateMakingProcess(process)"
+                          :type="scope.row.artwork_confirmed ? 'success' : 'info'"
+                          size="mini"
+                          style="margin-left: 5px;"
+                        >
+                          {{ scope.row.artwork_confirmed ? '已确认' : '未确认' }}
+                        </el-tag>
+                      </div>
+                      <span v-else-if="scope.row.die_code">{{ scope.row.die_code }}</span>
+                      <div v-else-if="scope.row.product_code">
+                        <span>{{ scope.row.product_code }}</span>
+                        <span v-if="scope.row.product_name" style="color: #909399; font-size: 12px; margin-left: 5px;">
+                          ({{ scope.row.product_name }})
+                        </span>
+                      </div>
+                      <div v-else-if="scope.row.material_code">
+                        <span>{{ scope.row.material_code }}</span>
+                        <el-tag
+                          v-if="isMaterialProcess(process) && scope.row.material_purchase_status"
+                          :type="getMaterialStatusTagTypeByStatus(scope.row.material_purchase_status)"
+                          size="mini"
+                          style="margin-left: 5px;"
+                        >
+                          {{ getMaterialStatusTextByStatus(scope.row.material_purchase_status) }}
+                        </el-tag>
+                      </div>
+                      <span v-else>-</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="production_quantity" label="生产数量" width="100" align="right"></el-table-column>
+                  <el-table-column label="完成数量" width="180">
+                    <template slot-scope="scope">
+                      <el-input-number
+                        v-if="process.status === 'in_progress' && scope.row.task_type !== 'artwork' && scope.row.task_type !== 'die' && !scope.row.auto_calculate_quantity"
+                        v-model="scope.row.quantity_completed"
+                        :min="0"
+                        :max="scope.row.production_quantity"
+                        size="mini"
+                        @change="handleUpdateTask(scope.row)"
+                      ></el-input-number>
+                      <span v-else>{{ scope.row.quantity_completed }}</span>
+                      <span v-if="scope.row.task_type === 'artwork' || scope.row.task_type === 'die'" style="color: #909399; font-size: 12px; margin-left: 5px;">
+                        (固定为1)
+                      </span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="status_display" label="状态" width="100">
+                    <template slot-scope="scope">
+                      <el-tag
+                        :type="getTaskStatusType(scope.row.status)"
+                        size="small"
+                      >
+                        {{ scope.row.status_display }}
+                      </el-tag>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="操作" width="120" v-if="process.status === 'in_progress'">
+                    <template slot-scope="scope">
+                      <el-button
+                        v-if="scope.row.status !== 'completed' && canCompleteTask(scope.row, process)"
+                        type="success"
+                        size="mini"
+                        @click="handleCompleteTask(scope.row)"
+                      >
+                        完成
+                      </el-button>
+                      <span v-else-if="scope.row.status !== 'completed'" style="color: #909399; font-size: 12px;">
+                        {{ getTaskBlockReason(scope.row, process) }}
+                      </span>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+              <div v-else style="color: #909399; padding: 20px; text-align: center;">
+                暂无任务（开始工序后将自动生成任务）
+              </div>
+            </div>
+          </el-collapse-item>
+        </el-collapse>
+      </el-card>
 
       <!-- 图稿和刀模信息 -->
       <el-descriptions title="图稿和刀模" :column="1" border style="margin-top: 20px;">
@@ -293,6 +426,37 @@
           <el-button type="primary" @click="submitMaterialStatusUpdate" :loading="updatingMaterialStatus">
             确定
           </el-button>
+        </div>
+      </el-dialog>
+
+      <!-- 完成工序对话框 -->
+      <el-dialog
+        title="完成工序"
+        :visible.sync="completeProcessDialogVisible"
+        width="500px"
+      >
+        <el-form :model="completeProcessForm" label-width="120px">
+          <el-form-item label="工序名称">
+            <el-input :value="currentProcess ? currentProcess.process_name : ''" disabled></el-input>
+          </el-form-item>
+          <el-form-item label="完成数量">
+            <el-input-number
+              v-model="completeProcessForm.quantity_completed"
+              :min="0"
+              style="width: 100%;"
+            ></el-input-number>
+          </el-form-item>
+          <el-form-item label="不良品数量">
+            <el-input-number
+              v-model="completeProcessForm.quantity_defective"
+              :min="0"
+              style="width: 100%;"
+            ></el-input-number>
+          </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="completeProcessDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleCompleteProcess">确定</el-button>
         </div>
       </el-dialog>
 
@@ -697,11 +861,20 @@
 </template>
 
 <script>
-import { workOrderAPI, processAPI, materialAPI, workOrderProcessAPI, workOrderMaterialAPI } from '@/api/workorder'
+import { workOrderAPI, processAPI, materialAPI, workOrderProcessAPI, workOrderMaterialAPI, workOrderTaskAPI, departmentAPI } from '@/api/workorder'
 // 导入配置文件，如果不存在则使用默认值
 let config
 try {
-  config = require('@/config').default
+  // 尝试多种导入方式
+  try {
+    config = require('@/config/index.js')
+  } catch (e1) {
+    config = require('@/config')
+  }
+  // 如果是 ES6 模块，取 default
+  if (config && typeof config === 'object' && 'default' in config) {
+    config = config.default
+  }
 } catch (e) {
   // 如果配置文件不存在，使用默认配置
   config = {
@@ -717,7 +890,16 @@ export default {
       workOrder: null,
       processList: [],
       materialList: [],
+      departmentList: [],
+      userList: [],
       addProcessDialog: false,
+      activeProcesses: [], // 展开的工序ID列表
+      completeProcessDialogVisible: false,
+      currentProcess: null,
+      completeProcessForm: {
+        quantity_completed: 0,
+        quantity_defective: 0
+      },
       materialStatusDialogVisible: false,
       updatingMaterialStatus: false,
       materialStatusForm: {
@@ -757,7 +939,6 @@ export default {
         quantity_completed: 0,
         quantity_defective: 0
       },
-      currentProcess: null,
       approving: false,
       approvalForm: {
         comment: ''
@@ -801,6 +982,8 @@ export default {
     this.loadData()
     this.loadProcessList()
     this.loadMaterialList()
+    this.loadDepartmentList()
+    this.loadUserList()
   },
   methods: {
     async loadData() {
@@ -888,34 +1071,188 @@ export default {
         console.error(error)
       }
     },
+    async loadDepartmentList() {
+      try {
+        const response = await departmentAPI.getList({ page_size: 100 })
+        this.departmentList = response.results || []
+      } catch (error) {
+        console.error('加载部门列表失败:', error)
+      }
+    },
+    async loadUserList() {
+      try {
+        // 这里需要调用用户列表API，如果没有可以暂时跳过
+        // const response = await userAPI.getList({ page_size: 100 })
+        // this.userList = response.results || []
+      } catch (error) {
+        console.error('加载用户列表失败:', error)
+      }
+    },
     async handleStartProcess(process) {
       try {
-        await workOrderProcessAPI.start(process.id)
-        this.$message.success('工序已开始')
+        // 直接开始工序，使用默认部门
+        await workOrderProcessAPI.start(process.id, {})
+        this.$message.success('工序已开始，任务已生成')
         this.loadData()
       } catch (error) {
-        this.$message.error('操作失败')
+        if (error.response && error.response.data && error.response.data.error) {
+          this.$message.error(error.response.data.error)
+        } else {
+          this.$message.error('操作失败：' + (error.message || '未知错误'))
+        }
         console.error(error)
       }
     },
-    handleCompleteProcess(process) {
+    showCompleteProcessDialog(process) {
       this.currentProcess = process
-      this.completeForm = {
-        quantity_completed: this.workOrder.quantity,
-        quantity_defective: 0
+      this.completeProcessForm = {
+        quantity_completed: process.quantity_completed || 0,
+        quantity_defective: process.quantity_defective || 0
       }
-      this.completeProcessDialog = true
+      this.completeProcessDialogVisible = true
     },
-    async confirmCompleteProcess() {
+    async handleCompleteProcess() {
       try {
-        await workOrderProcessAPI.complete(this.currentProcess.id, this.completeForm)
+        if (!this.currentProcess || !this.currentProcess.id) {
+          this.$message.error('工序信息不存在')
+          return
+        }
+        await workOrderProcessAPI.complete(this.currentProcess.id, this.completeProcessForm)
         this.$message.success('工序已完成')
-        this.completeProcessDialog = false
+        this.completeProcessDialogVisible = false
         this.loadData()
       } catch (error) {
-        this.$message.error('操作失败')
+        const errorMessage = error.response?.data?.error || error.response?.data?.detail || error.message || '操作失败'
+        this.$message.error(errorMessage)
+        console.error('完成工序失败:', error)
+      }
+    },
+    async handleUpdateTask(task) {
+      try {
+        await workOrderTaskAPI.update(task.id, {
+          quantity_completed: task.quantity_completed
+        })
+        // 不显示消息，避免频繁提示
+      } catch (error) {
+        this.$message.error('更新任务失败')
         console.error(error)
       }
+    },
+    async handleCompleteTask(task) {
+      try {
+        const updateData = {
+          status: 'completed'
+        }
+        // 如果完成数量未设置，使用生产数量
+        if (task.quantity_completed !== undefined && task.quantity_completed !== null) {
+          updateData.quantity_completed = task.quantity_completed
+        } else if (task.production_quantity) {
+          updateData.quantity_completed = task.production_quantity
+        }
+        
+        await workOrderTaskAPI.update(task.id, updateData)
+        this.$message.success('任务已完成')
+        this.loadData()
+      } catch (error) {
+        const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
+                           (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
+        this.$message.error(errorMessage)
+        console.error('完成任务失败:', error)
+      }
+    },
+    getProcessStatusType(status) {
+      const types = {
+        'pending': 'info',
+        'in_progress': 'warning',
+        'completed': 'success',
+        'skipped': 'info'
+      }
+      return types[status] || 'info'
+    },
+    getTaskStatusType(status) {
+      const types = {
+        'pending': 'info',
+        'in_progress': 'warning',
+        'completed': 'success',
+        'cancelled': 'danger'
+      }
+      return types[status] || 'info'
+    },
+    // 判断是否为制版工序
+    isPlateMakingProcess(process) {
+      const processName = (process.process_name || '').toLowerCase()
+      return processName.includes('制版') || processName.includes('设计')
+    },
+    // 判断是否为物料相关工序（采购、开料）
+    isMaterialProcess(process) {
+      const processName = (process.process_name || '').toLowerCase()
+      return processName.includes('采购') || processName.includes('开料') || processName.includes('裁切')
+    },
+    // 根据状态获取物料状态标签类型
+    getMaterialStatusTagTypeByStatus(status) {
+      const statusMap = {
+        'pending': 'info',
+        'ordered': 'primary',
+        'received': 'success',
+        'cut': 'warning',
+        'completed': 'success'
+      }
+      return statusMap[status] || 'info'
+    },
+    // 根据状态获取物料状态文本
+    getMaterialStatusTextByStatus(status) {
+      const statusMap = {
+        'pending': '待采购',
+        'ordered': '已下单',
+        'received': '已回料',
+        'cut': '已开料',
+        'completed': '已完成'
+      }
+      return statusMap[status] || status
+    },
+    // 判断任务是否可以完成
+    canCompleteTask(task, process) {
+      // 制版任务：需要图稿已确认
+      if (task.task_type === 'artwork' && this.isPlateMakingProcess(process)) {
+        if (!task.artwork_confirmed) {
+          return false
+        }
+      }
+      // 采购任务：需要物料已回料
+      if (task.task_type === 'material' && process.process_name && process.process_name.includes('采购')) {
+        if (task.material_purchase_status !== 'received') {
+          return false
+        }
+      }
+      // 开料任务：需要物料已开料
+      if (task.task_type === 'material' && process.process_name && (process.process_name.includes('开料') || process.process_name.includes('裁切'))) {
+        if (task.material_purchase_status !== 'cut') {
+          return false
+        }
+      }
+      return true
+    },
+    // 获取任务被阻止的原因
+    getTaskBlockReason(task, process) {
+      // 制版任务：需要图稿确认
+      if (task.task_type === 'artwork' && this.isPlateMakingProcess(process)) {
+        if (!task.artwork_confirmed) {
+          return '需确认图稿'
+        }
+      }
+      // 采购任务：需要物料回料
+      if (task.task_type === 'material' && process.process_name && process.process_name.includes('采购')) {
+        if (task.material_purchase_status !== 'received') {
+          return '需物料回料'
+        }
+      }
+      // 开料任务：需要物料开料
+      if (task.task_type === 'material' && process.process_name && (process.process_name.includes('开料') || process.process_name.includes('裁切'))) {
+        if (task.material_purchase_status !== 'cut') {
+          return '需物料开料'
+        }
+      }
+      return ''
     },
     showAddMaterialDialog() {
       this.materialForm = {

@@ -40,6 +40,22 @@
           </template>
         </el-table-column>
         <el-table-column prop="imposition_size" label="拼版尺寸" width="180"></el-table-column>
+        <el-table-column label="确认状态" width="120" align="center">
+          <template slot-scope="scope">
+            <el-tag
+              :type="scope.row.confirmed ? 'success' : 'info'"
+              size="small"
+            >
+              {{ scope.row.confirmed ? '已确认' : '未确认' }}
+            </el-tag>
+            <div v-if="scope.row.confirmed && scope.row.confirmed_by_name" style="font-size: 12px; color: #909399; margin-top: 5px;">
+              {{ scope.row.confirmed_by_name }}
+            </div>
+            <div v-if="scope.row.confirmed && scope.row.confirmed_at" style="font-size: 12px; color: #909399;">
+              {{ formatDate(scope.row.confirmed_at) }}
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column label="关联刀模" min-width="200">
           <template slot-scope="scope">
             <el-tag
@@ -70,7 +86,7 @@
             {{ formatDate(scope.row.created_at) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="220" fixed="right">
+        <el-table-column label="操作" width="280" fixed="right">
           <template slot-scope="scope">
             <el-button 
               v-if="canEdit" 
@@ -85,6 +101,14 @@
               size="small" 
               @click="createNewVersion(scope.row)">
               创建新版本
+            </el-button>
+            <el-button 
+              v-if="!scope.row.confirmed && canConfirm" 
+              type="text" 
+              size="small" 
+              style="color: #67C23A;" 
+              @click="handleConfirm(scope.row)">
+              确认
             </el-button>
             <el-button 
               v-if="canDelete" 
@@ -317,6 +341,11 @@ export default {
     },
     canDelete() {
       return this.hasPermission('workorder.delete_artwork')
+    },
+    canConfirm() {
+      // 设计部用户可以确认图稿，这里可以根据用户部门判断
+      // 暂时使用 change_artwork 权限
+      return this.hasPermission('workorder.change_artwork')
     }
   },
   created() {
@@ -411,6 +440,27 @@ export default {
     },
     removeOtherColor(index) {
       this.form.other_colors.splice(index, 1)
+    },
+    async handleConfirm(row) {
+      try {
+        await this.$confirm('确认该图稿？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        await artworkAPI.confirm(row.id)
+        this.$message.success('图稿已确认')
+        this.loadData()
+      } catch (error) {
+        if (error !== 'cancel') {
+          if (error.response && error.response.data && error.response.data.error) {
+            this.$message.error(error.response.data.error)
+          } else {
+            this.$message.error('确认失败')
+          }
+          console.error(error)
+        }
+      }
     },
     async createNewVersion(row) {
       // 创建新版本

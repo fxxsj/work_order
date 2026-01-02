@@ -337,11 +337,12 @@ export const workOrderProcessAPI = {
       method: 'delete'
     })
   },
-  // 开始工序
-  start(id) {
+  // 开始工序（生成任务）
+  start(id, data = {}) {
     return request({
       url: `/workorder-processes/${id}/start/`,
-      method: 'post'
+      method: 'post',
+      data
     })
   },
   // 完成工序
@@ -597,6 +598,13 @@ export const artworkAPI = {
   createVersion(id) {
     return request({
       url: `/artworks/${id}/create_version/`,
+      method: 'post'
+    })
+  },
+  // 确认图稿
+  confirm(id) {
+    return request({
+      url: `/artworks/${id}/confirm/`,
       method: 'post'
     })
   }

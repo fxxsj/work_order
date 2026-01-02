@@ -21,6 +21,10 @@
           <i class="el-icon-document"></i>
           <span>施工单</span>
         </el-menu-item>
+        <el-menu-item index="/tasks">
+          <i class="el-icon-s-order"></i>
+          <span>任务管理</span>
+        </el-menu-item>
         <el-menu-item v-if="canViewCustomer" index="/customers">
           <i class="el-icon-user"></i>
           <span>客户管理</span>
