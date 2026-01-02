@@ -165,6 +165,40 @@
           </el-radio-group>
         </el-form-item>
 
+        <!-- 印刷色数（仅在选择了图稿时显示） -->
+        <template v-if="hasArtworkSelected">
+          <el-form-item label="CMYK颜色">
+            <el-checkbox-group v-model="form.printing_cmyk_colors">
+              <el-checkbox label="C">C</el-checkbox>
+              <el-checkbox label="M">M</el-checkbox>
+              <el-checkbox label="Y">Y</el-checkbox>
+              <el-checkbox label="K">K</el-checkbox>
+            </el-checkbox-group>
+          </el-form-item>
+          <el-form-item label="其他颜色">
+            <div v-for="(color, index) in form.printing_other_colors" :key="index" style="margin-bottom: 10px; display: flex; align-items: center;">
+              <el-input
+                v-model="form.printing_other_colors[index]"
+                placeholder="请输入颜色名称，如：528C、金色"
+                style="flex: 1; margin-right: 10px;"
+              ></el-input>
+              <el-button
+                type="danger"
+                size="small"
+                icon="el-icon-delete"
+                @click="removePrintingOtherColor(index)"
+                circle
+              ></el-button>
+            </div>
+            <el-button
+              type="primary"
+              size="small"
+              icon="el-icon-plus"
+              @click="addPrintingOtherColor"
+            >添加颜色</el-button>
+          </el-form-item>
+        </template>
+
         <!-- 产品输入 -->
         <template>
           <!-- 单个产品选择（兼容旧模式，仅在未使用产品列表时显示） -->
@@ -484,6 +518,8 @@ export default {
         artworks: [], // 图稿列表（支持多选）
         dies: [], // 刀模列表（支持多选）
         printing_type: 'front', // 印刷形式，默认正面印刷
+        printing_cmyk_colors: [], // 印刷CMYK颜色
+        printing_other_colors: [], // 印刷其他颜色
         imposition_quantity: 1,
         status: 'pending',
         priority: 'normal',
@@ -723,6 +759,9 @@ export default {
         
         // 设置印刷形式为"不需要印刷"
         this.form.printing_type = 'none'
+        // 清空印刷色数
+        this.form.printing_cmyk_colors = []
+        this.form.printing_other_colors = []
         
         // 清空产品列表（包括图稿自动填充的产品）
         this.productItems = [{
@@ -756,6 +795,9 @@ export default {
       if (!artworkIds || artworkIds.length === 0) {
         // 设置印刷形式为"不需要印刷"
         this.form.printing_type = 'none'
+        // 清空印刷色数
+        this.form.printing_cmyk_colors = []
+        this.form.printing_other_colors = []
         
         // 如果产品列表为空，初始化一个空的产品项
         if (this.productItems.length === 0) {
@@ -786,10 +828,31 @@ export default {
       // 选择了图稿（可能多个），加载所有图稿关联的产品并合并
       try {
         const allProducts = []
+        const allCmykColors = new Set() // 收集所有图稿的CMYK颜色（去重）
+        const allOtherColors = new Set() // 收集所有图稿的其他颜色（去重）
         
         // 遍历所有选中的图稿
         for (const artworkId of validArtworkIds) {
           const artworkDetail = await artworkAPI.getDetail(artworkId)
+          
+          // 收集图稿的CMYK颜色
+          if (artworkDetail.cmyk_colors && Array.isArray(artworkDetail.cmyk_colors)) {
+            artworkDetail.cmyk_colors.forEach(color => {
+              if (color && ['C', 'M', 'Y', 'K'].includes(color)) {
+                allCmykColors.add(color)
+              }
+            })
+          }
+          
+          // 收集图稿的其他颜色
+          if (artworkDetail.other_colors && Array.isArray(artworkDetail.other_colors)) {
+            artworkDetail.other_colors.forEach(color => {
+              if (color && color.trim()) {
+                allOtherColors.add(color.trim())
+              }
+            })
+          }
+          
           if (artworkDetail.products && artworkDetail.products.length > 0) {
             // 将图稿关联的产品转换为 productItems 格式
             artworkDetail.products.forEach(ap => {
@@ -860,6 +923,13 @@ export default {
           }
           this.$message.warning('所选图稿未关联任何产品')
         }
+        
+        // 自动填充印刷色数（合并所有图稿的色数，去重）
+        // CMYK颜色：按照固定顺序C、M、Y、K排列
+        const cmykOrder = ['C', 'M', 'Y', 'K']
+        this.form.printing_cmyk_colors = cmykOrder.filter(c => allCmykColors.has(c))
+        // 其他颜色：转换为数组
+        this.form.printing_other_colors = Array.from(allOtherColors).filter(c => c && c.trim())
       } catch (error) {
         console.error('加载图稿详情失败:', error)
         this.$message.error('加载图稿详情失败')
@@ -906,6 +976,12 @@ export default {
         imposition_quantity: 1, // 默认拼版数量为1
         isQuantityManuallyModified: false // 标记数量是否被手动修改
       })
+    },
+    addPrintingOtherColor() {
+      this.form.printing_other_colors.push('')
+    },
+    removePrintingOtherColor(index) {
+      this.form.printing_other_colors.splice(index, 1)
     },
     removeProductItem(index) {
       this.productItems.splice(index, 1)
@@ -1017,6 +1093,8 @@ export default {
           // 刀模：后端现在返回的是 dies 数组
           dies: data.dies || [],
           printing_type: data.printing_type || 'front',
+          printing_cmyk_colors: data.printing_cmyk_colors || [],
+          printing_other_colors: Array.isArray(data.printing_other_colors) ? data.printing_other_colors : [],
           imposition_quantity: data.imposition_quantity || 1,
           status: data.status,
           priority: data.priority,
@@ -1184,6 +1262,13 @@ export default {
           // 如果没有选择图稿，设置印刷形式为"不需要印刷"
           if (!data.artworks || data.artworks.length === 0) {
             data.printing_type = 'none'
+            data.printing_cmyk_colors = []
+            data.printing_other_colors = []
+          }
+          
+          // 过滤空的其他颜色值
+          if (data.printing_other_colors && Array.isArray(data.printing_other_colors)) {
+            data.printing_other_colors = data.printing_other_colors.filter(color => color && color.trim())
           }
           
           // 处理刀模数据：过滤掉 'NO_DIE'，保留所有有效的刀模ID

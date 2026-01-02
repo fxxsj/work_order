@@ -127,8 +127,8 @@
           <span v-else style="color: #909399;">-</span>
         </el-descriptions-item>
         <el-descriptions-item label="印刷要求" v-if="workOrder.printing_type && workOrder.printing_type !== 'none'">
-          <span v-if="workOrder.artwork_colors">
-            {{ workOrder.artwork_colors }} {{ getPrintingTypeDisplay(workOrder.printing_type) }}
+          <span v-if="workOrder.printing_colors_display || workOrder.artwork_colors">
+            {{ workOrder.printing_colors_display || workOrder.artwork_colors }} {{ getPrintingTypeDisplay(workOrder.printing_type) }}
           </span>
           <span v-else>
             {{ getPrintingTypeDisplay(workOrder.printing_type) }}
@@ -430,8 +430,8 @@
             <tr v-if="workOrder.printing_type && workOrder.printing_type !== 'none'">
               <td class="print-label">印刷要求：</td>
               <td class="print-value" colspan="3">
-                <span v-if="workOrder.artwork_colors">
-                  {{ workOrder.artwork_colors }} {{ getPrintingTypeDisplay(workOrder.printing_type) }}
+                <span v-if="workOrder.printing_colors_display || workOrder.artwork_colors">
+                  {{ workOrder.printing_colors_display || workOrder.artwork_colors }} {{ getPrintingTypeDisplay(workOrder.printing_type) }}
                 </span>
                 <span v-else>
                   {{ getPrintingTypeDisplay(workOrder.printing_type) }}
