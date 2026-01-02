@@ -17,7 +17,7 @@
     <!-- 统计卡片 -->
     <el-row :gutter="20" class="stat-cards">
       <el-col :span="6">
-        <el-card class="stat-card">
+        <el-card class="stat-card" @click.native="goToWorkOrderList()">
           <div class="stat-content">
             <div class="stat-icon" style="background-color: #409EFF;">
               <i class="el-icon-document"></i>
@@ -30,7 +30,7 @@
         </el-card>
       </el-col>
       <el-col :span="6">
-        <el-card class="stat-card">
+        <el-card class="stat-card" @click.native="goToWorkOrderList({ status: 'completed' })">
           <div class="stat-content">
             <div class="stat-icon" style="background-color: #67C23A;">
               <i class="el-icon-circle-check"></i>
@@ -43,7 +43,7 @@
         </el-card>
       </el-col>
       <el-col :span="6">
-        <el-card class="stat-card">
+        <el-card class="stat-card" @click.native="goToWorkOrderList({ status: 'in_progress' })">
           <div class="stat-content">
             <div class="stat-icon" style="background-color: #E6A23C;">
               <i class="el-icon-loading"></i>
@@ -56,7 +56,7 @@
         </el-card>
       </el-col>
       <el-col :span="6">
-        <el-card class="stat-card">
+        <el-card class="stat-card" @click.native="goToUpcomingDeadline()">
           <div class="stat-content">
             <div class="stat-icon" style="background-color: #F56C6C;">
               <i class="el-icon-warning"></i>
@@ -78,7 +78,11 @@
           <div slot="header">
             <span>状态分布</span>
           </div>
-          <el-table :data="statusTableData" style="width: 100%">
+          <el-table 
+            :data="statusTableData" 
+            style="width: 100%"
+            @row-click="handleStatusRowClick"
+          >
             <el-table-column prop="status_display" label="状态" width="120">
               <template slot-scope="scope">
                 <span :class="'status-badge status-' + scope.row.status">
@@ -102,7 +106,12 @@
           <div slot="header">
             <span>优先级分布</span>
           </div>
-          <el-table :data="priorityTableData" style="width: 100%">
+          <el-table 
+            :data="priorityTableData" 
+            style="width: 100%"
+            @row-click="handlePriorityRowClick"
+            :row-style="{ cursor: 'pointer' }"
+          >
             <el-table-column prop="priority_display" label="优先级" width="120">
               <template slot-scope="scope">
                 <span :class="'status-badge priority-' + scope.row.priority">
@@ -262,6 +271,35 @@ export default {
           customer__salesperson: userInfo.id
         }
       })
+    },
+    goToWorkOrderList(filters = {}) {
+      // 跳转到施工单列表，并应用筛选条件
+      const query = { ...filters }
+      this.$router.push({
+        path: '/workorders',
+        query
+      })
+    },
+    handleStatusRowClick(row) {
+      // 点击状态行，跳转到对应状态的施工单列表
+      this.goToWorkOrderList({ status: row.status })
+    },
+    handlePriorityRowClick(row) {
+      // 点击优先级行，跳转到对应优先级的施工单列表
+      this.goToWorkOrderList({ priority: row.priority })
+    },
+    goToUpcomingDeadline() {
+      // 跳转到即将到期的施工单列表
+      // 即将到期：交货日期在未来7天内
+      const today = new Date()
+      const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
+      this.$router.push({
+        path: '/workorders',
+        query: {
+          delivery_date__gte: today.toISOString().split('T')[0],
+          delivery_date__lte: nextWeek.toISOString().split('T')[0]
+        }
+      })
     }
   }
 }
@@ -279,6 +317,7 @@ export default {
 .stat-card {
   cursor: pointer;
   transition: all 0.3s;
+  user-select: none;
 }
 
 .stat-card:hover {

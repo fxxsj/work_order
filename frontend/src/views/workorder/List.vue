@@ -172,7 +172,9 @@ export default {
         status: '',
         priority: '',
         approval_status: '',
-        customer__salesperson: ''
+        customer__salesperson: '',
+        delivery_date__gte: '',
+        delivery_date__lte: ''
       }
     }
   },
@@ -201,6 +203,18 @@ export default {
     }
     if (this.$route.query.customer__salesperson) {
       this.filters.customer__salesperson = this.$route.query.customer__salesperson
+    }
+    if (this.$route.query.status) {
+      this.filters.status = this.$route.query.status
+    }
+    if (this.$route.query.priority) {
+      this.filters.priority = this.$route.query.priority
+    }
+    if (this.$route.query.delivery_date__gte) {
+      this.filters.delivery_date__gte = this.$route.query.delivery_date__gte
+    }
+    if (this.$route.query.delivery_date__lte) {
+      this.filters.delivery_date__lte = this.$route.query.delivery_date__lte
     }
     this.loadData()
   },
@@ -243,6 +257,12 @@ export default {
         if (this.filters.customer__salesperson) {
           params.customer__salesperson = this.filters.customer__salesperson
         }
+        if (this.filters.delivery_date__gte) {
+          params.delivery_date__gte = this.filters.delivery_date__gte
+        }
+        if (this.filters.delivery_date__lte) {
+          params.delivery_date__lte = this.filters.delivery_date__lte
+        }
         
         const response = await workOrderAPI.getList(params)
         this.tableData = response.results || []
@@ -274,7 +294,9 @@ export default {
         status: '',
         priority: '',
         approval_status: '',
-        customer__salesperson: ''
+        customer__salesperson: '',
+        delivery_date__gte: '',
+        delivery_date__lte: ''
       }
       this.currentPage = 1
       // 清除URL参数，避免重复导航错误
