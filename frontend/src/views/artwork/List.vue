@@ -25,7 +25,11 @@
         :data="tableData"
         style="width: 100%; margin-top: 20px;"
       >
-        <el-table-column prop="code" label="图稿编码" width="150"></el-table-column>
+        <el-table-column label="图稿编码" width="180">
+          <template slot-scope="scope">
+            {{ scope.row.code || (scope.row.base_code + (scope.row.version > 1 ? '-v' + scope.row.version : '')) }}
+          </template>
+        </el-table-column>
         <el-table-column prop="name" label="图稿名称" width="200"></el-table-column>
         <el-table-column prop="color_display" label="色数" width="200" align="center">
           <template slot-scope="scope">
@@ -66,7 +70,7 @@
             {{ formatDate(scope.row.created_at) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column label="操作" width="220" fixed="right">
           <template slot-scope="scope">
             <el-button 
               v-if="canEdit" 
@@ -74,6 +78,13 @@
               size="small" 
               @click="showDialog(scope.row)">
               编辑
+            </el-button>
+            <el-button 
+              v-if="canEdit" 
+              type="text" 
+              size="small" 
+              @click="createNewVersion(scope.row)">
+              创建新版本
             </el-button>
             <el-button 
               v-if="canDelete" 
@@ -111,14 +122,25 @@
         :rules="rules"
         label-width="120px"
       >
-        <el-form-item label="图稿编码" prop="code">
+        <el-form-item label="图稿主编码" prop="base_code">
           <el-input
-            v-model="form.code"
+            v-model="form.base_code"
             placeholder="留空则系统自动生成（格式：ART + yyyymm + 序号）"
             :disabled="isEdit"
           ></el-input>
           <div style="font-size: 12px; color: #909399; margin-top: 5px;">
-            {{ isEdit ? '编码不可修改' : '留空则自动生成，格式：ART202412001' }}
+            {{ isEdit ? '主编码不可修改' : '留空则自动生成，格式：ART202412001' }}
+          </div>
+        </el-form-item>
+        <el-form-item label="版本号" prop="version" v-if="isEdit">
+          <el-input-number
+            v-model="form.version"
+            :min="1"
+            :disabled="true"
+            style="width: 100%;"
+          ></el-input-number>
+          <div style="font-size: 12px; color: #909399; margin-top: 5px;">
+            完整编码：{{ form.base_code }}{{ form.version > 1 ? '-v' + form.version : '' }}
           </div>
         </el-form-item>
         <el-form-item label="图稿名称" prop="name">
@@ -267,7 +289,8 @@ export default {
       editId: null,
       productItems: [], // 产品列表
       form: {
-        code: '',
+        base_code: '',
+        version: 1,
         name: '',
         cmyk_colors: [],
         other_colors: [],
@@ -389,6 +412,24 @@ export default {
     removeOtherColor(index) {
       this.form.other_colors.splice(index, 1)
     },
+    async createNewVersion(row) {
+      // 创建新版本
+      const fullCode = row.code || (row.base_code + (row.version > 1 ? '-v' + row.version : ''))
+      this.$confirm(`确定要基于 "${fullCode}" 创建新版本吗？`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'info'
+      }).then(async () => {
+        try {
+          await artworkAPI.createVersion(row.id)
+          this.$message.success('新版本创建成功')
+          this.loadData() // 重新加载列表
+        } catch (error) {
+          console.error('创建新版本失败:', error)
+          this.$message.error('创建新版本失败')
+        }
+      }).catch(() => {})
+    },
     async showDialog(row = null) {
       if (row) {
         this.isEdit = true
@@ -398,7 +439,8 @@ export default {
         try {
           const detail = await artworkAPI.getDetail(row.id)
           this.form = {
-            code: detail.code,
+            base_code: detail.base_code || '',
+            version: detail.version || 1,
             name: detail.name,
             cmyk_colors: detail.cmyk_colors || [],
             other_colors: Array.isArray(detail.other_colors) ? detail.other_colors : (detail.other_colors ? [detail.other_colors] : []),
@@ -425,7 +467,8 @@ export default {
         this.isEdit = false
         this.editId = null
         this.form = {
-          code: '',
+          base_code: '',
+          version: 1,
           name: '',
           cmyk_colors: [],
           other_colors: [],
@@ -451,9 +494,13 @@ export default {
         try {
           const data = { ...this.form }
           
-          // 如果是新建且编码为空，不传编码字段（让后端自动生成）
-          if (!this.isEdit && !data.code) {
-            delete data.code
+          // 如果是新建且主编码为空，不传主编码字段（让后端自动生成）
+          if (!this.isEdit && !data.base_code) {
+            delete data.base_code
+          }
+          // 新建时不需要传 version，后端会自动设置为 1
+          if (!this.isEdit) {
+            delete data.version
           }
           
           // 过滤掉其他颜色中的空字符串

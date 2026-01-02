@@ -592,6 +592,13 @@ export const artworkAPI = {
       url: `/artworks/${id}/`,
       method: 'delete'
     })
+  },
+  // 创建新版本
+  createVersion(id) {
+    return request({
+      url: `/artworks/${id}/create_version/`,
+      method: 'post'
+    })
   }
 }
 
