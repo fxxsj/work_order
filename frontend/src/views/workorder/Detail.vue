@@ -126,8 +126,13 @@
           </span>
           <span v-else style="color: #909399;">-</span>
         </el-descriptions-item>
-        <el-descriptions-item label="印刷形式" v-if="workOrder.printing_type && workOrder.printing_type !== 'none'">
-          {{ getPrintingTypeDisplay(workOrder.printing_type) }}
+        <el-descriptions-item label="印刷要求" v-if="workOrder.printing_type && workOrder.printing_type !== 'none'">
+          <span v-if="workOrder.artwork_colors">
+            {{ workOrder.artwork_colors }} {{ getPrintingTypeDisplay(workOrder.printing_type) }}
+          </span>
+          <span v-else>
+            {{ getPrintingTypeDisplay(workOrder.printing_type) }}
+          </span>
         </el-descriptions-item>
         <el-descriptions-item label="刀模">
           <span v-if="workOrder.die_codes && workOrder.die_codes.length > 0">
@@ -423,8 +428,15 @@
               </td>
             </tr>
             <tr v-if="workOrder.printing_type && workOrder.printing_type !== 'none'">
-              <td class="print-label">印刷形式：</td>
-              <td class="print-value">{{ getPrintingTypeDisplay(workOrder.printing_type) }}</td>
+              <td class="print-label">印刷要求：</td>
+              <td class="print-value" colspan="3">
+                <span v-if="workOrder.artwork_colors">
+                  {{ workOrder.artwork_colors }} {{ getPrintingTypeDisplay(workOrder.printing_type) }}
+                </span>
+                <span v-else>
+                  {{ getPrintingTypeDisplay(workOrder.printing_type) }}
+                </span>
+              </td>
             </tr>
             <tr>
               <td class="print-label">刀模：</td>

@@ -27,9 +27,12 @@
       >
         <el-table-column prop="code" label="图稿编码" width="150"></el-table-column>
         <el-table-column prop="name" label="图稿名称" width="200"></el-table-column>
-        <el-table-column prop="color_count" label="色数" width="100" align="center">
+        <el-table-column prop="color_display" label="色数" width="200" align="center">
           <template slot-scope="scope">
-            <el-tag>{{ scope.row.color_count }}色</el-tag>
+            <el-tag v-if="scope.row.color_display && scope.row.color_display !== '-'">
+              {{ scope.row.color_display }}
+            </el-tag>
+            <span v-else style="color: #909399;">-</span>
           </template>
         </el-table-column>
         <el-table-column prop="imposition_size" label="拼版尺寸" width="180"></el-table-column>
@@ -109,23 +112,41 @@
         <el-form-item label="图稿名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入图稿名称"></el-input>
         </el-form-item>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="色数" prop="color_count">
-              <el-input-number
-                v-model="form.color_count"
-                :min="1"
-                :max="10"
-                style="width: 100%;"
-              ></el-input-number>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="拼版尺寸">
-              <el-input v-model="form.imposition_size" placeholder="如：420x594mm"></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
+        <el-form-item label="CMYK颜色">
+          <el-checkbox-group v-model="form.cmyk_colors">
+            <el-checkbox label="C">C</el-checkbox>
+            <el-checkbox label="M">M</el-checkbox>
+            <el-checkbox label="Y">Y</el-checkbox>
+            <el-checkbox label="K">K</el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
+        <el-form-item label="其他颜色">
+          <div v-for="(color, index) in form.other_colors" :key="index" style="margin-bottom: 10px; display: flex; align-items: center;">
+            <el-input
+              v-model="form.other_colors[index]"
+              placeholder="请输入颜色名称，如：528C、金色"
+              style="flex: 1; margin-right: 10px;"
+            ></el-input>
+            <el-button
+              type="danger"
+              size="small"
+              icon="el-icon-delete"
+              @click="removeOtherColor(index)"
+              circle
+            ></el-button>
+          </div>
+          <el-button
+            type="primary"
+            size="small"
+            icon="el-icon-plus"
+            @click="addOtherColor"
+          >
+            添加颜色
+          </el-button>
+        </el-form-item>
+        <el-form-item label="拼版尺寸">
+          <el-input v-model="form.imposition_size" placeholder="如：420x594mm"></el-input>
+        </el-form-item>
 
         <el-divider content-position="left">包含产品及拼版数量</el-divider>
         
@@ -218,16 +239,14 @@ export default {
       form: {
         code: '',
         name: '',
-        color_count: 4,
+        cmyk_colors: [],
+        other_colors: [],
         imposition_size: '',
         notes: ''
       },
       rules: {
         name: [
           { required: true, message: '请输入图稿名称', trigger: 'blur' }
-        ],
-        color_count: [
-          { required: true, message: '请输入色数', trigger: 'blur' }
         ]
       }
     }
@@ -324,6 +343,12 @@ export default {
     removeProductItem(index) {
       this.productItems.splice(index, 1)
     },
+    addOtherColor() {
+      this.form.other_colors.push('')
+    },
+    removeOtherColor(index) {
+      this.form.other_colors.splice(index, 1)
+    },
     async showDialog(row = null) {
       if (row) {
         this.isEdit = true
@@ -335,7 +360,8 @@ export default {
           this.form = {
             code: detail.code,
             name: detail.name,
-            color_count: detail.color_count,
+            cmyk_colors: detail.cmyk_colors || [],
+            other_colors: Array.isArray(detail.other_colors) ? detail.other_colors : (detail.other_colors ? [detail.other_colors] : []),
             imposition_size: detail.imposition_size || '',
             notes: detail.notes || ''
           }
@@ -360,7 +386,8 @@ export default {
         this.form = {
           code: '',
           name: '',
-          color_count: 4,
+          cmyk_colors: [],
+          other_colors: [],
           imposition_size: '',
           notes: ''
         }
@@ -385,6 +412,11 @@ export default {
           // 如果是新建且编码为空，不传编码字段（让后端自动生成）
           if (!this.isEdit && !data.code) {
             delete data.code
+          }
+          
+          // 过滤掉其他颜色中的空字符串
+          if (data.other_colors) {
+            data.other_colors = data.other_colors.filter(color => color && color.trim())
           }
           
           // 准备产品数据
