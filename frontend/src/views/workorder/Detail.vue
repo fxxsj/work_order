@@ -115,41 +115,6 @@
         </el-descriptions-item>
       </el-descriptions>
 
-      <!-- 产品列表（场景2：一个施工单包含多个产品） -->
-      <div v-if="workOrder.products && workOrder.products.length > 0" style="margin-top: 20px;">
-        <div class="detail-section-title">产品列表</div>
-        <el-table :data="workOrder.products" border style="width: 100%">
-          <el-table-column prop="product_name" label="产品名称" width="200">
-            <template slot-scope="scope">
-              {{ scope.row.product_name }} ({{ scope.row.product_code }})
-            </template>
-          </el-table-column>
-          <el-table-column prop="specification" label="规格" show-overflow-tooltip>
-            <template slot-scope="scope">
-              {{ scope.row.specification || '-' }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="imposition_quantity" label="拼版" width="100" align="center">
-            <template slot-scope="scope">
-              {{ (scope.row.imposition_quantity || 1) }}拼
-            </template>
-          </el-table-column>
-          <el-table-column prop="quantity" label="数量" width="120" align="right">
-            <template slot-scope="scope">
-              {{ scope.row.quantity }} {{ scope.row.unit }}
-            </template>
-          </el-table-column>
-          <el-table-column label="小计" width="150" align="right">
-            <template slot-scope="scope">
-              <span v-if="scope.row.product_detail">
-                ¥{{ parseFloat((scope.row.product_detail.unit_price * scope.row.quantity).toFixed(2)) }}
-              </span>
-              <span v-else>-</span>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-
       <!-- 图稿和刀模信息 -->
       <el-descriptions title="图稿和刀模" :column="1" border style="margin-top: 20px;">
         <el-descriptions-item label="图稿（CTP版）">
@@ -327,6 +292,41 @@
       <el-descriptions title="其他信息" :column="1" border style="margin-top: 20px;">
         <el-descriptions-item label="备注">{{ workOrder.notes || '-' }}</el-descriptions-item>
       </el-descriptions>
+
+      <!-- 产品列表（场景2：一个施工单包含多个产品） -->
+      <div v-if="workOrder.products && workOrder.products.length > 0" style="margin-top: 20px;">
+        <div class="detail-section-title">产品列表</div>
+        <el-table :data="workOrder.products" border style="width: 100%">
+          <el-table-column prop="product_name" label="产品名称" width="200">
+            <template slot-scope="scope">
+              {{ scope.row.product_name }} ({{ scope.row.product_code }})
+            </template>
+          </el-table-column>
+          <el-table-column prop="specification" label="规格" show-overflow-tooltip>
+            <template slot-scope="scope">
+              {{ scope.row.specification || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="imposition_quantity" label="拼版" width="100" align="center">
+            <template slot-scope="scope">
+              {{ (scope.row.imposition_quantity || 1) }}拼
+            </template>
+          </el-table-column>
+          <el-table-column prop="quantity" label="数量" width="120" align="right">
+            <template slot-scope="scope">
+              {{ scope.row.quantity }} {{ scope.row.unit }}
+            </template>
+          </el-table-column>
+          <el-table-column label="小计" width="150" align="right">
+            <template slot-scope="scope">
+              <span v-if="scope.row.product_detail">
+                ¥{{ parseFloat((scope.row.product_detail.unit_price * scope.row.quantity).toFixed(2)) }}
+              </span>
+              <span v-else>-</span>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
     </el-card>
 
     <!-- 打印区域（隐藏，仅在打印时显示） -->
@@ -403,29 +403,6 @@
           </table>
         </div>
 
-        <!-- 产品列表 -->
-        <div class="print-section" v-if="workOrder.products && workOrder.products.length > 0">
-          <div class="print-section-title">产品列表</div>
-          <table class="print-data-table">
-            <thead>
-              <tr>
-                <th>产品名称</th>
-                <th>规格</th>
-                <th>拼版</th>
-                <th>数量</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="product in workOrder.products" :key="product.id">
-                <td>{{ product.product_name }} ({{ product.product_code }})</td>
-                <td>{{ product.specification || '-' }}</td>
-                <td>{{ (product.imposition_quantity || 1) }}拼</td>
-                <td>{{ product.quantity }} {{ product.unit }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
         <!-- 图稿和刀模信息 -->
         <div class="print-section">
           <div class="print-section-title">图稿和刀模</div>
@@ -484,6 +461,29 @@
         <div class="print-section" v-if="workOrder.notes">
           <div class="print-section-title">备注</div>
           <div class="print-notes">{{ workOrder.notes }}</div>
+        </div>
+
+        <!-- 产品列表 -->
+        <div class="print-section" v-if="workOrder.products && workOrder.products.length > 0">
+          <div class="print-section-title">产品列表</div>
+          <table class="print-data-table">
+            <thead>
+              <tr>
+                <th>产品名称</th>
+                <th>规格</th>
+                <th>拼版</th>
+                <th>数量</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="product in workOrder.products" :key="product.id">
+                <td>{{ product.product_name }} ({{ product.product_code }})</td>
+                <td>{{ product.specification || '-' }}</td>
+                <td>{{ (product.imposition_quantity || 1) }}拼</td>
+                <td>{{ product.quantity }} {{ product.unit }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 

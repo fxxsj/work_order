@@ -202,7 +202,7 @@
               </el-col>
               <el-col :span="5">
                 <el-input
-                  :value="productItem.specification"
+                  :value="getProductSpecification(productItem.product)"
                   placeholder="选择产品后自动填充"
                   :disabled="true"
                   style="color: #909399;"
@@ -879,6 +879,11 @@ export default {
     removeProductItem(index) {
       this.productItems.splice(index, 1)
       this.calculateTotalAmount()
+    },
+    getProductSpecification(productId) {
+      if (!productId) return ''
+      const product = this.productList.find(p => p.id === productId)
+      return product ? (product.specification || '') : ''
     },
     async handleProductItemChange(index, productId) {
       // 更新产品项的产品ID
