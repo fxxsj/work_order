@@ -154,6 +154,17 @@
           </span>
         </el-form-item>
 
+        <!-- 印刷形式（仅在选择了图稿时显示） -->
+        <el-form-item label="印刷形式" v-if="hasArtworkSelected">
+          <el-radio-group v-model="form.printing_type">
+            <el-radio label="front">正面印刷</el-radio>
+            <el-radio label="back">背面印刷</el-radio>
+            <el-radio label="self_reverse">自反印刷</el-radio>
+            <el-radio label="reverse_gripper">反咬口印刷</el-radio>
+            <el-radio label="register">套版印刷</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
         <!-- 产品输入 -->
         <template>
           <!-- 单个产品选择（兼容旧模式，仅在未使用产品列表时显示） -->
@@ -472,6 +483,7 @@ export default {
         unit: '件',
         artworks: [], // 图稿列表（支持多选）
         dies: [], // 刀模列表（支持多选）
+        printing_type: 'front', // 印刷形式，默认正面印刷
         imposition_quantity: 1,
         status: 'pending',
         priority: 'normal',
@@ -518,6 +530,14 @@ export default {
       // 至少显示3个选中的选项标签后才显示+n标签
       const validDies = this.form.dies ? this.form.dies.filter(id => id !== 'NO_DIE' && id !== null) : []
       return validDies.length > 3
+    },
+    hasArtworkSelected() {
+      // 判断是否选择了图稿（排除"不需要图稿"选项）
+      if (!this.form.artworks || this.form.artworks.length === 0) {
+        return false
+      }
+      const validArtworks = this.form.artworks.filter(id => id !== 'NO_ARTWORK' && id !== null)
+      return validArtworks.length > 0
     }
   },
   watch: {
@@ -701,6 +721,9 @@ export default {
           })
         }
         
+        // 设置印刷形式为"不需要印刷"
+        this.form.printing_type = 'none'
+        
         // 清空产品列表（包括图稿自动填充的产品）
         this.productItems = [{
           product: null,
@@ -731,6 +754,9 @@ export default {
       
       // 如果没有选择任何图稿
       if (!artworkIds || artworkIds.length === 0) {
+        // 设置印刷形式为"不需要印刷"
+        this.form.printing_type = 'none'
+        
         // 如果产品列表为空，初始化一个空的产品项
         if (this.productItems.length === 0) {
           this.productItems = [{
@@ -750,6 +776,11 @@ export default {
       if (validArtworkIds.length === 0) {
         this.calculateTotalAmount()
         return
+      }
+
+      // 如果选择了图稿，且印刷形式是"不需要印刷"，则默认改为"正面印刷"
+      if (this.form.printing_type === 'none') {
+        this.form.printing_type = 'front'
       }
 
       // 选择了图稿（可能多个），加载所有图稿关联的产品并合并
@@ -985,6 +1016,7 @@ export default {
           artworks: data.artworks || [],
           // 刀模：后端现在返回的是 dies 数组
           dies: data.dies || [],
+          printing_type: data.printing_type || 'front',
           imposition_quantity: data.imposition_quantity || 1,
           status: data.status,
           priority: data.priority,
@@ -1148,6 +1180,11 @@ export default {
           // 处理图稿数据：过滤掉 'NO_ARTWORK'，保留所有有效的图稿ID
           const validArtworks = this.form.artworks ? this.form.artworks.filter(id => id !== 'NO_ARTWORK' && id !== null) : []
           data.artworks = validArtworks.length > 0 ? validArtworks : []
+          
+          // 如果没有选择图稿，设置印刷形式为"不需要印刷"
+          if (!data.artworks || data.artworks.length === 0) {
+            data.printing_type = 'none'
+          }
           
           // 处理刀模数据：过滤掉 'NO_DIE'，保留所有有效的刀模ID
           const validDies = this.form.dies ? this.form.dies.filter(id => id !== 'NO_DIE' && id !== null) : []

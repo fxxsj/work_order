@@ -126,6 +126,9 @@
           </span>
           <span v-else style="color: #909399;">-</span>
         </el-descriptions-item>
+        <el-descriptions-item label="印刷形式" v-if="workOrder.printing_type && workOrder.printing_type !== 'none'">
+          {{ getPrintingTypeDisplay(workOrder.printing_type) }}
+        </el-descriptions-item>
         <el-descriptions-item label="刀模">
           <span v-if="workOrder.die_codes && workOrder.die_codes.length > 0">
             <span v-for="(code, index) in workOrder.die_codes" :key="index">
@@ -418,6 +421,10 @@
                 </span>
                 <span v-else>-</span>
               </td>
+            </tr>
+            <tr v-if="workOrder.printing_type && workOrder.printing_type !== 'none'">
+              <td class="print-label">印刷形式：</td>
+              <td class="print-value">{{ getPrintingTypeDisplay(workOrder.printing_type) }}</td>
             </tr>
             <tr>
               <td class="print-label">刀模：</td>
@@ -949,6 +956,17 @@ export default {
         completed: '已完成'
       }
       return statusMap[status] || status
+    },
+    getPrintingTypeDisplay(printingType) {
+      const typeMap = {
+        none: '不需要印刷',
+        front: '正面印刷',
+        back: '背面印刷',
+        self_reverse: '自反印刷',
+        reverse_gripper: '反咬口印刷',
+        register: '套版印刷'
+      }
+      return typeMap[printingType] || printingType
     },
     handleUpdateMaterialStatus(row) {
       this.materialStatusForm = {
