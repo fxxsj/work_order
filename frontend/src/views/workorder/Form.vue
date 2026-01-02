@@ -830,6 +830,7 @@ export default {
         const allProducts = []
         const allCmykColors = new Set() // 收集所有图稿的CMYK颜色（去重）
         const allOtherColors = new Set() // 收集所有图稿的其他颜色（去重）
+        const allDies = new Set() // 收集所有图稿关联的刀模（去重）
         
         // 遍历所有选中的图稿
         for (const artworkId of validArtworkIds) {
@@ -849,6 +850,15 @@ export default {
             artworkDetail.other_colors.forEach(color => {
               if (color && color.trim()) {
                 allOtherColors.add(color.trim())
+              }
+            })
+          }
+          
+          // 收集图稿关联的刀模
+          if (artworkDetail.dies && Array.isArray(artworkDetail.dies)) {
+            artworkDetail.dies.forEach(dieId => {
+              if (dieId) {
+                allDies.add(dieId)
               }
             })
           }
@@ -930,6 +940,13 @@ export default {
         this.form.printing_cmyk_colors = cmykOrder.filter(c => allCmykColors.has(c))
         // 其他颜色：转换为数组
         this.form.printing_other_colors = Array.from(allOtherColors).filter(c => c && c.trim())
+        
+        // 自动填充关联的刀模（合并所有图稿的刀模，去重）
+        if (allDies.size > 0) {
+          this.form.dies = Array.from(allDies)
+        } else {
+          // 如果没有关联刀模，保持当前选择（不清空，允许用户手动选择）
+        }
       } catch (error) {
         console.error('加载图稿详情失败:', error)
         this.$message.error('加载图稿详情失败')

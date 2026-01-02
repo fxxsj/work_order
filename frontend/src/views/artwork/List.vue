@@ -36,6 +36,18 @@
           </template>
         </el-table-column>
         <el-table-column prop="imposition_size" label="拼版尺寸" width="180"></el-table-column>
+        <el-table-column label="关联刀模" min-width="200">
+          <template slot-scope="scope">
+            <el-tag
+              v-for="(code, index) in scope.row.die_codes"
+              :key="index"
+              style="margin-right: 5px; margin-bottom: 5px;"
+            >
+              {{ code }}<span v-if="scope.row.die_names && scope.row.die_names[index]"> - {{ scope.row.die_names[index] }}</span>
+            </el-tag>
+            <span v-if="!scope.row.die_codes || scope.row.die_codes.length === 0" style="color: #909399;">-</span>
+          </template>
+        </el-table-column>
         <el-table-column label="包含产品" min-width="200">
           <template slot-scope="scope">
             <el-tag
@@ -147,6 +159,23 @@
         <el-form-item label="拼版尺寸">
           <el-input v-model="form.imposition_size" placeholder="如：420x594mm"></el-input>
         </el-form-item>
+        <el-form-item label="关联刀模">
+          <el-select
+            v-model="form.dies"
+            placeholder="请选择刀模（可多选）"
+            filterable
+            clearable
+            multiple
+            style="width: 100%;"
+          >
+            <el-option
+              v-for="die in dieList"
+              :key="die.id"
+              :label="`${die.name} (${die.code})`"
+              :value="die.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
 
         <el-divider content-position="left">包含产品及拼版数量</el-divider>
         
@@ -219,7 +248,7 @@
 </template>
 
 <script>
-import { artworkAPI, productAPI } from '@/api/workorder'
+import { artworkAPI, productAPI, dieAPI } from '@/api/workorder'
 
 export default {
   name: 'ArtworkList',
@@ -228,6 +257,7 @@ export default {
       loading: false,
       tableData: [],
       productList: [],
+      dieList: [], // 刀模列表
       currentPage: 1,
       pageSize: 20,
       total: 0,
@@ -242,6 +272,7 @@ export default {
         cmyk_colors: [],
         other_colors: [],
         imposition_size: '',
+        dies: [], // 关联刀模
         notes: ''
       },
       rules: {
@@ -268,6 +299,7 @@ export default {
   created() {
     this.loadData()
     this.loadProductList()
+    this.loadDieList()
   },
   methods: {
     // 检查用户是否有指定权限
@@ -301,6 +333,14 @@ export default {
         this.productList = response.results || []
       } catch (error) {
         console.error('加载产品列表失败:', error)
+      }
+    },
+    async loadDieList() {
+      try {
+        const response = await dieAPI.getList({ page_size: 100 })
+        this.dieList = response.results || []
+      } catch (error) {
+        console.error('加载刀模列表失败:', error)
       }
     },
     async loadData() {
@@ -363,6 +403,7 @@ export default {
             cmyk_colors: detail.cmyk_colors || [],
             other_colors: Array.isArray(detail.other_colors) ? detail.other_colors : (detail.other_colors ? [detail.other_colors] : []),
             imposition_size: detail.imposition_size || '',
+            dies: detail.dies || [],
             notes: detail.notes || ''
           }
           
@@ -389,6 +430,7 @@ export default {
           cmyk_colors: [],
           other_colors: [],
           imposition_size: '',
+          dies: [],
           notes: ''
         }
         this.productItems = []
