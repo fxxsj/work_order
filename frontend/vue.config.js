@@ -6,7 +6,7 @@ module.exports = defineConfig({
     port: 8080,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
         secure: false,
         ws: true,
@@ -16,7 +16,7 @@ module.exports = defineConfig({
           console.error('Proxy error:', err.message)
           console.error('Request URL:', req.url)
           if (err.code === 'ECONNREFUSED') {
-            console.error('无法连接到后端服务器 http://localhost:8000')
+            console.error('无法连接到后端服务器 http://127.0.0.1:8000')
             console.error('请确保后端服务器正在运行: cd backend && python manage.py runserver')
           }
         },
@@ -28,7 +28,7 @@ module.exports = defineConfig({
         }
       },
       '/admin': {
-        target: 'http://localhost:8000',
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
         secure: false,
         timeout: 30000

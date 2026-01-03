@@ -125,11 +125,25 @@
 
         <el-divider></el-divider>
 
-        <!-- 图稿选择 -->
-        <el-form-item label="图稿（CTP版）">
+        <!-- 图稿类型选择 -->
+        <el-form-item label="图稿（CTP版）" prop="artwork_type">
+          <el-radio-group v-model="form.artwork_type" @change="handleArtworkTypeChange">
+            <el-radio label="no_artwork">不需要图稿</el-radio>
+            <el-radio label="new_design">新设计图稿</el-radio>
+            <el-radio label="need_update">需更新图稿</el-radio>
+            <el-radio label="old_artwork">旧图稿</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
+        <!-- 图稿选择（仅在选择了"需更新图稿"或"旧图稿"时显示） -->
+        <el-form-item 
+          label="选择图稿" 
+          prop="artworks"
+          v-if="form.artwork_type === 'need_update' || form.artwork_type === 'old_artwork'"
+        >
           <el-select
             v-model="form.artworks"
-            placeholder="请选择图稿（可多选）"
+            placeholder="请选择图稿（可多选，至少选择一个）"
             filterable
             clearable
             multiple
@@ -139,10 +153,6 @@
             @visible-change="handleArtworkSelectVisible"
           >
             <el-option
-              label="不需要图稿"
-              :value="'NO_ARTWORK'"
-            ></el-option>
-            <el-option
               v-for="artwork in artworkList"
               :key="artwork.id"
               :label="`${artwork.code} - ${artwork.name}`"
@@ -150,12 +160,12 @@
             ></el-option>
           </el-select>
           <span style="color: #909399; font-size: 12px; margin-left: 10px;">
-            选择"不需要图稿"可手动输入产品，选择具体图稿将自动填充关联的产品信息到下方产品列表，可多选（如纸卡双面印刷的面版和底版）
+            请至少选择一个图稿，可多选（如纸卡双面印刷的面版和底版）
           </span>
         </el-form-item>
 
-        <!-- 印刷形式（仅在选择了图稿时显示） -->
-        <el-form-item label="印刷形式" v-if="hasArtworkSelected">
+        <!-- 印刷形式（仅在选择了"需更新图稿"或"旧图稿"且有图稿时显示） -->
+        <el-form-item label="印刷形式" v-if="hasArtworkSelected && shouldShowArtworkSelect">
           <el-radio-group v-model="form.printing_type">
             <el-radio label="front">正面印刷</el-radio>
             <el-radio label="back">背面印刷</el-radio>
@@ -165,8 +175,8 @@
           </el-radio-group>
         </el-form-item>
 
-        <!-- 印刷色数（仅在选择了图稿时显示） -->
-        <template v-if="hasArtworkSelected">
+        <!-- 印刷色数（仅在选择了"需更新图稿"或"旧图稿"且有图稿时显示） -->
+        <template v-if="hasArtworkSelected && shouldShowArtworkSelect">
           <el-form-item label="CMYK颜色">
             <el-checkbox-group v-model="form.printing_cmyk_colors">
               <el-checkbox label="C">C</el-checkbox>
@@ -350,11 +360,25 @@
 
         <el-divider></el-divider>
 
-        <!-- 刀模选择 -->
-        <el-form-item label="刀模">
+        <!-- 刀模类型选择 -->
+        <el-form-item label="刀模" prop="die_type">
+          <el-radio-group v-model="form.die_type" @change="handleDieTypeChange">
+            <el-radio label="no_die">不需要刀模</el-radio>
+            <el-radio label="new_design">新设计刀模</el-radio>
+            <el-radio label="need_update">需更新刀模</el-radio>
+            <el-radio label="old_die">旧刀模</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
+        <!-- 刀模选择（仅在选择了"需更新刀模"或"旧刀模"时显示） -->
+        <el-form-item 
+          label="选择刀模" 
+          prop="dies"
+          v-if="form.die_type === 'need_update' || form.die_type === 'old_die'"
+        >
           <el-select
             v-model="form.dies"
-            placeholder="请选择刀模（可多选）"
+            placeholder="请选择刀模（可多选，至少选择一个）"
             filterable
             clearable
             multiple
@@ -364,10 +388,6 @@
             @visible-change="handleDieSelectVisible"
           >
             <el-option
-              label="不需要刀模"
-              :value="'NO_DIE'"
-            ></el-option>
-            <el-option
               v-for="die in dieList"
               :key="die.id"
               :label="`${die.code} - ${die.name}`"
@@ -375,7 +395,7 @@
             ></el-option>
           </el-select>
           <span style="color: #909399; font-size: 12px; margin-left: 10px;">
-            选择"不需要刀模"表示该施工单不需要模切工序，选择具体刀模可多选
+            请至少选择一个刀模，可多选
           </span>
         </el-form-item>
 
@@ -506,8 +526,6 @@ export default {
       productItems: [], // 产品列表（可手动添加或从图稿自动填充）
       materialItems: [], // 物料列表
       selectedProcesses: [],
-      hasNoArtworkSelected: false, // 标记是否已选中"不需要图稿"
-      hasNoDieSelected: false, // 标记是否已选中"不需要刀模"
       form: {
         customer: null,
         product: null,
@@ -515,7 +533,9 @@ export default {
         specification: '',
         quantity: 1,
         unit: '件',
+        artwork_type: 'no_artwork', // 图稿类型：不需要图稿、新设计图稿、需更新图稿、旧图稿
         artworks: [], // 图稿列表（支持多选）
+        die_type: 'no_die', // 刀模类型：不需要刀模、新设计刀模、需更新刀模、旧刀模
         dies: [], // 刀模列表（支持多选）
         printing_type: 'front', // 印刷形式，默认正面印刷
         printing_cmyk_colors: [], // 印刷CMYK颜色
@@ -541,6 +561,46 @@ export default {
         priority: [
           { required: true, message: '请选择优先级', trigger: 'change' }
         ],
+        artwork_type: [
+          { required: true, message: '请选择图稿类型', trigger: 'change' }
+        ],
+        artworks: [
+          { 
+            validator: (rule, value, callback) => {
+              // 如果选择了"需更新图稿"或"旧图稿"，必须至少选择一个图稿
+              if ((this.form.artwork_type === 'need_update' || this.form.artwork_type === 'old_artwork')) {
+                if (!this.form.artworks || this.form.artworks.length === 0) {
+                  callback(new Error('选择"需更新图稿"或"旧图稿"时，请至少选择一个图稿'))
+                } else {
+                  callback()
+                }
+              } else {
+                callback()
+              }
+            }, 
+            trigger: 'change' 
+          }
+        ],
+        die_type: [
+          { required: true, message: '请选择刀模类型', trigger: 'change' }
+        ],
+        dies: [
+          { 
+            validator: (rule, value, callback) => {
+              // 如果选择了"需更新刀模"或"旧刀模"，必须至少选择一个刀模
+              if ((this.form.die_type === 'need_update' || this.form.die_type === 'old_die')) {
+                if (!this.form.dies || this.form.dies.length === 0) {
+                  callback(new Error('选择"需更新刀模"或"旧刀模"时，请至少选择一个刀模'))
+                } else {
+                  callback()
+                }
+              } else {
+                callback()
+              }
+            }, 
+            trigger: 'change' 
+          }
+        ],
         order_date: [
           { required: true, message: '请选择下单日期', trigger: 'change' }
         ],
@@ -559,21 +619,29 @@ export default {
     },
     shouldCollapseTags() {
       // 至少显示3个选中的选项标签后才显示+n标签
-      const validArtworks = this.form.artworks ? this.form.artworks.filter(id => id !== 'NO_ARTWORK' && id !== null) : []
+      const validArtworks = this.form.artworks ? this.form.artworks.filter(id => id !== null) : []
       return validArtworks.length > 3
     },
     shouldCollapseDieTags() {
       // 至少显示3个选中的选项标签后才显示+n标签
-      const validDies = this.form.dies ? this.form.dies.filter(id => id !== 'NO_DIE' && id !== null) : []
+      const validDies = this.form.dies ? this.form.dies.filter(id => id !== null) : []
       return validDies.length > 3
     },
+    shouldShowDieSelect() {
+      // 只有当选择了"需更新刀模"或"旧刀模"时才显示刀模多选
+      return this.form.die_type === 'need_update' || this.form.die_type === 'old_die'
+    },
     hasArtworkSelected() {
-      // 判断是否选择了图稿（排除"不需要图稿"选项）
+      // 判断是否选择了图稿
       if (!this.form.artworks || this.form.artworks.length === 0) {
         return false
       }
-      const validArtworks = this.form.artworks.filter(id => id !== 'NO_ARTWORK' && id !== null)
+      const validArtworks = this.form.artworks.filter(id => id !== null)
       return validArtworks.length > 0
+    },
+    shouldShowArtworkSelect() {
+      // 只有当选择了"需更新图稿"或"旧图稿"时才显示图稿多选
+      return this.form.artwork_type === 'need_update' || this.form.artwork_type === 'old_artwork'
     }
   },
   watch: {
@@ -625,6 +693,35 @@ export default {
     }
   },
   methods: {
+    handleArtworkTypeChange(value) {
+      // 当图稿类型改变时，根据类型处理图稿选择
+      if (value === 'no_artwork' || value === 'new_design') {
+        // 不需要图稿或新设计图稿时，清空图稿选择
+        this.form.artworks = []
+        // 设置印刷形式为"不需要印刷"
+        this.form.printing_type = 'none'
+        // 清空印刷色数
+        this.form.printing_cmyk_colors = []
+        this.form.printing_other_colors = []
+        
+        // 清空产品列表（如果之前有从图稿填充的产品）
+        if (value === 'no_artwork') {
+          this.productItems = [{
+            product: null,
+            quantity: 1,
+            unit: '件',
+            specification: ''
+          }]
+          // 清空工序和物料
+          this.selectedProcesses = []
+          this.materialItems = []
+        }
+      }
+      // 触发验证
+      this.$nextTick(() => {
+        this.$refs.form.validateField('artworks')
+      })
+    },
     async loadCustomerList() {
       try {
         const response = await customerAPI.getList({ page_size: 100 })
@@ -747,50 +844,6 @@ export default {
       }
     },
     async handleArtworkChange(artworkIds) {
-      // 如果选择了"不需要图稿"
-      if (artworkIds && artworkIds.includes('NO_ARTWORK')) {
-        // 如果同时选择了"不需要图稿"和其他图稿，移除其他图稿，只保留"不需要图稿"
-        const otherArtworks = artworkIds.filter(id => id !== 'NO_ARTWORK')
-        if (otherArtworks.length > 0) {
-          this.$nextTick(() => {
-            this.form.artworks = ['NO_ARTWORK']
-          })
-        }
-        
-        // 设置印刷形式为"不需要印刷"
-        this.form.printing_type = 'none'
-        // 清空印刷色数
-        this.form.printing_cmyk_colors = []
-        this.form.printing_other_colors = []
-        
-        // 清空产品列表（包括图稿自动填充的产品）
-        this.productItems = [{
-          product: null,
-          quantity: 1,
-          unit: '件',
-          specification: ''
-        }]
-        
-        // 清空工序和物料
-        this.selectedProcesses = []
-        this.materialItems = []
-        
-        this.calculateTotalAmount()
-        return
-      }
-      
-      // 如果之前选择了"不需要图稿"，现在选择了其他图稿，移除"不需要图稿"
-      if (this.hasNoArtworkSelected && artworkIds && artworkIds.length > 0) {
-        const validArtworkIds = artworkIds.filter(id => id !== 'NO_ARTWORK')
-        if (validArtworkIds.length > 0) {
-          this.$nextTick(() => {
-            this.form.artworks = validArtworkIds
-          })
-          artworkIds = validArtworkIds
-          this.hasNoArtworkSelected = false
-        }
-      }
-      
       // 如果没有选择任何图稿
       if (!artworkIds || artworkIds.length === 0) {
         // 设置印刷形式为"不需要印刷"
@@ -809,11 +862,15 @@ export default {
           }]
         }
         this.calculateTotalAmount()
+        // 触发验证
+        this.$nextTick(() => {
+          this.$refs.form.validateField('artworks')
+        })
         return
       }
       
-      // 过滤掉 'NO_ARTWORK' 值，只处理有效的图稿ID
-      const validArtworkIds = artworkIds.filter(id => id !== 'NO_ARTWORK' && id !== null)
+      // 过滤掉无效值，只处理有效的图稿ID
+      const validArtworkIds = artworkIds.filter(id => id !== null)
       
       if (validArtworkIds.length === 0) {
         this.calculateTotalAmount()
@@ -951,38 +1008,31 @@ export default {
         console.error('加载图稿详情失败:', error)
         this.$message.error('加载图稿详情失败')
       }
-    },
-    handleDieSelectVisible(visible) {
-      // 当下拉框打开时，如果已选中"不需要刀模"，准备处理互斥逻辑
-      if (visible && this.form.dies && this.form.dies.includes('NO_DIE')) {
-        this.hasNoDieSelected = true
-      } else {
-        this.hasNoDieSelected = false
-      }
-    },
-    handleDieChange(dieIds) {
-      // 如果选择了"不需要刀模"
-      if (dieIds && dieIds.includes('NO_DIE')) {
-        // 如果同时选择了"不需要刀模"和其他刀模，移除其他刀模，只保留"不需要刀模"
-        const otherDies = dieIds.filter(id => id !== 'NO_DIE')
-        if (otherDies.length > 0) {
-          this.$nextTick(() => {
-            this.form.dies = ['NO_DIE']
-          })
-        }
-        return
-      }
       
-      // 如果之前选择了"不需要刀模"，现在选择了其他刀模，移除"不需要刀模"
-      if (this.hasNoDieSelected && dieIds && dieIds.length > 0) {
-        const validDieIds = dieIds.filter(id => id !== 'NO_DIE')
-        if (validDieIds.length > 0) {
-          this.$nextTick(() => {
-            this.form.dies = validDieIds
-          })
-          this.hasNoDieSelected = false
-        }
+      // 触发验证
+      this.$nextTick(() => {
+        this.$refs.form.validateField('artworks')
+      })
+    },
+    handleDieTypeChange(value) {
+      // 当刀模类型改变时，根据类型处理刀模选择
+      if (value === 'no_die' || value === 'new_design') {
+        // 不需要刀模或新设计刀模时，清空刀模选择
+        this.form.dies = []
       }
+      // 触发验证
+      this.$nextTick(() => {
+        this.$refs.form.validateField('dies')
+      })
+    },
+    handleDieSelectVisible() {
+      // 当下拉框打开时的处理（如果需要）
+    },
+    handleDieChange() {
+      // 触发验证
+      this.$nextTick(() => {
+        this.$refs.form.validateField('dies')
+      })
     },
     addProductItem() {
       this.productItems.push({
@@ -1105,8 +1155,12 @@ export default {
           specification: data.specification || '',
           quantity: data.quantity,
           unit: data.unit,
+          // 图稿类型
+          artwork_type: data.artwork_type || 'no_artwork',
           // 图稿：后端现在返回的是 artworks 数组
           artworks: data.artworks || [],
+          // 刀模类型
+          die_type: data.die_type || 'no_die',
           // 刀模：后端现在返回的是 dies 数组
           dies: data.dies || [],
           printing_type: data.printing_type || 'front',
@@ -1272,12 +1326,20 @@ export default {
             delete data.actual_delivery_date
           }
           
-          // 处理图稿数据：过滤掉 'NO_ARTWORK'，保留所有有效的图稿ID
-          const validArtworks = this.form.artworks ? this.form.artworks.filter(id => id !== 'NO_ARTWORK' && id !== null) : []
+          // 处理图稿数据：保留所有有效的图稿ID
+          const validArtworks = this.form.artworks ? this.form.artworks.filter(id => id !== null) : []
           data.artworks = validArtworks.length > 0 ? validArtworks : []
           
-          // 如果没有选择图稿，设置印刷形式为"不需要印刷"
-          if (!data.artworks || data.artworks.length === 0) {
+          // 根据图稿类型处理图稿数据
+          if (this.form.artwork_type === 'no_artwork' || this.form.artwork_type === 'new_design') {
+            // 不需要图稿或新设计图稿时，清空图稿选择
+            data.artworks = []
+            // 设置印刷形式为"不需要印刷"
+            data.printing_type = 'none'
+            data.printing_cmyk_colors = []
+            data.printing_other_colors = []
+          } else if (!data.artworks || data.artworks.length === 0) {
+            // 如果选择了"需更新图稿"或"旧图稿"但没有选择图稿，设置印刷形式为"不需要印刷"
             data.printing_type = 'none'
             data.printing_cmyk_colors = []
             data.printing_other_colors = []
@@ -1288,9 +1350,15 @@ export default {
             data.printing_other_colors = data.printing_other_colors.filter(color => color && color.trim())
           }
           
-          // 处理刀模数据：过滤掉 'NO_DIE'，保留所有有效的刀模ID
-          const validDies = this.form.dies ? this.form.dies.filter(id => id !== 'NO_DIE' && id !== null) : []
+          // 处理刀模数据：根据刀模类型处理刀模数据
+          const validDies = this.form.dies ? this.form.dies.filter(id => id !== null) : []
           data.dies = validDies.length > 0 ? validDies : []
+          
+          // 根据刀模类型处理刀模数据
+          if (this.form.die_type === 'no_die' || this.form.die_type === 'new_design') {
+            // 不需要刀模或新设计刀模时，清空刀模选择
+            data.dies = []
+          }
           
           // 处理产品数据
           if (this.productItems && this.productItems.length > 0 && this.productItems[0].product) {
