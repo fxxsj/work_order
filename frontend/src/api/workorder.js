@@ -509,6 +509,14 @@ export const workOrderTaskAPI = {
       url: `/workorder-tasks/${id}/`,
       method: 'delete'
     })
+  },
+  // 完成任务（支持设计图稿任务时选择图稿）
+  complete(id, data) {
+    return request({
+      url: `/workorder-tasks/${id}/complete/`,
+      method: 'post',
+      data
+    })
   }
 }
 

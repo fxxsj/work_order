@@ -238,7 +238,8 @@ export default {
     async loadProcessList() {
       try {
         const response = await processAPI.getList({ is_active: true, page_size: 1000 })
-        this.processList = response.data.results || []
+        // API 响应已经被 Axios 拦截器处理，直接使用 response
+        this.processList = response.results || []
       } catch (error) {
         console.error('加载工序列表失败:', error)
       }

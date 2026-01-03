@@ -57,7 +57,7 @@
         <el-descriptions-item label="下单日期">{{ workOrder.order_date | formatDate }}</el-descriptions-item>
         <el-descriptions-item label="交货日期">{{ workOrder.delivery_date | formatDate }}</el-descriptions-item>
         <el-descriptions-item label="实际交货日期">
-          {{ workOrder.actual_delivery_date ? (workOrder.actual_delivery_date | formatDate) : '-' }}
+          {{ formatDate(workOrder.actual_delivery_date) }}
         </el-descriptions-item>
         <el-descriptions-item label="审核人" v-if="workOrder.approved_by_name">
           {{ workOrder.approved_by_name }}
@@ -314,17 +314,17 @@
           </el-table-column>
           <el-table-column prop="purchase_date" label="采购日期" width="120">
             <template slot-scope="scope">
-              {{ scope.row.purchase_date | formatDate || '-' }}
+              {{ scope.row.purchase_date | formatDate }}
             </template>
           </el-table-column>
           <el-table-column prop="received_date" label="回料日期" width="120">
             <template slot-scope="scope">
-              {{ scope.row.received_date | formatDate || '-' }}
+              {{ scope.row.received_date | formatDate }}
             </template>
           </el-table-column>
           <el-table-column prop="cut_date" label="开料日期" width="120">
             <template slot-scope="scope">
-              {{ scope.row.cut_date | formatDate || '-' }}
+              {{ scope.row.cut_date | formatDate }}
             </template>
           </el-table-column>
           <el-table-column prop="notes" label="备注" show-overflow-tooltip></el-table-column>
@@ -568,7 +568,7 @@
               <tr>
                 <td class="print-label" style="font-weight: bold;">完成日期</td>
                 <td v-for="process in workOrder.order_processes" :key="process.id">
-                  {{ process.actual_end_time ? (process.actual_end_time | formatDate) : '' }}
+                  {{ process.actual_end_time ? formatDate(process.actual_end_time) : '' }}
                 </td>
               </tr>
             </tbody>
@@ -744,10 +744,10 @@
                 {{ process.quantity_defective }}
               </el-descriptions-item>
               <el-descriptions-item label="开始时间">
-                {{ process.actual_start_time ? (process.actual_start_time | formatDateTime) : '-' }}
+                {{ formatDateTime(process.actual_start_time) }}
               </el-descriptions-item>
               <el-descriptions-item label="结束时间">
-                {{ process.actual_end_time ? (process.actual_end_time | formatDateTime) : '-' }}
+                {{ formatDateTime(process.actual_end_time) }}
               </el-descriptions-item>
               <el-descriptions-item label="耗时">
                 {{ process.duration_hours ? process.duration_hours + ' 小时' : '-' }}
@@ -826,7 +826,7 @@
       </el-form>
       <div slot="footer">
         <el-button @click="completeProcessDialog = false">取消</el-button>
-        <el-button type="primary" @click="confirmCompleteProcess">确定</el-button>
+        <el-button type="primary" @click="handleCompleteProcess">确定</el-button>
       </div>
     </el-dialog>
 
@@ -857,11 +857,91 @@
         <el-button type="primary" @click="handleAddMaterial">确定</el-button>
       </div>
     </el-dialog>
+
+    <!-- 完成任务对话框（设计图稿/刀模任务） -->
+    <el-dialog
+      title="完成任务"
+      :visible.sync="completeTaskDialogVisible"
+      width="600px"
+      @close="resetCompleteTaskForm"
+    >
+      <el-form
+        ref="completeTaskForm"
+        :model="completeTaskForm"
+        label-width="120px"
+      >
+        <el-form-item
+          v-if="currentTask && (currentTask.work_content.includes('设计图稿') || currentTask.work_content.includes('更新图稿'))"
+          label="选择图稿"
+          prop="artwork_ids"
+          :rules="[{ required: true, message: '请至少选择一个图稿', trigger: 'change' }]"
+        >
+          <el-select
+            v-model="completeTaskForm.artwork_ids"
+            multiple
+            filterable
+            placeholder="请选择图稿"
+            style="width: 100%;"
+            :loading="loadingArtworks"
+            @focus="loadArtworkList"
+          >
+            <el-option
+              v-for="artwork in artworkList"
+              :key="artwork.id"
+              :label="`${artwork.code || artwork.base_code || ''} - ${artwork.name || ''}`"
+              :value="artwork.id"
+            ></el-option>
+          </el-select>
+          <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+            选中的图稿将自动关联到施工单
+          </div>
+        </el-form-item>
+        <el-form-item
+          v-if="currentTask && (currentTask.work_content.includes('设计刀模') || currentTask.work_content.includes('更新刀模'))"
+          label="选择刀模"
+          prop="die_ids"
+          :rules="[{ required: true, message: '请至少选择一个刀模', trigger: 'change' }]"
+        >
+          <el-select
+            v-model="completeTaskForm.die_ids"
+            multiple
+            filterable
+            placeholder="请选择刀模"
+            style="width: 100%;"
+            :loading="loadingDies"
+            @focus="loadDieList"
+          >
+            <el-option
+              v-for="die in dieList"
+              :key="die.id"
+              :label="`${die.code} - ${die.name}`"
+              :value="die.id"
+            ></el-option>
+          </el-select>
+          <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+            选中的刀模将自动关联到施工单
+          </div>
+        </el-form-item>
+        <el-form-item label="任务备注">
+          <el-input
+            v-model="completeTaskForm.notes"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入任务备注（可选）"
+          ></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="completeTaskDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleConfirmCompleteTask" :loading="completingTask">确定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { workOrderAPI, processAPI, materialAPI, workOrderProcessAPI, workOrderMaterialAPI, workOrderTaskAPI, departmentAPI } from '@/api/workorder'
+import Vue from 'vue'
+import { workOrderAPI, processAPI, materialAPI, workOrderProcessAPI, workOrderMaterialAPI, workOrderTaskAPI, departmentAPI, artworkAPI, dieAPI } from '@/api/workorder'
 // 导入配置文件，如果不存在则使用默认值
 let config
 try {
@@ -942,7 +1022,20 @@ export default {
       approving: false,
       approvalForm: {
         comment: ''
-      }
+      },
+      // 完成任务对话框
+      completeTaskDialogVisible: false,
+      currentTask: null,
+      completeTaskForm: {
+        artwork_ids: [],
+        die_ids: [],
+        notes: ''
+      },
+      artworkList: [],
+      dieList: [],
+      loadingArtworks: false,
+      loadingDies: false,
+      completingTask: false
     }
   },
   computed: {
@@ -978,6 +1071,42 @@ export default {
       return statusMap[currentStatus] || []
     }
   },
+  filters: {
+    formatDate(value) {
+      if (!value) return '-'
+      const date = new Date(value)
+      if (isNaN(date.getTime())) return value
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    },
+    formatDateTime(value) {
+      if (!value) return '-'
+      const date = new Date(value)
+      if (isNaN(date.getTime())) return value
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      const seconds = String(date.getSeconds()).padStart(2, '0')
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+    }
+  },
+  beforeCreate() {
+    // 确保过滤器可用（从全局过滤器复制）
+    if (!this.$options.filters) {
+      this.$options.filters = {}
+    }
+    // 从 Vue 全局过滤器复制
+    if (Vue.filter('formatDate') && !this.$options.filters.formatDate) {
+      this.$options.filters.formatDate = Vue.filter('formatDate')
+    }
+    if (Vue.filter('formatDateTime') && !this.$options.filters.formatDateTime) {
+      this.$options.filters.formatDateTime = Vue.filter('formatDateTime')
+    }
+  },
   created() {
     this.loadData()
     this.loadProcessList()
@@ -986,6 +1115,28 @@ export default {
     this.loadUserList()
   },
   methods: {
+    // 日期格式化方法（供模板中直接调用）
+    formatDate(value) {
+      if (!value) return '-'
+      const date = new Date(value)
+      if (isNaN(date.getTime())) return value
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    },
+    formatDateTime(value) {
+      if (!value) return '-'
+      const date = new Date(value)
+      if (isNaN(date.getTime())) return value
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      const seconds = String(date.getSeconds()).padStart(2, '0')
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+    },
     async loadData() {
       this.loading = true
       try {
@@ -1139,26 +1290,122 @@ export default {
       }
     },
     async handleCompleteTask(task) {
-      try {
-        const updateData = {
-          status: 'completed'
+      // 检查任务内容是否包含"设计图稿"、"更新图稿"、"设计刀模"或"更新刀模"
+      const isDesignArtworkTask = task.work_content && (task.work_content.includes('设计图稿') || task.work_content.includes('更新图稿'))
+      const isDesignDieTask = task.work_content && (task.work_content.includes('设计刀模') || task.work_content.includes('更新刀模'))
+      
+      if (isDesignArtworkTask || isDesignDieTask) {
+        // 显示对话框让用户选择图稿或刀模
+        this.currentTask = task
+        this.completeTaskDialogVisible = true
+        // 如果是设计图稿任务，预加载图稿列表
+        if (isDesignArtworkTask) {
+          this.loadArtworkList()
         }
-        // 如果完成数量未设置，使用生产数量
-        if (task.quantity_completed !== undefined && task.quantity_completed !== null) {
-          updateData.quantity_completed = task.quantity_completed
-        } else if (task.production_quantity) {
-          updateData.quantity_completed = task.production_quantity
+        // 如果是设计刀模任务，预加载刀模列表
+        if (isDesignDieTask) {
+          this.loadDieList()
+        }
+      } else {
+        // 普通任务：直接完成
+        try {
+          const updateData = {
+            status: 'completed'
+          }
+          // 如果完成数量未设置，使用生产数量
+          if (task.quantity_completed !== undefined && task.quantity_completed !== null) {
+            updateData.quantity_completed = task.quantity_completed
+          } else if (task.production_quantity) {
+            updateData.quantity_completed = task.production_quantity
+          }
+          
+          await workOrderTaskAPI.update(task.id, updateData)
+          this.$message.success('任务已完成')
+          this.loadData()
+        } catch (error) {
+          const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
+                             (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
+          this.$message.error(errorMessage)
+          console.error('完成任务失败:', error)
+        }
+      }
+    },
+    async loadArtworkList() {
+      if (this.artworkList.length > 0) {
+        return // 已经加载过，不再重复加载
+      }
+      this.loadingArtworks = true
+      try {
+        const response = await artworkAPI.getList({ page_size: 1000 })
+        this.artworkList = response.results || []
+      } catch (error) {
+        console.error('加载图稿列表失败:', error)
+        this.$message.error('加载图稿列表失败')
+      } finally {
+        this.loadingArtworks = false
+      }
+    },
+    async loadDieList() {
+      if (this.dieList.length > 0) {
+        return // 已经加载过，不再重复加载
+      }
+      this.loadingDies = true
+      try {
+        const response = await dieAPI.getList({ page_size: 1000 })
+        this.dieList = response.results || []
+      } catch (error) {
+        console.error('加载刀模列表失败:', error)
+        this.$message.error('加载刀模列表失败')
+      } finally {
+        this.loadingDies = false
+      }
+    },
+    resetCompleteTaskForm() {
+      this.currentTask = null
+      this.completeTaskForm = {
+        artwork_ids: [],
+        die_ids: [],
+        notes: ''
+      }
+      this.$nextTick(() => {
+        if (this.$refs.completeTaskForm) {
+          this.$refs.completeTaskForm.clearValidate()
+        }
+      })
+    },
+    async handleConfirmCompleteTask() {
+      this.$refs.completeTaskForm.validate(async (valid) => {
+        if (!valid) {
+          return false
         }
         
-        await workOrderTaskAPI.update(task.id, updateData)
-        this.$message.success('任务已完成')
-        this.loadData()
-      } catch (error) {
-        const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
-                           (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
-        this.$message.error(errorMessage)
-        console.error('完成任务失败:', error)
-      }
+        this.completingTask = true
+        try {
+          const data = {
+            notes: this.completeTaskForm.notes
+          }
+          
+          if (this.currentTask.work_content.includes('设计图稿') || this.currentTask.work_content.includes('更新图稿')) {
+            data.artwork_ids = this.completeTaskForm.artwork_ids
+          }
+          
+          if (this.currentTask.work_content.includes('设计刀模') || this.currentTask.work_content.includes('更新刀模')) {
+            data.die_ids = this.completeTaskForm.die_ids
+          }
+          
+          await workOrderTaskAPI.complete(this.currentTask.id, data)
+          this.$message.success('任务已完成')
+          this.completeTaskDialogVisible = false
+          this.loadData()
+        } catch (error) {
+          const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
+                             (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
+          this.$message.error(errorMessage)
+          console.error('完成任务失败:', error)
+        } finally {
+          this.completingTask = false
+        }
+      })
     },
     getProcessStatusType(status) {
       const types = {
