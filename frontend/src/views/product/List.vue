@@ -158,6 +158,23 @@
                   ></el-input>
                 </template>
               </el-table-column>
+              <el-table-column label="需要开料" width="100" align="center">
+                <template slot-scope="scope">
+                  <el-switch
+                    v-model="scope.row.need_cutting"
+                    size="small"
+                  ></el-switch>
+                </template>
+              </el-table-column>
+              <el-table-column label="备注" min-width="200">
+                <template slot-scope="scope">
+                  <el-input
+                    v-model="scope.row.notes"
+                    placeholder="请输入备注"
+                    size="small"
+                  ></el-input>
+                </template>
+              </el-table-column>
               <el-table-column label="操作" width="100" align="center">
                 <template slot-scope="scope">
                   <el-button
@@ -323,6 +340,8 @@ export default {
         material: null,
         material_size: '',
         material_usage: '',
+        need_cutting: false,
+        notes: '',
         sort_order: this.productMaterialItems.length
       })
     },
@@ -385,6 +404,8 @@ export default {
               material: m.material,
               material_size: m.material_size || '',
               material_usage: m.material_usage || '',
+              need_cutting: m.need_cutting || false,
+              notes: m.notes || '',
               sort_order: m.sort_order || 0
             }))
           } else {
@@ -464,6 +485,8 @@ export default {
               material: item.material,
               material_size: item.material_size || '',
               material_usage: item.material_usage || '',
+              need_cutting: item.need_cutting || false,
+              notes: item.notes || '',
               sort_order: i
             })
           } catch (error) {

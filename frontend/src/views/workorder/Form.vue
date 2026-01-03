@@ -403,11 +403,12 @@
 
         <!-- 工序选择 -->
         <el-form-item label="工序">
-          <el-checkbox-group v-model="selectedProcesses">
+          <el-checkbox-group v-model="selectedProcesses" @change="handleProcessChange">
             <el-checkbox
               v-for="process in allProcesses"
               :key="process.id"
               :label="process.id"
+              :disabled="isPlateMakingProcess(process) || isPrintingProcess(process) || isDieCuttingProcess(process) || isCuttingProcess(process) || isPackagingProcess(process)"
             >
               {{ process.name }}
             </el-checkbox>
@@ -434,6 +435,7 @@
                     placeholder="请选择物料"
                     filterable
                     style="width: 100%;"
+                    @change="handleMaterialChange(scope.$index)"
                   >
                     <el-option
                       v-for="material in materialList"
@@ -460,6 +462,15 @@
                     placeholder="如：1000张、50平方米"
                     size="small"
                   ></el-input>
+                </template>
+              </el-table-column>
+              <el-table-column label="需要开料" width="100" align="center">
+                <template slot-scope="scope">
+                  <el-switch
+                    v-model="scope.row.need_cutting"
+                    size="small"
+                    @change="updateCuttingProcess"
+                  ></el-switch>
                 </template>
               </el-table-column>
               <el-table-column label="备注" min-width="200">
@@ -631,6 +642,87 @@ export default {
       // 只有当选择了"需更新刀模"或"旧刀模"时才显示刀模多选
       return this.form.die_type === 'need_update' || this.form.die_type === 'old_die'
     },
+    shouldSelectPlateMakingProcess() {
+      // 判断是否需要选中制版工序
+      // 如果不需要图稿且不需要刀模，则不需要制版
+      if (this.form.artwork_type === 'no_artwork' && this.form.die_type === 'no_die') {
+        return false
+      }
+      // 如果同时选择了旧图稿和旧刀模，则不需要制版
+      if (this.form.artwork_type === 'old_artwork' && this.form.die_type === 'old_die') {
+        return false
+      }
+      // 如果不需要图稿且选择了旧刀模，则不需要制版
+      if (this.form.artwork_type === 'no_artwork' && this.form.die_type === 'old_die') {
+        return false
+      }
+      // 如果选择了旧图稿且不需要刀模，则不需要制版
+      if (this.form.artwork_type === 'old_artwork' && this.form.die_type === 'no_die') {
+        return false
+      }
+      // 其他情况都需要制版
+      return true
+    },
+    plateMakingProcessId() {
+      // 查找制版工序的ID
+      const plateMakingProcess = this.allProcesses.find(p => 
+        (p.name && (p.name.includes('制版') || p.name.includes('设计')))
+      )
+      return plateMakingProcess ? plateMakingProcess.id : null
+    },
+    shouldSelectPrintingProcess() {
+      // 判断是否需要选中印刷工序
+      // 如果不需要图稿，则不需要印刷
+      return this.form.artwork_type !== 'no_artwork'
+    },
+    printingProcessId() {
+      // 查找印刷工序的ID
+      const printingProcess = this.allProcesses.find(p => 
+        (p.name && p.name.includes('印刷'))
+      )
+      return printingProcess ? printingProcess.id : null
+    },
+    shouldSelectDieCuttingProcess() {
+      // 判断是否需要选中模切工序
+      // 如果不需要刀模，则不需要模切
+      return this.form.die_type !== 'no_die'
+    },
+    dieCuttingProcessId() {
+      // 查找模切工序的ID
+      const dieCuttingProcess = this.allProcesses.find(p => 
+        (p.name && p.name.includes('模切'))
+      )
+      return dieCuttingProcess ? dieCuttingProcess.id : null
+    },
+    shouldSelectCuttingProcess() {
+      // 判断是否需要选中开料工序
+      // 如果所有物料都不需要开料，则不需要开料工序
+      if (!this.materialItems || this.materialItems.length === 0) {
+        return false
+      }
+      // 检查是否至少有一个物料需要开料
+      return this.materialItems.some(item => item.need_cutting === true)
+    },
+    cuttingProcessId() {
+      // 查找开料工序的ID
+      const cuttingProcess = this.allProcesses.find(p => 
+        (p.name && (p.name.includes('开料') || p.name.includes('裁切')))
+      )
+      return cuttingProcess ? cuttingProcess.id : null
+    },
+    shouldSelectPackagingProcess() {
+      // 判断是否需要选中包装工序
+      // 如果产品列表不为空，则需要包装工序
+      return this.productItems && this.productItems.length > 0 && 
+             this.productItems.some(item => item.product !== null)
+    },
+    packagingProcessId() {
+      // 查找包装工序的ID
+      const packagingProcess = this.allProcesses.find(p => 
+        (p.name && p.name.includes('包装'))
+      )
+      return packagingProcess ? packagingProcess.id : null
+    },
     hasArtworkSelected() {
       // 判断是否选择了图稿
       if (!this.form.artworks || this.form.artworks.length === 0) {
@@ -645,6 +737,21 @@ export default {
     }
   },
   watch: {
+    // 监听图稿类型和刀模类型变化，自动更新制版工序状态
+    'form.artwork_type'(newVal) {
+      // 如果不需要图稿，自动设置印刷形式为"不需要印刷"
+      if (newVal === 'no_artwork') {
+        this.form.printing_type = 'none'
+        this.form.printing_cmyk_colors = []
+        this.form.printing_other_colors = []
+      }
+      this.updatePlateMakingProcess()
+      this.updatePrintingProcess()
+    },
+    'form.die_type'() {
+      this.updatePlateMakingProcess()
+      this.updateDieCuttingProcess()
+    },
     // 监听生产数量变化，自动更新产品数量
     'form.production_quantity'(newVal, oldVal) {
       // 将字符串转换为数字
@@ -712,11 +819,12 @@ export default {
             unit: '件',
             specification: ''
           }]
-          // 清空工序和物料
-          this.selectedProcesses = []
+          // 清空工序和物料（但保留制版工序如果应该选中）
           this.materialItems = []
         }
       }
+      // 更新制版工序状态
+      this.updatePlateMakingProcess()
       // 触发验证
       this.$nextTick(() => {
         this.$refs.form.validateField('artworks')
@@ -787,6 +895,14 @@ export default {
         }
         
         this.allProcesses = allProcesses
+        // 工序列表加载完成后，更新制版、印刷、模切、开料、包装工序状态
+        this.$nextTick(() => {
+          this.updatePlateMakingProcess()
+          this.updatePrintingProcess()
+          this.updateDieCuttingProcess()
+          this.updateCuttingProcess()
+          this.updatePackagingProcess()
+        })
       } catch (error) {
         console.error('加载工序列表失败:', error)
       }
@@ -1020,6 +1136,8 @@ export default {
         // 不需要刀模或新设计刀模时，清空刀模选择
         this.form.dies = []
       }
+      // 更新制版工序状态
+      this.updatePlateMakingProcess()
       // 触发验证
       this.$nextTick(() => {
         this.$refs.form.validateField('dies')
@@ -1034,6 +1152,139 @@ export default {
         this.$refs.form.validateField('dies')
       })
     },
+    isPlateMakingProcess(process) {
+      // 判断是否为制版工序
+      const processName = process.name || ''
+      return processName.includes('制版') || processName.includes('设计')
+    },
+    isPrintingProcess(process) {
+      // 判断是否为印刷工序
+      const processName = process.name || ''
+      return processName.includes('印刷')
+    },
+    isDieCuttingProcess(process) {
+      // 判断是否为模切工序
+      const processName = process.name || ''
+      return processName.includes('模切')
+    },
+    isCuttingProcess(process) {
+      // 判断是否为开料工序
+      const processName = process.name || ''
+      return processName.includes('开料') || processName.includes('裁切')
+    },
+    isPackagingProcess(process) {
+      // 判断是否为包装工序
+      const processName = process.name || ''
+      return processName.includes('包装')
+    },
+    updatePlateMakingProcess() {
+      // 更新制版工序的选中状态
+      if (!this.plateMakingProcessId) {
+        return // 如果没有找到制版工序，直接返回
+      }
+      
+      const shouldSelect = this.shouldSelectPlateMakingProcess
+      const isSelected = this.selectedProcesses.includes(this.plateMakingProcessId)
+      
+      if (shouldSelect && !isSelected) {
+        // 需要制版但未选中，自动选中
+        this.selectedProcesses.push(this.plateMakingProcessId)
+      } else if (!shouldSelect && isSelected) {
+        // 不需要制版但已选中，取消选中
+        const index = this.selectedProcesses.indexOf(this.plateMakingProcessId)
+        if (index > -1) {
+          this.selectedProcesses.splice(index, 1)
+        }
+      }
+    },
+    updatePrintingProcess() {
+      // 更新印刷工序的选中状态
+      if (!this.printingProcessId) {
+        return // 如果没有找到印刷工序，直接返回
+      }
+      
+      const shouldSelect = this.shouldSelectPrintingProcess
+      const isSelected = this.selectedProcesses.includes(this.printingProcessId)
+      
+      if (shouldSelect && !isSelected) {
+        // 需要印刷但未选中，自动选中
+        this.selectedProcesses.push(this.printingProcessId)
+      } else if (!shouldSelect && isSelected) {
+        // 不需要印刷但已选中，取消选中
+        const index = this.selectedProcesses.indexOf(this.printingProcessId)
+        if (index > -1) {
+          this.selectedProcesses.splice(index, 1)
+        }
+      }
+    },
+    updateDieCuttingProcess() {
+      // 更新模切工序的选中状态
+      if (!this.dieCuttingProcessId) {
+        return // 如果没有找到模切工序，直接返回
+      }
+      
+      const shouldSelect = this.shouldSelectDieCuttingProcess
+      const isSelected = this.selectedProcesses.includes(this.dieCuttingProcessId)
+      
+      if (shouldSelect && !isSelected) {
+        // 需要模切但未选中，自动选中
+        this.selectedProcesses.push(this.dieCuttingProcessId)
+      } else if (!shouldSelect && isSelected) {
+        // 不需要模切但已选中，取消选中
+        const index = this.selectedProcesses.indexOf(this.dieCuttingProcessId)
+        if (index > -1) {
+          this.selectedProcesses.splice(index, 1)
+        }
+      }
+    },
+    updateCuttingProcess() {
+      // 更新开料工序的选中状态
+      if (!this.cuttingProcessId) {
+        return // 如果没有找到开料工序，直接返回
+      }
+      
+      const shouldSelect = this.shouldSelectCuttingProcess
+      const isSelected = this.selectedProcesses.includes(this.cuttingProcessId)
+      
+      if (shouldSelect && !isSelected) {
+        // 需要开料但未选中，自动选中
+        this.selectedProcesses.push(this.cuttingProcessId)
+      } else if (!shouldSelect && isSelected) {
+        // 不需要开料但已选中，取消选中
+        const index = this.selectedProcesses.indexOf(this.cuttingProcessId)
+        if (index > -1) {
+          this.selectedProcesses.splice(index, 1)
+        }
+      }
+    },
+    updatePackagingProcess() {
+      // 更新包装工序的选中状态
+      if (!this.packagingProcessId) {
+        return // 如果没有找到包装工序，直接返回
+      }
+      
+      const shouldSelect = this.shouldSelectPackagingProcess
+      const isSelected = this.selectedProcesses.includes(this.packagingProcessId)
+      
+      if (shouldSelect && !isSelected) {
+        // 需要包装但未选中，自动选中
+        this.selectedProcesses.push(this.packagingProcessId)
+      } else if (!shouldSelect && isSelected) {
+        // 不需要包装但已选中，取消选中
+        const index = this.selectedProcesses.indexOf(this.packagingProcessId)
+        if (index > -1) {
+          this.selectedProcesses.splice(index, 1)
+        }
+      }
+    },
+    handleProcessChange() {
+      // 当工序选择改变时，确保制版、印刷、模切、开料、包装工序的状态正确
+      this.updatePlateMakingProcess()
+      this.updatePrintingProcess()
+      this.updateDieCuttingProcess()
+      this.updateCuttingProcess()
+      this.updatePackagingProcess()
+    },
     addProductItem() {
       this.productItems.push({
         product: null,
@@ -1042,6 +1293,10 @@ export default {
         specification: '',
         imposition_quantity: 1, // 默认拼版数量为1
         isQuantityManuallyModified: false // 标记数量是否被手动修改
+      })
+      // 添加产品后，更新包装工序状态
+      this.$nextTick(() => {
+        this.updatePackagingProcess()
       })
     },
     addPrintingOtherColor() {
@@ -1053,6 +1308,10 @@ export default {
     removeProductItem(index) {
       this.productItems.splice(index, 1)
       this.calculateTotalAmount()
+      // 删除产品后，更新包装工序状态
+      this.$nextTick(() => {
+        this.updatePackagingProcess()
+      })
     },
     getProductSpecification(productId) {
       if (!productId) return ''
@@ -1089,6 +1348,11 @@ export default {
         // 自动计算总价
         this.calculateTotalAmount()
       }
+      
+      // 产品选择变化时，更新包装工序状态
+      this.$nextTick(() => {
+        this.updatePackagingProcess()
+      })
     },
     updateProductItemQuantity(index, quantity) {
       let numValue = parseInt(quantity) || 1
@@ -1281,6 +1545,15 @@ export default {
           this.selectedProcesses = []
         }
         
+        // 更新制版、印刷、模切、开料、包装工序状态（确保根据图稿和刀模类型正确设置）
+        this.$nextTick(() => {
+          this.updatePlateMakingProcess()
+          this.updatePrintingProcess()
+          this.updateDieCuttingProcess()
+          this.updateCuttingProcess()
+          this.updatePackagingProcess()
+        })
+        
         // 加载物料信息
         if (data.materials && data.materials.length > 0) {
           this.materialItems = data.materials.map(m => ({
@@ -1288,6 +1561,7 @@ export default {
             material: m.material,
             material_size: m.material_size || '',
             material_usage: m.material_usage || '',
+            need_cutting: m.need_cutting || false,
             notes: m.notes || ''
           }))
         } else {
@@ -1642,16 +1916,35 @@ export default {
         material: null,
         material_size: '',
         material_usage: '',
+        need_cutting: false,
         notes: ''
+      })
+      // 添加物料后，更新开料工序状态
+      this.$nextTick(() => {
+        this.updateCuttingProcess()
       })
     },
     removeMaterialItem(index) {
       this.materialItems.splice(index, 1)
+      // 删除物料后，更新开料工序状态
+      this.$nextTick(() => {
+        this.updateCuttingProcess()
+      })
     },
-    // eslint-disable-next-line no-unused-vars
     handleMaterialChange(index) {
-      // 物料选择变化时的处理（如果需要）
-      // 参数保留用于将来可能的扩展
+      // 物料选择变化时，如果选择了物料，可以从物料信息中获取默认的 need_cutting 值
+      const item = this.materialItems[index]
+      if (item && item.material) {
+        const material = this.materialList.find(m => m.id === item.material)
+        if (material && material.need_cutting !== undefined) {
+          // 如果物料有默认的 need_cutting 值，使用它
+          this.$set(this.materialItems[index], 'need_cutting', material.need_cutting)
+        }
+      }
+      // 更新开料工序状态
+      this.$nextTick(() => {
+        this.updateCuttingProcess()
+      })
     },
     async saveMaterials(workOrderId) {
       // 如果是编辑模式，先删除所有现有物料，然后重新添加
@@ -1686,6 +1979,7 @@ export default {
               material: item.material,
               material_size: item.material_size || '',
               material_usage: item.material_usage || '',
+              need_cutting: item.need_cutting || false,
               notes: item.notes || ''
             })
           } catch (error) {
