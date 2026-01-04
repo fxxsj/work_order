@@ -68,6 +68,32 @@
             <span v-if="!scope.row.die_codes || scope.row.die_codes.length === 0" style="color: #909399;">-</span>
           </template>
         </el-table-column>
+        <el-table-column label="关联烫金版" min-width="200">
+          <template slot-scope="scope">
+            <el-tag
+              v-for="(code, index) in scope.row.foiling_plate_codes"
+              :key="index"
+              type="success"
+              style="margin-right: 5px; margin-bottom: 5px;"
+            >
+              {{ code }}<span v-if="scope.row.foiling_plate_names && scope.row.foiling_plate_names[index]"> - {{ scope.row.foiling_plate_names[index] }}</span>
+            </el-tag>
+            <span v-if="!scope.row.foiling_plate_codes || scope.row.foiling_plate_codes.length === 0" style="color: #909399;">-</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="关联压凸版" min-width="200">
+          <template slot-scope="scope">
+            <el-tag
+              v-for="(code, index) in scope.row.embossing_plate_codes"
+              :key="index"
+              type="warning"
+              style="margin-right: 5px; margin-bottom: 5px;"
+            >
+              {{ code }}<span v-if="scope.row.embossing_plate_names && scope.row.embossing_plate_names[index]"> - {{ scope.row.embossing_plate_names[index] }}</span>
+            </el-tag>
+            <span v-if="!scope.row.embossing_plate_codes || scope.row.embossing_plate_codes.length === 0" style="color: #909399;">-</span>
+          </template>
+        </el-table-column>
         <el-table-column label="包含产品" min-width="200">
           <template slot-scope="scope">
             <el-tag
@@ -222,6 +248,40 @@
             ></el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="关联烫金版">
+          <el-select
+            v-model="form.foiling_plates"
+            placeholder="请选择烫金版（可多选）"
+            filterable
+            clearable
+            multiple
+            style="width: 100%;"
+          >
+            <el-option
+              v-for="plate in foilingPlateList"
+              :key="plate.id"
+              :label="`${plate.name} (${plate.code})`"
+              :value="plate.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="关联压凸版">
+          <el-select
+            v-model="form.embossing_plates"
+            placeholder="请选择压凸版（可多选）"
+            filterable
+            clearable
+            multiple
+            style="width: 100%;"
+          >
+            <el-option
+              v-for="plate in embossingPlateList"
+              :key="plate.id"
+              :label="`${plate.name} (${plate.code})`"
+              :value="plate.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
 
         <el-divider content-position="left">包含产品及拼版数量</el-divider>
         
@@ -294,7 +354,7 @@
 </template>
 
 <script>
-import { artworkAPI, productAPI, dieAPI } from '@/api/workorder'
+import { artworkAPI, productAPI, dieAPI, foilingPlateAPI, embossingPlateAPI } from '@/api/workorder'
 
 export default {
   name: 'ArtworkList',
@@ -304,6 +364,8 @@ export default {
       tableData: [],
       productList: [],
       dieList: [], // 刀模列表
+      foilingPlateList: [], // 烫金版列表
+      embossingPlateList: [], // 压凸版列表
       currentPage: 1,
       pageSize: 20,
       total: 0,
@@ -320,6 +382,8 @@ export default {
         other_colors: [],
         imposition_size: '',
         dies: [], // 关联刀模
+        foiling_plates: [], // 关联烫金版
+        embossing_plates: [], // 关联压凸版
         notes: ''
       },
       rules: {
@@ -352,6 +416,8 @@ export default {
     this.loadData()
     this.loadProductList()
     this.loadDieList()
+    this.loadFoilingPlateList()
+    this.loadEmbossingPlateList()
   },
   methods: {
     // 检查用户是否有指定权限
@@ -393,6 +459,22 @@ export default {
         this.dieList = response.results || []
       } catch (error) {
         console.error('加载刀模列表失败:', error)
+      }
+    },
+    async loadFoilingPlateList() {
+      try {
+        const response = await foilingPlateAPI.getList({ page_size: 100 })
+        this.foilingPlateList = response.results || []
+      } catch (error) {
+        console.error('加载烫金版列表失败:', error)
+      }
+    },
+    async loadEmbossingPlateList() {
+      try {
+        const response = await embossingPlateAPI.getList({ page_size: 100 })
+        this.embossingPlateList = response.results || []
+      } catch (error) {
+        console.error('加载压凸版列表失败:', error)
       }
     },
     async loadData() {
@@ -496,6 +578,8 @@ export default {
             other_colors: Array.isArray(detail.other_colors) ? detail.other_colors : (detail.other_colors ? [detail.other_colors] : []),
             imposition_size: detail.imposition_size || '',
             dies: detail.dies || [],
+            foiling_plates: detail.foiling_plates || [],
+            embossing_plates: detail.embossing_plates || [],
             notes: detail.notes || ''
           }
           
