@@ -211,28 +211,7 @@
 
         <!-- 产品输入 -->
         <template>
-          <!-- 单个产品选择（兼容旧模式，仅在未使用产品列表时显示） -->
-          <el-form-item label="产品" prop="product" v-if="productItems.length === 0">
-          <el-select
-            v-model="form.product"
-            placeholder="请选择产品"
-            filterable
-            style="width: 100%;"
-            @change="handleProductChange"
-          >
-            <el-option
-              v-for="product in productList"
-              :key="product.id"
-              :label="`${product.name} (${product.code})`"
-              :value="product.id"
-            >
-              <span style="float: left">{{ product.name }}</span>
-              <span style="float: right; color: #8492a6; font-size: 13px">¥{{ product.unit_price }}</span>
-            </el-option>
-          </el-select>
-        </el-form-item>
-
-        <!-- 多个产品列表（场景2：一个施工单包含多个产品） -->
+        <!-- 产品列表（一个施工单可以包含多个产品） -->
         <el-form-item label="产品列表">
           <div v-for="(productItem, index) in productItems" :key="index" style="margin-bottom: 15px;">
             <el-row :gutter="10" type="flex" align="middle">
@@ -315,36 +294,6 @@
           <span style="color: #909399; font-size: 12px; display: block; margin-top: 10px;">
             如果一套图稿（CTP版）中同时拼版了多个产品（如纸卡、吊牌、说明书），请在此添加
           </span>
-        </el-form-item>
-
-        <!-- 单个产品模式的数量和单位（仅在选择了单个产品时显示） -->
-        <el-row :gutter="20" v-if="form.product && productItems.length === 0">
-          <el-col :span="12">
-            <el-form-item label="数量" prop="quantity">
-              <el-input-number
-                v-model="form.quantity"
-                :min="1"
-                style="width: 100%;"
-                @change="calculateTotalAmount"
-              ></el-input-number>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="单位">
-              <el-input v-model="form.unit" placeholder="自动填充" :disabled="true"></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <!-- 单个产品模式的产品规格（仅在选择了单个产品时显示） -->
-        <el-form-item label="产品规格" v-if="form.product && productItems.length === 0">
-          <el-input
-            v-model="form.specification"
-            type="textarea"
-            :rows="2"
-            placeholder="选择产品后自动填充"
-            :disabled="true"
-          ></el-input>
         </el-form-item>
         </template>
 
@@ -539,11 +488,6 @@ export default {
       selectedProcesses: [],
       form: {
         customer: null,
-        product: null,
-        product_name: '',
-        specification: '',
-        quantity: 1,
-        unit: '件',
         artwork_type: 'no_artwork', // 图稿类型：不需要图稿、新设计图稿、需更新图稿、旧图稿
         artworks: [], // 图稿列表（支持多选）
         die_type: 'no_die', // 刀模类型：不需要刀模、新设计刀模、需更新刀模、旧刀模
@@ -905,23 +849,6 @@ export default {
         })
       } catch (error) {
         console.error('加载工序列表失败:', error)
-      }
-    },
-    async handleProductChange(productId) {
-      // 找到选中的产品
-      const product = this.productList.find(p => p.id === productId)
-      if (product) {
-        this.selectedProduct = product
-        // 自动填充产品信息
-        this.form.product_name = product.name
-        this.form.specification = product.specification
-        this.form.unit = product.unit
-        
-        // 加载默认工序和物料
-        await this.loadProductDefaults(productId)
-        
-        // 自动计算总价
-        this.calculateTotalAmount()
       }
     },
     async loadProductDefaults(productId) {
@@ -1399,11 +1326,6 @@ export default {
           }
         })
         this.form.total_amount = total
-      } else if (this.selectedProduct && this.form.quantity) {
-        // 单个产品模式
-        this.form.total_amount = parseFloat(
-          (this.selectedProduct.unit_price * this.form.quantity).toFixed(2)
-        )
       }
     },
     async loadData() {
@@ -1414,11 +1336,6 @@ export default {
         this.form = {
           order_number: data.order_number,  // 只读显示
           customer: data.customer,
-          product: data.product,
-          product_name: data.product_name || '',
-          specification: data.specification || '',
-          quantity: data.quantity,
-          unit: data.unit,
           // 图稿类型
           artwork_type: data.artwork_type || 'no_artwork',
           // 图稿：后端现在返回的是 artworks 数组
@@ -1494,16 +1411,6 @@ export default {
           }
           
           await loadProductItemsWithImposition()
-        } else if (data.product) {
-          // 兼容旧数据：如果只有单个产品
-          this.productItems = [{
-            product: data.product,
-            quantity: data.quantity || 1,
-            unit: data.unit || '件',
-            specification: data.specification || '',
-            imposition_quantity: 1, // 默认拼版数量为1
-            isQuantityManuallyModified: true // 编辑模式下，数量已经被保存过，视为手动修改
-          }]
         } else {
           this.productItems = [{
             product: null,
@@ -1511,11 +1418,6 @@ export default {
             unit: '件',
             specification: ''
           }]
-        }
-        
-        // 如果有产品ID，加载产品信息用于计算
-        if (data.product) {
-          this.selectedProduct = data.product_detail
         }
         
         // 如果有图稿，加载图稿关联的产品（如果产品列表为空或需要更新）
@@ -1580,10 +1482,8 @@ export default {
         
         // 验证产品信息
         if (this.productItems.length === 0 || !this.productItems[0].product) {
-          if (!this.form.product) {
-            this.$message.warning('请选择产品或添加产品列表')
-            return
-          }
+          this.$message.warning('请添加至少一个产品')
+          return
         }
         
         this.submitting = true
@@ -1646,17 +1546,8 @@ export default {
                 specification: item.specification || '',
                 sort_order: index
               }))
-            // 清空单个产品字段
-            delete data.product
-            delete data.product_name
-            delete data.specification
-            delete data.quantity
-            delete data.unit
-          } else if (this.form.product) {
-            // 单个产品模式（兼容旧数据）
-            // 保持原有逻辑
           } else {
-            this.$message.warning('请选择产品或添加产品列表')
+            this.$message.warning('请添加至少一个产品')
             this.submitting = false
             return
           }
