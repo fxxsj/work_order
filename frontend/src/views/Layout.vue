@@ -57,6 +57,10 @@
           <i class="el-icon-stamp"></i>
           <span>烫金版管理</span>
         </el-menu-item>
+        <el-menu-item v-if="canViewEmbossingPlate" index="/embossing-plates">
+          <i class="el-icon-s-grid"></i>
+          <span>压凸版管理</span>
+        </el-menu-item>
         <el-menu-item v-if="canViewProductGroup" index="/product-groups">
           <i class="el-icon-collection"></i>
           <span>产品组管理</span>
@@ -125,6 +129,9 @@ export default {
       if (path.startsWith('/foiling-plates')) {
         return '/foiling-plates'
       }
+      if (path.startsWith('/embossing-plates')) {
+        return '/embossing-plates'
+      }
       return path
     },
     currentUsername() {
@@ -161,6 +168,10 @@ export default {
     // 检查是否有查看烫金版的权限
     canViewFoilingPlate() {
       return this.hasPermission('workorder.view_foilingplate')
+    },
+    // 检查是否有查看压凸版的权限
+    canViewEmbossingPlate() {
+      return this.hasPermission('workorder.view_embossingplate')
     },
     // 检查是否有查看产品组的权限
     canViewProductGroup() {

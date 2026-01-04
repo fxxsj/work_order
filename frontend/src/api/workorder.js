@@ -803,3 +803,77 @@ export const foilingPlateProductAPI = {
   }
 }
 
+// 压凸版管理
+export const embossingPlateAPI = {
+  getList(params) {
+    return request({
+      url: '/embossing-plates/',
+      method: 'get',
+      params
+    })
+  },
+  getDetail(id) {
+    return request({
+      url: `/embossing-plates/${id}/`,
+      method: 'get'
+    })
+  },
+  create(data) {
+    return request({
+      url: '/embossing-plates/',
+      method: 'post',
+      data
+    })
+  },
+  update(id, data) {
+    return request({
+      url: `/embossing-plates/${id}/`,
+      method: 'put',
+      data
+    })
+  },
+  delete(id) {
+    return request({
+      url: `/embossing-plates/${id}/`,
+      method: 'delete'
+    })
+  }
+}
+
+// 压凸版产品管理
+export const embossingPlateProductAPI = {
+  getList(params) {
+    return request({
+      url: '/embossing-plate-products/',
+      method: 'get',
+      params
+    })
+  },
+  getDetail(id) {
+    return request({
+      url: `/embossing-plate-products/${id}/`,
+      method: 'get'
+    })
+  },
+  create(data) {
+    return request({
+      url: '/embossing-plate-products/',
+      method: 'post',
+      data
+    })
+  },
+  update(id, data) {
+    return request({
+      url: `/embossing-plate-products/${id}/`,
+      method: 'put',
+      data
+    })
+  },
+  delete(id) {
+    return request({
+      url: `/embossing-plate-products/${id}/`,
+      method: 'delete'
+    })
+  }
+}
+

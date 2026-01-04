@@ -98,6 +98,12 @@ const routes = [
         meta: { title: '烫金版管理', requiresAuth: true }
       },
       {
+        path: 'embossing-plates',
+        name: 'EmbossingPlateList',
+        component: () => import('@/views/embossingplate/List.vue'),
+        meta: { title: '压凸版管理', requiresAuth: true }
+      },
+      {
         path: 'product-groups',
         name: 'ProductGroupList',
         component: () => import('@/views/productGroup/List.vue'),
