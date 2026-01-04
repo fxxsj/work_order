@@ -92,6 +92,12 @@ const routes = [
         meta: { title: '刀模管理', requiresAuth: true }
       },
       {
+        path: 'foiling-plates',
+        name: 'FoilingPlateList',
+        component: () => import('@/views/foilingplate/List.vue'),
+        meta: { title: '烫金版管理', requiresAuth: true }
+      },
+      {
         path: 'product-groups',
         name: 'ProductGroupList',
         component: () => import('@/views/productGroup/List.vue'),

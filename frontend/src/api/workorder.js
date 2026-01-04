@@ -729,3 +729,77 @@ export const dieProductAPI = {
   }
 }
 
+// 烫金版管理
+export const foilingPlateAPI = {
+  getList(params) {
+    return request({
+      url: '/foiling-plates/',
+      method: 'get',
+      params
+    })
+  },
+  getDetail(id) {
+    return request({
+      url: `/foiling-plates/${id}/`,
+      method: 'get'
+    })
+  },
+  create(data) {
+    return request({
+      url: '/foiling-plates/',
+      method: 'post',
+      data
+    })
+  },
+  update(id, data) {
+    return request({
+      url: `/foiling-plates/${id}/`,
+      method: 'put',
+      data
+    })
+  },
+  delete(id) {
+    return request({
+      url: `/foiling-plates/${id}/`,
+      method: 'delete'
+    })
+  }
+}
+
+// 烫金版产品管理
+export const foilingPlateProductAPI = {
+  getList(params) {
+    return request({
+      url: '/foiling-plate-products/',
+      method: 'get',
+      params
+    })
+  },
+  getDetail(id) {
+    return request({
+      url: `/foiling-plate-products/${id}/`,
+      method: 'get'
+    })
+  },
+  create(data) {
+    return request({
+      url: '/foiling-plate-products/',
+      method: 'post',
+      data
+    })
+  },
+  update(id, data) {
+    return request({
+      url: `/foiling-plate-products/${id}/`,
+      method: 'put',
+      data
+    })
+  },
+  delete(id) {
+    return request({
+      url: `/foiling-plate-products/${id}/`,
+      method: 'delete'
+    })
+  }
+}
+
