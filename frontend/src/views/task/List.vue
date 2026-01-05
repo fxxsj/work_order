@@ -24,10 +24,13 @@
           </el-col>
           <el-col :span="3">
             <el-select v-model="filters.task_type" placeholder="任务类型" clearable @change="handleSearch">
-              <el-option label="图稿任务" value="artwork"></el-option>
-              <el-option label="刀模任务" value="die"></el-option>
-              <el-option label="产品任务" value="product"></el-option>
-              <el-option label="物料任务" value="material"></el-option>
+              <el-option label="制版任务" value="plate_making"></el-option>
+              <el-option label="开料任务" value="cutting"></el-option>
+              <el-option label="印刷任务" value="printing"></el-option>
+              <el-option label="烫金任务" value="foiling"></el-option>
+              <el-option label="压凸任务" value="embossing"></el-option>
+              <el-option label="模切任务" value="die_cutting"></el-option>
+              <el-option label="包装任务" value="packaging"></el-option>
               <el-option label="通用任务" value="general"></el-option>
             </el-select>
           </el-col>
@@ -106,6 +109,18 @@
               >
                 {{ getMaterialStatusText(scope.row.material_purchase_status) }}
               </el-tag>
+            </div>
+            <div v-else-if="scope.row.foiling_plate_code">
+              <span>{{ scope.row.foiling_plate_code }}</span>
+              <span v-if="scope.row.foiling_plate_name" style="color: #909399; font-size: 12px; margin-left: 5px;">
+                ({{ scope.row.foiling_plate_name }})
+              </span>
+            </div>
+            <div v-else-if="scope.row.embossing_plate_code">
+              <span>{{ scope.row.embossing_plate_code }}</span>
+              <span v-if="scope.row.embossing_plate_name" style="color: #909399; font-size: 12px; margin-left: 5px;">
+                ({{ scope.row.embossing_plate_name }})
+              </span>
             </div>
             <span v-else>-</span>
           </template>
@@ -261,7 +276,7 @@ export default {
           params.task_type = this.filters.task_type
         }
         if (this.filters.work_order_process) {
-          params.work_order_process = this.filters.work_order_process
+          params.process = this.filters.work_order_process
         }
         if (this.filters.search) {
           params.search = this.filters.search
@@ -352,20 +367,19 @@ export default {
       return statusMap[status] || status
     },
     canCompleteTask(task) {
-      // 制版任务：需要图稿已确认
-      if (task.task_type === 'artwork' && task.artwork_confirmed === false) {
+      // 制版任务：如果关联图稿，需要图稿已确认
+      if (task.task_type === 'plate_making' && task.artwork && task.artwork_confirmed === false) {
         return false
       }
-      // 采购任务：需要物料已回料
-      if (task.task_type === 'material' && task.material_purchase_status && task.material_purchase_status !== 'received') {
-        // 检查是否是采购工序
+      // 采购任务：需要物料已回料（如果存在采购工序）
+      if (task.task_type === 'material' && task.material_purchase_status) {
         const processName = task.work_order_process_info?.process?.name || ''
         if (processName.includes('采购') && task.material_purchase_status !== 'received') {
           return false
         }
       }
       // 开料任务：需要物料已开料
-      if (task.task_type === 'material' && task.material_purchase_status) {
+      if (task.task_type === 'cutting' && task.material_purchase_status) {
         const processName = task.work_order_process_info?.process?.name || ''
         if ((processName.includes('开料') || processName.includes('裁切')) && task.material_purchase_status !== 'cut') {
           return false
@@ -375,16 +389,20 @@ export default {
     },
     async handleCompleteTask(task) {
       try {
-        const updateData = {
-          status: 'completed'
-        }
-        if (task.quantity_completed !== undefined && task.quantity_completed !== null) {
-          updateData.quantity_completed = task.quantity_completed
-        } else if (task.production_quantity) {
-          updateData.quantity_completed = task.production_quantity
+        // 使用 complete API，支持新任务类型
+        const data = {
+          status: 'completed',
+          quantity_completed: task.quantity_completed || task.production_quantity || 0,
+          notes: ''
         }
         
-        await workOrderTaskAPI.update(task.id, updateData)
+        // 制版任务：状态固定为已完成，完成数量固定为1
+        if (task.task_type === 'plate_making') {
+          data.status = 'completed'
+          data.quantity_completed = 1
+        }
+        
+        await workOrderTaskAPI.complete(task.id, data)
         this.$message.success('任务已完成')
         this.loadData()
       } catch (error) {
