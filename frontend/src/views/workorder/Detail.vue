@@ -96,178 +96,6 @@
         </el-form>
       </el-card>
 
-      <!-- 工序和任务管理 -->
-      <el-card style="margin-top: 20px;" v-if="workOrder.order_processes && workOrder.order_processes.length > 0">
-        <div slot="header" class="card-header">
-          <span>工序和任务管理</span>
-        </div>
-        
-        <el-collapse v-model="activeProcesses" accordion>
-          <el-collapse-item
-            v-for="process in workOrder.order_processes"
-            :key="process.id"
-            :name="process.id"
-          >
-            <template slot="title">
-              <div style="display: flex; align-items: center; width: 100%;">
-                <el-tag
-                  :type="getProcessStatusType(process.status)"
-                  size="small"
-                  style="margin-right: 10px;"
-                >
-                  {{ process.status_display }}
-                </el-tag>
-                <span style="font-weight: bold; margin-right: 10px;">{{ process.process_name }}</span>
-                <span style="color: #909399; font-size: 12px; margin-right: 10px;">
-                  {{ process.department_name || '未分配部门' }}
-                </span>
-                <span style="color: #909399; font-size: 12px;" v-if="process.operator_name">
-                  操作员：{{ process.operator_name }}
-                </span>
-              </div>
-            </template>
-            
-            <div style="padding: 10px 0;">
-              <!-- 工序操作按钮 -->
-              <div style="margin-bottom: 15px;">
-                <el-button
-                  v-if="process.status === 'pending'"
-                  type="primary"
-                  size="small"
-                  @click="handleStartProcess(process)"
-                  :disabled="!process.can_start"
-                >
-                  <i class="el-icon-video-play"></i> 开始工序
-                </el-button>
-                <el-button
-                  v-if="process.status === 'in_progress'"
-                  type="success"
-                  size="small"
-                  @click="showCompleteProcessDialog(process)"
-                >
-                  <i class="el-icon-check"></i> 完成工序
-                </el-button>
-                <el-button
-                  v-if="process.status === 'pending' && !process.can_start"
-                  type="info"
-                  size="small"
-                  disabled
-                >
-                  等待前置工序完成
-                </el-button>
-              </div>
-              
-              <!-- 任务列表 -->
-              <div v-if="process.tasks && process.tasks.length > 0">
-                <el-table :data="process.tasks" border size="small" style="margin-top: 10px;">
-                  <el-table-column prop="work_content" label="任务内容" min-width="200"></el-table-column>
-                  <el-table-column prop="task_type_display" label="任务类型" width="100"></el-table-column>
-                  <el-table-column label="关联对象" width="150">
-                    <template slot-scope="scope">
-                      <div v-if="scope.row.artwork_code">
-                        <span>{{ scope.row.artwork_code }}</span>
-                        <el-tag
-                          v-if="scope.row.artwork_code && isPlateMakingProcess(process)"
-                          :type="scope.row.artwork_confirmed ? 'success' : 'info'"
-                          size="mini"
-                          style="margin-left: 5px;"
-                        >
-                          {{ scope.row.artwork_confirmed ? '已确认' : '未确认' }}
-                        </el-tag>
-                      </div>
-                      <span v-else-if="scope.row.die_code">{{ scope.row.die_code }}</span>
-                      <div v-else-if="scope.row.product_code">
-                        <span>{{ scope.row.product_code }}</span>
-                        <span v-if="scope.row.product_name" style="color: #909399; font-size: 12px; margin-left: 5px;">
-                          ({{ scope.row.product_name }})
-                        </span>
-                      </div>
-                      <div v-else-if="scope.row.material_code">
-                        <span>{{ scope.row.material_code }}</span>
-                        <el-tag
-                          v-if="isMaterialProcess(process) && scope.row.material_purchase_status"
-                          :type="getMaterialStatusTagTypeByStatus(scope.row.material_purchase_status)"
-                          size="mini"
-                          style="margin-left: 5px;"
-                        >
-                          {{ getMaterialStatusTextByStatus(scope.row.material_purchase_status) }}
-                        </el-tag>
-                      </div>
-                      <div v-else-if="scope.row.foiling_plate_code">
-                        <span>{{ scope.row.foiling_plate_code }}</span>
-                        <span v-if="scope.row.foiling_plate_name" style="color: #909399; font-size: 12px; margin-left: 5px;">
-                          ({{ scope.row.foiling_plate_name }})
-                        </span>
-                      </div>
-                      <div v-else-if="scope.row.embossing_plate_code">
-                        <span>{{ scope.row.embossing_plate_code }}</span>
-                        <span v-if="scope.row.embossing_plate_name" style="color: #909399; font-size: 12px; margin-left: 5px;">
-                          ({{ scope.row.embossing_plate_name }})
-                        </span>
-                      </div>
-                      <span v-else>-</span>
-                    </template>
-                  </el-table-column>
-                  <el-table-column prop="production_quantity" label="生产数量" width="100" align="right"></el-table-column>
-                  <el-table-column label="完成数量" width="180">
-                    <template slot-scope="scope">
-                      <el-input-number
-                        v-if="process.status === 'in_progress' && scope.row.task_type === 'plate_making' && !scope.row.auto_calculate_quantity"
-                        v-model="scope.row.quantity_completed"
-                        :min="0"
-                        :max="1"
-                        size="mini"
-                        disabled
-                        style="width: 100px;"
-                      ></el-input-number>
-                      <el-input-number
-                        v-else-if="process.status === 'in_progress' && scope.row.task_type !== 'plate_making' && !scope.row.auto_calculate_quantity"
-                        v-model="scope.row.quantity_completed"
-                        :min="0"
-                        :max="scope.row.production_quantity"
-                        size="mini"
-                        @change="handleUpdateTask(scope.row)"
-                      ></el-input-number>
-                      <span v-else>{{ scope.row.quantity_completed }}</span>
-                      <span v-if="scope.row.task_type === 'plate_making'" style="color: #909399; font-size: 12px; margin-left: 5px;">
-                        (固定为1)
-                      </span>
-                    </template>
-                  </el-table-column>
-                  <el-table-column prop="status_display" label="状态" width="100">
-                    <template slot-scope="scope">
-                      <el-tag
-                        :type="getTaskStatusType(scope.row.status)"
-                        size="small"
-                      >
-                        {{ scope.row.status_display }}
-                      </el-tag>
-                    </template>
-                  </el-table-column>
-                  <el-table-column label="操作" width="120" v-if="process.status === 'in_progress'">
-                    <template slot-scope="scope">
-                      <el-button
-                        v-if="scope.row.status !== 'completed' && canCompleteTask(scope.row, process)"
-                        type="success"
-                        size="mini"
-                        @click="handleCompleteTask(scope.row)"
-                      >
-                        完成
-                      </el-button>
-                      <span v-else-if="scope.row.status !== 'completed'" style="color: #909399; font-size: 12px;">
-                        {{ getTaskBlockReason(scope.row, process) }}
-                      </span>
-                    </template>
-                  </el-table-column>
-                </el-table>
-              </div>
-              <div v-else style="color: #909399; padding: 20px; text-align: center;">
-                暂无任务（开始工序后将自动生成任务）
-              </div>
-            </div>
-          </el-collapse-item>
-        </el-collapse>
-      </el-card>
 
       <!-- 图稿和刀模信息 -->
       <el-descriptions title="图稿和刀模" :column="1" border style="margin-top: 20px;">
@@ -711,10 +539,10 @@
       </div>
     </div>
 
-    <!-- 工序跟踪 -->
+      <!-- 工序和任务管理 -->
     <el-card style="margin-top: 20px;">
       <div slot="header" class="card-header">
-        <span>工序跟踪</span>
+          <span>工序和任务管理</span>
         <el-button size="small" type="primary" icon="el-icon-plus" @click="showAddProcessDialog">
           添加工序
         </el-button>
@@ -730,8 +558,11 @@
             <div class="process-header">
               <div>
                 <h3>{{ process.sequence }}. {{ process.process_name }}</h3>
-                <span :class="'status-badge status-' + process.status">
+                  <span :class="'status-badge status-' + process.status" style="margin-left: 10px;">
                   {{ process.status_display }}
+                </span>
+                  <span style="color: #909399; font-size: 12px; margin-left: 15px;">
+                    {{ process.department_name || '未分配部门' }}
                 </span>
               </div>
               <div v-if="process.status !== 'completed'">
@@ -740,16 +571,26 @@
                   type="primary"
                   size="small"
                   @click="handleStartProcess(process)"
-                >
-                  开始
+                    :disabled="!process.can_start"
+                  >
+                    <i class="el-icon-video-play"></i> 开始工序
+                  </el-button>
+                  <el-button
+                    v-if="process.status === 'pending' && !process.can_start"
+                    type="info"
+                    size="small"
+                    disabled
+                    style="margin-left: 10px;"
+                  >
+                    等待前置工序完成
                 </el-button>
                 <el-button
                   v-if="process.status === 'in_progress'"
                   type="success"
                   size="small"
-                  @click="handleCompleteProcess(process)"
+                    @click="showCompleteProcessDialog(process)"
                 >
-                  完成
+                    <i class="el-icon-check"></i> 完成工序
                 </el-button>
               </div>
             </div>
@@ -775,14 +616,132 @@
               </el-descriptions-item>
             </el-descriptions>
             
-            <div v-if="process.notes" style="margin-top: 10px;">
+              <!-- 任务列表 -->
+              <div v-if="process.tasks && process.tasks.length > 0" style="margin-top: 15px;">
+                <el-divider content-position="left">
+                  <span style="font-weight: bold;">任务列表</span>
+                </el-divider>
+                <el-table :data="process.tasks" border size="small">
+                  <el-table-column prop="work_content" label="任务内容" min-width="200"></el-table-column>
+                  <el-table-column prop="task_type_display" label="任务类型" width="100"></el-table-column>
+                  <el-table-column label="关联对象" width="150">
+                    <template slot-scope="scope">
+                      <div v-if="scope.row.artwork_code">
+                        <span>{{ scope.row.artwork_code }}</span>
+                        <el-tag
+                          v-if="scope.row.artwork_code && isPlateMakingProcess(process)"
+                          :type="scope.row.artwork_confirmed ? 'success' : 'info'"
+                          size="mini"
+                          style="margin-left: 5px;"
+                        >
+                          {{ scope.row.artwork_confirmed ? '已确认' : '未确认' }}
+                        </el-tag>
+                      </div>
+                      <span v-else-if="scope.row.die_code">{{ scope.row.die_code }}</span>
+                      <div v-else-if="scope.row.product_code">
+                        <span>{{ scope.row.product_code }}</span>
+                        <span v-if="scope.row.product_name" style="color: #909399; font-size: 12px; margin-left: 5px;">
+                          ({{ scope.row.product_name }})
+                        </span>
+                      </div>
+                      <div v-else-if="scope.row.material_code">
+                        <span>{{ scope.row.material_code }}</span>
+                        <el-tag
+                          v-if="isMaterialProcess(process) && scope.row.material_purchase_status"
+                          :type="getMaterialStatusTagTypeByStatus(scope.row.material_purchase_status)"
+                          size="mini"
+                          style="margin-left: 5px;"
+                        >
+                          {{ getMaterialStatusTextByStatus(scope.row.material_purchase_status) }}
+                        </el-tag>
+                      </div>
+                      <div v-else-if="scope.row.foiling_plate_code">
+                        <span>{{ scope.row.foiling_plate_code }}</span>
+                        <span v-if="scope.row.foiling_plate_name" style="color: #909399; font-size: 12px; margin-left: 5px;">
+                          ({{ scope.row.foiling_plate_name }})
+                        </span>
+                      </div>
+                      <div v-else-if="scope.row.embossing_plate_code">
+                        <span>{{ scope.row.embossing_plate_code }}</span>
+                        <span v-if="scope.row.embossing_plate_name" style="color: #909399; font-size: 12px; margin-left: 5px;">
+                          ({{ scope.row.embossing_plate_name }})
+                        </span>
+                      </div>
+                      <span v-else>-</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="production_quantity" label="生产数量" width="100" align="right"></el-table-column>
+                  <el-table-column label="完成数量" width="180">
+                    <template slot-scope="scope">
+                      <el-input-number
+                        v-if="process.status === 'in_progress' && scope.row.task_type === 'plate_making' && !scope.row.auto_calculate_quantity"
+                        v-model="scope.row.quantity_completed"
+                        :min="0"
+                        :max="1"
+                        size="mini"
+                        disabled
+                        style="width: 100px;"
+                      ></el-input-number>
+                      <el-input-number
+                        v-else-if="process.status === 'in_progress' && scope.row.task_type !== 'plate_making' && !scope.row.auto_calculate_quantity"
+                        v-model="scope.row.quantity_completed"
+                        :min="0"
+                        :max="scope.row.production_quantity"
+                        size="mini"
+                        @change="handleUpdateTask(scope.row)"
+                      ></el-input-number>
+                      <span v-else>{{ scope.row.quantity_completed }}</span>
+                      <span v-if="scope.row.task_type === 'plate_making'" style="color: #909399; font-size: 12px; margin-left: 5px;">
+                        (固定为1)
+                      </span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="status_display" label="状态" width="100">
+                    <template slot-scope="scope">
+                      <el-tag
+                        :type="getTaskStatusType(scope.row.status)"
+                        size="small"
+                      >
+                        {{ scope.row.status_display }}
+                      </el-tag>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="操作" width="120" v-if="process.status === 'in_progress'">
+                    <template slot-scope="scope">
+                      <el-button
+                        v-if="scope.row.status !== 'completed' && canCompleteTask(scope.row, process)"
+                        type="success"
+                        size="mini"
+                        @click="handleCompleteTask(scope.row)"
+                      >
+                        完成
+                      </el-button>
+                      <span v-else-if="scope.row.status !== 'completed'" style="color: #909399; font-size: 12px;">
+                        {{ getTaskBlockReason(scope.row, process) }}
+                      </span>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+              <div v-else-if="process.status === 'in_progress' || process.status === 'completed'" style="margin-top: 15px;">
+                <el-divider content-position="left">
+                  <span style="font-weight: bold;">任务列表</span>
+                </el-divider>
+                <div style="color: #909399; padding: 20px; text-align: center;">
+                  暂无任务
+                </div>
+              </div>
+              
+              <div v-if="process.notes" style="margin-top: 15px;">
+                <el-divider></el-divider>
               <strong>备注：</strong>{{ process.notes }}
             </div>
             
             <!-- 工序日志 -->
-            <div v-if="process.logs && process.logs.length > 0" style="margin-top: 10px;">
-              <el-divider></el-divider>
-              <strong>操作记录：</strong>
+              <div v-if="process.logs && process.logs.length > 0" style="margin-top: 15px;">
+                <el-divider content-position="left">
+                  <span style="font-weight: bold;">操作记录</span>
+                </el-divider>
               <ul class="process-logs">
                 <li v-for="log in process.logs" :key="log.id">
                   <span class="log-time">{{ log.created_at | formatDateTime }}</span>
@@ -827,29 +786,6 @@
       </div>
     </el-dialog>
 
-    <!-- 完成工序对话框 -->
-    <el-dialog title="完成工序" :visible.sync="completeProcessDialog" width="500px">
-      <el-form :model="completeForm" label-width="100px">
-        <el-form-item label="完成数量">
-          <el-input-number
-            v-model="completeForm.quantity_completed"
-            :min="0"
-            style="width: 100%;"
-          ></el-input-number>
-        </el-form-item>
-        <el-form-item label="不良品数量">
-          <el-input-number
-            v-model="completeForm.quantity_defective"
-            :min="0"
-            style="width: 100%;"
-          ></el-input-number>
-        </el-form-item>
-      </el-form>
-      <div slot="footer">
-        <el-button @click="completeProcessDialog = false">取消</el-button>
-        <el-button type="primary" @click="handleCompleteProcess">确定</el-button>
-      </div>
-    </el-dialog>
 
     <!-- 添加物料对话框 -->
     <el-dialog title="添加物料" :visible.sync="addMaterialDialog" width="500px">
@@ -1034,7 +970,6 @@ export default {
       departmentList: [],
       userList: [],
       addProcessDialog: false,
-      activeProcesses: [], // 展开的工序ID列表
       completeProcessDialogVisible: false,
       currentProcess: null,
       completeProcessForm: {
@@ -1067,7 +1002,6 @@ export default {
         ]
       },
       addMaterialDialog: false,
-      completeProcessDialog: false,
       processForm: {
         process_id: null,
         sequence: 1
@@ -1075,10 +1009,6 @@ export default {
       materialForm: {
         material_id: null,
         planned_quantity: 0
-      },
-      completeForm: {
-        quantity_completed: 0,
-        quantity_defective: 0
       },
       approving: false,
       approvalForm: {
