@@ -367,6 +367,7 @@
             multiple
             :collapse-tags="shouldCollapseFoilingPlateTags"
             style="width: 100%;"
+            @change="handleFoilingPlateChange"
           >
             <el-option
               v-for="plate in foilingPlateList"
@@ -397,6 +398,7 @@
             multiple
             :collapse-tags="shouldCollapseEmbossingPlateTags"
             style="width: 100%;"
+            @change="handleEmbossingPlateChange"
           >
             <el-option
               v-for="plate in embossingPlateList"
@@ -1125,6 +1127,8 @@ export default {
         const allCmykColors = new Set() // 收集所有图稿的CMYK颜色（去重）
         const allOtherColors = new Set() // 收集所有图稿的其他颜色（去重）
         const allDies = new Set() // 收集所有图稿关联的刀模（去重）
+        const allFoilingPlates = new Set() // 收集所有图稿关联的烫金版（去重）
+        const allEmbossingPlates = new Set() // 收集所有图稿关联的压凸版（去重）
         
         // 遍历所有选中的图稿
         for (const artworkId of validArtworkIds) {
@@ -1153,6 +1157,24 @@ export default {
             artworkDetail.dies.forEach(dieId => {
               if (dieId) {
                 allDies.add(dieId)
+              }
+            })
+          }
+          
+          // 收集图稿关联的烫金版
+          if (artworkDetail.foiling_plates && Array.isArray(artworkDetail.foiling_plates)) {
+            artworkDetail.foiling_plates.forEach(plateId => {
+              if (plateId) {
+                allFoilingPlates.add(plateId)
+              }
+            })
+          }
+          
+          // 收集图稿关联的压凸版
+          if (artworkDetail.embossing_plates && Array.isArray(artworkDetail.embossing_plates)) {
+            artworkDetail.embossing_plates.forEach(plateId => {
+              if (plateId) {
+                allEmbossingPlates.add(plateId)
               }
             })
           }
@@ -1228,9 +1250,6 @@ export default {
           this.$message.warning('所选图稿未关联任何产品')
         }
         
-        // 更新制版工序状态
-        this.updatePlateMakingProcess()
-        
         // 自动填充印刷色数（合并所有图稿的色数，去重）
         // CMYK颜色：按照固定顺序C、M、Y、K排列
         const cmykOrder = ['C', 'M', 'Y', 'K']
@@ -1244,6 +1263,34 @@ export default {
         } else {
           // 如果没有关联刀模，保持当前选择（不清空，允许用户手动选择）
         }
+        
+        // 自动填充关联的烫金版（合并所有图稿的烫金版，去重）
+        if (allFoilingPlates.size > 0) {
+          this.form.foiling_plates = Array.from(allFoilingPlates)
+        } else {
+          // 如果没有关联烫金版，保持当前选择（不清空，允许用户手动选择）
+        }
+        
+        // 自动填充关联的压凸版（合并所有图稿的压凸版，去重）
+        if (allEmbossingPlates.size > 0) {
+          this.form.embossing_plates = Array.from(allEmbossingPlates)
+        } else {
+          // 如果没有关联压凸版，保持当前选择（不清空，允许用户手动选择）
+        }
+        
+        // 根据自动填充的版，自动选中对应的工序
+        await this.$nextTick()
+        this.autoSelectProcessesForPlates()
+        
+        // 更新制版工序状态（因为可能自动填充了版）
+        this.updatePlateMakingProcess()
+        
+        // 触发刀模、烫金版和压凸版的验证
+        this.$nextTick(() => {
+          this.$refs.form.validateField('dies')
+          this.$refs.form.validateField('foiling_plates')
+          this.$refs.form.validateField('embossing_plates')
+        })
       } catch (error) {
         console.error('加载图稿详情失败:', error)
         this.$message.error('加载图稿详情失败')
@@ -1254,15 +1301,34 @@ export default {
         this.$refs.form.validateField('artworks')
       })
     },
-    handleDieSelectVisible() {
-      // 当下拉框打开时的处理（如果需要）
-    },
     handleDieChange() {
+      // 根据版的选择，自动选中对应的工序
+      this.autoSelectProcessesForPlates()
       // 更新制版工序状态
       this.updatePlateMakingProcess()
       // 触发验证
       this.$nextTick(() => {
         this.$refs.form.validateField('dies')
+      })
+    },
+    handleFoilingPlateChange() {
+      // 根据版的选择，自动选中对应的工序
+      this.autoSelectProcessesForPlates()
+      // 更新制版工序状态
+      this.updatePlateMakingProcess()
+      // 触发验证
+      this.$nextTick(() => {
+        this.$refs.form.validateField('foiling_plates')
+      })
+    },
+    handleEmbossingPlateChange() {
+      // 根据版的选择，自动选中对应的工序
+      this.autoSelectProcessesForPlates()
+      // 更新制版工序状态
+      this.updatePlateMakingProcess()
+      // 触发验证
+      this.$nextTick(() => {
+        this.$refs.form.validateField('embossing_plates')
       })
     },
     isPlateMakingProcess(process) {
@@ -1305,6 +1371,71 @@ export default {
         if (index > -1) {
           this.selectedProcesses.splice(index, 1)
         }
+      }
+    },
+    autoSelectProcessesForPlates() {
+      // 根据选中的版，自动选中对应的工序
+      if (!this.allProcesses || this.allProcesses.length === 0) {
+        return // 如果工序列表未加载，直接返回
+      }
+      
+      const processesToAdd = new Set()
+      
+      // 如果选中了刀模，自动选中"模切"工序
+      if (this.form.dies && this.form.dies.length > 0) {
+        const dieCuttingProcess = this.allProcesses.find(p => 
+          p.name && (p.name.includes('模切') || p.name.includes('刀模'))
+        )
+        if (dieCuttingProcess && !this.selectedProcesses.includes(dieCuttingProcess.id)) {
+          processesToAdd.add(dieCuttingProcess.id)
+        }
+      }
+      
+      // 如果选中了烫金版，根据类型自动选中"烫金"或"烫银"工序
+      if (this.form.foiling_plates && this.form.foiling_plates.length > 0 && this.foilingPlateList && this.foilingPlateList.length > 0) {
+        // 收集所有选中烫金版的类型
+        const foilingTypes = new Set()
+        this.form.foiling_plates.forEach(plateId => {
+          const plate = this.foilingPlateList.find(p => p.id === plateId)
+          if (plate && plate.foiling_type) {
+            foilingTypes.add(plate.foiling_type)
+          }
+        })
+        
+        // 如果包含烫金类型，选中"烫金"工序
+        if (foilingTypes.has('gold')) {
+          const goldFoilingProcess = this.allProcesses.find(p => 
+            p.name && p.name.includes('烫金') && !p.name.includes('烫银')
+          )
+          if (goldFoilingProcess && !this.selectedProcesses.includes(goldFoilingProcess.id)) {
+            processesToAdd.add(goldFoilingProcess.id)
+          }
+        }
+        
+        // 如果包含烫银类型，选中"烫银"工序
+        if (foilingTypes.has('silver')) {
+          const silverFoilingProcess = this.allProcesses.find(p => 
+            p.name && p.name.includes('烫银')
+          )
+          if (silverFoilingProcess && !this.selectedProcesses.includes(silverFoilingProcess.id)) {
+            processesToAdd.add(silverFoilingProcess.id)
+          }
+        }
+      }
+      
+      // 如果选中了压凸版，自动选中"压凸"工序
+      if (this.form.embossing_plates && this.form.embossing_plates.length > 0) {
+        const embossingProcess = this.allProcesses.find(p => 
+          p.name && p.name.includes('压凸')
+        )
+        if (embossingProcess && !this.selectedProcesses.includes(embossingProcess.id)) {
+          processesToAdd.add(embossingProcess.id)
+        }
+      }
+      
+      // 添加需要选中的工序
+      if (processesToAdd.size > 0) {
+        this.selectedProcesses = [...this.selectedProcesses, ...Array.from(processesToAdd)]
       }
     },
     isPrintingProcess(process) {
@@ -1747,15 +1878,6 @@ export default {
           })
         }
         
-        console.log('施工单数据加载完成:', {
-          'form.artworks': this.form.artworks,
-          'form.dies': this.form.dies,
-          'form.foiling_plates': this.form.foiling_plates,
-          'form.embossing_plates': this.form.embossing_plates,
-          'artworkList.length': this.artworkList.length,
-          'dieList.length': this.dieList.length
-        })
-        
         // 加载物料信息
         if (data.materials && data.materials.length > 0) {
           this.materialItems = data.materials.map(m => ({
@@ -1861,24 +1983,12 @@ export default {
             this.$message.success('创建成功，单号自动生成')
           }
           
-          // 注意：products_data 已经在后端的 create/update 方法中自动处理了
-          // 不需要再次调用 saveProducts，否则会导致重复创建和 400 错误
+          // 注意：products_data 和 processes 已经在后端的 create/update 方法中自动处理了
+          // 不需要再次调用 saveProducts 或 saveSelectedProcesses，否则会导致重复创建和 400 错误
           
-          // 检查并保存工序和物料，收集所有错误信息
+          // 检查并保存物料，收集所有错误信息
           const permissionErrors = []
           const otherErrors = []
-          
-          // 添加选中的工序（新建和编辑都需要处理）
-          try {
-            await this.saveSelectedProcesses(workOrderId)
-          } catch (error) {
-            if (error.response?.status === 403) {
-              permissionErrors.push('工序信息')
-            } else {
-              otherErrors.push('工序信息')
-              console.error('保存工序失败:', error)
-            }
-          }
           
           // 保存物料信息
           try {
