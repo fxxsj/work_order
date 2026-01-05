@@ -132,16 +132,13 @@
               v-for="process in allProcesses"
               :key="process.id"
               :label="process.id"
-              :disabled="isPlateMakingProcess(process)"
+              :disabled="isPlateMakingProcess(process) || isCuttingProcess(process) || isPackagingProcess(process)"
             >
               {{ process.name }}
-              <span v-if="isPlateMakingProcess(process)" style="color: #909399; font-size: 12px; margin-left: 5px;">
-                （自动选择）
-              </span>
             </el-checkbox>
           </el-checkbox-group>
           <div style="color: #909399; font-size: 12px; margin-top: 10px;">
-            提示：选择工序后，系统会根据工序要求显示对应的版选择项。制版工序会根据版的选择自动勾选。
+            提示：选择工序后，系统会根据工序要求显示对应的版选择项。制版、开料、包装工序会根据条件自动勾选。
           </div>
         </el-form-item>
 
@@ -800,23 +797,18 @@ export default {
       return this.materialItems.some(item => item.need_cutting === true)
     },
     cuttingProcessId() {
-      // 查找开料工序的ID
-      const cuttingProcess = this.allProcesses.find(p => 
-        (p.name && (p.name.includes('开料') || p.name.includes('裁切')))
-      )
+      // 查找开料工序的ID（使用 code 字段精确匹配）
+      const cuttingProcess = this.allProcesses.find(p => p.code === 'CUT')
       return cuttingProcess ? cuttingProcess.id : null
     },
     shouldSelectPackagingProcess() {
       // 判断是否需要选中包装工序
-      // 如果产品列表不为空，则需要包装工序
-      return this.productItems && this.productItems.length > 0 && 
-             this.productItems.some(item => item.product !== null)
+      // 只要产品列表不为空，就自动勾选包装工序
+      return this.productItems && this.productItems.length > 0
     },
     packagingProcessId() {
-      // 查找包装工序的ID
-      const packagingProcess = this.allProcesses.find(p => 
-        (p.name && p.name.includes('包装'))
-      )
+      // 查找包装工序的ID（使用 code 字段精确匹配）
+      const packagingProcess = this.allProcesses.find(p => p.code === 'PACK')
       return packagingProcess ? packagingProcess.id : null
     },
     hasArtworkSelected() {
@@ -904,6 +896,20 @@ export default {
     },
     'form.embossing_plates'() {
       this.updatePlateMakingProcess()
+    },
+    // 监听物料列表变化，自动勾选/取消勾选开料工序
+    'materialItems': {
+      handler() {
+        this.updateCuttingProcess()
+      },
+      deep: true
+    },
+    // 监听产品列表变化，自动勾选/取消勾选包装工序
+    'productItems': {
+      handler() {
+        this.updatePackagingProcess()
+      },
+      deep: true
     },
     // 监听生产数量变化，自动更新产品数量
     'form.production_quantity'(newVal, oldVal) {
@@ -1332,15 +1338,12 @@ export default {
       })
     },
     isPlateMakingProcess(process) {
-      // 判断是否为制版工序
-      const processName = process.name || ''
-      return processName.includes('制版')
+      // 判断是否为制版工序（使用 code 字段精确匹配）
+      return process.code === 'CTP'
     },
     plateMakingProcessId() {
-      // 查找制版工序的ID
-      const plateMakingProcess = this.allProcesses.find(p => 
-        p.name && p.name.includes('制版')
-      )
+      // 查找制版工序的ID（使用 code 字段精确匹配）
+      const plateMakingProcess = this.allProcesses.find(p => p.code === 'CTP')
       return plateMakingProcess ? plateMakingProcess.id : null
     },
     shouldSelectPlateMakingProcess() {
@@ -1449,14 +1452,12 @@ export default {
       return processName.includes('模切')
     },
     isCuttingProcess(process) {
-      // 判断是否为开料工序
-      const processName = process.name || ''
-      return processName.includes('开料') || processName.includes('裁切')
+      // 判断是否为开料工序（使用 code 字段精确匹配）
+      return process.code === 'CUT'
     },
     isPackagingProcess(process) {
-      // 判断是否为包装工序
-      const processName = process.name || ''
-      return processName.includes('包装')
+      // 判断是否为包装工序（使用 code 字段精确匹配）
+      return process.code === 'PACK'
     },
     updateCuttingProcess() {
       // 更新开料工序的选中状态
