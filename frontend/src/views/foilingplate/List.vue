@@ -27,6 +27,13 @@
       >
         <el-table-column prop="code" label="烫金版编码" width="150"></el-table-column>
         <el-table-column prop="name" label="烫金版名称" width="200"></el-table-column>
+        <el-table-column prop="foiling_type" label="类型" width="100">
+          <template slot-scope="scope">
+            <el-tag :type="scope.row.foiling_type === 'gold' ? 'warning' : 'info'">
+              {{ scope.row.foiling_type === 'gold' ? '烫金' : '烫银' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="size" label="尺寸" width="180"></el-table-column>
         <el-table-column prop="material" label="材质" width="120"></el-table-column>
         <el-table-column prop="thickness" label="厚度" width="100"></el-table-column>
@@ -104,6 +111,12 @@
         </el-form-item>
         <el-form-item label="烫金版名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入烫金版名称"></el-input>
+        </el-form-item>
+        <el-form-item label="类型" prop="foiling_type">
+          <el-select v-model="form.foiling_type" placeholder="请选择类型" style="width: 100%;">
+            <el-option label="烫金" value="gold"></el-option>
+            <el-option label="烫银" value="silver"></el-option>
+          </el-select>
         </el-form-item>
         <el-row :gutter="20">
           <el-col :span="12">
@@ -212,6 +225,7 @@ export default {
       form: {
         code: '',
         name: '',
+        foiling_type: 'gold',
         size: '',
         material: '',
         thickness: '',
@@ -327,6 +341,7 @@ export default {
           this.form = {
             code: detail.code,
             name: detail.name,
+            foiling_type: detail.foiling_type || 'gold',
             size: detail.size || '',
             material: detail.material || '',
             thickness: detail.thickness || '',
@@ -353,6 +368,7 @@ export default {
         this.form = {
           code: '',
           name: '',
+          foiling_type: 'gold',
           size: '',
           material: '',
           thickness: '',

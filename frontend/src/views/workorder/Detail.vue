@@ -942,24 +942,9 @@
 <script>
 import Vue from 'vue'
 import { workOrderAPI, processAPI, materialAPI, workOrderProcessAPI, workOrderMaterialAPI, workOrderTaskAPI, departmentAPI, artworkAPI, dieAPI } from '@/api/workorder'
-// 导入配置文件，如果不存在则使用默认值
-let config
-try {
-  // 尝试多种导入方式
-  try {
-    config = require('@/config/index.js')
-  } catch (e1) {
-    config = require('@/config')
-  }
-  // 如果是 ES6 模块，取 default
-  if (config && typeof config === 'object' && 'default' in config) {
-    config = config.default
-  }
-} catch (e) {
-  // 如果配置文件不存在，使用默认配置
-  config = {
-    companyName: '肇庆市高要区新西彩包装有限公司'
-  }
+// 配置文件（默认值）
+const config = {
+  companyName: '肇庆市高要区新西彩包装有限公司'
 }
 
 export default {
