@@ -340,7 +340,77 @@
             ></el-option>
           </el-select>
           <span style="color: #909399; font-size: 12px; margin-left: 10px;">
-            请至少选择一个刀模，可多选
+            可选：如果已有刀模，请选择；如果未选择，将生成设计刀模任务。可多选
+          </span>
+        </el-form-item>
+
+        <!-- 烫金版类型选择 -->
+        <el-form-item label="烫金版" prop="foiling_plate_type">
+          <el-radio-group v-model="form.foiling_plate_type" @change="handleFoilingPlateTypeChange">
+            <el-radio label="no_foiling_plate">不需要烫金版</el-radio>
+            <el-radio label="need_foiling_plate">需要烫金版</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
+        <!-- 烫金版选择（仅在选择了"需要烫金版"时显示，可选） -->
+        <el-form-item 
+          label="选择烫金版" 
+          prop="foiling_plates"
+          v-if="form.foiling_plate_type === 'need_foiling_plate'"
+        >
+          <el-select
+            v-model="form.foiling_plates"
+            placeholder="请选择烫金版（可多选，可选，如未选择将生成设计任务）"
+            filterable
+            clearable
+            multiple
+            :collapse-tags="shouldCollapseFoilingPlateTags"
+            style="width: 100%;"
+          >
+            <el-option
+              v-for="plate in foilingPlateList"
+              :key="plate.id"
+              :label="`${plate.code} - ${plate.name}${plate.foiling_type === 'gold' ? '（烫金）' : '（烫银）'}`"
+              :value="plate.id"
+            ></el-option>
+          </el-select>
+          <span style="color: #909399; font-size: 12px; margin-left: 10px;">
+            可选：如果已有烫金版，请选择；如果未选择，将生成设计任务。可多选
+          </span>
+        </el-form-item>
+
+        <!-- 压凸版类型选择 -->
+        <el-form-item label="压凸版" prop="embossing_plate_type">
+          <el-radio-group v-model="form.embossing_plate_type" @change="handleEmbossingPlateTypeChange">
+            <el-radio label="no_embossing_plate">不需要压凸版</el-radio>
+            <el-radio label="need_embossing_plate">需要压凸版</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
+        <!-- 压凸版选择（仅在选择了"需要压凸版"时显示，可选） -->
+        <el-form-item 
+          label="选择压凸版" 
+          prop="embossing_plates"
+          v-if="form.embossing_plate_type === 'need_embossing_plate'"
+        >
+          <el-select
+            v-model="form.embossing_plates"
+            placeholder="请选择压凸版（可多选，可选，如未选择将生成设计任务）"
+            filterable
+            clearable
+            multiple
+            :collapse-tags="shouldCollapseEmbossingPlateTags"
+            style="width: 100%;"
+          >
+            <el-option
+              v-for="plate in embossingPlateList"
+              :key="plate.id"
+              :label="`${plate.code} - ${plate.name}`"
+              :value="plate.id"
+            ></el-option>
+          </el-select>
+          <span style="color: #909399; font-size: 12px; margin-left: 10px;">
+            可选：如果已有压凸版，请选择；如果未选择，将生成设计任务。可多选
           </span>
         </el-form-item>
 
@@ -464,7 +534,7 @@
 </template>
 
 <script>
-import { workOrderAPI, customerAPI, productAPI, processAPI, materialAPI, workOrderMaterialAPI, workOrderProductAPI, artworkAPI, dieAPI, workOrderProcessAPI } from '@/api/workorder'
+import { workOrderAPI, customerAPI, productAPI, processAPI, materialAPI, workOrderMaterialAPI, workOrderProductAPI, artworkAPI, dieAPI, foilingPlateAPI, embossingPlateAPI, workOrderProcessAPI } from '@/api/workorder'
 
 export default {
   name: 'WorkOrderForm',
@@ -477,6 +547,8 @@ export default {
       materialList: [],
       artworkList: [],
       dieList: [],
+      foilingPlateList: [],
+      embossingPlateList: [],
       allProcesses: [],
       selectedProduct: null,
       productItems: [], // 产品列表（可手动添加或从图稿自动填充）
@@ -488,6 +560,10 @@ export default {
         artworks: [], // 图稿列表（支持多选）
         die_type: 'no_die', // 刀模类型：不需要刀模、新设计刀模、需更新刀模、旧刀模
         dies: [], // 刀模列表（支持多选）
+        foiling_plate_type: 'no_foiling_plate', // 烫金版类型：不需要烫金版、需要烫金版
+        foiling_plates: [], // 烫金版列表（支持多选）
+        embossing_plate_type: 'no_embossing_plate', // 压凸版类型：不需要压凸版、需要压凸版
+        embossing_plates: [], // 压凸版列表（支持多选）
         printing_type: 'front', // 印刷形式，默认正面印刷
         printing_cmyk_colors: [], // 印刷CMYK颜色
         printing_other_colors: [], // 印刷其他颜色
@@ -563,6 +639,16 @@ export default {
       // 至少显示3个选中的选项标签后才显示+n标签
       const validDies = this.form.dies ? this.form.dies.filter(id => id !== null) : []
       return validDies.length > 3
+    },
+    shouldCollapseFoilingPlateTags() {
+      // 至少显示3个选中的选项标签后才显示+n标签
+      const validPlates = this.form.foiling_plates ? this.form.foiling_plates.filter(id => id !== null) : []
+      return validPlates.length > 3
+    },
+    shouldCollapseEmbossingPlateTags() {
+      // 至少显示3个选中的选项标签后才显示+n标签
+      const validPlates = this.form.embossing_plates ? this.form.embossing_plates.filter(id => id !== null) : []
+      return validPlates.length > 3
     },
     shouldShowDieSelect() {
       // 只有当选择了"需要刀模"时才显示刀模多选
@@ -696,6 +782,8 @@ export default {
     this.loadMaterialList()
     this.loadArtworkList()
     this.loadDieList()
+    this.loadFoilingPlateList()
+    this.loadEmbossingPlateList()
     this.loadAllProcesses()
     
     if (this.isEdit) {
@@ -785,6 +873,22 @@ export default {
         this.dieList = response.results || []
       } catch (error) {
         console.error('加载刀模列表失败:', error)
+      }
+    },
+    async loadFoilingPlateList() {
+      try {
+        const response = await foilingPlateAPI.getList({ page_size: 100 })
+        this.foilingPlateList = response.results || []
+      } catch (error) {
+        console.error('加载烫金版列表失败:', error)
+      }
+    },
+    async loadEmbossingPlateList() {
+      try {
+        const response = await embossingPlateAPI.getList({ page_size: 100 })
+        this.embossingPlateList = response.results || []
+      } catch (error) {
+        console.error('加载压凸版列表失败:', error)
       }
     },
     async loadAllProcesses() {
@@ -1054,6 +1158,28 @@ export default {
         this.$refs.form.validateField('dies')
       })
     },
+    handleFoilingPlateTypeChange(value) {
+      // 当烫金版类型改变时，根据类型处理烫金版选择
+      if (value === 'no_foiling_plate') {
+        // 不需要烫金版时，清空烫金版选择
+        this.form.foiling_plates = []
+      }
+      // 触发验证
+      this.$nextTick(() => {
+        this.$refs.form.validateField('foiling_plates')
+      })
+    },
+    handleEmbossingPlateTypeChange(value) {
+      // 当压凸版类型改变时，根据类型处理压凸版选择
+      if (value === 'no_embossing_plate') {
+        // 不需要压凸版时，清空压凸版选择
+        this.form.embossing_plates = []
+      }
+      // 触发验证
+      this.$nextTick(() => {
+        this.$refs.form.validateField('embossing_plates')
+      })
+    },
     isPlateMakingProcess(process) {
       // 判断是否为制版工序
       const processName = process.name || ''
@@ -1319,6 +1445,14 @@ export default {
           die_type: data.die_type || 'no_die',
           // 刀模：后端现在返回的是 dies 数组
           dies: data.dies || [],
+          // 烫金版类型
+          foiling_plate_type: data.foiling_plate_type || 'no_foiling_plate',
+          // 烫金版：后端现在返回的是 foiling_plates 数组
+          foiling_plates: data.foiling_plates || [],
+          // 压凸版类型
+          embossing_plate_type: data.embossing_plate_type || 'no_embossing_plate',
+          // 压凸版：后端现在返回的是 embossing_plates 数组
+          embossing_plates: data.embossing_plates || [],
           printing_type: data.printing_type || 'front',
           printing_cmyk_colors: data.printing_cmyk_colors || [],
           printing_other_colors: Array.isArray(data.printing_other_colors) ? data.printing_other_colors : [],
@@ -1507,6 +1641,24 @@ export default {
           if (this.form.die_type === 'no_die') {
             // 不需要刀模时，清空刀模选择
             data.dies = []
+          }
+          
+          // 处理烫金版数据：根据烫金版类型处理烫金版数据
+          const validFoilingPlates = this.form.foiling_plates ? this.form.foiling_plates.filter(id => id !== null) : []
+          data.foiling_plates = validFoilingPlates.length > 0 ? validFoilingPlates : []
+          // 根据烫金版类型处理烫金版数据
+          if (this.form.foiling_plate_type === 'no_foiling_plate') {
+            // 不需要烫金版时，清空烫金版选择
+            data.foiling_plates = []
+          }
+          
+          // 处理压凸版数据：根据压凸版类型处理压凸版数据
+          const validEmbossingPlates = this.form.embossing_plates ? this.form.embossing_plates.filter(id => id !== null) : []
+          data.embossing_plates = validEmbossingPlates.length > 0 ? validEmbossingPlates : []
+          // 根据压凸版类型处理压凸版数据
+          if (this.form.embossing_plate_type === 'no_embossing_plate') {
+            // 不需要压凸版时，清空压凸版选择
+            data.embossing_plates = []
           }
           
           // 处理产品数据
