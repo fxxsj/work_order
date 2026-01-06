@@ -127,7 +127,11 @@
 
         <!-- 工序选择（移到前面，在版选择之前） -->
         <el-form-item label="工序" prop="processes">
-          <el-checkbox-group v-model="selectedProcesses" @change="handleProcessChange">
+          <el-checkbox-group 
+            v-model="selectedProcesses" 
+            @change="handleProcessChange"
+            :disabled="isEdit && approvalStatus === 'approved' && !canEditCoreFields"
+          >
             <el-checkbox
               v-for="process in allProcesses"
               :key="process.id"
@@ -160,6 +164,7 @@
             clearable
             multiple
             :collapse-tags="shouldCollapseTags"
+            :disabled="isEdit && approvalStatus === 'approved' && !canEditCoreFields"
             style="width: 100%;"
             @change="handleArtworkChange"
           >
@@ -181,7 +186,10 @@
 
         <!-- 印刷形式（仅在选择了图稿时显示） -->
         <el-form-item label="印刷形式" v-if="hasArtworkSelected">
-          <el-radio-group v-model="form.printing_type">
+          <el-radio-group 
+            v-model="form.printing_type"
+            :disabled="isEdit && approvalStatus === 'approved' && !canEditCoreFields"
+          >
             <el-radio label="front">正面印刷</el-radio>
             <el-radio label="back">背面印刷</el-radio>
             <el-radio label="self_reverse">自反印刷</el-radio>
@@ -236,6 +244,7 @@
                   @input="handleProductItemChange(index, $event)"
                   placeholder="请选择产品"
                   filterable
+                  :disabled="isEdit && approvalStatus === 'approved' && !canEditCoreFields"
                   style="width: 100%;"
                 >
                   <el-option
@@ -272,6 +281,7 @@
                   type="number"
                   placeholder="数量"
                   @change="calculateTotalAmount"
+                  :disabled="isEdit && approvalStatus === 'approved' && !canEditCoreFields"
                   style="width: 100%;"
                 >
                   <template slot="suffix">
@@ -369,6 +379,7 @@
             clearable
             multiple
             :collapse-tags="shouldCollapseFoilingPlateTags"
+            :disabled="isEdit && approvalStatus === 'approved' && !canEditCoreFields"
             style="width: 100%;"
             @change="handleFoilingPlateChange"
           >
@@ -402,6 +413,7 @@
             clearable
             multiple
             :collapse-tags="shouldCollapseEmbossingPlateTags"
+            :disabled="isEdit && approvalStatus === 'approved' && !canEditCoreFields"
             style="width: 100%;"
             @change="handleEmbossingPlateChange"
           >
@@ -533,6 +545,8 @@ export default {
     return {
       isEdit: false,
       submitting: false,
+      approvalStatus: null, // 审核状态
+      canEditCoreFields: false, // 是否可以编辑核心字段
       customerList: [],
       productList: [],
       materialList: [],
@@ -1693,6 +1707,20 @@ export default {
       try {
         const id = this.$route.params.id
         const data = await workOrderAPI.getDetail(id)
+        
+        // 保存审核状态
+        this.approvalStatus = data.approval_status || 'pending'
+        
+        // 检查是否可以编辑核心字段
+        // 如果审核状态为 approved，需要检查用户是否有特殊权限
+        if (this.approvalStatus === 'approved') {
+          // TODO: 从后端获取用户是否有 change_approved_workorder 权限
+          // 目前默认不允许编辑核心字段，只有有特殊权限的用户才能编辑
+          // 权限检查在后端进行，前端只做 UI 层面的禁用
+          this.canEditCoreFields = false // 默认不允许编辑
+        } else {
+          this.canEditCoreFields = true // 待审核或已拒绝时可以编辑
+        }
         
         // 确保图稿、刀模、烫金版、压凸版列表已加载（可能需要等待）
         if (this.artworkList.length === 0) {

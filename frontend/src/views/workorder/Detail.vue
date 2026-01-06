@@ -1444,7 +1444,24 @@ export default {
       }
     },
     handleEdit() {
-      this.$router.push(`/workorders/${this.workOrder.id}/edit`)
+      // 如果审核通过且没有编辑核心字段的权限，显示提示
+      if (this.workOrder.approval_status === 'approved') {
+        this.$confirm(
+          '该施工单已审核通过。核心字段（产品、工序、版选择等）不能修改，非核心字段（备注、交货日期等）可以修改。确定要继续编辑吗？',
+          '编辑已审核的施工单',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        ).then(() => {
+          this.$router.push(`/workorders/${this.workOrder.id}/edit`)
+        }).catch(() => {
+          // 用户取消
+        })
+      } else {
+        this.$router.push(`/workorders/${this.workOrder.id}/edit`)
+      }
     },
     async handleStatusChange(status) {
       try {

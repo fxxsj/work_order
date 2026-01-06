@@ -326,7 +326,24 @@ export default {
       this.$router.push(`/workorders/${row.id}`)
     },
     handleEdit(row) {
-      this.$router.push(`/workorders/${row.id}/edit`)
+      // 如果审核状态为 approved，显示提示对话框
+      if (row.approval_status === 'approved') {
+        this.$confirm(
+          '该施工单已审核通过。核心字段（产品、工序、版选择等）不能修改，非核心字段（备注、交货日期等）可以修改。确定要继续编辑吗？',
+          '编辑已审核的施工单',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        ).then(() => {
+          this.$router.push(`/workorders/${row.id}/edit`)
+        }).catch(() => {
+          // 用户取消
+        })
+      } else {
+        this.$router.push(`/workorders/${row.id}/edit`)
+      }
     },
     handleRowClick(row) {
       this.handleView(row)

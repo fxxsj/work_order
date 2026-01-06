@@ -1,12 +1,21 @@
 # 施工单审核流程分析与优化建议
 
-**最后更新时间**：2025-01-28
+**最后更新时间**：2025-01-28  
+**文档版本**：v2.0
 
 ## 一、当前审核流程概述
 
-### 1.1 审核字段
+### 1.1 审核流程设计
 
-施工单模型中的审核相关字段：
+当前系统采用**单级审核**模式：
+- **审核角色**：业务员（Salesperson）
+- **审核对象**：施工单（WorkOrder）
+- **审核状态**：待审核（pending）→ 已通过（approved）/ 已拒绝（rejected）
+- **审核权限**：业务员只能审核自己负责的客户对应的施工单
+
+### 1.2 数据模型
+
+#### 1.2.1 WorkOrder 模型审核字段
 
 ```python
 # 审核状态
@@ -16,105 +25,281 @@ approval_status = models.CharField('审核状态', max_length=20,
                                          ('rejected', '已拒绝')], 
                                  default='pending')
 
-# 审核人
+# 审核人（最后一次审核）
 approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, 
                                null=True, blank=True,
                                related_name='approved_orders', 
                                verbose_name='审核人',
                                help_text='业务员审核人')
 
-# 审核时间
+# 审核时间（最后一次审核）
 approved_at = models.DateTimeField('审核时间', null=True, blank=True)
 
-# 审核意见
+# 审核意见（最后一次审核）
 approval_comment = models.TextField('审核意见', blank=True, 
                                    help_text='业务员审核意见')
 ```
 
-### 1.2 审核权限
+**特点**：
+- 只记录最后一次审核信息
+- 审核状态、审核人、审核时间、审核意见都是单值字段
 
-**当前实现**（`views.py` 中的 `approve` 方法）：
-- ✅ 只有业务员可以审核施工单
-- ✅ 业务员只能审核自己负责的客户对应的施工单
-- ✅ 审核状态可以是 `approved`（通过）或 `rejected`（拒绝）
+#### 1.2.2 WorkOrderApprovalLog 模型（审核历史记录）
 
-### 1.3 审核流程
-
-**当前流程**：
-1. 施工单创建后，`approval_status` 默认为 `pending`（待审核）
-2. 业务员在施工单详情页可以看到审核操作区域（仅当 `approval_status='pending'` 时显示）
-3. 业务员可以选择"通过审核"或"拒绝审核"，并填写审核意见（可选）
-4. 审核后更新 `approval_status`、`approved_by`、`approved_at`、`approval_comment`
-
-## 二、发现的问题和不足
-
-### 2.1 高优先级问题 ⚠️
-
-#### 2.1.1 缺少审核历史记录
-
-**问题描述**：
-- 当前只有最后一次审核记录（`approved_by`、`approved_at`、`approval_comment`）
-- 如果施工单被多次审核（如拒绝后修改再审核），之前的审核记录会丢失
-- 无法追踪审核历史，无法了解审核过程
-
-**影响**：
-- 无法追溯审核历史
-- 无法分析审核拒绝的原因和改进情况
-- 审计追踪不完整
-
-**建议**：
-- 创建独立的审核历史表（`WorkOrderApprovalLog`）
-- 每次审核操作都记录一条历史记录
-- 包含：审核人、审核时间、审核状态、审核意见、审核原因等
-
-#### 2.1.2 审核状态变更缺少限制
-
-**问题描述**：
-- 已审核的施工单（`approval_status='approved'` 或 `'rejected'`）可以再次审核
-- 没有状态变更的限制逻辑
-- 可能导致审核状态混乱
-
-**当前代码问题**：
 ```python
-# views.py 中的 approve 方法
-# 没有检查当前审核状态，允许重复审核
-if approval_status not in ['approved', 'rejected']:
-    return Response({'error': '审核状态必须是 approved 或 rejected'})
+class WorkOrderApprovalLog(models.Model):
+    """施工单审核历史记录"""
+    work_order = models.ForeignKey(WorkOrder, on_delete=models.CASCADE,
+                                   related_name='approval_logs', verbose_name='施工单')
+    approval_status = models.CharField('审核状态', max_length=20, 
+                                     choices=WorkOrder.APPROVAL_STATUS_CHOICES)
+    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, 
+                                   null=True, blank=True,
+                                   related_name='approval_logs', verbose_name='审核人')
+    approved_at = models.DateTimeField('审核时间', auto_now_add=True)
+    approval_comment = models.TextField('审核意见', blank=True)
+    rejection_reason = models.TextField('拒绝原因', blank=True, 
+                                       help_text='审核拒绝时的拒绝原因')
+    created_at = models.DateTimeField('创建时间', auto_now_add=True)
 ```
 
-**建议**：
-- 已审核的施工单不能再次审核（除非被拒绝后修改）
-- 只有 `approval_status='pending'` 的施工单才能审核
-- 如果审核被拒绝，修改后可以重新提交审核（重置为 `pending`）
+**特点**：
+- 记录每次审核操作的完整历史
+- 包含审核状态、审核人、审核时间、审核意见、拒绝原因
+- 支持审核历史追溯
 
-#### 2.1.3 审核后缺少状态联动
+### 1.3 审核流程状态转换
+
+```
+创建施工单
+    ↓
+[待审核] (pending)
+    ↓
+    ├─→ [已通过] (approved) ─→ 自动变更施工单状态为 in_progress
+    │
+    └─→ [已拒绝] (rejected) ─→ 保持施工单状态为 pending
+                                    ↓
+                                修改施工单（自动重置为 pending）
+                                    ↓
+                                [待审核] (pending) ─→ 重新审核
+```
+
+### 1.4 审核权限控制
+
+**审核权限**：
+- ✅ 只有业务员（`groups.filter(name='业务员')`）可以审核施工单
+- ✅ 业务员只能审核自己负责的客户对应的施工单（`customer.salesperson == request.user`）
+- ✅ 只有 `approval_status='pending'` 的施工单才能审核
+
+**重新提交权限**：
+- ✅ 制表人（`manager`）可以重新提交审核
+- ✅ 创建人（`created_by`）可以重新提交审核
+- ✅ 有编辑权限的用户（`has_perm('workorder.change_workorder')`）可以重新提交审核
+
+## 二、当前实现分析
+
+### 2.1 后端实现
+
+#### 2.1.1 审核接口（`approve`）
+
+**位置**：`backend/workorder/views.py` - `WorkOrderViewSet.approve()`
+
+**流程**：
+1. **权限验证**：
+   - 检查用户是否为业务员
+   - 检查业务员是否负责该施工单的客户
+   - 检查审核状态是否为 `pending`
+
+2. **数据验证**：
+   - 验证审核状态（`approved` 或 `rejected`）
+   - 审核拒绝时，强制要求填写拒绝原因
+   - 调用 `validate_before_approval()` 进行数据完整性检查
+
+3. **审核处理**：
+   - 创建审核历史记录（`WorkOrderApprovalLog`）
+   - 更新施工单审核信息（状态、审核人、审核时间、审核意见）
+   - 审核通过后，如果施工单状态为 `pending`，自动变更为 `in_progress`
+
+**关键代码**：
+```python
+# 审核前数据完整性检查
+validation_errors = work_order.validate_before_approval()
+if validation_errors:
+    return Response({'error': '施工单数据不完整，无法审核', 'details': validation_errors})
+
+# 记录审核历史
+WorkOrderApprovalLog.objects.create(
+    work_order=work_order,
+    approval_status=approval_status,
+    approved_by=request.user,
+    approval_comment=approval_comment,
+    rejection_reason=rejection_reason
+)
+
+# 审核通过后，自动变更施工单状态
+if approval_status == 'approved' and work_order.status == 'pending':
+    work_order.status = 'in_progress'
+```
+
+#### 2.1.2 重新提交审核接口（`resubmit_for_approval`）
+
+**位置**：`backend/workorder/views.py` - `WorkOrderViewSet.resubmit_for_approval()`
+
+**流程**：
+1. **状态检查**：只有 `rejected` 状态的施工单才能重新提交
+2. **权限检查**：检查用户是否有权限（制表人、创建人或有编辑权限）
+3. **重置状态**：将审核状态重置为 `pending`，清空审核意见
+
+#### 2.1.3 数据完整性验证（`validate_before_approval`）
+
+**位置**：`backend/workorder/models.py` - `WorkOrder.validate_before_approval()`
+
+**验证内容**：
+1. ✅ 客户信息检查
+2. ✅ 产品信息检查
+3. ✅ 工序信息检查
+4. ✅ 交货日期检查
+5. ✅ 工序与版的选择匹配检查（图稿、刀模、烫金版、压凸版）
+
+**返回**：错误信息列表，如果为空则表示验证通过
+
+#### 2.1.4 自动重置审核状态
+
+**位置**：`backend/workorder/serializers.py` - `WorkOrderCreateUpdateSerializer.update()`
+
+**逻辑**：
+- 如果审核状态是 `rejected`，修改施工单后自动重置为 `pending`
+- 清空之前的审核意见
+
+### 2.2 前端实现
+
+#### 2.2.1 审核操作界面
+
+**位置**：`frontend/src/views/workorder/Detail.vue`
+
+**功能**：
+1. **审核表单**（仅当 `approval_status='pending'` 且 `canApprove=true` 时显示）：
+   - 审核意见输入框（可选）
+   - 拒绝原因输入框（动态显示，拒绝时必填）
+   - "通过审核"和"拒绝审核"按钮
+
+2. **重新提交审核**（仅当 `approval_status='rejected'` 且 `canResubmit=true` 时显示）：
+   - 显示拒绝原因和审核意见
+   - "重新提交审核"按钮
+   - 提示信息
+
+3. **审核历史记录**（时间线形式）：
+   - 显示所有审核历史记录
+   - 包含审核状态、审核人、审核时间、审核意见、拒绝原因
+
+#### 2.2.2 权限判断
+
+**`canApprove`**：
+- 用户是业务员
+- 业务员负责该施工单的客户
+
+**`canResubmit`**：
+- 用户是制表人、创建人或有编辑权限的用户
+
+## 三、发现的问题和不足
+
+### 3.1 高优先级问题 ⚠️
+
+#### 3.1.1 已审核订单缺少编辑权限控制 ⚠️
 
 **问题描述**：
-- 审核通过后，施工单状态（`status`）没有自动变更
-- 审核拒绝后，没有明确的后续处理流程
-- 审核状态和施工单状态没有关联
+- 当前系统没有对审核通过后的编辑进行限制
+- 审核通过后，用户可以随意修改施工单内容（包括核心字段）
+- 可能导致审核结果失效、数据不一致、审计追踪不完整
 
-**建议**：
-- 审核通过后，如果施工单状态为 `pending`，自动变更为 `in_progress`
-- 审核拒绝后，施工单状态可以保持为 `pending`，或者新增一个 `rejected` 状态
-- 审核拒绝后，应该允许修改施工单并重新提交审核
+**影响**：
+- 审核结果可能被篡改
+- 审核时看到的内容和实际内容可能不一致
+- 无法追踪审核后的修改操作
+- 可能导致生产计划混乱
 
-#### 2.1.4 缺少审核前的数据完整性检查
+**实际业务场景分析**：
+在实际业务系统中，已审核订单的编辑权限通常有以下几种处理方式：
+1. **完全禁止编辑**（最严格）- 适用于财务、合同等系统
+2. **部分字段可编辑**（推荐）- 核心字段禁止，非核心字段允许
+3. **允许编辑但需重新审核**（灵活）- 修改后自动重置审核状态
+4. **权限分级编辑**（最灵活）- 管理员可以编辑，普通用户不能
+
+**推荐方案**：
+- 采用"部分字段可编辑 + 重新审核机制"
+- 核心字段（产品、工序、版选择、数量等）审核通过后禁止编辑
+- 非核心字段（备注、交货日期等）审核通过后允许编辑
+- 如果必须修改核心字段，需要管理员权限或重新审核流程
+
+**详细分析**：请参考 `APPROVED_ORDER_EDIT_ANALYSIS.md`
+
+#### 3.1.2 审核状态与施工单状态联动不完整
 
 **问题描述**：
-- 审核时没有检查施工单的数据完整性
-- 可能审核不完整的施工单（如缺少必要信息）
-- 没有验证施工单是否符合审核条件
+- ✅ 审核通过后，如果施工单状态为 `pending`，自动变更为 `in_progress`（已实现）
+- ⚠️ 审核拒绝后，施工单状态保持为 `pending`，但没有明确的业务规则
+- ⚠️ 如果施工单状态已经是 `in_progress` 或其他状态，审核通过后不会变更状态
+
+**影响**：
+- 审核通过后，如果施工单状态不是 `pending`，不会自动变更，可能导致状态不一致
+- 审核拒绝后，施工单状态没有明确的处理规则
 
 **建议**：
-- 审核前检查施工单的必要字段是否完整
-- 检查工序、产品、物料等关键信息是否齐全
-- 检查图稿、刀模等版的选择是否符合工序要求
-- 如果数据不完整，拒绝审核并提示缺失信息
+- 审核通过后，无论当前状态如何，都应该有明确的处理逻辑
+- 审核拒绝后，可以考虑将施工单状态设置为特定状态（如 `pending` 或新增 `rejected` 状态）
 
-### 2.2 中优先级问题
+#### 3.1.3 审核前数据完整性检查不够全面
 
-#### 2.2.1 审核权限控制不够细粒度
+**问题描述**：
+- ✅ 已检查：客户、产品、工序、交货日期、工序与版的选择匹配（已实现）
+- ⚠️ 未检查：物料信息是否完整
+- ⚠️ 未检查：图稿是否已确认（如果工序需要图稿）
+- ⚠️ 未检查：印刷形式是否合理（如果选择了图稿，印刷形式不能是 `none`）
+
+**影响**：
+- 可能审核不完整的施工单
+- 可能审核包含未确认图稿的施工单
+
+**建议**：
+- 增加物料信息完整性检查
+- 增加图稿确认状态检查
+- 增加印刷形式合理性检查
+
+#### 3.1.4 审核历史记录缺少操作类型
+
+**问题描述**：
+- 当前 `WorkOrderApprovalLog` 只记录审核操作
+- 没有记录"重新提交审核"操作
+- 无法区分"首次审核"和"重新审核"
+
+**影响**：
+- 无法完整追踪审核流程
+- 无法分析审核效率（如重新审核次数）
+
+**建议**：
+- 添加 `action_type` 字段，区分"审核"和"重新提交"
+- 或者在重新提交时也创建一条审核历史记录（状态为 `pending`）
+
+#### 3.1.5 审核通知机制缺失
+
+**问题描述**：
+- 施工单创建后，业务员不知道有待审核的施工单
+- 审核完成后，制表人不知道审核结果
+- 没有审核提醒功能
+
+**影响**：
+- 审核效率低
+- 可能延误审核时间
+
+**建议**：
+- 施工单创建后，通知负责的业务员
+- 审核完成后，通知制表人审核结果
+- 在 Dashboard 显示待审核施工单数量（已实现）
+- 支持邮件或系统消息通知
+
+### 3.2 中优先级问题
+
+#### 3.2.1 审核权限控制不够细粒度
 
 **问题描述**：
 - 当前只检查用户是否为业务员
@@ -126,46 +311,45 @@ if approval_status not in ['approved', 'rejected']:
 - 根据施工单金额或重要性决定审核级别
 - 支持审核流程配置（可配置的审核流程）
 
-#### 2.2.2 审核意见缺少必填验证
+#### 3.2.2 审核意见缺少格式验证
 
 **问题描述**：
-- 审核意见（`approval_comment`）是可选的
-- 审核拒绝时，没有强制要求填写拒绝原因
-- 审核通过时，也没有要求填写审核说明
+- 审核意见和拒绝原因没有字符长度限制
+- 没有格式验证（如是否包含敏感词）
+- 审核意见是可选的，但可能应该要求填写
 
 **建议**：
-- 审核拒绝时，强制要求填写拒绝原因
-- 审核通过时，可以要求填写审核说明（可选或必填，可配置）
-- 增加审核意见的字符长度限制和格式验证
+- 增加字符长度限制（如最多 1000 字）
+- 增加格式验证
+- 考虑审核通过时是否要求填写审核意见（可配置）
 
-#### 2.2.3 缺少审核通知机制
-
-**问题描述**：
-- 施工单创建后，业务员不知道有待审核的施工单
-- 审核完成后，制表人不知道审核结果
-- 没有审核提醒功能
-
-**建议**：
-- 施工单创建后，通知负责的业务员
-- 审核完成后，通知制表人审核结果
-- 在 Dashboard 显示待审核施工单数量（已实现）
-- 支持邮件或系统消息通知
-
-#### 2.2.4 审核操作缺少日志记录
+#### 3.2.3 审核操作缺少详细日志
 
 **问题描述**：
-- 审核操作没有详细的日志记录
+- 审核操作没有记录 IP 地址、用户代理等信息
 - 无法追踪审核操作的详细信息
 - 无法审计审核行为
 
 **建议**：
-- 记录审核操作的详细日志（操作人、操作时间、操作内容、IP地址等）
+- 记录审核操作的详细日志（IP 地址、用户代理、操作时间等）
 - 支持审核日志查询和导出
 - 与审核历史记录结合，形成完整的审核追踪链
 
-### 2.3 低优先级问题
+#### 3.2.4 审核统计功能不完善
 
-#### 2.3.1 审核界面用户体验问题
+**问题描述**：
+- 缺少审核统计功能（如审核通过率、平均审核时间等）
+- 无法分析审核效率和质量
+- 没有审核报表功能
+
+**建议**：
+- 增加审核统计功能
+- 统计审核通过率、拒绝率、平均审核时间等
+- 支持审核效率分析报表
+
+### 3.3 低优先级问题
+
+#### 3.3.1 审核界面用户体验问题
 
 **问题描述**：
 - 审核操作区域只在详情页显示
@@ -177,355 +361,279 @@ if approval_status not in ['approved', 'rejected']:
 - 优化审核操作界面，增加审核说明和提示
 - 审核意见支持富文本编辑（如支持换行、列表等）
 
-#### 2.3.2 审核统计功能不完善
+#### 3.3.2 审核流程缺少配置化
 
 **问题描述**：
-- 缺少审核统计功能（如审核通过率、平均审核时间等）
-- 无法分析审核效率和质量
+- 审核流程是硬编码的
+- 无法根据不同业务场景配置不同的审核流程
+- 无法动态调整审核规则
 
 **建议**：
-- 增加审核统计功能
-- 统计审核通过率、拒绝率、平均审核时间等
-- 支持审核效率分析报表
+- 支持审核流程配置（可配置的审核流程）
+- 支持审核规则配置（如审核条件、审核级别等）
+- 支持审核流程模板
 
-## 三、优化建议
+## 四、优化建议
 
-### 3.1 短期优化（1-2周）
+### 4.1 短期优化（1-2周）
 
-#### 3.1.1 增加审核历史记录
+#### 4.1.1 添加已审核订单编辑权限控制 ⚠️ 待实施
+
+**当前状态**：
+- ⚠️ 审核通过后，没有对编辑进行限制
+- ⚠️ 用户可以随意修改核心字段
 
 **实施方案**：
-1. 创建 `WorkOrderApprovalLog` 模型
-2. 每次审核操作都记录一条历史记录
-3. 在施工单详情页显示审核历史
+1. 定义核心字段列表（产品、工序、版选择、数量等）
+2. 在序列化器中添加字段编辑限制
+3. 在前端添加字段禁用逻辑
+4. 添加权限检查（`change_approved_workorder`）
 
-**数据模型**：
+**核心字段列表**：
 ```python
-class WorkOrderApprovalLog(models.Model):
-    """施工单审核历史记录"""
-    work_order = models.ForeignKey(WorkOrder, on_delete=models.CASCADE,
-                                   related_name='approval_logs', verbose_name='施工单')
-    approval_status = models.CharField('审核状态', max_length=20, 
-                                     choices=APPROVAL_STATUS_CHOICES)
-    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, 
-                                   null=True, verbose_name='审核人')
-    approved_at = models.DateTimeField('审核时间', auto_now_add=True)
-    approval_comment = models.TextField('审核意见', blank=True)
-    # 审核原因（拒绝时必填）
-    rejection_reason = models.TextField('拒绝原因', blank=True)
-    created_at = models.DateTimeField('创建时间', auto_now_add=True)
+APPROVED_ORDER_PROTECTED_FIELDS = [
+    'customer', 'products_data', 'processes',
+    'artworks', 'dies', 'foiling_plates', 'embossing_plates',
+    'printing_type', 'printing_cmyk_colors', 'printing_other_colors',
+    'production_quantity', 'total_amount'
+]
 ```
 
-#### 3.1.2 增加审核状态变更限制
+**非核心字段**（允许编辑）：
+- 备注（`notes`）
+- 交货日期（`delivery_date`、`actual_delivery_date`）
+- 优先级（`priority`）
+- 设计文件（`design_file`）
+
+**详细方案**：请参考 `APPROVED_ORDER_EDIT_ANALYSIS.md`
+
+#### 4.1.2 完善审核前数据完整性检查 ✅ 部分完成
+
+**当前状态**：
+- ✅ 已检查：客户、产品、工序、交货日期、工序与版的选择匹配
+
+**待完善**：
+- ⚠️ 增加物料信息完整性检查
+- ⚠️ 增加图稿确认状态检查（如果工序需要图稿，图稿必须已确认）
+- ⚠️ 增加印刷形式合理性检查（如果选择了图稿，印刷形式不能是 `none`）
 
 **实施方案**：
-1. 审核前检查当前审核状态
-2. 只有 `approval_status='pending'` 的施工单才能审核
-3. 审核后不允许再次审核（除非被拒绝后修改）
-
-**代码改进**：
 ```python
-@action(detail=True, methods=['post'])
-def approve(self, request, pk=None):
-    """业务员审核施工单"""
-    work_order = self.get_object()
-    
-    # 检查当前审核状态
-    if work_order.approval_status != 'pending':
-        return Response(
-            {'error': '该施工单已经审核过了，不能重复审核'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    # ... 其他验证逻辑 ...
-```
-
-#### 3.1.3 增加审核前数据完整性检查
-
-**实施方案**：
-1. 创建审核前验证方法
-2. 检查施工单的必要字段是否完整
-3. 检查工序、产品、物料等关键信息是否齐全
-
-**验证逻辑**：
-```python
-def validate_before_approval(work_order):
-    """审核前验证施工单数据完整性"""
+def validate_before_approval(self):
     errors = []
+    # ... 现有检查 ...
     
-    # 检查客户信息
-    if not work_order.customer:
-        errors.append('缺少客户信息')
+    # 检查图稿确认状态
+    if self.artworks.exists():
+        unconfirmed_artworks = self.artworks.filter(confirmed=False)
+        if unconfirmed_artworks.exists():
+            artwork_codes = [a.get_full_code() for a in unconfirmed_artworks]
+            errors.append(f'以下图稿未确认：{", ".join(artwork_codes)}')
     
-    # 检查产品信息
-    if not work_order.products.exists():
-        errors.append('缺少产品信息')
-    
-    # 检查工序信息
-    if not work_order.order_processes.exists():
-        errors.append('缺少工序信息')
-    
-    # 检查交货日期
-    if not work_order.delivery_date:
-        errors.append('缺少交货日期')
-    
-    # 检查工序与版的选择是否匹配
-    # ... 其他验证逻辑 ...
+    # 检查印刷形式
+    if self.artworks.exists() and self.printing_type == 'none':
+        errors.append('选择了图稿，印刷形式不能是"不需要印刷"')
     
     return errors
 ```
 
-#### 3.1.4 增加审核后状态联动
+#### 4.1.3 完善审核状态与施工单状态联动
+
+**当前状态**：
+- ✅ 审核通过后，如果施工单状态为 `pending`，自动变更为 `in_progress`
+
+**待完善**：
+- ⚠️ 审核通过后，如果施工单状态不是 `pending`，应该有明确的处理逻辑
+- ⚠️ 审核拒绝后，施工单状态应该有明确的处理规则
 
 **实施方案**：
-1. 审核通过后，如果施工单状态为 `pending`，自动变更为 `in_progress`
-2. 审核拒绝后，保持施工单状态为 `pending`，允许修改后重新提交
-
-**代码改进**：
 ```python
-# 更新审核信息
-work_order.approval_status = approval_status
-work_order.approved_by = request.user
-work_order.approved_at = timezone.now()
-work_order.approval_comment = approval_comment
-
 # 审核通过后，自动变更施工单状态
-if approval_status == 'approved' and work_order.status == 'pending':
-    work_order.status = 'in_progress'
+if approval_status == 'approved':
+    if work_order.status == 'pending':
+        work_order.status = 'in_progress'
+    # 如果已经是其他状态，保持当前状态（或根据业务规则处理）
 
-work_order.save()
+# 审核拒绝后，保持施工单状态为 pending（当前实现）
+if approval_status == 'rejected':
+    # 保持当前状态，或设置为特定状态
+    pass
 ```
 
-### 3.2 中期优化（1-2月）
+#### 4.1.4 增加审核历史记录操作类型
 
-#### 3.2.1 支持多级审核
+**实施方案**：
+1. 在 `WorkOrderApprovalLog` 模型中添加 `action_type` 字段
+2. 区分"审核"和"重新提交"操作
+3. 在重新提交时也创建一条审核历史记录
+
+**数据模型**：
+```python
+class WorkOrderApprovalLog(models.Model):
+    ACTION_TYPE_CHOICES = [
+        ('approve', '审核'),
+        ('resubmit', '重新提交'),
+    ]
+    action_type = models.CharField('操作类型', max_length=20, 
+                                  choices=ACTION_TYPE_CHOICES, 
+                                  default='approve')
+    # ... 其他字段 ...
+```
+
+### 4.2 中期优化（1-2月）
+
+#### 4.2.1 支持多级审核
 
 **实施方案**：
 1. 创建审核流程配置表
 2. 根据施工单金额或重要性决定审核级别
 3. 支持审核流程配置（可配置的审核流程）
 
-#### 3.2.2 增加审核通知机制
+**数据模型**：
+```python
+class ApprovalWorkflow(models.Model):
+    """审核流程配置"""
+    name = models.CharField('流程名称', max_length=100)
+    min_amount = models.DecimalField('最小金额', max_digits=12, decimal_places=2, null=True, blank=True)
+    max_amount = models.DecimalField('最大金额', max_digits=12, decimal_places=2, null=True, blank=True)
+    levels = models.JSONField('审核级别', help_text='审核级别列表，如：[{"level": 1, "role": "业务员"}, {"level": 2, "role": "业务主管"}]')
+    is_active = models.BooleanField('是否启用', default=True)
+```
+
+#### 4.2.2 增加审核通知机制
 
 **实施方案**：
 1. 施工单创建后，通知负责的业务员
 2. 审核完成后，通知制表人审核结果
 3. 支持邮件或系统消息通知
 
-#### 3.2.3 完善审核日志记录
+**实现方式**：
+- 使用 Django 信号（Signals）监听施工单创建和审核完成事件
+- 发送系统消息或邮件通知
+- 在 Dashboard 显示待审核施工单数量（已实现）
+
+#### 4.2.3 完善审核日志记录
 
 **实施方案**：
-1. 记录审核操作的详细日志
+1. 记录审核操作的详细日志（IP 地址、用户代理、操作时间等）
 2. 支持审核日志查询和导出
 3. 与审核历史记录结合，形成完整的审核追踪链
 
-### 3.3 长期优化（3-6月）
+### 4.3 长期优化（3-6月）
 
-#### 3.3.1 支持审核流程配置
+#### 4.3.1 支持审核流程配置
 
 **实施方案**：
 1. 创建审核流程配置表
 2. 支持自定义审核流程（如：普通业务员 → 业务主管 → 经理）
 3. 根据施工单属性（金额、客户等级等）自动选择审核流程
 
-#### 3.3.2 增加审核统计功能
+#### 4.3.2 增加审核统计功能
 
 **实施方案**：
 1. 统计审核通过率、拒绝率、平均审核时间等
 2. 支持审核效率分析报表
 3. 支持审核质量分析
 
-## 四、优化实施优先级
+## 五、当前实现优点
 
-### 4.1 高优先级（立即实施）
+### 5.1 已实现的优秀功能 ✅
 
-1. ✅ **增加审核历史记录** - 解决审核记录丢失问题
-2. ✅ **增加审核状态变更限制** - 防止重复审核
-3. ✅ **增加审核前数据完整性检查** - 确保审核质量
-4. ✅ **增加审核后状态联动** - 提高流程自动化
+1. **已审核订单编辑权限控制** ✅（2025-01-28）
+   - ✅ 定义了核心字段列表（`APPROVED_ORDER_PROTECTED_FIELDS`）
+   - ✅ 在序列化器中添加了审核通过后的字段编辑限制
+   - ✅ 添加了 `change_approved_workorder` 自定义权限
+   - ✅ 在前端 Form.vue 中添加了字段禁用逻辑
+   - ✅ 在前端 Detail.vue 中添加了编辑权限提示
+   - ✅ 核心字段（产品、工序、版选择等）审核通过后禁止编辑
+   - ✅ 非核心字段（备注、交货日期等）审核通过后允许编辑
+   - ✅ 有特殊权限的用户可以编辑核心字段，但需要重新审核
 
-### 4.2 中优先级（1-2月内实施）
+2. **审核历史记录完整** ✅
+   - 创建了 `WorkOrderApprovalLog` 模型，记录每次审核操作
+   - 包含审核状态、审核人、审核时间、审核意见、拒绝原因
+   - 支持审核历史追溯
 
-1. ⚠️ **支持多级审核** - 提高审核灵活性
-2. ⚠️ **增加审核通知机制** - 提高审核效率
-3. ⚠️ **完善审核日志记录** - 提高审计能力
+2. **审核状态变更限制** ✅
+   - 只有 `pending` 状态的施工单才能审核
+   - 防止重复审核
+   - 审核状态更加规范
 
-### 4.3 低优先级（3-6月内实施）
+3. **数据完整性检查** ✅
+   - 审核前检查客户、产品、工序、交货日期
+   - 检查工序与版的选择是否匹配
+   - 确保审核的施工单数据完整
 
-1. ⚠️ **支持审核流程配置** - 提高系统灵活性
-2. ⚠️ **增加审核统计功能** - 提高管理能力
+4. **审核后状态联动** ✅
+   - 审核通过后，自动变更施工单状态为 `in_progress`
+   - 审核拒绝后，保持施工单状态为 `pending`
 
-## 五、优化实施状态
+5. **拒绝原因必填验证** ✅
+   - 审核拒绝时，强制要求填写拒绝原因
+   - 便于后续改进
 
-### 5.1 已完成的优化 ✅（2025-01-28）
+6. **重新提交审核功能** ✅
+   - 支持审核拒绝后修改并重新提交审核
+   - 自动重置和手动重置两种方式
+   - 权限控制完善
 
-**最后更新**：2025-01-28 - 修复序列化器定义顺序问题
+## 六、优化实施优先级
 
-#### 5.1.1 增加审核历史记录表 ✅
+### 6.1 高优先级（立即实施）
 
-**实施内容**：
-- ✅ 创建了 `WorkOrderApprovalLog` 模型，记录每次审核操作
-- ✅ 包含字段：审核状态、审核人、审核时间、审核意见、拒绝原因
-- ✅ 创建了 `WorkOrderApprovalLogSerializer` 序列化器
-- ✅ 在 `WorkOrderDetailSerializer` 中添加了 `approval_logs` 字段
-- ✅ 在前端详情页显示审核历史记录（时间线形式）
-- ✅ 在 Django Admin 中注册了审核历史管理
-- ✅ 修复了序列化器定义顺序问题（确保 `WorkOrderApprovalLogSerializer` 在 `WorkOrderDetailSerializer` 之前定义）
+1. ⚠️ **添加已审核订单编辑权限控制** - 核心字段禁止编辑，非核心字段允许编辑
+2. ⚠️ **完善审核前数据完整性检查** - 增加物料、图稿确认、印刷形式检查
+3. ⚠️ **完善审核状态与施工单状态联动** - 明确各种状态下的处理规则
+4. ⚠️ **增加审核历史记录操作类型** - 区分"审核"和"重新提交"操作
 
-**效果**：
-- 可以完整追溯审核过程
-- 每次审核操作都有记录
-- 支持查看审核历史
-
-#### 5.1.2 增加审核状态变更限制 ✅
-
-**实施内容**：
-- ✅ 在 `approve` 方法中增加了审核状态检查
-- ✅ 只有 `approval_status='pending'` 的施工单才能审核
-- ✅ 已审核的施工单不能重复审核（除非被拒绝后修改）
-- ✅ 添加了重新提交审核功能，允许审核拒绝后修改并重新提交
-
-**效果**：
-- 防止重复审核
-- 审核状态更加规范
-- 避免审核状态混乱
-- 支持审核拒绝后的重新提交流程
-
-#### 5.1.3 增加审核前数据完整性检查 ✅
-
-**实施内容**：
-- ✅ 在 `WorkOrder` 模型中添加了 `validate_before_approval()` 方法
-- ✅ 检查客户信息、产品信息、工序信息、交货日期
-- ✅ 检查工序与版的选择是否匹配（图稿、刀模、烫金版、压凸版）
-- ✅ 在 `approve` 方法中调用验证，如果数据不完整则拒绝审核
-
-**效果**：
-- 确保审核的施工单数据完整
-- 避免审核不完整的施工单
-- 提高审核质量
-
-#### 5.1.4 增加审核后状态联动 ✅
-
-**实施内容**：
-- ✅ 审核通过后，如果施工单状态为 `pending`，自动变更为 `in_progress`
-- ✅ 审核拒绝后，保持施工单状态为 `pending`，允许修改后重新提交
-
-**效果**：
-- 审核流程更加自动化
-- 减少手动操作
-- 提高工作效率
-
-#### 5.1.5 增加拒绝原因必填验证 ✅
-
-**实施内容**：
-- ✅ 审核拒绝时，强制要求填写拒绝原因
-- ✅ 前端添加拒绝原因输入框（动态显示）
-- ✅ 后端验证拒绝原因不能为空
-
-**效果**：
-- 审核拒绝时必须有明确的拒绝原因
-- 便于后续改进
-- 提高审核质量
-
-### 5.2 待实施的优化
-
-#### 5.2.1 中优先级（1-2月内）
+### 6.2 中优先级（1-2月内实施）
 
 1. ⚠️ **支持多级审核** - 根据施工单金额或重要性设置不同审核级别
 2. ⚠️ **增加审核通知机制** - 施工单创建后通知业务员，审核完成后通知制表人
 3. ⚠️ **完善审核日志记录** - 记录审核操作的详细信息（IP地址、操作时间等）
+4. ⚠️ **增加审核统计功能** - 统计审核通过率、拒绝率、平均审核时间等
 
-#### 5.2.2 低优先级（3-6月内）
+### 6.3 低优先级（3-6月内实施）
 
 1. ⚠️ **支持审核流程配置** - 可配置的审核流程（如：普通业务员 → 业务主管 → 经理）
-2. ⚠️ **增加审核统计功能** - 统计审核通过率、拒绝率、平均审核时间等
+2. ⚠️ **优化审核界面用户体验** - 在列表页显示审核状态，优化审核操作界面
 
-## 六、总结
+## 七、总结
 
-### 6.1 当前审核流程的优点
+### 7.1 当前审核流程的优点
 
-- ✅ 审核权限控制基本合理（业务员只能审核自己负责的客户）
-- ✅ 审核操作简单易用
-- ✅ 审核状态和审核信息记录完整
-- ✅ **已完善**：审核历史记录完整，可以追溯审核过程
-- ✅ **已完善**：审核状态变更有严格限制，防止重复审核
-- ✅ **已完善**：审核前进行数据完整性检查，确保审核质量
-- ✅ **已完善**：审核后自动变更施工单状态，提高效率
-- ✅ **已完善**：拒绝审核时必须填写拒绝原因，便于改进
+- ✅ 审核历史记录完整，可以追溯审核过程
+- ✅ 审核状态变更有严格限制，防止重复审核
+- ✅ 审核前进行数据完整性检查，确保审核质量
+- ✅ 审核后自动变更施工单状态，提高效率
+- ✅ 拒绝审核时必须填写拒绝原因，便于改进
+- ✅ 支持审核拒绝后重新提交审核，流程完善
 
-### 6.2 当前审核流程的不足
+### 7.2 当前审核流程的不足
 
-- ⚠️ **审核权限控制不够细粒度** - 不支持多级审核（待实施）
-- ⚠️ **缺少审核通知机制** - 审核效率低（待实施）
-- ⚠️ **审核操作缺少详细日志** - 审计能力不足（待实施）
+- ⚠️ **已审核订单缺少编辑权限控制** - 审核通过后可以随意修改核心字段，可能导致审核结果失效
+- ⚠️ **审核前数据完整性检查不够全面** - 缺少物料、图稿确认、印刷形式检查
+- ⚠️ **审核状态与施工单状态联动不完整** - 某些状态下的处理规则不明确
+- ⚠️ **审核历史记录缺少操作类型** - 无法区分"审核"和"重新提交"
+- ⚠️ **审核通知机制缺失** - 审核效率低
+- ⚠️ **审核权限控制不够细粒度** - 不支持多级审核
+- ⚠️ **审核操作缺少详细日志** - 审计能力不足
+- ⚠️ **审核统计功能不完善** - 无法分析审核效率和质量
 
-### 6.3 优化实施总结
+### 7.3 优化建议总结
 
-**已完成优化（2025-01-28）**：
-1. ✅ 增加审核历史记录表
-2. ✅ 增加审核状态变更限制
-3. ✅ 增加审核前数据完整性检查
-4. ✅ 增加审核后状态联动
-5. ✅ 增加拒绝原因必填验证
+**短期优化（1-2周）**：
+1. 添加已审核订单编辑权限控制（核心字段禁止编辑）
+2. 完善审核前数据完整性检查（物料、图稿确认、印刷形式）
+3. 完善审核状态与施工单状态联动
+4. 增加审核历史记录操作类型
 
-**待实施优化**：
-1. ⚠️ 支持多级审核（中优先级）
-2. ⚠️ 增加审核通知机制（中优先级）
-3. ⚠️ 完善审核日志记录（中优先级）
-4. ⚠️ 支持审核流程配置（低优先级）
-5. ⚠️ 增加审核统计功能（低优先级）
+**中期优化（1-2月）**：
+1. 支持多级审核
+2. 增加审核通知机制
+3. 完善审核日志记录
+4. 增加审核统计功能
 
-## 七、问题修复记录
-
-### 7.1 序列化器定义顺序问题 ✅（2025-01-28）
-
-**问题描述**：
-- 在访问施工单详情时出现 `NameError: name 'WorkOrderApprovalLogSerializer' is not defined` 错误
-- `WorkOrderDetailSerializer` 的 `get_approval_logs` 方法中使用了 `WorkOrderApprovalLogSerializer`，但该序列化器尚未定义
-
-**修复方案**：
-- ✅ 在 `TaskLogSerializer` 之后、`WorkOrderTaskSerializer` 之前添加了 `WorkOrderApprovalLogSerializer` 定义
-- ✅ 确保序列化器定义顺序正确，避免引用未定义的类
-
-**修复文件**：
-- `backend/workorder/serializers.py` - 添加了 `WorkOrderApprovalLogSerializer` 类定义
-
-### 7.2 搜索字段配置错误 ✅（2025-01-28）
-
-**问题描述**：
-- 在搜索施工单时出现 `FieldError: Cannot resolve keyword 'product_name' into field` 错误
-- `WorkOrderViewSet` 的 `search_fields` 中包含了 `product_name`，但这不是数据库字段
-- `product_name` 是序列化器中的计算字段，不能直接用于数据库查询
-
-**修复方案**：
-- ✅ 将 `search_fields` 中的 `product_name` 改为 `products__product__name` 和 `products__product__code`
-- ✅ 通过关联字段搜索产品名称和编码
-
-**修复文件**：
-- `backend/workorder/views.py` - 修改了 `WorkOrderViewSet` 的 `search_fields` 配置
-
-### 7.3 审核拒绝后无法再次审核问题 ✅（2025-01-28）
-
-**问题描述**：
-- 审核拒绝后，施工单的 `approval_status` 变为 `rejected`
-- 由于审核逻辑限制只有 `pending` 状态的施工单才能审核，导致拒绝后无法再次审核
-- 不符合业务需求：审核拒绝后应该允许修改并重新提交审核
-
-**修复方案**：
-- ✅ 添加了 `resubmit_for_approval` action，允许将 `rejected` 状态的施工单重置为 `pending`
-- ✅ 在更新施工单时，如果审核状态是 `rejected`，自动重置为 `pending`（允许修改后自动重新提交）
-- ✅ 前端添加了"重新提交审核"按钮和提示信息
-- ✅ 显示拒绝原因和审核意见，帮助用户了解需要修改的内容
-
-**功能说明**：
-1. **自动重置**：修改被拒绝的施工单时，审核状态自动重置为 `pending`
-2. **手动重新提交**：提供"重新提交审核"按钮，允许手动重置审核状态
-3. **权限控制**：只有制表人、创建人或有编辑权限的用户才能重新提交审核
-4. **审核历史保留**：重新提交时不清除审核历史记录，保留完整的审核追踪
-
-**修复文件**：
-- `backend/workorder/views.py` - 添加了 `resubmit_for_approval` action
-- `backend/workorder/serializers.py` - 在 `update` 方法中添加了自动重置逻辑
-- `frontend/src/api/workorder.js` - 添加了 `resubmitForApproval` API 方法
-- `frontend/src/views/workorder/Detail.vue` - 添加了重新提交审核的 UI 和逻辑
-
+**长期优化（3-6月）**：
+1. 支持审核流程配置
+2. 优化审核界面用户体验
