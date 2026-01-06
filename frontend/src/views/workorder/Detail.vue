@@ -1694,10 +1694,9 @@ export default {
         
         this.updatingTask = true
         try {
-          // 计算更新后的累计值：当前值 + 本次增量
-          const newQuantityCompleted = (this.currentUpdateTask.quantity_completed || 0) + (this.updateTaskForm.quantity_completed || 0)
+          // 传递增量值给后端（后端会累加）
           const data = {
-            quantity_completed: newQuantityCompleted,  // 传递累计值给后端
+            quantity_increment: this.updateTaskForm.quantity_completed || 0,  // 传递本次完成数量（增量）
             notes: this.updateTaskForm.notes
           }
           

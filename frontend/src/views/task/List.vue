@@ -373,17 +373,26 @@
             style="width: 100%;"
           ></el-input-number>
         </el-form-item>
-        <el-form-item label="完成数量" prop="quantity_completed" required>
+        <el-form-item label="当前完成数量" v-if="currentTask">
+          <el-input-number
+            :value="currentTask.quantity_completed || 0"
+            disabled
+            style="width: 100%;"
+          ></el-input-number>
+        </el-form-item>
+        <el-form-item label="本次完成数量" prop="quantity_completed" required>
           <el-input-number
             v-model="updateForm.quantity_completed"
             :min="0"
-            :max="currentTask?.production_quantity"
+            :max="currentTask?.production_quantity ? (currentTask.production_quantity - (currentTask.quantity_completed || 0)) : 999999"
             style="width: 100%;"
           ></el-input-number>
           <div v-if="currentTask?.production_quantity" style="color: #909399; font-size: 12px; margin-top: 4px;">
-            计划数量：{{ currentTask.production_quantity }}
-            <span v-if="updateForm.quantity_completed >= currentTask.production_quantity" style="color: #67C23A;">
-              （完成数量已达到计划数量，状态将自动标记为已完成）
+            计划数量：{{ currentTask.production_quantity }}，
+            当前完成：{{ currentTask.quantity_completed || 0 }}，
+            更新后：{{ (currentTask.quantity_completed || 0) + (updateForm.quantity_completed || 0) }}
+            <span v-if="(currentTask.quantity_completed || 0) + (updateForm.quantity_completed || 0) >= currentTask.production_quantity" style="color: #67C23A;">
+              （完成数量将达到计划数量，状态将自动标记为已完成）
             </span>
             <span v-else style="color: #E6A23C;">
               （完成数量未达到计划数量，状态将保持为进行中）
@@ -800,7 +809,7 @@ export default {
     showUpdateDialog(task) {
       this.currentTask = { ...task }
       this.updateForm = {
-        quantity_completed: task.quantity_completed || 0,
+        quantity_completed: 0,  // 本次完成数量（增量），初始为0
         artwork_ids: [],
         die_ids: [],
         notes: ''
@@ -833,8 +842,9 @@ export default {
         
         this.updatingTask = true
         try {
+          // 传递增量值给后端（后端会累加）
           const data = {
-            quantity_completed: this.updateForm.quantity_completed,
+            quantity_increment: this.updateForm.quantity_completed || 0,  // 传递本次完成数量（增量）
             notes: this.updateForm.notes
           }
           
