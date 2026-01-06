@@ -76,13 +76,21 @@
         <div slot="header" class="card-header">
           <span>业务员审核</span>
         </div>
-        <el-form :model="approvalForm" label-width="100px">
-          <el-form-item label="审核意见">
+        <el-form :model="approvalForm" label-width="100px" :rules="approvalRules" ref="approvalForm">
+          <el-form-item label="审核意见" prop="comment">
             <el-input
               v-model="approvalForm.comment"
               type="textarea"
               :rows="3"
               placeholder="请输入审核意见（可选）"
+            ></el-input>
+          </el-form-item>
+          <el-form-item label="拒绝原因" prop="rejection_reason" v-if="showRejectionReason">
+            <el-input
+              v-model="approvalForm.rejection_reason"
+              type="textarea"
+              :rows="3"
+              placeholder="请填写拒绝原因（必填）"
             ></el-input>
           </el-form-item>
           <el-form-item>
@@ -94,6 +102,71 @@
             </el-button>
           </el-form-item>
         </el-form>
+      </el-card>
+
+      <!-- 重新提交审核操作（审核拒绝后） -->
+      <el-card v-if="canResubmit && workOrder.approval_status === 'rejected'" style="margin-top: 20px;">
+        <div slot="header" class="card-header">
+          <span>重新提交审核</span>
+        </div>
+        <el-alert
+          type="warning"
+          :closable="false"
+          style="margin-bottom: 15px;"
+        >
+          <div slot="title">
+            <p>该施工单已被拒绝审核。请修改施工单内容后，点击"重新提交审核"按钮。</p>
+            <p v-if="workOrder.approval_comment" style="margin-top: 5px;">
+              <strong>审核意见：</strong>{{ workOrder.approval_comment }}
+            </p>
+            <p v-if="workOrder.approval_logs && workOrder.approval_logs.length > 0">
+              <strong>拒绝原因：</strong>
+              <span v-for="(log, index) in workOrder.approval_logs" :key="index">
+                <span v-if="log.approval_status === 'rejected' && log.rejection_reason">
+                  {{ log.rejection_reason }}
+                </span>
+              </span>
+            </p>
+          </div>
+        </el-alert>
+        <el-form-item>
+          <el-button type="primary" @click="handleResubmitForApproval" :loading="resubmitting">
+            <i class="el-icon-refresh"></i> 重新提交审核
+          </el-button>
+          <span style="margin-left: 10px; color: #909399; font-size: 12px;">
+            提示：修改施工单内容后，审核状态会自动重置为"待审核"
+          </span>
+        </el-form-item>
+      </el-card>
+
+      <!-- 审核历史记录 -->
+      <el-card v-if="workOrder.approval_logs && workOrder.approval_logs.length > 0" style="margin-top: 20px;">
+        <div slot="header" class="card-header">
+          <span>审核历史</span>
+        </div>
+        <el-timeline>
+          <el-timeline-item
+            v-for="(log, index) in workOrder.approval_logs"
+            :key="index"
+            :timestamp="log.approved_at | formatDateTime"
+            placement="top"
+          >
+            <el-card>
+              <h4>
+                <span :class="'status-badge approval-' + log.approval_status">
+                  {{ log.approval_status_display }}
+                </span>
+                <span style="margin-left: 10px; color: #909399;">审核人：{{ log.approved_by_name || '-' }}</span>
+              </h4>
+              <p v-if="log.approval_comment" style="margin-top: 10px;">
+                <strong>审核意见：</strong>{{ log.approval_comment }}
+              </p>
+              <p v-if="log.rejection_reason" style="margin-top: 10px; color: #F56C6C;">
+                <strong>拒绝原因：</strong>{{ log.rejection_reason }}
+              </p>
+            </el-card>
+          </el-timeline-item>
+        </el-timeline>
       </el-card>
 
 
@@ -1172,9 +1245,17 @@ export default {
         planned_quantity: 0
       },
       approving: false,
+      resubmitting: false,
       approvalForm: {
-        comment: ''
+        comment: '',
+        rejection_reason: ''
       },
+      approvalRules: {
+        rejection_reason: [
+          { required: false, message: '请填写拒绝原因', trigger: 'blur' }
+        ]
+      },
+      showRejectionReason: false,
       // 完成任务对话框
       completeTaskDialogVisible: false,
       currentTask: null,
@@ -1214,6 +1295,18 @@ export default {
       if (!this.workOrder || !this.workOrder.customer_detail) return false
       // 检查施工单的客户对应的业务员是否是当前登录的业务员
       return this.workOrder.customer_detail.salesperson === userInfo.id
+    },
+    // 检查是否可以重新提交审核（制表人、创建人或有编辑权限的用户）
+    canResubmit() {
+      const userInfo = this.$store.getters.currentUser
+      if (!userInfo || !this.workOrder) return false
+      // 检查是否是制表人或创建人
+      if (this.workOrder.manager === userInfo.id || this.workOrder.created_by === userInfo.id) {
+        return true
+      }
+      // 检查是否有编辑权限（这里简化处理，实际应该检查权限）
+      // 注意：前端无法准确判断权限，这里允许所有登录用户尝试，后端会验证
+      return true
     },
     availableStatuses() {
       const currentStatus = this.materialStatusForm.current_status
@@ -1887,25 +1980,80 @@ export default {
       // status: 'approved' 或 'rejected'
       if (!this.workOrder) return
       
+      // 如果是拒绝，显示拒绝原因输入框并验证
+      if (status === 'rejected') {
+        this.showRejectionReason = true
+        // 等待下一个 tick，确保 DOM 更新
+        await this.$nextTick()
+        // 验证拒绝原因
+        if (!this.approvalForm.rejection_reason || this.approvalForm.rejection_reason.trim() === '') {
+          this.$message.error('审核拒绝时，必须填写拒绝原因')
+          return
+        }
+      } else {
+        this.showRejectionReason = false
+      }
+      
       this.approving = true
       try {
-        await workOrderAPI.approve(this.workOrder.id, {
+        const requestData = {
           approval_status: status,
           approval_comment: this.approvalForm.comment || ''
-        })
+        }
+        
+        // 如果是拒绝，添加拒绝原因
+        if (status === 'rejected') {
+          requestData.rejection_reason = this.approvalForm.rejection_reason || ''
+        }
+        
+        await workOrderAPI.approve(this.workOrder.id, requestData)
         
         this.$message.success(status === 'approved' ? '审核通过' : '审核已拒绝')
+        // 清空表单
         this.approvalForm.comment = ''
+        this.approvalForm.rejection_reason = ''
+        this.showRejectionReason = false
         
         // 重新加载数据
         await this.loadData()
       } catch (error) {
         const errorMsg = error.response?.data?.error || error.response?.data?.detail || '审核失败'
-        this.$message.error(errorMsg)
+        const errorDetails = error.response?.data?.details
+        if (errorDetails && Array.isArray(errorDetails)) {
+          this.$message.error(errorMsg + '：' + errorDetails.join('；'))
+        } else {
+          this.$message.error(errorMsg)
+        }
         console.error('审核失败:', error)
       } finally {
         this.approving = false
       }
+    },
+    async handleResubmitForApproval() {
+      // 重新提交审核
+      if (!this.workOrder) return
+      
+      this.$confirm('确定要重新提交审核吗？修改施工单内容后，审核状态会自动重置为"待审核"。', '重新提交审核', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'info'
+      }).then(async () => {
+        this.resubmitting = true
+        try {
+          await workOrderAPI.resubmitForApproval(this.workOrder.id)
+          this.$message.success('重新提交审核成功，审核状态已重置为"待审核"')
+          // 重新加载数据
+          await this.loadData()
+        } catch (error) {
+          const errorMsg = error.response?.data?.error || error.response?.data?.detail || '重新提交审核失败'
+          this.$message.error(errorMsg)
+          console.error('重新提交审核失败:', error)
+        } finally {
+          this.resubmitting = false
+        }
+      }).catch(() => {
+        // 用户取消
+      })
     },
     handlePrint() {
       // 创建新窗口用于打印

@@ -291,6 +291,13 @@ export const workOrderAPI = {
       data
     })
   },
+  // 重新提交审核（审核拒绝后使用）
+  resubmitForApproval(id) {
+    return request({
+      url: `/workorders/${id}/resubmit_for_approval/`,
+      method: 'post'
+    })
+  },
   // 更新状态
   updateStatus(id, status) {
     return request({
