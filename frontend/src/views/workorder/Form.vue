@@ -1384,17 +1384,15 @@ export default {
       
       const processesToAdd = new Set()
       
-      // 如果选中了刀模，自动选中"模切"工序
+      // 如果选中了刀模，自动选中"模切"工序（使用编码匹配）
       if (this.form.dies && this.form.dies.length > 0) {
-        const dieCuttingProcess = this.allProcesses.find(p => 
-          p.name && (p.name.includes('模切') || p.name.includes('刀模'))
-        )
+        const dieCuttingProcess = this.allProcesses.find(p => p.code === 'DIE')
         if (dieCuttingProcess && !this.selectedProcesses.includes(dieCuttingProcess.id)) {
           processesToAdd.add(dieCuttingProcess.id)
         }
       }
       
-      // 如果选中了烫金版，根据类型自动选中"烫金"或"烫银"工序
+      // 如果选中了烫金版，根据类型自动选中"烫金"或"烫银"工序（使用编码匹配）
       if (this.form.foiling_plates && this.form.foiling_plates.length > 0 && this.foilingPlateList && this.foilingPlateList.length > 0) {
         // 收集所有选中烫金版的类型
         const foilingTypes = new Set()
@@ -1405,32 +1403,26 @@ export default {
           }
         })
         
-        // 如果包含烫金类型，选中"烫金"工序
+        // 如果包含烫金类型，选中"烫金"工序（使用编码匹配）
         if (foilingTypes.has('gold')) {
-          const goldFoilingProcess = this.allProcesses.find(p => 
-            p.name && p.name.includes('烫金') && !p.name.includes('烫银')
-          )
+          const goldFoilingProcess = this.allProcesses.find(p => p.code === 'FOIL_G')
           if (goldFoilingProcess && !this.selectedProcesses.includes(goldFoilingProcess.id)) {
             processesToAdd.add(goldFoilingProcess.id)
           }
         }
         
-        // 如果包含烫银类型，选中"烫银"工序
+        // 如果包含烫银类型，选中"烫银"工序（使用编码匹配）
         if (foilingTypes.has('silver')) {
-          const silverFoilingProcess = this.allProcesses.find(p => 
-            p.name && p.name.includes('烫银')
-          )
+          const silverFoilingProcess = this.allProcesses.find(p => p.code === 'FOIL_S')
           if (silverFoilingProcess && !this.selectedProcesses.includes(silverFoilingProcess.id)) {
             processesToAdd.add(silverFoilingProcess.id)
           }
         }
       }
       
-      // 如果选中了压凸版，自动选中"压凸"工序
+      // 如果选中了压凸版，自动选中"压凸"工序（使用编码匹配）
       if (this.form.embossing_plates && this.form.embossing_plates.length > 0) {
-        const embossingProcess = this.allProcesses.find(p => 
-          p.name && p.name.includes('压凸')
-        )
+        const embossingProcess = this.allProcesses.find(p => p.code === 'EMB')
         if (embossingProcess && !this.selectedProcesses.includes(embossingProcess.id)) {
           processesToAdd.add(embossingProcess.id)
         }
@@ -1442,14 +1434,12 @@ export default {
       }
     },
     isPrintingProcess(process) {
-      // 判断是否为印刷工序
-      const processName = process.name || ''
-      return processName.includes('印刷')
+      // 判断是否为印刷工序（使用编码匹配）
+      return process.code === 'PRT'
     },
     isDieCuttingProcess(process) {
-      // 判断是否为模切工序
-      const processName = process.name || ''
-      return processName.includes('模切')
+      // 判断是否为模切工序（使用编码匹配）
+      return process.code === 'DIE'
     },
     isCuttingProcess(process) {
       // 判断是否为开料工序（使用 code 字段精确匹配）

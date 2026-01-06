@@ -1597,16 +1597,14 @@ export default {
       }
       return statusMap[status] || status
     },
-    // 判断是否为制版工序
+    // 判断是否为制版工序（使用编码匹配）
     isPlateMakingProcess(process) {
-      const processName = (process.process_name || '').toLowerCase()
-      return processName.includes('制版') || processName.includes('设计')
+      return process.process_code === 'CTP'
     },
-    // 判断是否为物料相关工序（开料、裁切）
+    // 判断是否为物料相关工序（开料，使用编码匹配）
     // 注意：采购不属于施工单工序，采购任务通过其他系统管理
     isMaterialProcess(process) {
-      const processName = (process.process_name || '').toLowerCase()
-      return processName.includes('开料') || processName.includes('裁切')
+      return process.process_code === 'CUT'
     },
     // 根据状态获取物料状态标签类型
     getMaterialStatusTagTypeByStatus(status) {
@@ -1636,9 +1634,9 @@ export default {
       if (task.task_type === 'plate_making' && task.artwork && !task.artwork_confirmed) {
         return false
       }
-      // 开料任务：需要物料已开料（如果存在开料工序）
+      // 开料任务：需要物料已开料（如果存在开料工序，使用编码匹配）
       // 注意：采购不属于施工单工序，采购任务通过其他系统管理
-      if (task.task_type === 'cutting' && process.process_name && (process.process_name.includes('开料') || process.process_name.includes('裁切'))) {
+      if (task.task_type === 'cutting' && process.process_code === 'CUT') {
         if (task.material_purchase_status !== 'cut') {
           return false
         }
@@ -1651,9 +1649,9 @@ export default {
       if (task.task_type === 'plate_making' && task.artwork && !task.artwork_confirmed) {
         return '需确认图稿'
       }
-      // 开料任务：需要物料开料（如果存在开料工序）
+      // 开料任务：需要物料开料（如果存在开料工序，使用编码匹配）
       // 注意：采购不属于施工单工序，采购任务通过其他系统管理
-      if (task.task_type === 'cutting' && process.process_name && (process.process_name.includes('开料') || process.process_name.includes('裁切'))) {
+      if (task.task_type === 'cutting' && process.process_code === 'CUT') {
         if (task.material_purchase_status !== 'cut') {
           return '需物料开料'
         }
