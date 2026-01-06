@@ -135,10 +135,12 @@
               :disabled="isPlateMakingProcess(process) || isCuttingProcess(process) || isPackagingProcess(process)"
             >
               {{ process.name }}
+              <span v-if="isPlateMakingProcess(process) || isCuttingProcess(process) || isPackagingProcess(process)" 
+                    style="color: #909399; font-size: 12px; margin-left: 5px;">（自动选择）</span>
             </el-checkbox>
           </el-checkbox-group>
           <div style="color: #909399; font-size: 12px; margin-top: 10px;">
-            提示：选择工序后，系统会根据工序要求显示对应的版选择项。制版、开料、包装工序会根据条件自动勾选。
+            提示：选择工序后，系统会根据工序要求显示对应的版选择项。制版、开料、包装工序会根据条件自动勾选，无需手动选择。
           </div>
         </el-form-item>
 
@@ -171,7 +173,9 @@
           <span style="color: #909399; font-size: 12px; margin-left: 10px;">
             <span v-if="isArtworkRequired" style="color: #F56C6C;">必选：</span>
             <span v-else>可选：</span>
-            如果已有图稿，请选择；如果未选择，将生成设计图稿任务。可多选（如纸卡双面印刷的面版和底版）
+            <span v-if="isArtworkRequired">请选择图稿（必选）。</span>
+            <span v-else>如果已有图稿，请选择；如果未选择，需要手动创建设计任务（设计不属于施工单工序）。</span>
+            可多选（如纸卡双面印刷的面版和底版）
           </span>
         </el-form-item>
 
@@ -327,7 +331,7 @@
         >
           <el-select
             v-model="form.dies"
-            :placeholder="isDieRequired ? '请选择刀模（必选）' : '请选择刀模（可选，如未选择将生成设计任务）'"
+            :placeholder="isDieRequired ? '请选择刀模（必选）' : '请选择刀模（可选，如未选择需手动创建设计任务）'"
             filterable
             clearable
             multiple
@@ -345,7 +349,9 @@
           <span style="color: #909399; font-size: 12px; margin-left: 10px;">
             <span v-if="isDieRequired" style="color: #F56C6C;">必选：</span>
             <span v-else>可选：</span>
-            如果已有刀模，请选择；如果未选择，将生成设计刀模任务。可多选
+            <span v-if="isDieRequired">请选择刀模（必选）。</span>
+            <span v-else>如果已有刀模，请选择；如果未选择，需要手动创建设计任务（设计不属于施工单工序）。</span>
+            可多选
           </span>
         </el-form-item>
 
@@ -358,7 +364,7 @@
         >
           <el-select
             v-model="form.foiling_plates"
-            :placeholder="isFoilingPlateRequired ? '请选择烫金版（必选）' : '请选择烫金版（可选，如未选择将生成设计任务）'"
+            :placeholder="isFoilingPlateRequired ? '请选择烫金版（必选）' : '请选择烫金版（可选，如未选择需手动创建设计任务）'"
             filterable
             clearable
             multiple
@@ -376,7 +382,9 @@
           <span style="color: #909399; font-size: 12px; margin-left: 10px;">
             <span v-if="isFoilingPlateRequired" style="color: #F56C6C;">必选：</span>
             <span v-else>可选：</span>
-            如果已有烫金版，请选择；如果未选择，将生成设计任务。可多选
+            <span v-if="isFoilingPlateRequired">请选择烫金版（必选）。</span>
+            <span v-else>如果已有烫金版，请选择；如果未选择，需要手动创建设计任务（设计不属于施工单工序）。</span>
+            可多选
           </span>
         </el-form-item>
 
@@ -389,7 +397,7 @@
         >
           <el-select
             v-model="form.embossing_plates"
-            :placeholder="isEmbossingPlateRequired ? '请选择压凸版（必选）' : '请选择压凸版（可选，如未选择将生成设计任务）'"
+            :placeholder="isEmbossingPlateRequired ? '请选择压凸版（必选）' : '请选择压凸版（可选，如未选择需手动创建设计任务）'"
             filterable
             clearable
             multiple
@@ -407,7 +415,9 @@
           <span style="color: #909399; font-size: 12px; margin-left: 10px;">
             <span v-if="isEmbossingPlateRequired" style="color: #F56C6C;">必选：</span>
             <span v-else>可选：</span>
-            如果已有压凸版，请选择；如果未选择，将生成设计任务。可多选
+            <span v-if="isEmbossingPlateRequired">请选择压凸版（必选）。</span>
+            <span v-else>如果已有压凸版，请选择；如果未选择，需要手动创建设计任务（设计不属于施工单工序）。</span>
+            可多选
           </span>
         </el-form-item>
 
@@ -465,7 +475,7 @@
                   <el-switch
                     v-model="scope.row.need_cutting"
                     size="small"
-                    @change="updateCuttingProcess"
+                    @change="debouncedUpdateAutoSelectedProcesses"
                   ></el-switch>
                 </template>
               </el-table-column>
@@ -536,6 +546,7 @@ export default {
       materialItems: [], // 物料列表
       selectedProcesses: [],
       isLoadingWorkOrderData: false, // 标志，用于防止在数据加载时清空数据
+      updateAutoSelectedProcessesTimer: null, // 防抖定时器
       form: {
         customer: null,
         artworks: [], // 图稿列表（支持多选）
@@ -838,76 +849,36 @@ export default {
         return
       }
       
-      // 检查是否有工序需要图稿
-      const hasArtworkProcess = newVal.some(processId => {
-        const process = this.allProcesses.find(p => p.id === processId)
-        return process && process.requires_artwork
-      })
-      if (!hasArtworkProcess && this.form.artworks && this.form.artworks.length > 0) {
-        // 如果没有工序需要图稿，清空图稿选择
-        this.form.artworks = []
-        this.form.printing_type = 'none'
-        this.form.printing_cmyk_colors = []
-        this.form.printing_other_colors = []
-      }
+      // 统一处理版选择清理和自动选择逻辑
+      this.handleProcessChangeWithPlateCleanup(newVal)
       
-      // 检查是否有工序需要刀模
-      const hasDieProcess = newVal.some(processId => {
-        const process = this.allProcesses.find(p => p.id === processId)
-        return process && process.requires_die
-      })
-      if (!hasDieProcess && this.form.dies && this.form.dies.length > 0) {
-        // 如果没有工序需要刀模，清空刀模选择
-        this.form.dies = []
-      }
-      
-      // 检查是否有工序需要烫金版
-      const hasFoilingPlateProcess = newVal.some(processId => {
-        const process = this.allProcesses.find(p => p.id === processId)
-        return process && process.requires_foiling_plate
-      })
-      if (!hasFoilingPlateProcess && this.form.foiling_plates && this.form.foiling_plates.length > 0) {
-        // 如果没有工序需要烫金版，清空烫金版选择
-        this.form.foiling_plates = []
-      }
-      
-      // 检查是否有工序需要压凸版
-      const hasEmbossingPlateProcess = newVal.some(processId => {
-        const process = this.allProcesses.find(p => p.id === processId)
-        return process && process.requires_embossing_plate
-      })
-      if (!hasEmbossingPlateProcess && this.form.embossing_plates && this.form.embossing_plates.length > 0) {
-        // 如果没有工序需要压凸版，清空压凸版选择
-        this.form.embossing_plates = []
-      }
-      
-      // 更新制版工序状态（制版工序根据版的选择自动勾选）
-      this.updatePlateMakingProcess()
+      // 更新所有自动选择的工序（制版、开料、包装）（使用防抖）
+      this.debouncedUpdateAutoSelectedProcesses()
     },
-    // 监听版选择变化，自动勾选/取消勾选制版工序
+    // 监听版选择变化，统一更新自动选择的工序（使用防抖）
     'form.artworks'() {
-      this.updatePlateMakingProcess()
+      this.debouncedUpdateAutoSelectedProcesses()
     },
     'form.dies'() {
-      this.updatePlateMakingProcess()
+      this.debouncedUpdateAutoSelectedProcesses()
     },
     'form.foiling_plates'() {
-      this.updatePlateMakingProcess()
+      this.debouncedUpdateAutoSelectedProcesses()
     },
     'form.embossing_plates'() {
-      this.updatePlateMakingProcess()
+      this.debouncedUpdateAutoSelectedProcesses()
     },
-    // 监听物料列表变化，自动勾选/取消勾选开料工序
+    // 监听物料列表变化，统一更新自动选择的工序
     'materialItems': {
       handler() {
-        this.updateCuttingProcess()
+        this.debouncedUpdateAutoSelectedProcesses()
       },
       deep: true
     },
-    // 监听产品列表变化，自动勾选/取消勾选包装工序
+    // 监听产品列表变化，统一更新自动选择的工序
     'productItems': {
       handler() {
-        this.updatePackagingProcess()
+        this.debouncedUpdateAutoSelectedProcesses()
       },
       deep: true
     },
@@ -1042,10 +1013,9 @@ export default {
         }
         
         this.allProcesses = allProcesses
-        // 工序列表加载完成后，更新制版、印刷、模切、开料、包装工序状态
+        // 工序列表加载完成后，统一更新所有自动选择的工序
         this.$nextTick(() => {
-          this.updateCuttingProcess()
-          this.updatePackagingProcess()
+          this.debouncedUpdateAutoSelectedProcesses()
         })
       } catch (error) {
         console.error('加载工序列表失败:', error)
@@ -1105,8 +1075,8 @@ export default {
           }]
         }
         this.calculateTotalAmount()
-        // 更新制版工序状态
-        this.updatePlateMakingProcess()
+        // 统一更新所有自动选择的工序（使用防抖）
+        this.debouncedUpdateAutoSelectedProcesses()
         // 触发验证
         this.$nextTick(() => {
           this.$refs.form.validateField('artworks')
@@ -1284,12 +1254,9 @@ export default {
           // 如果没有关联压凸版，保持当前选择（不清空，允许用户手动选择）
         }
         
-        // 根据自动填充的版，自动选中对应的工序
+        // 统一更新所有自动选择的工序（因为可能自动填充了版）
         await this.$nextTick()
-        this.autoSelectProcessesForPlates()
-        
-        // 更新制版工序状态（因为可能自动填充了版）
-        this.updatePlateMakingProcess()
+        this.debouncedUpdateAutoSelectedProcesses()
         
         // 触发刀模、烫金版和压凸版的验证
         this.$nextTick(() => {
@@ -1308,30 +1275,24 @@ export default {
       })
     },
     handleDieChange() {
-      // 根据版的选择，自动选中对应的工序
-      this.autoSelectProcessesForPlates()
-      // 更新制版工序状态
-      this.updatePlateMakingProcess()
+      // 统一更新所有自动选择的工序（使用防抖）
+      this.debouncedUpdateAutoSelectedProcesses()
       // 触发验证
       this.$nextTick(() => {
         this.$refs.form.validateField('dies')
       })
     },
     handleFoilingPlateChange() {
-      // 根据版的选择，自动选中对应的工序
-      this.autoSelectProcessesForPlates()
-      // 更新制版工序状态
-      this.updatePlateMakingProcess()
+      // 统一更新所有自动选择的工序（使用防抖）
+      this.debouncedUpdateAutoSelectedProcesses()
       // 触发验证
       this.$nextTick(() => {
         this.$refs.form.validateField('foiling_plates')
       })
     },
     handleEmbossingPlateChange() {
-      // 根据版的选择，自动选中对应的工序
-      this.autoSelectProcessesForPlates()
-      // 更新制版工序状态
-      this.updatePlateMakingProcess()
+      // 统一更新所有自动选择的工序（使用防抖）
+      this.debouncedUpdateAutoSelectedProcesses()
       // 触发验证
       this.$nextTick(() => {
         this.$refs.form.validateField('embossing_plates')
@@ -1356,6 +1317,110 @@ export default {
       
       return hasArtwork || hasDie || hasFoilingPlate || hasEmbossingPlate
     },
+    /**
+     * 防抖版本的自动选择工序更新方法
+     * 避免频繁调用，提升性能
+     */
+    debouncedUpdateAutoSelectedProcesses() {
+      // 清除之前的定时器
+      if (this.updateAutoSelectedProcessesTimer) {
+        clearTimeout(this.updateAutoSelectedProcessesTimer)
+      }
+      
+      // 设置新的定时器，300ms 后执行
+      this.updateAutoSelectedProcessesTimer = setTimeout(() => {
+        this.updateAutoSelectedProcesses()
+        this.updateAutoSelectedProcessesTimer = null
+      }, 300)
+    },
+    /**
+     * 统一更新所有自动选择的工序
+     * 包括：制版工序、开料工序、包装工序
+     * 以及根据版的选择自动选中对应的工序（模切、烫金、压凸等）
+     */
+    updateAutoSelectedProcesses() {
+      // 1. 根据版的选择，自动选中对应的工序（模切、烫金、压凸等）
+      this.autoSelectProcessesForPlates()
+      
+      // 2. 更新制版工序状态（根据版的选择自动勾选/取消勾选）
+      this.updatePlateMakingProcess()
+      
+      // 3. 更新开料工序状态（根据物料need_cutting自动勾选/取消勾选）
+      this.updateCuttingProcess()
+      
+      // 4. 更新包装工序状态（根据产品列表自动勾选/取消勾选）
+      this.updatePackagingProcess()
+    },
+    /**
+     * 检查选中的工序中是否有需要指定版的工序
+     * @param {Array} selectedProcessIds - 选中的工序ID列表
+     * @param {String} plateType - 版类型：'artwork', 'die', 'foiling_plate', 'embossing_plate'
+     * @returns {Boolean} - 是否有工序需要该版
+     */
+    hasProcessRequiringPlate(selectedProcessIds, plateType) {
+      const plateFieldMap = {
+        'artwork': 'requires_artwork',
+        'die': 'requires_die',
+        'foiling_plate': 'requires_foiling_plate',
+        'embossing_plate': 'requires_embossing_plate'
+      }
+      
+      const fieldName = plateFieldMap[plateType]
+      if (!fieldName) {
+        return false
+      }
+      
+      return selectedProcessIds.some(processId => {
+        const process = this.allProcesses.find(p => p.id === processId)
+        return process && process[fieldName]
+      })
+    },
+    /**
+     * 处理工序选择变化时的版选择清理
+     * 当用户取消选择某个工序时，如果该工序需要某个版，清空该版的选择
+     * 但会显示提示信息，让用户了解为什么版被清空
+     */
+    handleProcessChangeWithPlateCleanup(selectedProcessIds) {
+      let hasClearedPlates = false
+      const clearedPlateTypes = []
+      
+      // 检查并清空不需要的版选择（使用公共方法）
+      if (!this.hasProcessRequiringPlate(selectedProcessIds, 'artwork') && 
+          this.form.artworks && this.form.artworks.length > 0) {
+        this.form.artworks = []
+        this.form.printing_type = 'none'
+        this.form.printing_cmyk_colors = []
+        this.form.printing_other_colors = []
+        hasClearedPlates = true
+        clearedPlateTypes.push('图稿')
+      }
+      
+      if (!this.hasProcessRequiringPlate(selectedProcessIds, 'die') && 
+          this.form.dies && this.form.dies.length > 0) {
+        this.form.dies = []
+        hasClearedPlates = true
+        clearedPlateTypes.push('刀模')
+      }
+      
+      if (!this.hasProcessRequiringPlate(selectedProcessIds, 'foiling_plate') && 
+          this.form.foiling_plates && this.form.foiling_plates.length > 0) {
+        this.form.foiling_plates = []
+        hasClearedPlates = true
+        clearedPlateTypes.push('烫金版')
+      }
+      
+      if (!this.hasProcessRequiringPlate(selectedProcessIds, 'embossing_plate') && 
+          this.form.embossing_plates && this.form.embossing_plates.length > 0) {
+        this.form.embossing_plates = []
+        hasClearedPlates = true
+        clearedPlateTypes.push('压凸版')
+      }
+      
+      // 如果清空了版，显示提示信息
+      if (hasClearedPlates) {
+        this.$message.info(`已取消选择需要${clearedPlateTypes.join('、')}的工序，相关版选择已清空`)
+      }
+    },
     updatePlateMakingProcess() {
       // 更新制版工序的选中状态（根据版的选择自动勾选/取消勾选）
       if (!this.plateMakingProcessId) {
@@ -1369,7 +1434,8 @@ export default {
         // 需要制版但未选中，自动选中
         this.selectedProcesses.push(this.plateMakingProcessId)
       } else if (!shouldSelect && isSelected) {
-        // 不需要制版但已选中，取消选中
+        // 不需要制版但已选中，取消选中（只有在所有版都被清空时才取消）
+        // 注意：制版工序的取消应该在清空版之前，避免循环触发
         const index = this.selectedProcesses.indexOf(this.plateMakingProcessId)
         if (index > -1) {
           this.selectedProcesses.splice(index, 1)
@@ -1516,9 +1582,9 @@ export default {
         imposition_quantity: 1, // 默认拼版数量为1
         isQuantityManuallyModified: false // 标记数量是否被手动修改
       })
-      // 添加产品后，更新包装工序状态
+      // 添加产品后，统一更新所有自动选择的工序
       this.$nextTick(() => {
-        this.updatePackagingProcess()
+        this.debouncedUpdateAutoSelectedProcesses()
       })
     },
     addPrintingOtherColor() {
@@ -1530,9 +1596,9 @@ export default {
     removeProductItem(index) {
       this.productItems.splice(index, 1)
       this.calculateTotalAmount()
-      // 删除产品后，更新包装工序状态
+      // 删除产品后，统一更新所有自动选择的工序
       this.$nextTick(() => {
-        this.updatePackagingProcess()
+        this.debouncedUpdateAutoSelectedProcesses()
       })
     },
     getProductSpecification(productId) {
@@ -1571,9 +1637,9 @@ export default {
         this.calculateTotalAmount()
       }
       
-      // 产品选择变化时，更新包装工序状态
+      // 产品选择变化时，统一更新所有自动选择的工序
       this.$nextTick(() => {
-        this.updatePackagingProcess()
+        this.debouncedUpdateAutoSelectedProcesses()
       })
     },
     updateProductItemQuantity(index, quantity) {
@@ -2209,16 +2275,16 @@ export default {
         need_cutting: false,
         notes: ''
       })
-      // 添加物料后，更新开料工序状态
+      // 添加物料后，统一更新所有自动选择的工序
       this.$nextTick(() => {
-        this.updateCuttingProcess()
+        this.debouncedUpdateAutoSelectedProcesses()
       })
     },
     removeMaterialItem(index) {
       this.materialItems.splice(index, 1)
-      // 删除物料后，更新开料工序状态
+      // 删除物料后，统一更新所有自动选择的工序
       this.$nextTick(() => {
-        this.updateCuttingProcess()
+        this.debouncedUpdateAutoSelectedProcesses()
       })
     },
     handleMaterialChange(index) {
@@ -2231,9 +2297,9 @@ export default {
           this.$set(this.materialItems[index], 'need_cutting', material.need_cutting)
         }
       }
-      // 更新开料工序状态
+      // 统一更新所有自动选择的工序
       this.$nextTick(() => {
-        this.updateCuttingProcess()
+        this.debouncedUpdateAutoSelectedProcesses()
       })
     },
     async saveMaterials(workOrderId) {
@@ -2285,6 +2351,13 @@ export default {
       const month = String(d.getMonth() + 1).padStart(2, '0')
       const day = String(d.getDate()).padStart(2, '0')
       return `${year}-${month}-${day}`
+    }
+  },
+  beforeDestroy() {
+    // 组件销毁前清理防抖定时器
+    if (this.updateAutoSelectedProcessesTimer) {
+      clearTimeout(this.updateAutoSelectedProcessesTimer)
+      this.updateAutoSelectedProcessesTimer = null
     }
   }
 }
