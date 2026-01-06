@@ -44,9 +44,9 @@
               ></el-option>
             </el-select>
           </el-col>
-          <el-col :span="4">
-            <el-button type="primary" icon="el-icon-refresh" @click="loadData">刷新</el-button>
+          <el-col :span="10" style="text-align: right;">
             <el-button icon="el-icon-refresh-left" @click="handleReset">重置筛选</el-button>
+            <el-button type="primary" icon="el-icon-refresh" @click="loadData" style="margin-left: 10px;">刷新</el-button>
           </el-col>
         </el-row>
       </div>
@@ -58,7 +58,53 @@
         border
         style="width: 100%; margin-top: 20px;"
         @sort-change="handleSortChange"
+        :row-key="getRowKey"
       >
+        <el-table-column type="expand" width="50">
+          <template slot-scope="scope">
+            <!-- 任务操作历史 -->
+            <div v-if="scope.row.logs && scope.row.logs.length > 0" style="padding: 20px; background-color: #f5f7fa;">
+              <div style="font-weight: bold; margin-bottom: 15px; color: #409EFF;">
+                {{ scope.row.work_content }} - 操作记录（{{ scope.row.logs.length }}条）
+              </div>
+              <el-table :data="scope.row.logs" border size="small" style="width: 100%;">
+                <el-table-column prop="created_at" label="操作时间" width="160">
+                  <template slot-scope="logScope">
+                    {{ formatDateTime(logScope.row.created_at) }}
+                  </template>
+                </el-table-column>
+                <el-table-column prop="operator_name" label="操作人" width="120"></el-table-column>
+                <el-table-column prop="log_type_display" label="操作类型" width="100"></el-table-column>
+                <el-table-column label="数量变化" width="180">
+                  <template slot-scope="logScope">
+                    <span v-if="logScope.row.quantity_before !== null && logScope.row.quantity_after !== null">
+                      {{ logScope.row.quantity_before }} → {{ logScope.row.quantity_after }}
+                      <span v-if="logScope.row.quantity_increment > 0" style="color: #67C23A; margin-left: 5px; font-weight: bold;">
+                        (+{{ logScope.row.quantity_increment }})
+                      </span>
+                      <span v-else-if="logScope.row.quantity_increment < 0" style="color: #F56C6C; margin-left: 5px; font-weight: bold;">
+                        ({{ logScope.row.quantity_increment }})
+                      </span>
+                    </span>
+                    <span v-else>-</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="状态变化" width="150">
+                  <template slot-scope="logScope">
+                    <span v-if="logScope.row.status_before && logScope.row.status_after">
+                      {{ getStatusText(logScope.row.status_before) }} → {{ getStatusText(logScope.row.status_after) }}
+                    </span>
+                    <span v-else>-</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="content" label="操作内容" min-width="200" show-overflow-tooltip></el-table-column>
+              </el-table>
+            </div>
+            <div v-else style="padding: 20px; text-align: center; color: #909399;">
+              暂无操作记录
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="id" label="ID" width="80" sortable="custom"></el-table-column>
         <el-table-column label="施工单号" width="150">
           <template slot-scope="scope">
@@ -147,21 +193,17 @@
             >
               完成
             </el-button>
+            <span v-else-if="scope.row.status !== 'completed'" style="color: #909399; font-size: 12px;">
+              {{ getTaskBlockReason(scope.row) }}
+            </span>
             <el-button
-              v-if="scope.row.status === 'in_progress' && !scope.row.auto_calculate_quantity"
+              v-if="scope.row.status !== 'completed' && !scope.row.auto_calculate_quantity"
               type="primary"
               size="mini"
               @click="showUpdateDialog(scope.row)"
+              style="margin-left: 5px;"
             >
-              更新数量
-            </el-button>
-            <el-button
-              v-if="scope.row.work_order_process_info?.work_order?.id"
-              type="text"
-              size="small"
-              @click="goToWorkOrderDetail(scope.row.work_order_process_info.work_order)"
-            >
-              查看施工单
+              更新
             </el-button>
           </template>
         </el-table-column>
@@ -181,13 +223,146 @@
       </div>
     </el-card>
 
+    <!-- 完成任务对话框 -->
+    <el-dialog
+      title="完成任务"
+      :visible.sync="completeTaskDialogVisible"
+      width="600px"
+      @close="resetCompleteTaskForm"
+    >
+      <el-form
+        ref="completeTaskForm"
+        :model="completeTaskForm"
+        label-width="120px"
+      >
+        <el-form-item label="状态">
+          <el-tag type="success">已完成</el-tag>
+          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+            强制完成任务，状态将标记为已完成
+          </div>
+        </el-form-item>
+        
+        <el-form-item 
+          v-if="currentTask && currentTask.task_type === 'plate_making'"
+          label="完成数量"
+        >
+          <el-input-number
+            v-model="completeTaskForm.quantity_completed"
+            :min="1"
+            :max="1"
+            :step="1"
+            disabled
+            style="width: 100%;"
+          ></el-input-number>
+          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+            制版任务完成数量固定为1
+          </div>
+        </el-form-item>
+        
+        <el-form-item 
+          v-if="currentTask && currentTask.task_type !== 'plate_making'"
+          label="当前完成数量"
+        >
+          <el-input-number
+            :value="currentTask.quantity_completed || 0"
+            disabled
+            style="width: 100%;"
+          ></el-input-number>
+          <div v-if="currentTask && currentTask.production_quantity" style="color: #909399; font-size: 12px; margin-top: 4px;">
+            计划数量：{{ currentTask.production_quantity }}
+            <span v-if="(currentTask.quantity_completed || 0) < currentTask.production_quantity" style="color: #E6A23C; margin-left: 10px;">
+              （当前完成数量小于计划数量，将强制标记为已完成）
+            </span>
+          </div>
+        </el-form-item>
+        
+        <el-form-item label="完成理由">
+          <el-input
+            v-model="completeTaskForm.completion_reason"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入完成理由（可选，用于说明为什么在完成数量小于生产数量时强制完成）"
+          ></el-input>
+        </el-form-item>
+
+        <el-form-item
+          v-if="currentTask && (currentTask.work_content.includes('设计图稿') || currentTask.work_content.includes('更新图稿'))"
+          label="选择图稿"
+          prop="artwork_ids"
+          :rules="[{ required: true, message: '请至少选择一个图稿', trigger: 'change' }]"
+        >
+          <el-select
+            v-model="completeTaskForm.artwork_ids"
+            multiple
+            filterable
+            placeholder="请选择图稿"
+            style="width: 100%;"
+            :loading="loadingArtworks"
+            @focus="loadArtworkList"
+          >
+            <el-option
+              v-for="artwork in artworkList"
+              :key="artwork.id"
+              :label="`${artwork.code || artwork.base_code || ''} - ${artwork.name || ''}`"
+              :value="artwork.id"
+            ></el-option>
+          </el-select>
+          <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+            选中的图稿将自动关联到施工单
+          </div>
+        </el-form-item>
+        <el-form-item
+          v-if="currentTask && (currentTask.work_content.includes('设计刀模') || currentTask.work_content.includes('更新刀模'))"
+          label="选择刀模"
+          prop="die_ids"
+          :rules="[{ required: true, message: '请至少选择一个刀模', trigger: 'change' }]"
+        >
+          <el-select
+            v-model="completeTaskForm.die_ids"
+            multiple
+            filterable
+            placeholder="请选择刀模"
+            style="width: 100%;"
+            :loading="loadingDies"
+            @focus="loadDieList"
+          >
+            <el-option
+              v-for="die in dieList"
+              :key="die.id"
+              :label="`${die.code} - ${die.name}`"
+              :value="die.id"
+            ></el-option>
+          </el-select>
+          <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+            选中的刀模将自动关联到施工单
+          </div>
+        </el-form-item>
+        <el-form-item label="任务备注">
+          <el-input
+            v-model="completeTaskForm.notes"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入任务备注（可选）"
+          ></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="completeTaskDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleConfirmCompleteTask" :loading="completingTask">确定</el-button>
+      </div>
+    </el-dialog>
+
     <!-- 更新数量对话框 -->
     <el-dialog
-      title="更新完成数量"
+      title="更新任务"
       :visible.sync="updateDialogVisible"
-      width="400px"
+      width="600px"
     >
-      <el-form :model="updateForm" label-width="100px">
+      <el-form
+        ref="updateForm"
+        :model="updateForm"
+        label-width="120px"
+      >
         <el-form-item label="任务内容">
           <el-input :value="currentTask?.work_content" disabled></el-input>
         </el-form-item>
@@ -198,26 +373,92 @@
             style="width: 100%;"
           ></el-input-number>
         </el-form-item>
-        <el-form-item label="完成数量" required>
+        <el-form-item label="完成数量" prop="quantity_completed" required>
           <el-input-number
             v-model="updateForm.quantity_completed"
             :min="0"
             :max="currentTask?.production_quantity"
             style="width: 100%;"
           ></el-input-number>
+          <div v-if="currentTask?.production_quantity" style="color: #909399; font-size: 12px; margin-top: 4px;">
+            计划数量：{{ currentTask.production_quantity }}
+            <span v-if="updateForm.quantity_completed >= currentTask.production_quantity" style="color: #67C23A;">
+              （完成数量已达到计划数量，状态将自动标记为已完成）
+            </span>
+            <span v-else style="color: #E6A23C;">
+              （完成数量未达到计划数量，状态将保持为进行中）
+            </span>
+          </div>
+        </el-form-item>
+        <el-form-item
+          v-if="currentTask && (currentTask.work_content && (currentTask.work_content.includes('设计图稿') || currentTask.work_content.includes('更新图稿')))"
+          label="选择图稿"
+          prop="artwork_ids"
+        >
+          <el-select
+            v-model="updateForm.artwork_ids"
+            multiple
+            filterable
+            placeholder="请选择图稿"
+            style="width: 100%;"
+            :loading="loadingArtworks"
+            @focus="loadArtworkList"
+          >
+            <el-option
+              v-for="artwork in artworkList"
+              :key="artwork.id"
+              :label="`${artwork.code || artwork.base_code || ''} - ${artwork.name || ''}`"
+              :value="artwork.id"
+            ></el-option>
+          </el-select>
+          <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+            选中的图稿将自动关联到施工单
+          </div>
+        </el-form-item>
+        <el-form-item
+          v-if="currentTask && (currentTask.work_content && (currentTask.work_content.includes('设计刀模') || currentTask.work_content.includes('更新刀模')))"
+          label="选择刀模"
+          prop="die_ids"
+        >
+          <el-select
+            v-model="updateForm.die_ids"
+            multiple
+            filterable
+            placeholder="请选择刀模"
+            style="width: 100%;"
+            :loading="loadingDies"
+            @focus="loadDieList"
+          >
+            <el-option
+              v-for="die in dieList"
+              :key="die.id"
+              :label="`${die.code} - ${die.name}`"
+              :value="die.id"
+            ></el-option>
+          </el-select>
+          <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+            选中的刀模将自动关联到施工单
+          </div>
+        </el-form-item>
+        <el-form-item label="任务备注">
+          <el-input
+            v-model="updateForm.notes"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入任务备注（可选）"
+          ></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer">
         <el-button @click="updateDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleUpdateTask">确定</el-button>
+        <el-button type="primary" @click="handleUpdateTask" :loading="updatingTask">确定</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import { workOrderTaskAPI } from '@/api/workorder'
-import { processAPI } from '@/api/workorder'
+import { workOrderTaskAPI, processAPI, artworkAPI, dieAPI } from '@/api/workorder'
 
 export default {
   name: 'TaskList',
@@ -240,9 +481,28 @@ export default {
       ordering: '-created_at',
       updateDialogVisible: false,
       currentTask: null,
+      updatingTask: false,
       updateForm: {
-        quantity_completed: 0
-      }
+        quantity_completed: 0,
+        artwork_ids: [],
+        die_ids: [],
+        notes: ''
+      },
+      // 完成任务对话框
+      completeTaskDialogVisible: false,
+      completingTask: false,
+      completeTaskForm: {
+        quantity_completed: 0,
+        artwork_ids: [],
+        die_ids: [],
+        notes: '',
+        completion_reason: ''
+      },
+      // 图稿和刀模列表
+      artworkList: [],
+      dieList: [],
+      loadingArtworks: false,
+      loadingDies: false
     }
   },
   created() {
@@ -337,6 +597,9 @@ export default {
         this.loadData()
       }
     },
+    getRowKey(row) {
+      return row.id
+    },
     getStatusType(status) {
       const types = {
         'pending': 'info',
@@ -345,6 +608,26 @@ export default {
         'cancelled': 'danger'
       }
       return types[status] || 'info'
+    },
+    getStatusText(status) {
+      const statusMap = {
+        'pending': '待开始',
+        'in_progress': '进行中',
+        'completed': '已完成',
+        'cancelled': '已取消'
+      }
+      return statusMap[status] || status
+    },
+    formatDateTime(dateTime) {
+      if (!dateTime) return '-'
+      const date = new Date(dateTime)
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      const seconds = String(date.getSeconds()).padStart(2, '0')
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
     },
     getMaterialStatusTagType(status) {
       const statusMap = {
@@ -367,66 +650,216 @@ export default {
       return statusMap[status] || status
     },
     canCompleteTask(task) {
-      // 制版任务：如果关联图稿，需要图稿已确认
-      if (task.task_type === 'plate_making' && task.artwork && task.artwork_confirmed === false) {
+      // 制版任务：需要图稿已确认（如果是图稿任务）
+      if (task.task_type === 'plate_making' && task.artwork && !task.artwork_confirmed) {
         return false
       }
-      // 开料任务：需要物料已开料
+      // 开料任务：需要物料已开料（如果存在开料工序）
       // 注意：采购不属于施工单工序，采购任务通过其他系统管理
-      if (task.task_type === 'cutting' && task.material_purchase_status) {
-        const processName = task.work_order_process_info?.process?.name || ''
-        if ((processName.includes('开料') || processName.includes('裁切')) && task.material_purchase_status !== 'cut') {
+      const processName = task.work_order_process_info?.process?.name || ''
+      if (task.task_type === 'cutting' && processName && (processName.includes('开料') || processName.includes('裁切'))) {
+        if (task.material_purchase_status !== 'cut') {
           return false
         }
       }
       return true
     },
-    async handleCompleteTask(task) {
+    // 获取任务被阻止的原因
+    getTaskBlockReason(task) {
+      // 制版任务：需要图稿确认（如果是图稿任务）
+      if (task.task_type === 'plate_making' && task.artwork && !task.artwork_confirmed) {
+        return '需确认图稿'
+      }
+      // 开料任务：需要物料开料（如果存在开料工序）
+      // 注意：采购不属于施工单工序，采购任务通过其他系统管理
+      const processName = task.work_order_process_info?.process?.name || ''
+      if (task.task_type === 'cutting' && processName && (processName.includes('开料') || processName.includes('裁切'))) {
+        if (task.material_purchase_status !== 'cut') {
+          return '需物料开料'
+        }
+      }
+      return ''
+    },
+    handleCompleteTask(task) {
+      this.currentTask = { ...task }
+      
+      // 制版任务：完成数量固定为1
+      if (task.task_type === 'plate_making') {
+        this.completeTaskForm = {
+          quantity_completed: 1,
+          artwork_ids: [],
+          die_ids: [],
+          notes: '',
+          completion_reason: ''
+        }
+      } else {
+        // 其他任务：预填数量（已有完成数，否则计划数，否则 0）
+        const qty = task.quantity_completed != null ? task.quantity_completed
+          : (task.production_quantity != null ? task.production_quantity : 0)
+        this.completeTaskForm = {
+          quantity_completed: qty,
+          artwork_ids: [],
+          die_ids: [],
+          notes: '',
+          completion_reason: ''
+        }
+      }
+      
+      // 如果是设计类任务，预加载列表
+      const isDesignArtworkTask = task.work_content && (task.work_content.includes('设计图稿') || task.work_content.includes('更新图稿'))
+      const isDesignDieTask = task.work_content && (task.work_content.includes('设计刀模') || task.work_content.includes('更新刀模'))
+      if (isDesignArtworkTask) {
+        this.loadArtworkList()
+      }
+      if (isDesignDieTask) {
+        this.loadDieList()
+      }
+      this.completeTaskDialogVisible = true
+    },
+    async loadArtworkList() {
+      if (this.artworkList.length > 0) {
+        return // 已经加载过，不再重复加载
+      }
+      this.loadingArtworks = true
       try {
-        // 使用 complete API，支持新任务类型
-        const data = {
-          status: 'completed',
-          quantity_completed: task.quantity_completed || task.production_quantity || 0,
-          notes: ''
-        }
-        
-        // 制版任务：状态固定为已完成，完成数量固定为1
-        if (task.task_type === 'plate_making') {
-          data.status = 'completed'
-          data.quantity_completed = 1
-        }
-        
-        await workOrderTaskAPI.complete(task.id, data)
-        this.$message.success('任务已完成')
-        this.loadData()
+        const response = await artworkAPI.getList({ page_size: 1000 })
+        this.artworkList = response.results || []
       } catch (error) {
-        const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
-                           (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
-        this.$message.error(errorMessage)
-        console.error('完成任务失败:', error)
+        console.error('加载图稿列表失败:', error)
+        this.$message.error('加载图稿列表失败')
+      } finally {
+        this.loadingArtworks = false
       }
     },
+    async loadDieList() {
+      if (this.dieList.length > 0) {
+        return // 已经加载过，不再重复加载
+      }
+      this.loadingDies = true
+      try {
+        const response = await dieAPI.getList({ page_size: 1000 })
+        this.dieList = response.results || []
+      } catch (error) {
+        console.error('加载刀模列表失败:', error)
+        this.$message.error('加载刀模列表失败')
+      } finally {
+        this.loadingDies = false
+      }
+    },
+    resetCompleteTaskForm() {
+      this.currentTask = null
+      this.completeTaskForm = {
+        quantity_completed: 0,
+        artwork_ids: [],
+        die_ids: [],
+        notes: '',
+        completion_reason: ''
+      }
+      this.$nextTick(() => {
+        if (this.$refs.completeTaskForm) {
+          this.$refs.completeTaskForm.clearValidate()
+        }
+      })
+    },
+    async handleConfirmCompleteTask() {
+      this.$refs.completeTaskForm.validate(async (valid) => {
+        if (!valid) {
+          return false
+        }
+        
+        this.completingTask = true
+        try {
+          const data = {
+            completion_reason: this.completeTaskForm.completion_reason,
+            notes: this.completeTaskForm.notes
+          }
+          
+          // 设计图稿/设计刀模任务：需要传递图稿或刀模ID
+          if (this.currentTask.work_content && (this.currentTask.work_content.includes('设计图稿') || this.currentTask.work_content.includes('更新图稿'))) {
+            data.artwork_ids = this.completeTaskForm.artwork_ids
+          }
+          
+          if (this.currentTask.work_content && (this.currentTask.work_content.includes('设计刀模') || this.currentTask.work_content.includes('更新刀模'))) {
+            data.die_ids = this.completeTaskForm.die_ids
+          }
+          
+          await workOrderTaskAPI.complete(this.currentTask.id, data)
+          this.$message.success('任务已强制完成')
+          this.completeTaskDialogVisible = false
+          this.loadData()
+        } catch (error) {
+          const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
+                             (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
+          this.$message.error(errorMessage)
+          console.error('完成任务失败:', error)
+        } finally {
+          this.completingTask = false
+        }
+      })
+    },
     showUpdateDialog(task) {
-      this.currentTask = task
-      this.updateForm.quantity_completed = task.quantity_completed || 0
+      this.currentTask = { ...task }
+      this.updateForm = {
+        quantity_completed: task.quantity_completed || 0,
+        artwork_ids: [],
+        die_ids: [],
+        notes: ''
+      }
+      
+      // 如果是设计类任务，预加载列表
+      const isDesignArtworkTask = task.work_content && (task.work_content.includes('设计图稿') || task.work_content.includes('更新图稿'))
+      const isDesignDieTask = task.work_content && (task.work_content.includes('设计刀模') || task.work_content.includes('更新刀模'))
+      if (isDesignArtworkTask) {
+        this.loadArtworkList()
+      }
+      if (isDesignDieTask) {
+        this.loadDieList()
+      }
+      
       this.updateDialogVisible = true
+      this.$nextTick(() => {
+        if (this.$refs.updateForm) {
+          this.$refs.updateForm.clearValidate()
+        }
+      })
     },
     async handleUpdateTask() {
       if (!this.currentTask) return
       
-      try {
-        await workOrderTaskAPI.update(this.currentTask.id, {
-          quantity_completed: this.updateForm.quantity_completed
-        })
-        this.$message.success('更新成功')
-        this.updateDialogVisible = false
-        this.loadData()
-      } catch (error) {
-        const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
-                           (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '更新失败'
-        this.$message.error(errorMessage)
-        console.error('更新任务失败:', error)
-      }
+      this.$refs.updateForm.validate(async (valid) => {
+        if (!valid) {
+          return false
+        }
+        
+        this.updatingTask = true
+        try {
+          const data = {
+            quantity_completed: this.updateForm.quantity_completed,
+            notes: this.updateForm.notes
+          }
+          
+          // 设计图稿/设计刀模任务：需要传递图稿或刀模ID
+          if (this.currentTask.work_content && (this.currentTask.work_content.includes('设计图稿') || this.currentTask.work_content.includes('更新图稿'))) {
+            data.artwork_ids = this.updateForm.artwork_ids
+          }
+          
+          if (this.currentTask.work_content && (this.currentTask.work_content.includes('设计刀模') || this.currentTask.work_content.includes('更新刀模'))) {
+            data.die_ids = this.updateForm.die_ids
+          }
+          
+          await workOrderTaskAPI.update_quantity(this.currentTask.id, data)
+          this.$message.success('更新成功')
+          this.updateDialogVisible = false
+          this.loadData()
+        } catch (error) {
+          const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
+                             (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '更新失败'
+          this.$message.error(errorMessage)
+          console.error('更新任务失败:', error)
+        } finally {
+          this.updatingTask = false
+        }
+      })
     },
     goToWorkOrderDetail(workOrder) {
       if (workOrder && workOrder.id) {

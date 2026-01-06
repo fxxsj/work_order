@@ -517,6 +517,13 @@ export const workOrderTaskAPI = {
       method: 'post',
       data
     })
+  },
+  update_quantity(id, data) {
+    return request({
+      url: `/workorder-tasks/${id}/update_quantity/`,
+      method: 'post',
+      data
+    })
   }
 }
 
