@@ -1429,10 +1429,11 @@ export default {
       const processName = (process.process_name || '').toLowerCase()
       return processName.includes('制版') || processName.includes('设计')
     },
-    // 判断是否为物料相关工序（采购、开料）
+    // 判断是否为物料相关工序（开料、裁切）
+    // 注意：采购不属于施工单工序，采购任务通过其他系统管理
     isMaterialProcess(process) {
       const processName = (process.process_name || '').toLowerCase()
-      return processName.includes('采购') || processName.includes('开料') || processName.includes('裁切')
+      return processName.includes('开料') || processName.includes('裁切')
     },
     // 根据状态获取物料状态标签类型
     getMaterialStatusTagTypeByStatus(status) {
@@ -1462,13 +1463,8 @@ export default {
       if (task.task_type === 'plate_making' && task.artwork && !task.artwork_confirmed) {
         return false
       }
-      // 采购任务：需要物料已回料（如果存在采购工序）
-      if (task.task_type === 'material' && process.process_name && process.process_name.includes('采购')) {
-        if (task.material_purchase_status !== 'received') {
-          return false
-        }
-      }
       // 开料任务：需要物料已开料（如果存在开料工序）
+      // 注意：采购不属于施工单工序，采购任务通过其他系统管理
       if (task.task_type === 'cutting' && process.process_name && (process.process_name.includes('开料') || process.process_name.includes('裁切'))) {
         if (task.material_purchase_status !== 'cut') {
           return false
@@ -1482,13 +1478,8 @@ export default {
       if (task.task_type === 'plate_making' && task.artwork && !task.artwork_confirmed) {
         return '需确认图稿'
       }
-      // 采购任务：需要物料回料（如果存在采购工序）
-      if (task.task_type === 'material' && process.process_name && process.process_name.includes('采购')) {
-        if (task.material_purchase_status !== 'received') {
-          return '需物料回料'
-        }
-      }
       // 开料任务：需要物料开料（如果存在开料工序）
+      // 注意：采购不属于施工单工序，采购任务通过其他系统管理
       if (task.task_type === 'cutting' && process.process_name && (process.process_name.includes('开料') || process.process_name.includes('裁切'))) {
         if (task.material_purchase_status !== 'cut') {
           return '需物料开料'

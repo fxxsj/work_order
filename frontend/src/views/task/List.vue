@@ -371,14 +371,8 @@ export default {
       if (task.task_type === 'plate_making' && task.artwork && task.artwork_confirmed === false) {
         return false
       }
-      // 采购任务：需要物料已回料（如果存在采购工序）
-      if (task.task_type === 'material' && task.material_purchase_status) {
-        const processName = task.work_order_process_info?.process?.name || ''
-        if (processName.includes('采购') && task.material_purchase_status !== 'received') {
-          return false
-        }
-      }
       // 开料任务：需要物料已开料
+      // 注意：采购不属于施工单工序，采购任务通过其他系统管理
       if (task.task_type === 'cutting' && task.material_purchase_status) {
         const processName = task.work_order_process_info?.process?.name || ''
         if ((processName.includes('开料') || processName.includes('裁切')) && task.material_purchase_status !== 'cut') {
