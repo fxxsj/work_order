@@ -18,28 +18,45 @@
 
 ### 1. 部门（Department）
 
-**迁移文件：** `backend/workorder/migrations/0023_reset_departments.py`
+**迁移文件：** 
+- `backend/workorder/migrations/0023_reset_departments.py` - 创建预设部门
+- `backend/workorder/migrations/0066_add_department_parent.py` - 添加部门层级关系字段
+- `backend/workorder/migrations/0067_update_department_hierarchy.py` - 建立部门层级关系
 
-**说明：** 系统在迁移过程中会自动创建预设部门。这些部门用于组织和管理工序，替代了原有的工序类别（ProcessCategory）功能。
+**说明：** 系统在迁移过程中会自动创建预设部门，并建立部门层级关系。这些部门用于组织和管理工序，替代了原有的工序类别（ProcessCategory）功能。
 
-预设了 **10个部门**：
+**部门结构（11个部门，6个根部门 + 5个子部门）：**
 
-| ID | 名称 | 编码 | 排序 |
-|---|---|---|---|
-| 1 | 业务部 | business | 1 |
-| 2 | 财务部 | finance | 2 |
-| 3 | 设计部 | design | 3 |
-| 4 | 采购部 | purchase | 4 |
-| 5 | 裁切部 | cutting | 5 |
-| 6 | 印刷部 | printing | 6 |
-| 7 | 外协部 | outsourcing | 7 |
-| 8 | 模切部 | die_cutting | 8 |
-| 9 | 包装部 | packaging | 9 |
-| 10 | 运输部 | logistics | 10 |
+#### 管理部门（根部门）
+
+| ID | 名称 | 编码 | 排序 | 父部门 |
+|---|---|---|---|---|
+| 1 | 业务部 | business | 1 | - |
+| 2 | 财务部 | finance | 2 | - |
+| 3 | 设计部 | design | 3 | - |
+| 4 | 采购部 | purchase | 4 | - |
+| 5 | 运输部 | logistics | 10 | - |
+
+#### 生产部（父部门）
+
+| ID | 名称 | 编码 | 排序 | 父部门 |
+|---|---|---|---|---|
+| 6 | 生产部 | production | 5 | - |
+
+#### 生产车间（生产部的子部门）
+
+| ID | 名称 | 编码 | 排序 | 父部门 |
+|---|---|---|---|---|
+| 7 | 裁切车间 | cutting | 1 | 生产部 |
+| 8 | 印刷车间 | printing | 2 | 生产部 |
+| 9 | 外协车间 | outsourcing | 3 | 生产部 |
+| 10 | 模切车间 | die_cutting | 4 | 生产部 |
+| 11 | 包装车间 | packaging | 5 | 生产部 |
 
 **注意：** 
+- 部门支持层级关系（通过 `parent` 字段建立父子关系）
+- 生产部下有5个生产车间（裁切、印刷、外协、模切、包装）
 - 部门与工序通过多对多关系关联（`Department.processes`）
-- 部门数据在迁移 `0023_reset_departments.py` 中自动加载
 - 原有的工序类别（ProcessCategory）已在迁移 0020 中被移除并迁移到部门
 
 ### 2. 工序（Process）
@@ -158,7 +175,7 @@ python manage.py loaddata workorder/fixtures/initial_products.json
 
 ### 2. 通过迁移自动加载
 
-- **部门**：在迁移 `0023_reset_departments.py` 中自动加载10个预设部门
+- **部门**：在迁移中自动加载11个预设部门（6个根部门 + 5个生产车间），支持层级关系
 - **历史说明**：原有的工序类别（ProcessCategory）在迁移 0020 中已被移除并迁移到部门（Department）
 - 其他数据需要通过 fixtures 手动加载
 
@@ -278,13 +295,14 @@ python manage.py reset_processes --force
 
 系统预设了以下类型的数据：
 
-✅ **部门**：10个预设部门（通过迁移 `0023_reset_departments.py` 自动加载）  
+✅ **部门**：11个预设部门（6个根部门 + 5个生产车间），支持层级关系（通过迁移 `0023_reset_departments.py`、`0066_add_department_parent.py`、`0067_update_department_hierarchy.py` 自动加载）  
 ✅ **工序**：21个内置工序（通过 `reset_processes` 命令加载，推荐方式）  
 ✅ **产品**：6个示例产品（通过 fixtures 手动加载，可选，仅用于演示）  
 ✅ **用户组和权限**：1个用户组"业务员"（通过 `init_groups` 命令初始化）  
 
 **历史变更说明：**
 - 原有的工序类别（ProcessCategory）已在迁移 0020 中被移除，其功能已被部门（Department）替代
+- 部门支持层级关系（通过 `parent` 字段），生产部下有5个生产车间（裁切、印刷、外协、模切、包装）
 - 部门与工序通过多对多关系关联，可以更灵活地组织和管理工序
 
 **推荐的数据初始化流程：**
