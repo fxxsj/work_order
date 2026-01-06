@@ -114,9 +114,6 @@ export default {
       if (path.startsWith('/workorders')) {
         return '/workorders'
       }
-      if (path.startsWith('/process-categories')) {
-        return '/process-categories'
-      }
       if (path.startsWith('/processes')) {
         return '/processes'
       }
