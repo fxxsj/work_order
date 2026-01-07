@@ -547,6 +547,14 @@ export const workOrderTaskAPI = {
       method: 'post',
       data
     })
+  },
+  // 拆分任务（多人协作）
+  split(id, data) {
+    return request({
+      url: `/workorder-tasks/${id}/split/`,
+      method: 'post',
+      data
+    })
   }
 }
 

@@ -232,6 +232,15 @@
             >
               分派
             </el-button>
+            <el-button
+              v-if="scope.row.status !== 'completed' && !scope.row.is_subtask && !scope.row.subtasks_count"
+              type="info"
+              size="mini"
+              @click="showSplitDialog(scope.row)"
+              style="margin-left: 5px;"
+            >
+              拆分
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -581,6 +590,122 @@
         <el-button type="primary" @click="handleAssignTask" :loading="assigningTask">确定</el-button>
       </div>
     </el-dialog>
+
+    <!-- 拆分任务对话框 -->
+    <el-dialog
+      title="拆分任务"
+      :visible.sync="splitDialogVisible"
+      width="800px"
+      @close="resetSplitForm"
+    >
+      <el-form
+        ref="splitForm"
+        :model="splitForm"
+        label-width="120px"
+        :rules="splitRules"
+      >
+        <el-form-item label="父任务">
+          <el-input :value="currentSplitTask?.work_content" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="生产数量">
+          <el-input-number
+            :value="currentSplitTask?.production_quantity"
+            disabled
+            style="width: 100%;"
+          ></el-input-number>
+        </el-form-item>
+        <el-form-item label="子任务列表" prop="splits">
+          <div style="margin-bottom: 10px;">
+            <el-button type="primary" size="small" @click="addSplitItem">添加子任务</el-button>
+            <span style="color: #909399; font-size: 12px; margin-left: 10px;">
+              至少需要2个子任务，子任务数量总和不能超过父任务数量
+            </span>
+          </div>
+          <el-table :data="splitForm.splits" border style="width: 100%;">
+            <el-table-column label="序号" width="60" align="center">
+              <template slot-scope="scope">{{ scope.$index + 1 }}</template>
+            </el-table-column>
+            <el-table-column label="生产数量" width="150">
+              <template slot-scope="scope">
+                <el-input-number
+                  v-model="scope.row.production_quantity"
+                  :min="1"
+                  :max="currentSplitTask?.production_quantity || 999999"
+                  style="width: 100%;"
+                ></el-input-number>
+              </template>
+            </el-table-column>
+            <el-table-column label="分派部门" width="180">
+              <template slot-scope="scope">
+                <el-select
+                  v-model="scope.row.assigned_department"
+                  placeholder="请选择部门"
+                  filterable
+                  clearable
+                  style="width: 100%;"
+                  :loading="loadingDepartments"
+                >
+                  <el-option
+                    v-for="dept in departmentList"
+                    :key="dept.id"
+                    :label="dept.name"
+                    :value="dept.id"
+                  ></el-option>
+                </el-select>
+              </template>
+            </el-table-column>
+            <el-table-column label="分派操作员" width="180">
+              <template slot-scope="scope">
+                <el-select
+                  v-model="scope.row.assigned_operator"
+                  placeholder="请选择操作员"
+                  filterable
+                  clearable
+                  style="width: 100%;"
+                  :loading="loadingUsers"
+                >
+                  <el-option
+                    v-for="user in userList"
+                    :key="user.id"
+                    :label="user.username || `${(user.first_name || '')}${(user.last_name || '')}`.trim() || user.id"
+                    :value="user.id"
+                  ></el-option>
+                </el-select>
+              </template>
+            </el-table-column>
+            <el-table-column label="工作内容" min-width="200">
+              <template slot-scope="scope">
+                <el-input
+                  v-model="scope.row.work_content"
+                  placeholder="可选，默认使用父任务内容"
+                ></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="80" align="center">
+              <template slot-scope="scope">
+                <el-button
+                  type="danger"
+                  size="mini"
+                  icon="el-icon-delete"
+                  @click="removeSplitItem(scope.$index)"
+                  :disabled="splitForm.splits.length <= 2"
+                ></el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div style="margin-top: 10px; color: #909399; font-size: 12px;">
+            子任务数量总和：{{ getTotalSplitQuantity() }} / {{ currentSplitTask?.production_quantity || 0 }}
+            <span v-if="getTotalSplitQuantity() > (currentSplitTask?.production_quantity || 0)" style="color: #F56C6C;">
+              （超出父任务数量）
+            </span>
+          </div>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="splitDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSplitTask" :loading="splittingTask">确定拆分</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -650,6 +775,33 @@ export default {
       },
       assignRules: {
         // 部门和操作员都是可选的，不需要必填验证
+      },
+      // 拆分任务对话框
+      splitDialogVisible: false,
+      splittingTask: false,
+      currentSplitTask: null,
+      splitForm: {
+        splits: []
+      },
+      splitRules: {
+        splits: [
+          { required: true, message: '至少需要2个子任务', trigger: 'change' },
+          {
+            validator: (rule, value, callback) => {
+              if (!value || value.length < 2) {
+                callback(new Error('至少需要2个子任务'))
+              } else {
+                const total = value.reduce((sum, item) => sum + (item.production_quantity || 0), 0)
+                if (total > (this.currentSplitTask?.production_quantity || 0)) {
+                  callback(new Error('子任务数量总和不能超过父任务数量'))
+                } else {
+                  callback()
+                }
+              }
+            },
+            trigger: 'change'
+          }
+        ]
       }
     }
   },
@@ -945,9 +1097,15 @@ export default {
           this.completeTaskDialogVisible = false
           this.loadData()
         } catch (error) {
-          const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
-                             (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
-          this.$message.error(errorMessage)
+          // 处理并发冲突
+          if (error.response?.status === 409) {
+            this.$message.warning('任务已被其他操作员更新，请刷新页面后重试')
+            this.loadData()  // 刷新数据
+          } else {
+            const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
+                               (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
+            this.$message.error(errorMessage)
+          }
           console.error('完成任务失败:', error)
         } finally {
           this.completingTask = false
@@ -994,6 +1152,7 @@ export default {
           const data = {
             quantity_increment: this.updateForm.quantity_completed || 0,  // 传递本次完成数量（增量）
             quantity_defective: this.updateForm.quantity_defective || 0,  // 传递本次不良品数量（增量）
+            version: this.currentTask.version,  // 传递版本号（乐观锁）
             notes: this.updateForm.notes
           }
           
@@ -1011,9 +1170,15 @@ export default {
           this.updateDialogVisible = false
           this.loadData()
         } catch (error) {
-          const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
-                             (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '更新失败'
-          this.$message.error(errorMessage)
+          // 处理并发冲突
+          if (error.response?.status === 409) {
+            this.$message.warning('任务已被其他操作员更新，请刷新页面后重试')
+            this.loadData()  // 刷新数据
+          } else {
+            const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
+                               (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '更新失败'
+            this.$message.error(errorMessage)
+          }
           console.error('更新任务失败:', error)
         } finally {
           this.updatingTask = false
@@ -1122,6 +1287,99 @@ export default {
       // 当部门改变时，可以过滤操作员列表
       // 如果后端API支持按部门筛选操作员，可以在这里实现
       // 目前先加载所有用户，不进行筛选
+    },
+    showSplitDialog(task) {
+      this.currentSplitTask = { ...task }
+      // 默认创建2个子任务，平均分配数量
+      const defaultQuantity = Math.floor(task.production_quantity / 2)
+      this.splitForm = {
+        splits: [
+          {
+            production_quantity: defaultQuantity,
+            assigned_department: null,
+            assigned_operator: null,
+            work_content: ''
+          },
+          {
+            production_quantity: task.production_quantity - defaultQuantity,
+            assigned_department: null,
+            assigned_operator: null,
+            work_content: ''
+          }
+        ]
+      }
+      this.splitDialogVisible = true
+      this.loadDepartmentList()
+      this.loadUserList()
+    },
+    addSplitItem() {
+      this.splitForm.splits.push({
+        production_quantity: 0,
+        assigned_department: null,
+        assigned_operator: null,
+        work_content: ''
+      })
+    },
+    removeSplitItem(index) {
+      if (this.splitForm.splits.length > 2) {
+        this.splitForm.splits.splice(index, 1)
+      }
+    },
+    getTotalSplitQuantity() {
+      return this.splitForm.splits.reduce((sum, item) => sum + (item.production_quantity || 0), 0)
+    },
+    resetSplitForm() {
+      this.currentSplitTask = null
+      this.splitForm = {
+        splits: []
+      }
+      this.$nextTick(() => {
+        if (this.$refs.splitForm) {
+          this.$refs.splitForm.clearValidate()
+        }
+      })
+    },
+    async handleSplitTask() {
+      this.$refs.splitForm.validate(async (valid) => {
+        if (!valid) {
+          return false
+        }
+        
+        if (!this.currentSplitTask || !this.currentSplitTask.id) {
+          this.$message.error('任务信息不存在')
+          return
+        }
+        
+        // 验证数量总和
+        const total = this.getTotalSplitQuantity()
+        if (total > this.currentSplitTask.production_quantity) {
+          this.$message.error('子任务数量总和不能超过父任务数量')
+          return
+        }
+        
+        this.splittingTask = true
+        try {
+          const data = {
+            splits: this.splitForm.splits.map(split => ({
+              production_quantity: split.production_quantity,
+              assigned_department: split.assigned_department || null,
+              assigned_operator: split.assigned_operator || null,
+              work_content: split.work_content || ''
+            }))
+          }
+          
+          await workOrderTaskAPI.split(this.currentSplitTask.id, data)
+          this.$message.success('任务拆分成功')
+          this.splitDialogVisible = false
+          this.loadData()
+        } catch (error) {
+          const errorMessage = error.response?.data?.error || error.response?.data?.detail || error.message || '操作失败'
+          this.$message.error(errorMessage)
+          console.error('拆分任务失败:', error)
+        } finally {
+          this.splittingTask = false
+        }
+      })
     }
   }
 }
