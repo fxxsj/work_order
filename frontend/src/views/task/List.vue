@@ -426,6 +426,17 @@
             </span>
           </div>
         </el-form-item>
+        <el-form-item label="本次不良品数量">
+          <el-input-number
+            v-model="updateForm.quantity_defective"
+            :min="0"
+            style="width: 100%;"
+          ></el-input-number>
+          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+            当前不良品：{{ currentTask?.quantity_defective || 0 }}，
+            更新后：{{ (currentTask?.quantity_defective || 0) + (updateForm.quantity_defective || 0) }}
+          </div>
+        </el-form-item>
         <el-form-item
           v-if="currentTask && (currentTask.work_content && (currentTask.work_content.includes('设计图稿') || currentTask.work_content.includes('更新图稿')))"
           label="选择图稿"
@@ -602,6 +613,7 @@ export default {
       updatingTask: false,
       updateForm: {
         quantity_completed: 0,
+        quantity_defective: 0,
         artwork_ids: [],
         die_ids: [],
         notes: ''
@@ -611,6 +623,7 @@ export default {
       completingTask: false,
       completeTaskForm: {
         quantity_completed: 0,
+        quantity_defective: 0,
         artwork_ids: [],
         die_ids: [],
         notes: '',
@@ -827,6 +840,7 @@ export default {
       if (task.task_type === 'plate_making') {
         this.completeTaskForm = {
           quantity_completed: 1,
+          quantity_defective: task.quantity_defective || 0,
           artwork_ids: [],
           die_ids: [],
           notes: '',
@@ -838,6 +852,7 @@ export default {
           : (task.production_quantity != null ? task.production_quantity : 0)
         this.completeTaskForm = {
           quantity_completed: qty,
+          quantity_defective: task.quantity_defective || 0,
           artwork_ids: [],
           die_ids: [],
           notes: '',
@@ -890,6 +905,7 @@ export default {
       this.currentTask = null
       this.completeTaskForm = {
         quantity_completed: 0,
+        quantity_defective: 0,
         artwork_ids: [],
         die_ids: [],
         notes: '',
@@ -911,6 +927,7 @@ export default {
         try {
           const data = {
             completion_reason: this.completeTaskForm.completion_reason,
+            quantity_defective: this.completeTaskForm.quantity_defective || 0,
             notes: this.completeTaskForm.notes
           }
           
@@ -976,6 +993,7 @@ export default {
           // 传递增量值给后端（后端会累加）
           const data = {
             quantity_increment: this.updateForm.quantity_completed || 0,  // 传递本次完成数量（增量）
+            quantity_defective: this.updateForm.quantity_defective || 0,  // 传递本次不良品数量（增量）
             notes: this.updateForm.notes
           }
           
