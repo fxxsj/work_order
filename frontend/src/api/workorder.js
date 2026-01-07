@@ -367,6 +367,14 @@ export const workOrderProcessAPI = {
       method: 'post',
       data: { content }
     })
+  },
+  // 批量重新分派工序的所有任务
+  reassign_tasks(id, data) {
+    return request({
+      url: `/workorder-processes/${id}/reassign_tasks/`,
+      method: 'post',
+      data
+    })
   }
 }
 
@@ -528,6 +536,14 @@ export const workOrderTaskAPI = {
   update_quantity(id, data) {
     return request({
       url: `/workorder-tasks/${id}/update_quantity/`,
+      method: 'post',
+      data
+    })
+  },
+  // 分派任务（调整分派）
+  assign(id, data) {
+    return request({
+      url: `/workorder-tasks/${id}/assign/`,
       method: 'post',
       data
     })

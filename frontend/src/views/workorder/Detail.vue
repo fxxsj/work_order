@@ -747,7 +747,7 @@
                   {{ process.status_display }}
                 </span>
                   <span style="color: #909399; font-size: 12px; margin-left: 15px;">
-                    {{ process.department_name || '未分配部门' }}
+                    {{ getProcessDisplayDepartment(process) }}
                 </span>
               </div>
               <div v-if="process.status !== 'completed'">
@@ -776,6 +776,15 @@
                     @click="showCompleteProcessDialog(process)"
                 >
                     <i class="el-icon-check"></i> 完成工序
+                </el-button>
+                <el-button
+                  v-if="process.status === 'in_progress' && process.tasks && process.tasks.length > 0"
+                  type="warning"
+                  size="small"
+                  @click="showReassignProcessDialog(process)"
+                  style="margin-left: 5px;"
+                >
+                  <i class="el-icon-sort"></i> 批量调整分派
                 </el-button>
               </div>
             </div>
@@ -853,7 +862,6 @@
                     </template>
                   </el-table-column>
                   <el-table-column prop="work_content" label="任务内容" min-width="200"></el-table-column>
-                  <el-table-column prop="task_type_display" label="任务类型" width="100"></el-table-column>
                   <el-table-column label="关联对象" width="150">
                     <template slot-scope="scope">
                       <div v-if="scope.row.artwork_code">
@@ -936,7 +944,17 @@
                       </el-tag>
                     </template>
                   </el-table-column>
-                  <el-table-column label="操作" width="200" v-if="process.status === 'in_progress'">
+                  <el-table-column label="分派部门" width="120">
+                    <template slot-scope="scope">
+                      {{ scope.row.assigned_department_name || '-' }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="分派操作员" width="120">
+                    <template slot-scope="scope">
+                      {{ scope.row.assigned_operator_name || '-' }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="操作" width="280" v-if="process.status === 'in_progress'">
                     <template slot-scope="scope">
                       <el-button
                         v-if="scope.row.status !== 'completed' && canCompleteTask(scope.row, process)"
@@ -957,6 +975,14 @@
                         style="margin-left: 5px;"
                       >
                         更新
+                      </el-button>
+                      <el-button
+                        type="warning"
+                        size="mini"
+                        @click="showTaskAssignDialog(scope.row)"
+                        style="margin-left: 5px;"
+                      >
+                        分派
                       </el-button>
                     </template>
                   </el-table-column>
@@ -1182,12 +1208,171 @@
         <el-button type="primary" @click="handleConfirmCompleteTask" :loading="completingTask">确定</el-button>
       </div>
     </el-dialog>
+
+    <!-- 批量调整工序分派对话框 -->
+    <el-dialog
+      title="批量调整工序分派"
+      :visible.sync="reassignProcessDialogVisible"
+      width="600px"
+    >
+      <el-form
+        ref="reassignProcessForm"
+        :model="reassignProcessForm"
+        label-width="140px"
+        :rules="{
+          reason: [{ required: true, message: '请填写调整原因', trigger: 'blur' }]
+        }"
+      >
+        <el-form-item label="工序名称">
+          <el-input :value="currentReassignProcess ? currentReassignProcess.process_name : ''" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="任务数量">
+          <el-input :value="currentReassignProcess && currentReassignProcess.tasks ? currentReassignProcess.tasks.length : 0" disabled></el-input>
+          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+            将调整该工序下所有任务的分派
+          </div>
+        </el-form-item>
+        <el-form-item label="新分派部门" prop="assigned_department">
+          <el-select
+            v-model="reassignProcessForm.assigned_department"
+            placeholder="请选择部门"
+            filterable
+            clearable
+            style="width: 100%;"
+          >
+            <el-option
+              v-for="dept in departmentList"
+              :key="dept.id"
+              :label="dept.name"
+              :value="dept.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="新分派操作员" prop="assigned_operator">
+          <el-select
+            v-model="reassignProcessForm.assigned_operator"
+            placeholder="请选择操作员（可选）"
+            filterable
+            clearable
+            style="width: 100%;"
+          >
+            <el-option
+              v-for="user in userList"
+              :key="user.id"
+              :label="user.username || `${(user.first_name || '')}${(user.last_name || '')}`.trim() || user.id"
+              :value="user.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="调整原因" prop="reason">
+          <el-input
+            v-model="reassignProcessForm.reason"
+            type="textarea"
+            :rows="3"
+            placeholder="请填写调整原因（必填，便于追溯）"
+          ></el-input>
+          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+            例如：包装车间设备故障，无法处理裱坑工序
+          </div>
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input
+            v-model="reassignProcessForm.notes"
+            type="textarea"
+            :rows="2"
+            placeholder="请输入备注（可选）"
+          ></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-checkbox v-model="reassignProcessForm.update_process_department">
+            同时更新工序级别的部门（影响后续生成的任务）
+          </el-checkbox>
+          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+            如果勾选，后续生成的任务也会分派到新部门
+          </div>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="reassignProcessDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleReassignProcess" :loading="reassigningProcess">确定</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 任务分派对话框 -->
+    <el-dialog
+      title="调整任务分派"
+      :visible.sync="taskAssignDialogVisible"
+      width="600px"
+    >
+      <el-form
+        ref="taskAssignForm"
+        :model="taskAssignForm"
+        label-width="120px"
+      >
+        <el-form-item label="任务内容">
+          <el-input :value="currentTask?.work_content" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="分派部门">
+          <el-select
+            v-model="taskAssignForm.assigned_department"
+            placeholder="请选择部门"
+            filterable
+            clearable
+            style="width: 100%;"
+          >
+            <el-option
+              v-for="dept in departmentList"
+              :key="dept.id"
+              :label="dept.name"
+              :value="dept.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="分派操作员">
+          <el-select
+            v-model="taskAssignForm.assigned_operator"
+            placeholder="请选择操作员"
+            filterable
+            clearable
+            style="width: 100%;"
+          >
+            <el-option
+              v-for="user in userList"
+              :key="user.id"
+              :label="user.username || `${(user.first_name || '')}${(user.last_name || '')}`.trim() || user.id"
+              :value="user.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="调整原因">
+          <el-input
+            v-model="taskAssignForm.reason"
+            type="textarea"
+            :rows="2"
+            placeholder="请输入调整原因（可选）"
+          ></el-input>
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input
+            v-model="taskAssignForm.notes"
+            type="textarea"
+            :rows="2"
+            placeholder="请输入备注（可选）"
+          ></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="taskAssignDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleTaskAssign" :loading="assigningTask">确定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import Vue from 'vue'
 import { workOrderAPI, processAPI, materialAPI, workOrderProcessAPI, workOrderMaterialAPI, workOrderTaskAPI, departmentAPI, artworkAPI, dieAPI } from '@/api/workorder'
+import { getSalespersons } from '@/api/auth'
 // 配置文件（默认值）
 const config = {
   companyName: '肇庆市高要区新西彩包装有限公司'
@@ -1280,7 +1465,27 @@ export default {
         artwork_ids: [],
         die_ids: [],
         notes: ''
-      }
+      },
+      // 批量调整工序分派对话框
+      reassignProcessDialogVisible: false,
+      reassigningProcess: false,
+      reassignProcessForm: {
+        assigned_department: null,
+        assigned_operator: null,
+        reason: '',
+        notes: '',
+        update_process_department: false
+      },
+      // 任务分派对话框
+      taskAssignDialogVisible: false,
+      assigningTask: false,
+      taskAssignForm: {
+        assigned_department: null,
+        assigned_operator: null,
+        reason: '',
+        notes: ''
+      },
+      currentReassignProcess: null
     }
   },
   computed: {
@@ -1506,12 +1711,110 @@ export default {
     },
     async loadUserList() {
       try {
-        // 这里需要调用用户列表API，如果没有可以暂时跳过
-        // const response = await userAPI.getList({ page_size: 100 })
-        // this.userList = response.results || []
+        // 使用业务员列表API（如果后端提供了完整的用户列表API，可以替换）
+        const response = await getSalespersons()
+        this.userList = response || []
       } catch (error) {
         console.error('加载用户列表失败:', error)
+        this.userList = []
       }
+    },
+    showReassignProcessDialog(process) {
+      this.currentReassignProcess = process
+      this.reassignProcessForm = {
+        assigned_department: process.department || null,
+        assigned_operator: null,
+        reason: '',
+        notes: '',
+        update_process_department: false
+      }
+      this.loadUserList()
+      this.reassignProcessDialogVisible = true
+      this.$nextTick(() => {
+        if (this.$refs.reassignProcessForm) {
+          this.$refs.reassignProcessForm.clearValidate()
+        }
+      })
+    },
+    async handleReassignProcess() {
+      this.$refs.reassignProcessForm.validate(async (valid) => {
+        if (!valid) {
+          return false
+        }
+        
+        if (!this.reassignProcessForm.reason) {
+          this.$message.warning('请填写调整原因')
+          return
+        }
+        
+        this.reassigningProcess = true
+        try {
+          const data = {
+            assigned_department: this.reassignProcessForm.assigned_department,
+            assigned_operator: this.reassignProcessForm.assigned_operator,
+            reason: this.reassignProcessForm.reason,
+            notes: this.reassignProcessForm.notes || '',
+            update_process_department: this.reassignProcessForm.update_process_department
+          }
+          
+          await workOrderProcessAPI.reassign_tasks(this.currentReassignProcess.id, data)
+          this.$message.success('批量调整分派成功')
+          this.reassignProcessDialogVisible = false
+          this.loadData()
+        } catch (error) {
+          const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
+                             (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
+          this.$message.error(errorMessage)
+          console.error('批量调整分派失败:', error)
+        } finally {
+          this.reassigningProcess = false
+        }
+      })
+    },
+    showTaskAssignDialog(task) {
+      this.currentTask = { ...task }
+      this.taskAssignForm = {
+        assigned_department: task.assigned_department || null,
+        assigned_operator: task.assigned_operator || null,
+        reason: '',
+        notes: ''
+      }
+      this.loadUserList()
+      this.taskAssignDialogVisible = true
+      this.$nextTick(() => {
+        if (this.$refs.taskAssignForm) {
+          this.$refs.taskAssignForm.clearValidate()
+        }
+      })
+    },
+    async handleTaskAssign() {
+      this.$refs.taskAssignForm.validate(async (valid) => {
+        if (!valid) {
+          return false
+        }
+        
+        this.assigningTask = true
+        try {
+          const data = {
+            assigned_department: this.taskAssignForm.assigned_department,
+            assigned_operator: this.taskAssignForm.assigned_operator,
+            reason: this.taskAssignForm.reason || '',
+            notes: this.taskAssignForm.notes || ''
+          }
+          
+          await workOrderTaskAPI.assign(this.currentTask.id, data)
+          this.$message.success('任务分派已更新')
+          this.taskAssignDialogVisible = false
+          this.loadData()
+        } catch (error) {
+          const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
+                             (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
+          this.$message.error(errorMessage)
+          console.error('分派任务失败:', error)
+        } finally {
+          this.assigningTask = false
+        }
+      })
     },
     async handleStartProcess(process) {
       try {
@@ -1864,6 +2167,33 @@ export default {
         skipped: '#E6A23C'
       }
       return colorMap[status] || '#909399'
+    },
+    getProcessDisplayDepartment(process) {
+      // 如果有任务，根据任务的分派情况显示
+      if (process.tasks && process.tasks.length > 0) {
+        // 获取所有任务的分派部门（去重）
+        const departments = process.tasks
+          .map(task => task.assigned_department_name)
+          .filter(dept => dept && dept.trim() !== '')
+        
+        if (departments.length === 0) {
+          // 所有任务都未分派，显示工序级别的部门
+          return process.department_name || '未分配部门'
+        } else {
+          // 去重
+          const uniqueDepartments = [...new Set(departments)]
+          if (uniqueDepartments.length === 1) {
+            // 所有任务都分派到同一部门
+            return uniqueDepartments[0]
+          } else {
+            // 任务分派到多个部门
+            return uniqueDepartments.join('、') + ` (${uniqueDepartments.length}个部门)`
+          }
+        }
+      }
+      
+      // 没有任务时，显示工序级别的部门
+      return process.department_name || '未分配部门'
     },
     getPurchaseStatusType(status) {
       const typeMap = {

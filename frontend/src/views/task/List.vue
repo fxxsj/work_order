@@ -35,6 +35,16 @@
             </el-select>
           </el-col>
           <el-col :span="3">
+            <el-select v-model="filters.assigned_department" placeholder="分派部门" clearable filterable @change="handleSearch">
+              <el-option
+                v-for="dept in departmentList"
+                :key="dept.id"
+                :label="dept.name"
+                :value="dept.id"
+              ></el-option>
+            </el-select>
+          </el-col>
+          <el-col :span="3">
             <el-select v-model="filters.work_order_process" placeholder="工序" clearable filterable @change="handleSearch">
               <el-option
                 v-for="process in processList"
@@ -124,7 +134,16 @@
           </template>
         </el-table-column>
         <el-table-column prop="work_content" label="任务内容" min-width="200" show-overflow-tooltip></el-table-column>
-        <el-table-column prop="task_type_display" label="任务类型" width="100"></el-table-column>
+        <el-table-column label="分派部门" width="120">
+          <template slot-scope="scope">
+            {{ scope.row.assigned_department_name || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="分派操作员" width="120">
+          <template slot-scope="scope">
+            {{ scope.row.assigned_operator_name || '-' }}
+          </template>
+        </el-table-column>
         <el-table-column label="关联对象" width="150">
           <template slot-scope="scope">
             <div v-if="scope.row.artwork_code">
@@ -183,7 +202,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="280" fixed="right">
           <template slot-scope="scope">
             <el-button
               v-if="scope.row.status !== 'completed' && canCompleteTask(scope.row)"
@@ -204,6 +223,14 @@
               style="margin-left: 5px;"
             >
               更新
+            </el-button>
+            <el-button
+              type="warning"
+              size="mini"
+              @click="showAssignDialog(scope.row)"
+              style="margin-left: 5px;"
+            >
+              分派
             </el-button>
           </template>
         </el-table-column>
@@ -463,11 +490,92 @@
         <el-button type="primary" @click="handleUpdateTask" :loading="updatingTask">确定</el-button>
       </div>
     </el-dialog>
+
+    <!-- 分派任务对话框 -->
+    <el-dialog
+      title="调整任务分派"
+      :visible.sync="assignDialogVisible"
+      width="600px"
+      @close="resetAssignForm"
+    >
+      <el-form
+        ref="assignForm"
+        :model="assignForm"
+        label-width="120px"
+        :rules="assignRules"
+      >
+        <el-form-item label="任务内容">
+          <el-input :value="currentTask?.work_content" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="分派部门" prop="assigned_department">
+          <el-select
+            v-model="assignForm.assigned_department"
+            placeholder="请选择部门"
+            filterable
+            clearable
+            style="width: 100%;"
+            :loading="loadingDepartments"
+            @change="handleDepartmentChange"
+          >
+            <el-option
+              v-for="dept in departmentList"
+              :key="dept.id"
+              :label="dept.name"
+              :value="dept.id"
+            ></el-option>
+          </el-select>
+          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+            选择任务分派到的部门，留空表示不清空现有分派
+          </div>
+        </el-form-item>
+        <el-form-item label="分派操作员" prop="assigned_operator">
+          <el-select
+            v-model="assignForm.assigned_operator"
+            placeholder="请选择操作员"
+            filterable
+            clearable
+            style="width: 100%;"
+            :loading="loadingUsers"
+          >
+            <el-option
+              v-for="user in userList"
+              :key="user.id"
+              :label="user.username || `${(user.first_name || '')}${(user.last_name || '')}`.trim() || user.id"
+              :value="user.id"
+            ></el-option>
+          </el-select>
+          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
+            选择任务分派到的操作员，留空表示不清空现有分派
+          </div>
+        </el-form-item>
+        <el-form-item label="调整原因">
+          <el-input
+            v-model="assignForm.reason"
+            type="textarea"
+            :rows="2"
+            placeholder="请输入调整原因（可选，便于追溯）"
+          ></el-input>
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input
+            v-model="assignForm.notes"
+            type="textarea"
+            :rows="2"
+            placeholder="请输入备注（可选）"
+          ></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="assignDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleAssignTask" :loading="assigningTask">确定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { workOrderTaskAPI, processAPI, artworkAPI, dieAPI } from '@/api/workorder'
+import { workOrderTaskAPI, processAPI, artworkAPI, dieAPI, departmentAPI } from '@/api/workorder'
+import { getSalespersons } from '@/api/auth'
 
 export default {
   name: 'TaskList',
@@ -480,7 +588,8 @@ export default {
         search: '',
         status: '',
         task_type: '',
-        work_order_process: ''
+        work_order_process: '',
+        assigned_department: ''
       },
       pagination: {
         page: 1,
@@ -511,11 +620,29 @@ export default {
       artworkList: [],
       dieList: [],
       loadingArtworks: false,
-      loadingDies: false
+      loadingDies: false,
+      // 部门和用户列表
+      departmentList: [],
+      userList: [],
+      loadingDepartments: false,
+      loadingUsers: false,
+      // 分派对话框
+      assignDialogVisible: false,
+      assigningTask: false,
+      assignForm: {
+        assigned_department: null,
+        assigned_operator: null,
+        reason: '',
+        notes: ''
+      },
+      assignRules: {
+        // 部门和操作员都是可选的，不需要必填验证
+      }
     }
   },
   created() {
     this.loadProcessList()
+    this.loadDepartmentList()
     this.loadData()
   },
   methods: {
@@ -546,6 +673,9 @@ export default {
         }
         if (this.filters.work_order_process) {
           params.process = this.filters.work_order_process
+        }
+        if (this.filters.assigned_department) {
+          params.assigned_department = this.filters.assigned_department
         }
         if (this.filters.search) {
           params.search = this.filters.search
@@ -584,7 +714,8 @@ export default {
         search: '',
         status: '',
         task_type: '',
-        work_order_process: ''
+        work_order_process: '',
+        assigned_department: ''
       }
       this.pagination.page = 1
       this.loadData()
@@ -877,6 +1008,102 @@ export default {
       } else {
         this.$message.warning('施工单信息不存在')
       }
+    },
+    async loadDepartmentList() {
+      if (this.departmentList.length > 0) {
+        return
+      }
+      this.loadingDepartments = true
+      try {
+        const response = await departmentAPI.getList({ is_active: true, page_size: 1000 })
+        this.departmentList = response.results || []
+      } catch (error) {
+        console.error('加载部门列表失败:', error)
+      } finally {
+        this.loadingDepartments = false
+      }
+    },
+    async loadUserList() {
+      this.loadingUsers = true
+      try {
+        // 使用业务员列表API（如果后端提供了完整的用户列表API，可以替换）
+        const response = await getSalespersons()
+        this.userList = response || []
+        // 如果后端有完整的用户列表API，可以这样调用：
+        // const response = await userAPI.getList({ page_size: 1000 })
+        // this.userList = response.results || []
+        // 如果后端支持按部门筛选，可以传递参数：
+        // const params = { page_size: 1000 }
+        // if (departmentId) params.department = departmentId
+      } catch (error) {
+        console.error('加载用户列表失败:', error)
+        this.userList = []
+      } finally {
+        this.loadingUsers = false
+      }
+    },
+    showAssignDialog(task) {
+      this.currentTask = { ...task }
+      this.assignForm = {
+        assigned_department: task.assigned_department || null,
+        assigned_operator: task.assigned_operator || null,
+        reason: '',
+        notes: ''
+      }
+      this.loadUserList()
+      this.assignDialogVisible = true
+      this.$nextTick(() => {
+        if (this.$refs.assignForm) {
+          this.$refs.assignForm.clearValidate()
+        }
+      })
+    },
+    async handleAssignTask() {
+      this.$refs.assignForm.validate(async (valid) => {
+        if (!valid) {
+          return false
+        }
+        
+        this.assigningTask = true
+        try {
+          const data = {
+            assigned_department: this.assignForm.assigned_department,
+            assigned_operator: this.assignForm.assigned_operator,
+            reason: this.assignForm.reason || '',
+            notes: this.assignForm.notes || ''
+          }
+          
+          await workOrderTaskAPI.assign(this.currentTask.id, data)
+          this.$message.success('任务分派已更新')
+          this.assignDialogVisible = false
+          this.loadData()
+        } catch (error) {
+          const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
+                             (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
+          this.$message.error(errorMessage)
+          console.error('分派任务失败:', error)
+        } finally {
+          this.assigningTask = false
+        }
+      })
+    },
+    resetAssignForm() {
+      this.assignForm = {
+        assigned_department: null,
+        assigned_operator: null,
+        reason: '',
+        notes: ''
+      }
+      this.$nextTick(() => {
+        if (this.$refs.assignForm) {
+          this.$refs.assignForm.clearValidate()
+        }
+      })
+    },
+    handleDepartmentChange() {
+      // 当部门改变时，可以过滤操作员列表
+      // 如果后端API支持按部门筛选操作员，可以在这里实现
+      // 目前先加载所有用户，不进行筛选
     }
   }
 }
