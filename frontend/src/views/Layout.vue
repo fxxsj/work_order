@@ -27,7 +27,7 @@
             <span>任务管理</span>
           </template>
           <el-menu-item index="/tasks">
-            <i class="el-icon-list"></i>
+            <i class="el-icon-tickets"></i>
             <span>任务列表</span>
           </el-menu-item>
           <el-menu-item index="/tasks/board">
@@ -69,7 +69,7 @@
             <span>刀模管理</span>
           </el-menu-item>
           <el-menu-item v-if="canViewFoilingPlate" index="/foiling-plates">
-            <i class="el-icon-stamp"></i>
+            <i class="el-icon-edit-outline"></i>
             <span>烫金版管理</span>
           </el-menu-item>
           <el-menu-item v-if="canViewEmbossingPlate" index="/embossing-plates">
