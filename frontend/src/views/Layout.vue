@@ -55,22 +55,28 @@
           <i class="el-icon-goods"></i>
           <span>物料管理</span>
         </el-menu-item>
-        <el-menu-item v-if="canViewArtwork" index="/artworks">
-          <i class="el-icon-picture"></i>
-          <span>图稿管理</span>
-        </el-menu-item>
-        <el-menu-item v-if="canViewDie" index="/dies">
-          <i class="el-icon-scissors"></i>
-          <span>刀模管理</span>
-        </el-menu-item>
-        <el-menu-item v-if="canViewFoilingPlate" index="/foiling-plates">
-          <i class="el-icon-stamp"></i>
-          <span>烫金版管理</span>
-        </el-menu-item>
-        <el-menu-item v-if="canViewEmbossingPlate" index="/embossing-plates">
-          <i class="el-icon-s-grid"></i>
-          <span>压凸版管理</span>
-        </el-menu-item>
+        <el-submenu v-if="canViewArtwork || canViewDie || canViewFoilingPlate || canViewEmbossingPlate" index="/plate-making">
+          <template slot="title">
+            <i class="el-icon-printer"></i>
+            <span>制版管理</span>
+          </template>
+          <el-menu-item v-if="canViewArtwork" index="/artworks">
+            <i class="el-icon-picture"></i>
+            <span>图稿管理</span>
+          </el-menu-item>
+          <el-menu-item v-if="canViewDie" index="/dies">
+            <i class="el-icon-scissors"></i>
+            <span>刀模管理</span>
+          </el-menu-item>
+          <el-menu-item v-if="canViewFoilingPlate" index="/foiling-plates">
+            <i class="el-icon-stamp"></i>
+            <span>烫金版管理</span>
+          </el-menu-item>
+          <el-menu-item v-if="canViewEmbossingPlate" index="/embossing-plates">
+            <i class="el-icon-s-grid"></i>
+            <span>压凸版管理</span>
+          </el-menu-item>
+        </el-submenu>
         <el-menu-item v-if="canViewProductGroup" index="/product-groups">
           <i class="el-icon-collection"></i>
           <span>产品组管理</span>
@@ -127,17 +133,9 @@ export default {
       if (path.startsWith('/processes')) {
         return '/processes'
       }
-      if (path.startsWith('/artworks')) {
-        return '/artworks'
-      }
-      if (path.startsWith('/dies')) {
-        return '/dies'
-      }
-      if (path.startsWith('/foiling-plates')) {
-        return '/foiling-plates'
-      }
-      if (path.startsWith('/embossing-plates')) {
-        return '/embossing-plates'
+      if (path.startsWith('/artworks') || path.startsWith('/dies') || 
+          path.startsWith('/foiling-plates') || path.startsWith('/embossing-plates')) {
+        return '/plate-making'
       }
       if (path.startsWith('/tasks')) {
         return '/tasks'
