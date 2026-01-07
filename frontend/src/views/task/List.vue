@@ -1102,9 +1102,9 @@ export default {
             this.$message.warning('任务已被其他操作员更新，请刷新页面后重试')
             this.loadData()  // 刷新数据
           } else {
-            const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
-                               (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
-            this.$message.error(errorMessage)
+          const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
+                             (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
+          this.$message.error(errorMessage)
           }
           console.error('完成任务失败:', error)
         } finally {
@@ -1175,9 +1175,9 @@ export default {
             this.$message.warning('任务已被其他操作员更新，请刷新页面后重试')
             this.loadData()  // 刷新数据
           } else {
-            const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
-                               (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '更新失败'
-            this.$message.error(errorMessage)
+          const errorMessage = error.response?.data?.error || error.response?.data?.detail || 
+                             (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '更新失败'
+          this.$message.error(errorMessage)
           }
           console.error('更新任务失败:', error)
         } finally {
@@ -1204,6 +1204,22 @@ export default {
         console.error('加载部门列表失败:', error)
       } finally {
         this.loadingDepartments = false
+      }
+    },
+    loadDepartmentListForProcess(task) {
+      // 根据任务的工序获取关联的部门列表
+      if (task.work_order_process_info && task.work_order_process_info.process) {
+        const processDepartments = task.work_order_process_info.process.departments || []
+        if (processDepartments.length > 0) {
+          // 只显示与工序关联的部门
+          this.departmentList = processDepartments
+        } else {
+          // 如果工序没有关联部门，加载所有部门（兼容处理）
+          this.loadDepartmentList()
+        }
+      } else {
+        // 如果没有工序信息，加载所有部门（兼容处理）
+        this.loadDepartmentList()
       }
     },
     async loadUserList() {
@@ -1233,6 +1249,8 @@ export default {
         reason: '',
         notes: ''
       }
+      // 根据工序过滤部门列表
+      this.loadDepartmentListForProcess(task)
       this.loadUserList()
       this.assignDialogVisible = true
       this.$nextTick(() => {
@@ -1309,7 +1327,8 @@ export default {
         ]
       }
       this.splitDialogVisible = true
-      this.loadDepartmentList()
+      // 根据工序过滤部门列表
+      this.loadDepartmentListForProcess(task)
       this.loadUserList()
     },
     addSplitItem() {

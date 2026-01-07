@@ -1907,6 +1907,22 @@ export default {
         console.error('加载部门列表失败:', error)
       }
     },
+    loadDepartmentListForProcess(task) {
+      // 根据任务的工序获取关联的部门列表
+      if (task.work_order_process_info && task.work_order_process_info.process) {
+        const processDepartments = task.work_order_process_info.process.departments || []
+        if (processDepartments.length > 0) {
+          // 只显示与工序关联的部门
+          this.departmentList = processDepartments
+        } else {
+          // 如果工序没有关联部门，加载所有部门（兼容处理）
+          this.loadDepartmentList()
+        }
+      } else {
+        // 如果没有工序信息，加载所有部门（兼容处理）
+        this.loadDepartmentList()
+      }
+    },
     async loadUserList() {
       try {
         // 使用业务员列表API（如果后端提供了完整的用户列表API，可以替换）
@@ -1977,6 +1993,8 @@ export default {
         reason: '',
         notes: ''
       }
+      // 根据工序过滤部门列表
+      this.loadDepartmentListForProcess(task)
       this.loadUserList()
       this.taskAssignDialogVisible = true
       this.$nextTick(() => {
@@ -2035,7 +2053,8 @@ export default {
         ]
       }
       this.splitDialogVisible = true
-      this.loadDepartmentList()
+      // 根据工序过滤部门列表
+      this.loadDepartmentListForProcess(task)
       this.loadUserList()
     },
     addSplitItem() {
