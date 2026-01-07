@@ -114,6 +114,12 @@ const routes = [
         name: 'TaskList',
         component: () => import('@/views/task/List.vue'),
         meta: { title: '任务管理', requiresAuth: true }
+      },
+      {
+        path: 'tasks/board',
+        name: 'TaskBoard',
+        component: () => import('@/views/task/Board.vue'),
+        meta: { title: '部门任务看板', requiresAuth: true }
       }
     ]
   }

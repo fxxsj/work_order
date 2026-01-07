@@ -21,10 +21,20 @@
           <i class="el-icon-document"></i>
           <span>施工单</span>
         </el-menu-item>
-        <el-menu-item index="/tasks">
-          <i class="el-icon-s-order"></i>
-          <span>任务管理</span>
-        </el-menu-item>
+        <el-submenu index="/tasks">
+          <template slot="title">
+            <i class="el-icon-s-order"></i>
+            <span>任务管理</span>
+          </template>
+          <el-menu-item index="/tasks">
+            <i class="el-icon-list"></i>
+            <span>任务列表</span>
+          </el-menu-item>
+          <el-menu-item index="/tasks/board">
+            <i class="el-icon-s-grid"></i>
+            <span>部门任务看板</span>
+          </el-menu-item>
+        </el-submenu>
         <el-menu-item v-if="canViewCustomer" index="/customers">
           <i class="el-icon-user"></i>
           <span>客户管理</span>
@@ -128,6 +138,9 @@ export default {
       }
       if (path.startsWith('/embossing-plates')) {
         return '/embossing-plates'
+      }
+      if (path.startsWith('/tasks')) {
+        return '/tasks'
       }
       return path
     },
