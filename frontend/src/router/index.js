@@ -138,6 +138,12 @@ const routes = [
         name: 'AssignmentRule',
         component: () => import('@/views/task/AssignmentRule.vue'),
         meta: { title: '分派规则配置', requiresAuth: true }
+      },
+      {
+        path: 'notifications',
+        name: 'Notification',
+        component: () => import('@/views/Notification.vue'),
+        meta: { title: '通知中心', requiresAuth: true }
       }
     ]
   }

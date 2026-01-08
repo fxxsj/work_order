@@ -500,6 +500,39 @@ export const workOrderProductAPI = {
   }
 }
 
+// 通知管理
+export const notificationAPI = {
+  // 获取通知列表
+  getList(params) {
+    return request({
+      url: '/notifications/',
+      method: 'get',
+      params
+    })
+  },
+  // 获取未读通知数量
+  getUnreadCount() {
+    return request({
+      url: '/notifications/unread_count/',
+      method: 'get'
+    })
+  },
+  // 标记通知为已读
+  markRead(id) {
+    return request({
+      url: `/notifications/${id}/mark_read/`,
+      method: 'post'
+    })
+  },
+  // 标记所有通知为已读
+  markAllRead() {
+    return request({
+      url: '/notifications/mark_all_read/',
+      method: 'post'
+    })
+  }
+}
+
 export const workOrderTaskAPI = {
   getList(params) {
     return request({
