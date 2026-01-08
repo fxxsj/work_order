@@ -6,6 +6,130 @@
 
 ---
 
+## 2026-01-08：第二阶段数据导出功能实施
+
+### 实施内容
+
+根据 `SYSTEM_USAGE_ANALYSIS.md` 的分析，完成了第二阶段（中优先级）的数据导出功能：
+
+1. ✅ **Excel 导出功能**
+   - 施工单列表导出：`GET /api/workorders/export/`
+   - 任务列表导出：`GET /api/workorder-tasks/export/`
+   - 支持权限过滤和数据过滤
+   - 美观的 Excel 格式（表头样式、自动列宽、冻结首行）
+
+2. ✅ **导出工具模块** (`export_utils.py`)
+   - `export_work_orders()` - 导出施工单列表
+   - `export_tasks()` - 导出任务列表
+   - 统一的样式设置函数
+
+3. ✅ **权限控制**
+   - 需要 `view_workorder` 权限才能导出
+   - 自动应用数据权限过滤
+   - 只导出用户有权限查看的数据
+
+### 修改的文件
+
+1. **`backend/requirements.txt`**
+   - 添加 `openpyxl==3.1.2` 依赖
+
+2. **`backend/workorder/export_utils.py`**（新建）
+   - 导出工具函数
+   - Excel 样式设置
+   - 状态和优先级的中文映射
+
+3. **`backend/workorder/views.py`**
+   - 在 `WorkOrderViewSet` 中添加 `export` action
+   - 在 `WorkOrderTaskViewSet` 中添加 `export` action
+   - 导入导出工具函数
+
+4. **`docs/SYSTEM_USAGE_ANALYSIS.md`**
+   - 更新数据导出功能部分，标记为已完成
+   - 添加实现内容说明
+
+---
+
+## 2026-01-08：第二阶段权限控制细化实施
+
+### 实施内容
+
+根据 `SYSTEM_USAGE_ANALYSIS.md` 的分析，完成了第二阶段（中优先级）的权限控制细化：
+
+1. ✅ **任务操作权限** (`WorkOrderTaskPermission`)
+   - 操作员只能更新自己分派的任务
+   - 生产主管可以更新本部门的所有任务
+   - 跨部门操作需要特殊权限
+   - 施工单创建人可以操作自己创建的施工单的任务
+   - 管理员可以操作所有任务
+
+2. ✅ **数据权限** (`WorkOrderDataPermission`)
+   - 业务员只能查看自己负责的客户的施工单
+   - 生产主管可以查看本部门有任务的施工单
+   - 操作员只能查看自己分派的任务
+   - 生产主管可以查看本部门的所有任务
+   - 管理员可以查看所有数据
+
+3. ✅ **审核权限细化**（已实现）
+   - 业务员只能审核自己负责的客户的施工单
+
+### 修改的文件
+
+1. **`backend/workorder/permissions.py`**
+   - 添加 `WorkOrderTaskPermission` 权限类
+   - 添加 `WorkOrderDataPermission` 权限类
+
+2. **`backend/workorder/views.py`**
+   - 在 `WorkOrderViewSet` 中应用 `WorkOrderDataPermission`
+   - 在 `WorkOrderViewSet.get_queryset()` 中实现数据过滤
+   - 在 `WorkOrderTaskViewSet` 中应用 `WorkOrderTaskPermission`
+   - 在 `WorkOrderTaskViewSet.get_queryset()` 中实现数据过滤
+   - 在 `update_quantity` 和 `complete` 方法中添加明确的权限检查
+
+3. **`docs/SYSTEM_USAGE_ANALYSIS.md`**
+   - 更新权限控制细化部分，标记为已完成
+   - 添加实现内容说明
+
+---
+
+## 2026-01-08：第二阶段批量操作功能实施
+
+### 实施内容
+
+根据 `SYSTEM_USAGE_ANALYSIS.md` 的分析，完成了第二阶段（中优先级）的批量操作功能：
+
+1. ✅ **批量更新任务**
+   - `POST /api/workorder-tasks/batch_update_quantity/` - 批量更新任务完成数量
+   - `POST /api/workorder-tasks/batch_complete/` - 批量完成任务
+   - `POST /api/workorder-tasks/batch_cancel/` - 批量取消任务
+   - 支持部分成功，返回详细的操作结果
+
+2. ✅ **批量分派任务**
+   - `POST /api/workorder-tasks/batch_assign/` - 批量分派任务到部门/操作员
+   - 支持批量调整任务分派
+   - 自动创建分派通知
+
+3. ✅ **批量开始工序**
+   - `POST /api/workorder-processes/batch_start/` - 批量开始多个工序
+   - 自动生成任务
+   - 支持统一设置操作员和部门
+
+### 修改的文件
+
+1. **`backend/workorder/views.py`**
+   - 在 `WorkOrderTaskViewSet` 中添加批量操作方法：
+     - `batch_update_quantity()` - 批量更新任务数量
+     - `batch_complete()` - 批量完成任务
+     - `batch_cancel()` - 批量取消任务
+     - `batch_assign()` - 批量分派任务
+   - 在 `WorkOrderProcessViewSet` 中添加：
+     - `batch_start()` - 批量开始工序
+
+2. **`docs/SYSTEM_USAGE_ANALYSIS.md`**
+   - 更新批量操作功能部分，标记为已完成
+   - 添加实现内容说明
+
+---
+
 ## 2026-01-08：第二阶段通知提醒机制实施
 
 ### 实施内容
