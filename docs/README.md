@@ -2,7 +2,7 @@
 
 本目录包含项目的所有技术文档和分析文档。
 
-> **最后更新：** 2026-01-07
+> **最后更新：** 2026-01-08
 
 ## 文档分类
 
@@ -14,12 +14,13 @@
 
 ### 🔧 开发文档
 
-- **[FIXTURES_USAGE.md](FIXTURES_USAGE.md)** - Fixtures 文件使用指南
-- **[FIXTURES_ANALYSIS.md](FIXTURES_ANALYSIS.md)** - Fixtures 文件分析报告
+- **[FIXTURES.md](FIXTURES.md)** ⭐ - Fixtures 文件使用指南（合并了分析和使用说明）
 - **[DATA_SOURCE_CONSOLIDATION.md](DATA_SOURCE_CONSOLIDATION.md)** - 数据源统一说明
 
 ### 📋 系统分析文档
 
+- **[SYSTEM_USAGE_ANALYSIS.md](SYSTEM_USAGE_ANALYSIS.md)** ⭐ - 系统使用流程分析与优化建议（最新）
+- **[PHASE1_IMPLEMENTATION_SUMMARY.md](PHASE1_IMPLEMENTATION_SUMMARY.md)** ⭐ - 第一阶段核心功能完善实施总结（最新）
 - **[CURRENT_WORKORDER_LOGIC_ANALYSIS.md](CURRENT_WORKORDER_LOGIC_ANALYSIS.md)** ⭐ - 当前施工单逻辑分析
 - **[WORKORDER_LOGIC_ANALYSIS.md](WORKORDER_LOGIC_ANALYSIS.md)** - 施工单逻辑分析（历史）
 - **[WORKORDER_APPROVAL_ANALYSIS.md](WORKORDER_APPROVAL_ANALYSIS.md)** - 施工单审核流程分析
@@ -41,8 +42,13 @@
 ### 🏢 业务逻辑文档
 
 - **[DEPARTMENT_ORGANIZATION_ANALYSIS.md](DEPARTMENT_ORGANIZATION_ANALYSIS.md)** - 部门组织结构分析
-- **[PURCHASE_PROCESS_REMOVAL.md](PURCHASE_PROCESS_REMOVAL.md)** - 采购工序移除说明
-- **[DESIGN_PROCESS_REMOVAL.md](DESIGN_PROCESS_REMOVAL.md)** - 设计工序移除说明
+- **[WORKORDER_BUSINESS_FLOW_ANALYSIS.md](WORKORDER_BUSINESS_FLOW_ANALYSIS.md)** ⭐ - 施工单业务流程全面分析
+- **[TASK_ASSIGNMENT_LOGIC.md](TASK_ASSIGNMENT_LOGIC.md)** - 任务自动分派逻辑说明
+
+### 📜 历史变更文档（参考）
+
+- **[PURCHASE_PROCESS_REMOVAL.md](PURCHASE_PROCESS_REMOVAL.md)** ⚠️ - 采购工序移除说明（历史文档）
+- **[DESIGN_PROCESS_REMOVAL.md](DESIGN_PROCESS_REMOVAL.md)** ⚠️ - 设计工序移除说明（历史文档）
 
 ### 🔐 权限管理文档
 
@@ -57,7 +63,7 @@
 
 ### 📊 代码分析文档（参考）
 
-- **[REDUNDANT_CODE_ANALYSIS.md](REDUNDANT_CODE_ANALYSIS.md)** - 冗余代码分析
+- **[REDUNDANT_CODE_ANALYSIS.md](REDUNDANT_CODE_ANALYSIS.md)** ⚠️ - 冗余代码分析（需要检查）
 
 ---
 
@@ -66,6 +72,7 @@
 - ⭐ **核心文档**：重要且常用的文档，建议优先阅读
 - 📋 **参考文档**：包含详细技术分析，按需查阅
 - 📚 **入门文档**：新手上手必读
+- ⚠️ **历史/待检查文档**：历史变更记录或需要检查的文档，保留作为参考
 
 ## 文档规范
 
@@ -114,11 +121,27 @@
 
 详细更新历史请查看：[DOCUMENTATION_UPDATE_LOG.md](DOCUMENTATION_UPDATE_LOG.md)
 
-### 最近更新（2026-01-07）
+### 最近更新（2026-01-08）
 
-- ✅ 更新 `DATA_INITIALIZATION_ANALYSIS.md`：反映新的数据源统一架构
-- ✅ 更新项目根目录 `README.md`：完善功能说明和文档链接
-- ✅ 新增 `FIXTURES_USAGE.md` 和 `FIXTURES_ANALYSIS.md`：Fixtures 使用说明
+- ✅ 完成第二阶段通知提醒机制：
+  - 通知模型和接口实现
+  - 自动创建通知（审核、任务分派、任务取消、工序完成、施工单完成）
+  - 通知查询和标记已读功能
+- ✅ 更新 `SYSTEM_USAGE_ANALYSIS.md`：标记通知提醒机制为已完成
+
+### 历史更新（2026-01-07）
+
+- ✅ 完成第一阶段核心功能完善：
+  - 自动计算数量功能
+  - 制版任务验证完善
+  - 任务取消功能
+  - 基础统计功能
+- ✅ 新增 `PHASE1_IMPLEMENTATION_SUMMARY.md`：第一阶段实施总结
+- ✅ 新增 `SYSTEM_USAGE_ANALYSIS.md`：系统使用流程分析与优化建议
+- ✅ 合并 `FIXTURES_ANALYSIS.md` 和 `FIXTURES_USAGE.md` 为 `FIXTURES.md`
+- ✅ 标记历史文档：`DESIGN_PROCESS_REMOVAL.md`、`PURCHASE_PROCESS_REMOVAL.md`
+- ✅ 标记需要检查的文档：`REDUNDANT_CODE_ANALYSIS.md`
+- ✅ 更新文档索引和更新日志
 
 ---
 

@@ -1,8 +1,158 @@
 # 文档更新日志
 
-**最后更新时间：** 2026-01-07
+**最后更新时间：** 2026-01-08
 
 本文档记录系统文档的更新、合并和删除历史。
+
+---
+
+## 2026-01-08：第二阶段通知提醒机制实施
+
+### 实施内容
+
+根据 `SYSTEM_USAGE_ANALYSIS.md` 的分析，完成了第二阶段（中优先级）的通知提醒机制：
+
+1. ✅ **通知模型和接口**
+   - 创建 `Notification` 模型，支持多种通知类型和优先级
+   - 创建 `NotificationSerializer` 序列化器
+   - 创建 `NotificationViewSet` 视图集，提供通知查询、标记已读等功能
+   - 数据库迁移：`0014_add_notification_system.py`
+
+2. ✅ **自动创建通知**
+   - 审核通过/拒绝时通知创建人
+   - 任务分派时通知操作员
+   - 任务取消时通知操作员
+   - 工序完成时通知施工单创建人
+   - 施工单完成时通知创建人
+
+### 新增文件
+
+1. **`backend/workorder/migrations/0014_add_notification_system.py`** ⭐ **新增**
+   - 通知系统数据库迁移
+
+### 修改的文件
+
+1. **`backend/workorder/models.py`**
+   - 添加 `Notification` 模型
+   - 在关键事件发生时创建通知（审核、任务分派、任务取消、工序完成、施工单完成）
+
+2. **`backend/workorder/serializers.py`**
+   - 添加 `NotificationSerializer`
+
+3. **`backend/workorder/views.py`**
+   - 添加 `NotificationViewSet`
+   - 在审核、任务取消等操作中创建通知
+
+4. **`backend/workorder/urls.py`**
+   - 注册通知路由
+
+5. **`docs/SYSTEM_USAGE_ANALYSIS.md`**
+   - 更新通知提醒机制部分，标记为已完成
+   - 添加实现内容说明
+
+---
+
+## 2026-01-07：第一阶段核心功能完善实施
+
+### 实施内容
+
+根据 `SYSTEM_USAGE_ANALYSIS.md` 的分析，完成了第一阶段（高优先级）核心功能完善：
+
+1. ✅ **自动计算数量功能**
+   - 创建信号处理器系统（`signals.py`）
+   - 实现物料状态联动（物料开料后自动更新开料任务）
+   - 实现版型确认联动（图稿/刀模/烫金版/压凸版确认后自动更新制版任务）
+   - 任务生成时启用自动计算（制版和开料任务）
+
+2. ✅ **完善制版任务验证**
+   - 为 Die、FoilingPlate、EmbossingPlate 添加确认字段
+   - 创建数据库迁移：`0013_add_plate_confirmation_fields.py`
+   - 完善验证逻辑（工序完成判断、任务更新验证、任务完成验证）
+
+3. ✅ **任务取消功能**
+   - 添加取消接口：`POST /api/workorder-tasks/{id}/cancel/`
+   - 实现权限控制（生产主管、操作员、创建人）
+   - 实现状态检查和影响检查
+   - 记录操作日志
+
+4. ✅ **基础统计功能**
+   - 增强统计接口：`GET /api/workorders/statistics/`
+   - 新增任务统计（状态、类型、部门）
+   - 新增生产效率分析（完成率、平均时间、不良品率）
+   - 新增业务分析（客户统计、产品统计）
+
+### 新增文件
+
+1. **`PHASE1_IMPLEMENTATION_SUMMARY.md`** ⭐ **新增**
+   - 第一阶段实施总结文档
+   - 详细记录所有完成的功能和技术实现
+
+2. **`backend/workorder/signals.py`** ⭐ **新增**
+   - 信号处理器实现
+   - 实现自动计算数量功能
+
+### 修改的文件
+
+1. **`backend/workorder/models.py`**
+   - 为版型模型添加确认字段
+   - 完善验证逻辑
+   - 更新任务生成逻辑
+
+2. **`backend/workorder/views.py`**
+   - 完善制版任务验证
+   - 添加任务取消功能
+   - 增强统计功能
+
+3. **`backend/workorder/apps.py`**
+   - 注册信号处理器
+
+4. **`backend/workorder/migrations/0013_add_plate_confirmation_fields.py`**
+   - 数据库迁移文件
+
+---
+
+## 2026-01-07：系统使用流程分析与文档整理
+
+### 新增文档
+
+1. **SYSTEM_USAGE_ANALYSIS.md** ⭐ **新增**
+   - 系统使用流程全面分析
+   - 结合实际应用场景指出不足和优化建议
+   - 包含高、中、低优先级优化建议
+   - 涵盖功能、性能、安全、用户体验等方面
+
+### 文档整理和合并
+
+### 合并的文档
+
+1. **FIXTURES.md** ⭐ **新增**
+   - 合并了 `FIXTURES_ANALYSIS.md` 和 `FIXTURES_USAGE.md` 为一个完整的文档
+   - 包含 Fixtures 文件的分析、使用指南、最佳实践和常见问题
+   - **删除的文档**：
+     - `FIXTURES_ANALYSIS.md` - 已合并到 `FIXTURES.md`
+     - `FIXTURES_USAGE.md` - 已合并到 `FIXTURES.md`
+
+### 标记为历史文档
+
+以下文档已标记为历史文档，保留作为历史参考：
+
+1. **DESIGN_PROCESS_REMOVAL.md** ⚠️ **历史文档**
+   - 记录了2025-01-28的设计工序移除变更
+   - 设计不属于施工单工序，设计任务通过其他系统管理
+
+2. **PURCHASE_PROCESS_REMOVAL.md** ⚠️ **历史文档**
+   - 记录了采购工序移除的变更
+   - 采购不属于施工单工序，采购任务通过其他系统管理
+
+3. **REDUNDANT_CODE_ANALYSIS.md** ⚠️ **需要检查**
+   - 记录了项目中的冗余代码分析
+   - 需要检查这些代码是否仍然存在，如果已清理，可以更新或删除本文档
+
+### 文档整理原则
+
+1. **合并重复文档**：将内容重复或相关的文档合并为一个完整文档
+2. **标记历史文档**：对于历史变更记录，标记为历史文档，保留作为参考
+3. **保持文档索引更新**：及时更新 `docs/README.md` 中的文档索引
 
 ---
 
