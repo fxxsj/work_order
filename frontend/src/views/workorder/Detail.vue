@@ -782,12 +782,47 @@
     <el-card style="margin-top: 20px;">
       <div slot="header" class="card-header">
           <span>工序和任务管理</span>
-        <el-button size="small" type="primary" icon="el-icon-plus" @click="showAddProcessDialog">
-          添加工序
-        </el-button>
+        <div>
+          <el-radio-group v-model="workflowViewMode" size="small" style="margin-right: 10px;">
+            <el-radio-button label="timeline">时间线</el-radio-button>
+            <el-radio-button label="flowchart">流程图</el-radio-button>
+            <el-radio-button label="gantt">甘特图</el-radio-button>
+            <el-radio-button label="list">列表</el-radio-button>
+          </el-radio-group>
+          <el-button size="small" type="primary" icon="el-icon-plus" @click="showAddProcessDialog">
+            添加工序
+          </el-button>
+        </div>
       </div>
-      
-      <el-timeline v-if="workOrder && workOrder.order_processes && workOrder.order_processes.length > 0">
+
+      <!-- 时间线视图 -->
+      <div v-if="workflowViewMode === 'timeline'">
+        <TimelineView
+          :work-order="workOrder"
+          :processes="workOrder.order_processes"
+          :tasks="getAllTasks()"
+        />
+      </div>
+
+      <!-- 流程图视图 -->
+      <div v-else-if="workflowViewMode === 'flowchart'">
+        <ProcessFlowChart
+          :processes="workOrder.order_processes"
+          @process-click="handleProcessClickFromFlowChart"
+        />
+      </div>
+
+      <!-- 甘特图视图 -->
+      <div v-else-if="workflowViewMode === 'gantt'">
+        <GanttChart
+          :work-order="workOrder"
+          :processes="workOrder.order_processes"
+        />
+      </div>
+
+      <!-- 列表视图（原有视图） -->
+      <div v-else>
+        <el-timeline v-if="workOrder && workOrder.order_processes && workOrder.order_processes.length > 0">
         <el-timeline-item
           v-for="process in workOrder.order_processes"
           :key="process.id"
@@ -1065,9 +1100,10 @@
             </div>
           </el-card>
         </el-timeline-item>
-      </el-timeline>
-      
-      <el-empty v-else description="暂无工序信息"></el-empty>
+        </el-timeline>
+        
+        <el-empty v-else description="暂无工序信息"></el-empty>
+      </div>
     </el-card>
 
     <!-- 添加工序对话框 -->
@@ -1536,6 +1572,9 @@
 import Vue from 'vue'
 import { workOrderAPI, processAPI, materialAPI, workOrderProcessAPI, workOrderMaterialAPI, workOrderTaskAPI, departmentAPI, artworkAPI, dieAPI } from '@/api/workorder'
 import { getUsersByDepartment } from '@/api/auth'
+import ProcessFlowChart from '@/components/ProcessFlowChart.vue'
+import TimelineView from '@/components/TimelineView.vue'
+import GanttChart from '@/components/GanttChart.vue'
 // 配置文件（默认值）
 const config = {
   companyName: '肇庆市高要区新西彩包装有限公司'
@@ -1543,10 +1582,16 @@ const config = {
 
 export default {
   name: 'WorkOrderDetail',
+  components: {
+    ProcessFlowChart,
+    TimelineView,
+    GanttChart
+  },
   data() {
     return {
       loading: false,
       workOrder: null,
+      workflowViewMode: 'list', // 'timeline', 'flowchart', 'list'
       processList: [],
       materialList: [],
       departmentList: [],
@@ -1777,6 +1822,25 @@ export default {
     this.loadUserList()
   },
   methods: {
+    getAllTasks() {
+      if (!this.workOrder || !this.workOrder.order_processes) {
+        return []
+      }
+      const allTasks = []
+      this.workOrder.order_processes.forEach(process => {
+        if (process.tasks && process.tasks.length > 0) {
+          allTasks.push(...process.tasks)
+        }
+      })
+      return allTasks
+    },
+    handleProcessClickFromFlowChart(process) {
+      // 滚动到对应的工序位置
+      const element = document.querySelector(`[data-process-id="${process.id}"]`)
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    },
     // 日期格式化方法（供模板中直接调用）
     formatDate(value) {
       if (!value) return '-'

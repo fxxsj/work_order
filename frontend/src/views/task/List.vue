@@ -71,6 +71,14 @@
         </el-row>
       </div>
 
+      <!-- 视图切换 -->
+      <div style="margin-top: 20px; margin-bottom: 10px; text-align: right;">
+        <el-radio-group v-model="viewMode" size="small">
+          <el-radio-button label="table">列表视图</el-radio-button>
+          <el-radio-button label="kanban">看板视图</el-radio-button>
+        </el-radio-group>
+      </div>
+
       <!-- 骨架屏 -->
       <SkeletonLoader
         v-if="loading && taskList.length === 0"
@@ -81,9 +89,16 @@
         style="margin-top: 20px;"
       />
 
+      <!-- 看板视图 -->
+      <TaskKanban
+        v-if="viewMode === 'kanban'"
+        :tasks="taskList"
+        @task-click="handleTaskClickFromKanban"
+      />
+
       <!-- 任务列表 -->
       <el-table
-        v-else
+        v-if="viewMode === 'table'"
         v-loading="loading && taskList.length > 0"
         :data="taskList"
         border
@@ -735,17 +750,20 @@ import { workOrderTaskAPI, processAPI, artworkAPI, dieAPI, departmentAPI } from 
 import { getUsersByDepartment } from '@/api/auth'
 import { debounce } from '@/utils/debounce'
 import SkeletonLoader from '@/components/SkeletonLoader.vue'
+import TaskKanban from '@/components/TaskKanban.vue'
 
 export default {
   name: 'TaskList',
   components: {
-    SkeletonLoader
+    SkeletonLoader,
+    TaskKanban
   },
   data() {
     return {
       loading: false,
       exporting: false,
       taskList: [],
+      viewMode: 'table', // 'table' or 'kanban'
       processList: [],
       filters: {
         search: '',
@@ -838,6 +856,12 @@ export default {
     this.loadData()
   },
   methods: {
+    handleTaskClickFromKanban(task) {
+      // 跳转到施工单详情页
+      if (task.work_order_id) {
+        this.$router.push(`/workorders/${task.work_order_id}`)
+      }
+    },
     async loadProcessList() {
       try {
         const response = await processAPI.getList({ is_active: true, page_size: 1000 })
