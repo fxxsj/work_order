@@ -9,13 +9,14 @@
               v-model="filters.search"
               placeholder="搜索任务内容、施工单号"
               clearable
-              @clear="handleSearch"
+              @input="handleSearchDebounced"
+              @clear="handleSearchDebounced"
             >
               <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
             </el-input>
           </el-col>
           <el-col :span="3">
-            <el-select v-model="filters.status" placeholder="任务状态" clearable @change="handleSearch">
+            <el-select v-model="filters.status" placeholder="任务状态" clearable @change="handleSearchDebounced">
               <el-option label="待开始" value="pending"></el-option>
               <el-option label="进行中" value="in_progress"></el-option>
               <el-option label="已完成" value="completed"></el-option>
@@ -23,7 +24,7 @@
             </el-select>
           </el-col>
           <el-col :span="3">
-            <el-select v-model="filters.task_type" placeholder="任务类型" clearable @change="handleSearch">
+            <el-select v-model="filters.task_type" placeholder="任务类型" clearable @change="handleSearchDebounced">
               <el-option label="制版任务" value="plate_making"></el-option>
               <el-option label="开料任务" value="cutting"></el-option>
               <el-option label="印刷任务" value="printing"></el-option>
@@ -35,7 +36,7 @@
             </el-select>
           </el-col>
           <el-col :span="3">
-            <el-select v-model="filters.assigned_department" placeholder="分派部门" clearable filterable @change="handleSearch">
+            <el-select v-model="filters.assigned_department" placeholder="分派部门" clearable filterable @change="handleSearchDebounced">
               <el-option
                 v-for="dept in departmentList"
                 :key="dept.id"
@@ -45,7 +46,7 @@
             </el-select>
           </el-col>
           <el-col :span="3">
-            <el-select v-model="filters.work_order_process" placeholder="工序" clearable filterable @change="handleSearch">
+            <el-select v-model="filters.work_order_process" placeholder="工序" clearable filterable @change="handleSearchDebounced">
               <el-option
                 v-for="process in processList"
                 :key="process.id"
@@ -70,9 +71,20 @@
         </el-row>
       </div>
 
+      <!-- 骨架屏 -->
+      <SkeletonLoader
+        v-if="loading && taskList.length === 0"
+        type="table"
+        :rows="5"
+        :columns="13"
+        :column-widths="['18%', '15%', '10%', '30%', '15%', '12%', '12%', '12%', '12%', '10%', '20%', '20%', '30%']"
+        style="margin-top: 20px;"
+      />
+
       <!-- 任务列表 -->
       <el-table
-        v-loading="loading"
+        v-else
+        v-loading="loading && taskList.length > 0"
         :data="taskList"
         border
         style="width: 100%; margin-top: 20px;"
@@ -721,9 +733,14 @@
 <script>
 import { workOrderTaskAPI, processAPI, artworkAPI, dieAPI, departmentAPI } from '@/api/workorder'
 import { getUsersByDepartment } from '@/api/auth'
+import { debounce } from '@/utils/debounce'
+import SkeletonLoader from '@/components/SkeletonLoader.vue'
 
 export default {
   name: 'TaskList',
+  components: {
+    SkeletonLoader
+  },
   data() {
     return {
       loading: false,
@@ -884,6 +901,10 @@ export default {
       this.pagination.page = 1
       this.loadData()
     },
+    handleSearchDebounced: debounce(function() {
+      this.pagination.page = 1
+      this.loadData()
+    }, 300),
     handleReset() {
       this.filters = {
         search: '',

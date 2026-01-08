@@ -9,13 +9,14 @@
               v-model="filters.search"
               placeholder="搜索施工单号、产品名称、客户"
               clearable
-              @clear="handleSearch"
+              @input="handleSearchDebounced"
+              @clear="handleSearchDebounced"
             >
               <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
             </el-input>
           </el-col>
           <el-col :span="3">
-            <el-select v-model="filters.status" placeholder="状态" clearable @change="handleSearch">
+            <el-select v-model="filters.status" placeholder="状态" clearable @change="handleSearchDebounced">
               <el-option label="待开始" value="pending"></el-option>
               <el-option label="进行中" value="in_progress"></el-option>
               <el-option label="已暂停" value="paused"></el-option>
@@ -24,7 +25,7 @@
             </el-select>
           </el-col>
           <el-col :span="3">
-            <el-select v-model="filters.priority" placeholder="优先级" clearable @change="handleSearch">
+            <el-select v-model="filters.priority" placeholder="优先级" clearable @change="handleSearchDebounced">
               <el-option label="低" value="low"></el-option>
               <el-option label="普通" value="normal"></el-option>
               <el-option label="高" value="high"></el-option>
@@ -32,14 +33,14 @@
             </el-select>
           </el-col>
           <el-col :span="3" v-if="isSalesperson">
-            <el-select v-model="filters.approval_status" placeholder="审核状态" clearable @change="handleSearch">
+            <el-select v-model="filters.approval_status" placeholder="审核状态" clearable @change="handleSearchDebounced">
               <el-option label="待审核" value="pending"></el-option>
               <el-option label="已通过" value="approved"></el-option>
               <el-option label="已拒绝" value="rejected"></el-option>
             </el-select>
           </el-col>
           <el-col :span="3">
-            <el-select v-model="filters.customer__salesperson" placeholder="业务员" clearable @change="handleSearch">
+            <el-select v-model="filters.customer__salesperson" placeholder="业务员" clearable @change="handleSearchDebounced">
               <el-option
                 v-for="salesperson in salespersons"
                 :key="salesperson.id"
@@ -66,9 +67,20 @@
         </el-row>
       </div>
 
+      <!-- 骨架屏 -->
+      <SkeletonLoader
+        v-if="loading && tableData.length === 0"
+        type="table"
+        :rows="5"
+        :columns="11"
+        :column-widths="['18%', '20%', '12%', '12%', '20%', '12%', '12%', '10%', '10%', '10%', '30%']"
+        style="margin-top: 20px;"
+      />
+
       <!-- 表格 -->
       <el-table
-        v-loading="loading"
+        v-else
+        v-loading="loading && tableData.length > 0"
         :data="tableData"
         style="width: 100%; margin-top: 20px;"
         @row-click="handleRowClick"
@@ -165,9 +177,14 @@
 <script>
 import { workOrderAPI } from '@/api/workorder'
 import { getSalespersons } from '@/api/auth'
+import { debounce } from '@/utils/debounce'
+import SkeletonLoader from '@/components/SkeletonLoader.vue'
 
 export default {
   name: 'WorkOrderList',
+  components: {
+    SkeletonLoader
+  },
   data() {
     return {
       loading: false,
@@ -301,6 +318,10 @@ export default {
       this.currentPage = 1
       this.loadData()
     },
+    handleSearchDebounced: debounce(function() {
+      this.currentPage = 1
+      this.loadData()
+    }, 300),
     handleReset() {
       // 重置所有筛选条件
       this.filters = {

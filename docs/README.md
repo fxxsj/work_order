@@ -123,6 +123,11 @@
 
 ### 最近更新（2026-01-08）
 
+- ✅ 完成前端性能优化：
+  - 代码分割配置（vendor、elementUI、common 分离）
+  - 防抖节流功能（搜索和筛选操作）
+  - 骨架屏组件（表格、卡片、列表三种类型）
+  - 优化加载状态显示
 - ✅ 完成第二阶段数据导出功能：
   - 施工单列表 Excel 导出（`GET /api/workorders/export/`）
   - 任务列表 Excel 导出（`GET /api/workorder-tasks/export/`）
