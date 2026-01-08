@@ -56,6 +56,15 @@
           </el-col>
           <el-col :span="10" style="text-align: right;">
             <el-button icon="el-icon-refresh-left" @click="handleReset">重置筛选</el-button>
+            <el-button 
+              type="success" 
+              icon="el-icon-download" 
+              @click="handleExport" 
+              :loading="exporting"
+              style="margin-left: 10px;"
+              v-if="canExport()">
+              导出Excel
+            </el-button>
             <el-button type="primary" icon="el-icon-refresh" @click="loadData" style="margin-left: 10px;">刷新</el-button>
           </el-col>
         </el-row>
@@ -718,6 +727,7 @@ export default {
   data() {
     return {
       loading: false,
+      exporting: false,
       taskList: [],
       processList: [],
       filters: {
@@ -1408,6 +1418,64 @@ export default {
           this.splittingTask = false
         }
       })
+    },
+    // 导出任务列表
+    async handleExport() {
+      try {
+        this.exporting = true
+        
+        // 构建导出参数（使用当前筛选条件）
+        const params = {}
+        if (this.filters.search) params.search = this.filters.search
+        if (this.filters.status) params.status = this.filters.status
+        if (this.filters.task_type) params.task_type = this.filters.task_type
+        if (this.filters.work_order_process) params.work_order_process = this.filters.work_order_process
+        if (this.filters.assigned_department) params.assigned_department = this.filters.assigned_department
+        
+        // 生成文件名
+        const now = new Date()
+        const filename = `任务列表_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}.xlsx`
+        params.filename = filename
+        
+        const response = await workOrderTaskAPI.export(params)
+        
+        // 创建下载链接
+        const blob = new Blob([response], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        })
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = filename
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+        
+        this.$message.success('导出成功')
+      } catch (error) {
+        console.error('导出失败:', error)
+        if (error.response && error.response.data) {
+          // 如果是文本错误消息
+          const reader = new FileReader()
+          reader.onload = () => {
+            this.$message.error(reader.result)
+          }
+          reader.readAsText(error.response.data)
+        } else {
+          this.$message.error('导出失败：' + (error.message || '未知错误'))
+        }
+      } finally {
+        this.exporting = false
+      }
+    },
+    // 检查是否有导出权限
+    canExport() {
+      const userInfo = this.$store.getters.currentUser
+      if (!userInfo) return false
+      if (userInfo.is_superuser) return true
+      const permissions = userInfo.permissions || []
+      return permissions.includes('workorder.view_workorder')
     }
   }
 }

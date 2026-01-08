@@ -313,6 +313,15 @@ export const workOrderAPI = {
       method: 'get',
       params
     })
+  },
+  // 导出施工单列表
+  export(params) {
+    return request({
+      url: '/workorders/export/',
+      method: 'get',
+      params,
+      responseType: 'blob'
+    })
   }
 }
 
@@ -570,6 +579,15 @@ export const workOrderTaskAPI = {
       url: '/workorder-tasks/assignment_history/',
       method: 'get',
       params
+    })
+  },
+  // 导出任务列表
+  export(params) {
+    return request({
+      url: '/workorder-tasks/export/',
+      method: 'get',
+      params,
+      responseType: 'blob'
     })
   }
 }

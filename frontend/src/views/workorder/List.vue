@@ -50,6 +50,15 @@
           </el-col>
           <el-col :span="isSalesperson ? 7 : 10" style="text-align: right;">
             <el-button icon="el-icon-refresh" circle @click="handleReset" title="重置筛选"></el-button>
+            <el-button 
+              type="success" 
+              icon="el-icon-download" 
+              @click="handleExport" 
+              :loading="exporting"
+              style="margin-left: 10px;"
+              v-if="canExport">
+              导出Excel
+            </el-button>
             <el-button type="primary" icon="el-icon-plus" @click="handleCreate" style="margin-left: 10px;">
               新建施工单
             </el-button>
@@ -162,6 +171,7 @@ export default {
   data() {
     return {
       loading: false,
+      exporting: false,
       tableData: [],
       currentPage: 1,
       pageSize: 20,
@@ -191,6 +201,10 @@ export default {
     // 检查是否有删除权限
     canDelete() {
       return this.hasPermission('workorder.delete_workorder')
+    },
+    // 检查是否有导出权限
+    canExport() {
+      return this.hasPermission('workorder.view_workorder')
     }
   },
   async created() {
@@ -379,6 +393,58 @@ export default {
         return { color: '#E6A23C', fontWeight: 'bold' } // 即将到期
       }
       return {}
+    },
+    // 导出施工单列表
+    async handleExport() {
+      try {
+        this.exporting = true
+        
+        // 构建导出参数（使用当前筛选条件）
+        const params = {}
+        if (this.filters.search) params.search = this.filters.search
+        if (this.filters.status) params.status = this.filters.status
+        if (this.filters.priority) params.priority = this.filters.priority
+        if (this.filters.approval_status) params.approval_status = this.filters.approval_status
+        if (this.filters.customer__salesperson) params.customer__salesperson = this.filters.customer__salesperson
+        if (this.filters.delivery_date__gte) params.delivery_date__gte = this.filters.delivery_date__gte
+        if (this.filters.delivery_date__lte) params.delivery_date__lte = this.filters.delivery_date__lte
+        
+        // 生成文件名
+        const now = new Date()
+        const filename = `施工单列表_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}.xlsx`
+        params.filename = filename
+        
+        const response = await workOrderAPI.export(params)
+        
+        // 创建下载链接
+        const blob = new Blob([response], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        })
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = filename
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+        
+        this.$message.success('导出成功')
+      } catch (error) {
+        console.error('导出失败:', error)
+        if (error.response && error.response.data) {
+          // 如果是文本错误消息
+          const reader = new FileReader()
+          reader.onload = () => {
+            this.$message.error(reader.result)
+          }
+          reader.readAsText(error.response.data)
+        } else {
+          this.$message.error('导出失败：' + (error.message || '未知错误'))
+        }
+      } finally {
+        this.exporting = false
+      }
     }
   }
 }
