@@ -407,6 +407,7 @@
             clearable
             style="width: 100%;"
             :loading="loadingDepartments"
+            @change="handleAssignDialogDepartmentChange"
           >
             <el-option
               v-for="dept in departmentList"
@@ -515,7 +516,7 @@
 
 <script>
 import { workOrderTaskAPI, departmentAPI } from '@/api/workorder'
-import { getSalespersons } from '@/api/auth'
+import { getUsersByDepartment } from '@/api/auth'
 
 export default {
   name: 'TaskBoard',
@@ -630,6 +631,18 @@ export default {
     },
     handleDepartmentChange() {
       this.loadData()
+    },
+    handleAssignDialogDepartmentChange() {
+      // 当分派对话框中的部门改变时，根据部门过滤操作员列表
+      const departmentId = this.assignForm.assigned_department
+      this.loadUserList(departmentId)
+      // 如果部门改变，清空已选的操作员（因为操作员可能不属于新部门）
+      if (departmentId) {
+        const currentOperator = this.userList.find(u => u.id === this.assignForm.assigned_operator)
+        if (!currentOperator) {
+          this.assignForm.assigned_operator = null
+        }
+      }
     },
     handleTaskClick(task) {
       // 跳转到施工单详情页
@@ -762,11 +775,18 @@ export default {
         await this.loadDepartmentList()
       }
     },
-    async loadUserList() {
+    async loadUserList(departmentId = null) {
       this.loadingUsers = true
       try {
-        const response = await getSalespersons()
-        this.userList = response || []
+        // 如果指定了部门，根据部门获取用户列表
+        if (departmentId) {
+          const response = await getUsersByDepartment(departmentId)
+          this.userList = response || []
+        } else {
+          // 如果没有指定部门，获取所有用户（排除超级管理员）
+          const response = await getUsersByDepartment(null)
+          this.userList = response || []
+        }
       } catch (error) {
         console.error('加载用户列表失败:', error)
         this.userList = []
@@ -784,7 +804,8 @@ export default {
       }
       // 根据工序过滤部门列表
       this.loadDepartmentListForProcess(task)
-      this.loadUserList()
+      // 如果任务已有部门，根据部门加载用户列表
+      this.loadUserList(task.assigned_department || null)
       this.assignDialogVisible = true
       this.$nextTick(() => {
         if (this.$refs.assignForm) {

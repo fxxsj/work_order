@@ -38,6 +38,14 @@
             <i class="el-icon-s-data"></i>
             <span>协作统计</span>
           </el-menu-item>
+          <el-menu-item index="/tasks/assignment-history">
+            <i class="el-icon-time"></i>
+            <span>分派历史</span>
+          </el-menu-item>
+          <el-menu-item index="/tasks/assignment-rules">
+            <i class="el-icon-setting"></i>
+            <span>分派规则配置</span>
+          </el-menu-item>
         </el-submenu>
         <el-menu-item v-if="canViewCustomer" index="/customers">
           <i class="el-icon-user"></i>

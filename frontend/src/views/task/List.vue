@@ -711,7 +711,7 @@
 
 <script>
 import { workOrderTaskAPI, processAPI, artworkAPI, dieAPI, departmentAPI } from '@/api/workorder'
-import { getSalespersons } from '@/api/auth'
+import { getUsersByDepartment } from '@/api/auth'
 
 export default {
   name: 'TaskList',
@@ -1222,18 +1222,18 @@ export default {
         this.loadDepartmentList()
       }
     },
-    async loadUserList() {
+    async loadUserList(departmentId = null) {
       this.loadingUsers = true
       try {
-        // 使用业务员列表API（如果后端提供了完整的用户列表API，可以替换）
-        const response = await getSalespersons()
-        this.userList = response || []
-        // 如果后端有完整的用户列表API，可以这样调用：
-        // const response = await userAPI.getList({ page_size: 1000 })
-        // this.userList = response.results || []
-        // 如果后端支持按部门筛选，可以传递参数：
-        // const params = { page_size: 1000 }
-        // if (departmentId) params.department = departmentId
+        // 如果指定了部门，根据部门获取用户列表
+        if (departmentId) {
+          const response = await getUsersByDepartment(departmentId)
+          this.userList = response || []
+        } else {
+          // 如果没有指定部门，获取所有用户（排除超级管理员）
+          const response = await getUsersByDepartment(null)
+          this.userList = response || []
+        }
       } catch (error) {
         console.error('加载用户列表失败:', error)
         this.userList = []
@@ -1251,7 +1251,8 @@ export default {
       }
       // 根据工序过滤部门列表
       this.loadDepartmentListForProcess(task)
-      this.loadUserList()
+      // 如果任务已有部门，根据部门加载用户列表
+      this.loadUserList(task.assigned_department || null)
       this.assignDialogVisible = true
       this.$nextTick(() => {
         if (this.$refs.assignForm) {
@@ -1302,9 +1303,17 @@ export default {
       })
     },
     handleDepartmentChange() {
-      // 当部门改变时，可以过滤操作员列表
-      // 如果后端API支持按部门筛选操作员，可以在这里实现
-      // 目前先加载所有用户，不进行筛选
+      // 当部门改变时，根据部门过滤操作员列表
+      const departmentId = this.assignForm.assigned_department
+      this.loadUserList(departmentId)
+      // 如果部门改变，清空已选的操作员（因为操作员可能不属于新部门）
+      if (departmentId) {
+        // 检查当前选中的操作员是否在新部门的用户列表中
+        const currentOperator = this.userList.find(u => u.id === this.assignForm.assigned_operator)
+        if (!currentOperator) {
+          this.assignForm.assigned_operator = null
+        }
+      }
     },
     showSplitDialog(task) {
       this.currentSplitTask = { ...task }

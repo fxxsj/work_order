@@ -42,3 +42,16 @@ export function getSalespersons() {
   })
 }
 
+// 根据部门获取用户列表
+export function getUsersByDepartment(departmentId) {
+  const params = {}
+  if (departmentId) {
+    params.department_id = departmentId
+  }
+  return request({
+    url: '/auth/users/',
+    method: 'get',
+    params
+  })
+}
+

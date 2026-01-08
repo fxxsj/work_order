@@ -126,6 +126,18 @@ const routes = [
         name: 'TaskStats',
         component: () => import('@/views/task/Stats.vue'),
         meta: { title: '协作统计', requiresAuth: true }
+      },
+      {
+        path: 'tasks/assignment-history',
+        name: 'AssignmentHistory',
+        component: () => import('@/views/task/AssignmentHistory.vue'),
+        meta: { title: '分派历史', requiresAuth: true }
+      },
+      {
+        path: 'tasks/assignment-rules',
+        name: 'AssignmentRule',
+        component: () => import('@/views/task/AssignmentRule.vue'),
+        meta: { title: '分派规则配置', requiresAuth: true }
       }
     ]
   }

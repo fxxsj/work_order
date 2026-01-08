@@ -563,6 +563,14 @@ export const workOrderTaskAPI = {
       method: 'get',
       params
     })
+  },
+  // 分派历史查询
+  getAssignmentHistory(params) {
+    return request({
+      url: '/workorder-tasks/assignment_history/',
+      method: 'get',
+      params
+    })
   }
 }
 
@@ -887,6 +895,43 @@ export const embossingPlateAPI = {
 }
 
 // 压凸版产品管理
+// 任务分派规则管理
+export const taskAssignmentRuleAPI = {
+  getList(params) {
+    return request({
+      url: '/task-assignment-rules/',
+      method: 'get',
+      params
+    })
+  },
+  getDetail(id) {
+    return request({
+      url: `/task-assignment-rules/${id}/`,
+      method: 'get'
+    })
+  },
+  create(data) {
+    return request({
+      url: '/task-assignment-rules/',
+      method: 'post',
+      data
+    })
+  },
+  update(id, data) {
+    return request({
+      url: `/task-assignment-rules/${id}/`,
+      method: 'put',
+      data
+    })
+  },
+  delete(id) {
+    return request({
+      url: `/task-assignment-rules/${id}/`,
+      method: 'delete'
+    })
+  }
+}
+
 export const embossingPlateProductAPI = {
   getList(params) {
     return request({

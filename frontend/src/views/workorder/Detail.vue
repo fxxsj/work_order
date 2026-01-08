@@ -1286,6 +1286,7 @@
             filterable
             clearable
             style="width: 100%;"
+            @change="handleReassignProcessDepartmentChange"
           >
             <el-option
               v-for="dept in departmentList"
@@ -1366,6 +1367,7 @@
             filterable
             clearable
             style="width: 100%;"
+            @change="handleTaskAssignDepartmentChange"
           >
             <el-option
               v-for="dept in departmentList"
@@ -1533,7 +1535,7 @@
 <script>
 import Vue from 'vue'
 import { workOrderAPI, processAPI, materialAPI, workOrderProcessAPI, workOrderMaterialAPI, workOrderTaskAPI, departmentAPI, artworkAPI, dieAPI } from '@/api/workorder'
-import { getSalespersons } from '@/api/auth'
+import { getUsersByDepartment } from '@/api/auth'
 // 配置文件（默认值）
 const config = {
   companyName: '肇庆市高要区新西彩包装有限公司'
@@ -1923,11 +1925,17 @@ export default {
         this.loadDepartmentList()
       }
     },
-    async loadUserList() {
+    async loadUserList(departmentId = null) {
       try {
-        // 使用业务员列表API（如果后端提供了完整的用户列表API，可以替换）
-        const response = await getSalespersons()
-        this.userList = response || []
+        // 如果指定了部门，根据部门获取用户列表
+        if (departmentId) {
+          const response = await getUsersByDepartment(departmentId)
+          this.userList = response || []
+        } else {
+          // 如果没有指定部门，获取所有用户（排除超级管理员）
+          const response = await getUsersByDepartment(null)
+          this.userList = response || []
+        }
       } catch (error) {
         console.error('加载用户列表失败:', error)
         this.userList = []
@@ -1942,7 +1950,8 @@ export default {
         notes: '',
         update_process_department: false
       }
-      this.loadUserList()
+      // 如果工序已有部门，根据部门加载用户列表
+      this.loadUserList(process.department || null)
       this.reassignProcessDialogVisible = true
       this.$nextTick(() => {
         if (this.$refs.reassignProcessForm) {
@@ -1995,7 +2004,8 @@ export default {
       }
       // 根据工序过滤部门列表
       this.loadDepartmentListForProcess(task)
-      this.loadUserList()
+      // 如果任务已有部门，根据部门加载用户列表
+      this.loadUserList(task.assigned_department || null)
       this.taskAssignDialogVisible = true
       this.$nextTick(() => {
         if (this.$refs.taskAssignForm) {
@@ -2056,6 +2066,30 @@ export default {
       // 根据工序过滤部门列表
       this.loadDepartmentListForProcess(task)
       this.loadUserList()
+    },
+    handleReassignProcessDepartmentChange() {
+      // 当批量调整分派的部门改变时，根据部门过滤操作员列表
+      const departmentId = this.reassignProcessForm.assigned_department
+      this.loadUserList(departmentId)
+      // 如果部门改变，清空已选的操作员（因为操作员可能不属于新部门）
+      if (departmentId) {
+        const currentOperator = this.userList.find(u => u.id === this.reassignProcessForm.assigned_operator)
+        if (!currentOperator) {
+          this.reassignProcessForm.assigned_operator = null
+        }
+      }
+    },
+    handleTaskAssignDepartmentChange() {
+      // 当任务分派的部门改变时，根据部门过滤操作员列表
+      const departmentId = this.taskAssignForm.assigned_department
+      this.loadUserList(departmentId)
+      // 如果部门改变，清空已选的操作员（因为操作员可能不属于新部门）
+      if (departmentId) {
+        const currentOperator = this.userList.find(u => u.id === this.taskAssignForm.assigned_operator)
+        if (!currentOperator) {
+          this.taskAssignForm.assigned_operator = null
+        }
+      }
     },
     addSplitItem() {
       this.splitForm.splits.push({
