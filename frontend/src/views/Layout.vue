@@ -34,6 +34,10 @@
             <i class="el-icon-s-grid"></i>
             <span>部门任务看板</span>
           </el-menu-item>
+          <el-menu-item index="/tasks/stats">
+            <i class="el-icon-s-data"></i>
+            <span>协作统计</span>
+          </el-menu-item>
         </el-submenu>
         <el-menu-item v-if="canViewCustomer" index="/customers">
           <i class="el-icon-user"></i>

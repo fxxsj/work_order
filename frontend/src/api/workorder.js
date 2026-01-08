@@ -555,6 +555,14 @@ export const workOrderTaskAPI = {
       method: 'post',
       data
     })
+  },
+  // 协作统计
+  getCollaborationStats(params) {
+    return request({
+      url: '/workorder-tasks/collaboration_stats/',
+      method: 'get',
+      params
+    })
   }
 }
 

@@ -120,6 +120,12 @@ const routes = [
         name: 'TaskBoard',
         component: () => import('@/views/task/Board.vue'),
         meta: { title: '部门任务看板', requiresAuth: true }
+      },
+      {
+        path: 'tasks/stats',
+        name: 'TaskStats',
+        component: () => import('@/views/task/Stats.vue'),
+        meta: { title: '协作统计', requiresAuth: true }
       }
     ]
   }
