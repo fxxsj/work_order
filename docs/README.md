@@ -21,8 +21,10 @@
 
 - **[SYSTEM_USAGE_ANALYSIS.md](SYSTEM_USAGE_ANALYSIS.md)** ⭐ - 系统使用流程分析与优化建议（最新）
 - **[PHASE1_IMPLEMENTATION_SUMMARY.md](PHASE1_IMPLEMENTATION_SUMMARY.md)** ⭐ - 第一阶段核心功能完善实施总结（最新）
+- **[DASHBOARD_OPTIMIZATION_SUMMARY.md](DASHBOARD_OPTIMIZATION_SUMMARY.md)** ⭐ - 工作台页面优化完整文档（合并分析和实施总结）
+- **[URGENT_ITEMS_LOGIC_ANALYSIS.md](URGENT_ITEMS_LOGIC_ANALYSIS.md)** - 紧急事项提醒功能说明
 - **[CURRENT_WORKORDER_LOGIC_ANALYSIS.md](CURRENT_WORKORDER_LOGIC_ANALYSIS.md)** ⭐ - 当前施工单逻辑分析
-- **[WORKORDER_LOGIC_ANALYSIS.md](WORKORDER_LOGIC_ANALYSIS.md)** - 施工单逻辑分析（历史）
+- **[WORKORDER_LOGIC_ANALYSIS.md](WORKORDER_LOGIC_ANALYSIS.md)** - 施工单逻辑分析与优化建议
 - **[WORKORDER_APPROVAL_ANALYSIS.md](WORKORDER_APPROVAL_ANALYSIS.md)** - 施工单审核流程分析
 - **[APPROVED_ORDER_EDIT_ANALYSIS.md](APPROVED_ORDER_EDIT_ANALYSIS.md)** - 已审核订单编辑权限分析
 
@@ -110,6 +112,7 @@
 1. [CURRENT_WORKORDER_LOGIC_ANALYSIS.md](CURRENT_WORKORDER_LOGIC_ANALYSIS.md) - 施工单逻辑
 2. [PROCESS_LOGIC_COMPREHENSIVE_ANALYSIS.md](PROCESS_LOGIC_COMPREHENSIVE_ANALYSIS.md) - 工序逻辑
 3. [TASK_MANAGEMENT_CURRENT_STATUS.md](TASK_MANAGEMENT_CURRENT_STATUS.md) - 任务管理
+4. [DASHBOARD_OPTIMIZATION_SUMMARY.md](DASHBOARD_OPTIMIZATION_SUMMARY.md) - 工作台优化
 
 ### 部署指南
 1. [DEPLOYMENT.md](DEPLOYMENT.md) - 生产部署
@@ -123,6 +126,12 @@
 
 ### 最近更新（2026-01-08）
 
+#### 文档整理与更新
+- ✅ 合并工作台优化文档：将 `DASHBOARD_OPTIMIZATION_ANALYSIS.md` 合并到 `DASHBOARD_OPTIMIZATION_SUMMARY.md`
+- ✅ 更新紧急事项逻辑文档：`URGENT_ITEMS_LOGIC_ANALYSIS.md` 更新为实施后状态，记录分离显示的实现
+- ✅ 删除已合并的文档：`DASHBOARD_OPTIMIZATION_ANALYSIS.md`
+
+#### 功能实施
 - ✅ 完成前端性能优化：
   - 代码分割配置（vendor、elementUI、common 分离）
   - 防抖节流功能（搜索和筛选操作）
@@ -145,6 +154,12 @@
   - 通知模型和接口实现
   - 自动创建通知（审核、任务分派、任务取消、工序完成、施工单完成）
   - 通知查询和标记已读功能
+- ✅ 完成工作台优化：
+  - 角色差异化展示（业务员、生产主管、操作员、设计员、管理员）
+  - 任务统计卡片和状态分布
+  - 生产效率分析模块
+  - 紧急事项提醒（分离显示紧急优先级和即将到期）
+  - 通知提醒模块
 - ✅ 更新 `SYSTEM_USAGE_ANALYSIS.md`：标记批量操作功能和通知提醒机制为已完成
 
 ### 历史更新（2026-01-07）
