@@ -28,17 +28,31 @@
       </template>
     </el-alert>
 
-    <!-- 紧急事项提醒（管理员可见） -->
+    <!-- 紧急优先级提醒（管理员可见） -->
     <el-alert
-      v-if="isAdmin && urgentItemsCount > 0"
+      v-if="isAdmin && urgentPriorityCount > 0"
       type="error"
       :closable="false"
       show-icon
       style="margin-bottom: 20px;"
     >
       <template slot="title">
-        <span>有 <strong style="color: #F56C6C; font-size: 16px;">{{ urgentItemsCount }}</strong> 项紧急事项需要处理</span>
-        <el-link type="primary" :underline="false" style="margin-left: 10px;" @click="goToUrgentItems">查看详情</el-link>
+        <span>有 <strong style="color: #F56C6C; font-size: 16px;">{{ urgentPriorityCount }}</strong> 个紧急优先级的施工单需要处理</span>
+        <el-link type="primary" :underline="false" style="margin-left: 10px;" @click="goToUrgentPriority">查看详情</el-link>
+      </template>
+    </el-alert>
+
+    <!-- 即将到期提醒（管理员可见） -->
+    <el-alert
+      v-if="isAdmin && upcomingDeadlineCount > 0"
+      type="warning"
+      :closable="false"
+      show-icon
+      style="margin-bottom: 20px;"
+    >
+      <template slot="title">
+        <span>有 <strong style="color: #E6A23C; font-size: 16px;">{{ upcomingDeadlineCount }}</strong> 个即将到期的施工单（7天内）需要关注</span>
+        <el-link type="primary" :underline="false" style="margin-left: 10px;" @click="goToUpcomingDeadline">查看详情</el-link>
       </template>
     </el-alert>
 
@@ -300,30 +314,34 @@
     <!-- 待确认图稿/版型（设计员可见） -->
     <el-row v-if="isDesigner" :gutter="20" style="margin-top: 20px;">
       <!-- 待确认图稿 -->
-      <el-col :xs="24" :sm="12" :md="12">
+      <el-col :xs="24" :sm="12" :md="6">
         <el-card>
           <div slot="header" class="card-header">
             <span>待确认图稿</span>
-            <el-button type="primary" size="small" @click="$router.push('/artworks')">
-              查看全部
+            <el-button type="primary" size="mini" @click="$router.push('/artworks')">
+              全部
             </el-button>
           </div>
           <div v-if="pendingArtworks.length > 0">
-            <el-table :data="pendingArtworks" style="width: 100%" max-height="300">
-              <el-table-column prop="code" label="图稿编码" width="150"></el-table-column>
-              <el-table-column prop="name" label="图稿名称" min-width="150" show-overflow-tooltip></el-table-column>
-              <el-table-column label="操作" width="100">
-                <template>
+            <el-table :data="pendingArtworks.slice(0, 5)" style="width: 100%" max-height="200" size="mini">
+              <el-table-column prop="code" label="编码" width="120" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="name" label="名称" min-width="100" show-overflow-tooltip></el-table-column>
+              <el-table-column label="操作" width="80" fixed="right">
+                <template slot-scope="scope">
                   <el-button
                     type="text"
-                    size="small"
-                    @click="$router.push(`/artworks`)"
+                    size="mini"
+                    @click="confirmArtwork(scope.row)"
+                    :loading="confirmingItem === `artwork-${scope.row.id}`"
                   >
-                    查看
+                    确认
                   </el-button>
                 </template>
               </el-table-column>
             </el-table>
+            <div v-if="pendingArtworks.length > 5" style="text-align: center; padding: 10px; color: #909399; font-size: 12px;">
+              还有 {{ pendingArtworks.length - 5 }} 项...
+            </div>
           </div>
           <div v-else style="text-align: center; padding: 20px; color: #909399;">
             暂无待确认图稿
@@ -331,39 +349,186 @@
         </el-card>
       </el-col>
 
-      <!-- 待确认统计 -->
-      <el-col :xs="24" :sm="12" :md="12">
+      <!-- 待确认刀模 -->
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card>
+          <div slot="header" class="card-header">
+            <span>待确认刀模</span>
+            <el-button type="primary" size="mini" @click="$router.push('/dies')">
+              全部
+            </el-button>
+          </div>
+          <div v-if="pendingDies.length > 0">
+            <el-table :data="pendingDies.slice(0, 5)" style="width: 100%" max-height="200" size="mini">
+              <el-table-column prop="code" label="编码" width="120" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="name" label="名称" min-width="100" show-overflow-tooltip></el-table-column>
+              <el-table-column label="操作" width="80" fixed="right">
+                <template slot-scope="scope">
+                  <el-button
+                    type="text"
+                    size="mini"
+                    @click="confirmDie(scope.row)"
+                    :loading="confirmingItem === `die-${scope.row.id}`"
+                  >
+                    确认
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+            <div v-if="pendingDies.length > 5" style="text-align: center; padding: 10px; color: #909399; font-size: 12px;">
+              还有 {{ pendingDies.length - 5 }} 项...
+            </div>
+          </div>
+          <div v-else style="text-align: center; padding: 20px; color: #909399;">
+            暂无待确认刀模
+          </div>
+        </el-card>
+      </el-col>
+
+      <!-- 待确认烫金版 -->
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card>
+          <div slot="header" class="card-header">
+            <span>待确认烫金版</span>
+            <el-button type="primary" size="mini" @click="$router.push('/foiling-plates')">
+              全部
+            </el-button>
+          </div>
+          <div v-if="pendingFoilingPlates.length > 0">
+            <el-table :data="pendingFoilingPlates.slice(0, 5)" style="width: 100%" max-height="200" size="mini">
+              <el-table-column prop="code" label="编码" width="120" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="name" label="名称" min-width="100" show-overflow-tooltip></el-table-column>
+              <el-table-column label="操作" width="80" fixed="right">
+                <template slot-scope="scope">
+                  <el-button
+                    type="text"
+                    size="mini"
+                    @click="confirmFoilingPlate(scope.row)"
+                    :loading="confirmingItem === `foiling_plate-${scope.row.id}`"
+                  >
+                    确认
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+            <div v-if="pendingFoilingPlates.length > 5" style="text-align: center; padding: 10px; color: #909399; font-size: 12px;">
+              还有 {{ pendingFoilingPlates.length - 5 }} 项...
+            </div>
+          </div>
+          <div v-else style="text-align: center; padding: 20px; color: #909399;">
+            暂无待确认烫金版
+          </div>
+        </el-card>
+      </el-col>
+
+      <!-- 待确认压凸版 -->
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card>
+          <div slot="header" class="card-header">
+            <span>待确认压凸版</span>
+            <el-button type="primary" size="mini" @click="$router.push('/embossing-plates')">
+              全部
+            </el-button>
+          </div>
+          <div v-if="pendingEmbossingPlates.length > 0">
+            <el-table :data="pendingEmbossingPlates.slice(0, 5)" style="width: 100%" max-height="200" size="mini">
+              <el-table-column prop="code" label="编码" width="120" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="name" label="名称" min-width="100" show-overflow-tooltip></el-table-column>
+              <el-table-column label="操作" width="80" fixed="right">
+                <template slot-scope="scope">
+                  <el-button
+                    type="text"
+                    size="mini"
+                    @click="confirmEmbossingPlate(scope.row)"
+                    :loading="confirmingItem === `embossing_plate-${scope.row.id}`"
+                  >
+                    确认
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+            <div v-if="pendingEmbossingPlates.length > 5" style="text-align: center; padding: 10px; color: #909399; font-size: 12px;">
+              还有 {{ pendingEmbossingPlates.length - 5 }} 项...
+            </div>
+          </div>
+          <div v-else style="text-align: center; padding: 20px; color: #909399;">
+            暂无待确认压凸版
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <!-- 统一版型确认统计（设计员可见） -->
+    <el-row v-if="isDesigner" :gutter="20" style="margin-top: 20px;">
+      <el-col :xs="24" :sm="24" :md="24">
         <el-card>
           <div slot="header">
-            <span>确认统计</span>
+            <span>版型确认统计</span>
           </div>
           <div style="padding: 20px;">
-            <div style="margin-bottom: 20px;">
+            <el-row :gutter="20">
+              <!-- 图稿统计 -->
+              <el-col :xs="12" :sm="6" :md="6">
+                <div style="text-align: center;">
+                  <div style="font-size: 24px; font-weight: bold; color: #409EFF; margin-bottom: 5px;">
+                    {{ totalPendingPlatesCount.artwork }}
+                  </div>
+                  <div style="font-size: 12px; color: #909399;">待确认图稿</div>
+                  <div style="font-size: 12px; color: #909399; margin-top: 5px;">
+                    总计: {{ totalPlatesCount.artwork }}
+                  </div>
+                </div>
+              </el-col>
+              <!-- 刀模统计 -->
+              <el-col :xs="12" :sm="6" :md="6">
+                <div style="text-align: center;">
+                  <div style="font-size: 24px; font-weight: bold; color: #409EFF; margin-bottom: 5px;">
+                    {{ totalPendingPlatesCount.die }}
+                  </div>
+                  <div style="font-size: 12px; color: #909399;">待确认刀模</div>
+                  <div style="font-size: 12px; color: #909399; margin-top: 5px;">
+                    总计: {{ totalPlatesCount.die }}
+                  </div>
+                </div>
+              </el-col>
+              <!-- 烫金版统计 -->
+              <el-col :xs="12" :sm="6" :md="6">
+                <div style="text-align: center;">
+                  <div style="font-size: 24px; font-weight: bold; color: #409EFF; margin-bottom: 5px;">
+                    {{ totalPendingPlatesCount.foiling_plate }}
+                  </div>
+                  <div style="font-size: 12px; color: #909399;">待确认烫金版</div>
+                  <div style="font-size: 12px; color: #909399; margin-top: 5px;">
+                    总计: {{ totalPlatesCount.foiling_plate }}
+                  </div>
+                </div>
+              </el-col>
+              <!-- 压凸版统计 -->
+              <el-col :xs="12" :sm="6" :md="6">
+                <div style="text-align: center;">
+                  <div style="font-size: 24px; font-weight: bold; color: #409EFF; margin-bottom: 5px;">
+                    {{ totalPendingPlatesCount.embossing_plate }}
+                  </div>
+                  <div style="font-size: 12px; color: #909399;">待确认压凸版</div>
+                  <div style="font-size: 12px; color: #909399; margin-top: 5px;">
+                    总计: {{ totalPlatesCount.embossing_plate }}
+                  </div>
+                </div>
+              </el-col>
+            </el-row>
+            <el-divider></el-divider>
+            <!-- 总体确认率 -->
+            <div style="margin-top: 20px;">
               <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                <span>待确认图稿</span>
-                <span style="font-weight: bold; color: #E6A23C;">
-                  {{ pendingArtworksCount }}
-                </span>
-              </div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                <span>已确认图稿</span>
-                <span style="font-weight: bold; color: #67C23A;">
-                  {{ confirmedArtworksCount }}
-                </span>
-              </div>
-              <div style="display: flex; justify-content: space-between;">
-                <span>总计</span>
+                <span>总体确认率</span>
                 <span style="font-weight: bold; color: #409EFF;">
-                  {{ totalArtworksCount }}
+                  {{ overallConfirmationRate }}%
                 </span>
               </div>
-            </div>
-            <el-progress
-              :percentage="artworkConfirmationRate"
-              :color="getProgressColor(artworkConfirmationRate)"
-            ></el-progress>
-            <div style="text-align: center; margin-top: 10px; color: #909399; font-size: 12px;">
-              确认率：{{ artworkConfirmationRate }}%
+              <el-progress
+                :percentage="overallConfirmationRate"
+                :color="getProgressColor(overallConfirmationRate)"
+              ></el-progress>
             </div>
           </div>
         </el-card>
@@ -555,7 +720,7 @@
 </template>
 
 <script>
-import { workOrderAPI, workOrderTaskAPI, notificationAPI, artworkAPI } from '@/api/workorder'
+import { workOrderAPI, workOrderTaskAPI, notificationAPI, artworkAPI, dieAPI, foilingPlateAPI, embossingPlateAPI } from '@/api/workorder'
 import { hasRole, hasAnyRole } from '@/utils/userRole'
 
 const STATUS_MAP = {
@@ -590,6 +755,10 @@ export default {
       recentNotifications: [], // 最近的通知
       unreadNotificationCount: 0, // 未读通知数量
       pendingArtworks: [], // 待确认图稿（设计员）
+      pendingDies: [], // 待确认刀模（设计员）
+      pendingFoilingPlates: [], // 待确认烫金版（设计员）
+      pendingEmbossingPlates: [], // 待确认压凸版（设计员）
+      confirmingItem: null, // 正在确认的项目（用于显示loading状态）
       loading: false
     }
   },
@@ -623,15 +792,18 @@ export default {
     departmentStatistics() {
       return this.taskStatistics.department_statistics || []
     },
-    // 计算紧急事项数量
-    urgentItemsCount() {
-      let count = 0
-      // 紧急优先级的施工单
+    // 计算紧急优先级施工单数量
+    urgentPriorityCount() {
       const urgentWorkOrders = this.statistics.priority_statistics?.find(p => p.priority === 'urgent')
-      if (urgentWorkOrders) count += urgentWorkOrders.count
-      // 即将到期的施工单
-      if (this.statistics.upcoming_deadline_count) count += this.statistics.upcoming_deadline_count
-      return count
+      return urgentWorkOrders?.count || 0
+    },
+    // 计算即将到期施工单数量
+    upcomingDeadlineCount() {
+      return this.statistics.upcoming_deadline_count || 0
+    },
+    // 计算紧急事项总数（用于其他统计，保留兼容性）
+    urgentItemsCount() {
+      return this.urgentPriorityCount + this.upcomingDeadlineCount
     },
     // 待确认图稿数量
     pendingArtworksCount() {
@@ -650,6 +822,38 @@ export default {
     artworkConfirmationRate() {
       if (this.totalArtworksCount === 0) return 0
       return Math.round((this.confirmedArtworksCount / this.totalArtworksCount) * 100)
+    },
+    // 待确认版型总数统计
+    totalPendingPlatesCount() {
+      return {
+        artwork: this.pendingArtworks.length,
+        die: this.pendingDies.length,
+        foiling_plate: this.pendingFoilingPlates.length,
+        embossing_plate: this.pendingEmbossingPlates.length
+      }
+    },
+    // 版型总数统计（暂时只统计待确认的数量，后续可以从API获取总数）
+    totalPlatesCount() {
+      return {
+        artwork: this.pendingArtworks.length + (this.totalArtworksCount - this.pendingArtworks.length),
+        die: this.pendingDies.length,
+        foiling_plate: this.pendingFoilingPlates.length,
+        embossing_plate: this.pendingEmbossingPlates.length
+      }
+    },
+    // 总体确认率
+    overallConfirmationRate() {
+      const totalPending = this.totalPendingPlatesCount.artwork + 
+                          this.totalPendingPlatesCount.die + 
+                          this.totalPendingPlatesCount.foiling_plate + 
+                          this.totalPendingPlatesCount.embossing_plate
+      const total = this.totalPlatesCount.artwork + 
+                   this.totalPlatesCount.die + 
+                   this.totalPlatesCount.foiling_plate + 
+                   this.totalPlatesCount.embossing_plate
+      if (total === 0) return 0
+      const confirmed = total - totalPending
+      return Math.round((confirmed / total) * 100)
     },
     // 获取任务统计数据
     taskStatistics() {
@@ -742,25 +946,9 @@ export default {
           console.error('加载通知失败:', error)
         }
 
-        // 如果是设计员，加载待确认图稿
+        // 如果是设计员，加载待确认图稿和版型
         if (this.isDesigner) {
-          try {
-            // 由于后端API不支持confirmed字段过滤，获取所有图稿然后前端过滤
-            const artworkResponse = await artworkAPI.getList({
-              page_size: 50,
-              ordering: '-created_at'
-            })
-            // 前端过滤未确认的图稿
-            this.pendingArtworks = (artworkResponse.results || [])
-              .filter(item => !item.confirmed)
-              .slice(0, 10)
-              .map(item => ({
-                ...item,
-                code: item.code || (item.base_code ? (item.base_code + (item.version > 1 ? '-v' + item.version : '')) : '-')
-              }))
-          } catch (error) {
-            console.error('加载待确认图稿失败:', error)
-          }
+          await this.loadPendingPlates()
         }
       } catch (error) {
         console.error('加载数据失败:', error)
@@ -857,14 +1045,144 @@ export default {
     goToNotifications() {
       this.$router.push('/notifications')
     },
-    // 跳转到紧急事项
-    goToUrgentItems() {
+    // 跳转到紧急优先级施工单
+    goToUrgentPriority() {
       this.$router.push({
         path: '/workorders',
         query: {
           priority: 'urgent'
         }
       })
+    },
+    // 加载待确认版型（设计员）
+    async loadPendingPlates() {
+      try {
+        // 加载待确认图稿
+        const artworkResponse = await artworkAPI.getList({
+          page_size: 50,
+          ordering: '-created_at'
+        })
+        this.pendingArtworks = (artworkResponse.results || [])
+          .filter(item => !item.confirmed)
+          .slice(0, 10)
+          .map(item => ({
+            ...item,
+            code: item.code || (item.base_code ? (item.base_code + (item.version > 1 ? '-v' + item.version : '')) : '-')
+          }))
+      } catch (error) {
+        console.error('加载待确认图稿失败:', error)
+      }
+
+      try {
+        // 加载待确认刀模
+        const dieResponse = await dieAPI.getList({
+          page_size: 50,
+          ordering: '-created_at'
+        })
+        this.pendingDies = (dieResponse.results || [])
+          .filter(item => !item.confirmed)
+          .slice(0, 10)
+      } catch (error) {
+        console.error('加载待确认刀模失败:', error)
+      }
+
+      try {
+        // 加载待确认烫金版
+        const foilingPlateResponse = await foilingPlateAPI.getList({
+          page_size: 50,
+          ordering: '-created_at'
+        })
+        this.pendingFoilingPlates = (foilingPlateResponse.results || [])
+          .filter(item => !item.confirmed)
+          .slice(0, 10)
+      } catch (error) {
+        console.error('加载待确认烫金版失败:', error)
+      }
+
+      try {
+        // 加载待确认压凸版
+        const embossingPlateResponse = await embossingPlateAPI.getList({
+          page_size: 50,
+          ordering: '-created_at'
+        })
+        this.pendingEmbossingPlates = (embossingPlateResponse.results || [])
+          .filter(item => !item.confirmed)
+          .slice(0, 10)
+      } catch (error) {
+        console.error('加载待确认压凸版失败:', error)
+      }
+    },
+    // 确认图稿
+    async confirmArtwork(artwork) {
+      const itemKey = `artwork-${artwork.id}`
+      this.confirmingItem = itemKey
+      try {
+        await artworkAPI.confirm(artwork.id)
+        this.$message.success('图稿确认成功')
+        // 从待确认列表中移除
+        this.pendingArtworks = this.pendingArtworks.filter(item => item.id !== artwork.id)
+        // 重新加载待确认版型数据（可能会有新的待确认项）
+        await this.loadPendingPlates()
+      } catch (error) {
+        console.error('确认图稿失败:', error)
+        this.$message.error(error.response?.data?.error || '确认图稿失败')
+      } finally {
+        this.confirmingItem = null
+      }
+    },
+    // 确认刀模
+    async confirmDie(die) {
+      const itemKey = `die-${die.id}`
+      this.confirmingItem = itemKey
+      try {
+        await dieAPI.confirm(die.id)
+        this.$message.success('刀模确认成功')
+        // 从待确认列表中移除
+        this.pendingDies = this.pendingDies.filter(item => item.id !== die.id)
+        // 重新加载待确认版型数据
+        await this.loadPendingPlates()
+      } catch (error) {
+        console.error('确认刀模失败:', error)
+        this.$message.error(error.response?.data?.error || '确认刀模失败')
+      } finally {
+        this.confirmingItem = null
+      }
+    },
+    // 确认烫金版
+    async confirmFoilingPlate(foilingPlate) {
+      const itemKey = `foiling_plate-${foilingPlate.id}`
+      this.confirmingItem = itemKey
+      try {
+        await foilingPlateAPI.confirm(foilingPlate.id)
+        this.$message.success('烫金版确认成功')
+        // 从待确认列表中移除
+        this.pendingFoilingPlates = this.pendingFoilingPlates.filter(item => item.id !== foilingPlate.id)
+        // 重新加载待确认版型数据
+        await this.loadPendingPlates()
+      } catch (error) {
+        console.error('确认烫金版失败:', error)
+        this.$message.error(error.response?.data?.error || '确认烫金版失败')
+      } finally {
+        this.confirmingItem = null
+      }
+    },
+    // 确认压凸版
+    async confirmEmbossingPlate(embossingPlate) {
+      const itemKey = `embossing_plate-${embossingPlate.id}`
+      this.confirmingItem = itemKey
+      try {
+        await embossingPlateAPI.confirm(embossingPlate.id)
+        this.$message.success('压凸版确认成功')
+        // 从待确认列表中移除
+        this.pendingEmbossingPlates = this.pendingEmbossingPlates.filter(item => item.id !== embossingPlate.id)
+        // 重新加载待确认版型数据
+        await this.loadPendingPlates()
+      } catch (error) {
+        console.error('确认压凸版失败:', error)
+        this.$message.error(error.response?.data?.error || '确认压凸版失败')
+      } finally {
+        this.confirmingItem = null
+      }
     }
   }
 }

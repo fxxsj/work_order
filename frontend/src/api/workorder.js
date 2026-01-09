@@ -794,6 +794,13 @@ export const dieAPI = {
       url: `/dies/${id}/`,
       method: 'delete'
     })
+  },
+  // 确认刀模
+  confirm(id) {
+    return request({
+      url: `/dies/${id}/confirm/`,
+      method: 'post'
+    })
   }
 }
 
@@ -868,6 +875,13 @@ export const foilingPlateAPI = {
       url: `/foiling-plates/${id}/`,
       method: 'delete'
     })
+  },
+  // 确认烫金版
+  confirm(id) {
+    return request({
+      url: `/foiling-plates/${id}/confirm/`,
+      method: 'post'
+    })
   }
 }
 
@@ -941,6 +955,13 @@ export const embossingPlateAPI = {
     return request({
       url: `/embossing-plates/${id}/`,
       method: 'delete'
+    })
+  },
+  // 确认压凸版
+  confirm(id) {
+    return request({
+      url: `/embossing-plates/${id}/confirm/`,
+      method: 'post'
     })
   }
 }
