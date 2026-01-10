@@ -67,10 +67,10 @@
           <i class="el-icon-goods"></i>
           <span>物料管理</span>
         </el-menu-item>
-        <el-submenu v-if="canViewSupplier || canViewPurchaseOrder" index="/purchase">
+        <el-submenu v-if="canViewSupplier || canViewPurchaseOrder || canViewSalesOrder" index="/purchase">
           <template slot="title">
             <i class="el-icon-shopping-cart-2"></i>
-            <span>采购管理</span>
+            <span>采购销售管理</span>
           </template>
           <el-menu-item v-if="canViewSupplier" index="/suppliers">
             <i class="el-icon-s-custom"></i>
@@ -79,6 +79,10 @@
           <el-menu-item v-if="canViewPurchaseOrder" index="/purchase-orders">
             <i class="el-icon-document"></i>
             <span>采购单管理</span>
+          </el-menu-item>
+          <el-menu-item v-if="canViewSalesOrder" index="/sales-orders">
+            <i class="el-icon-sold-out"></i>
+            <span>销售订单管理</span>
           </el-menu-item>
         </el-submenu>
         <el-submenu v-if="canViewArtwork || canViewDie || canViewFoilingPlate || canViewEmbossingPlate" index="/plate-making">
@@ -166,7 +170,7 @@ export default {
       if (path.startsWith('/tasks')) {
         return '/tasks'
       }
-      if (path.startsWith('/suppliers') || path.startsWith('/purchase-orders')) {
+      if (path.startsWith('/suppliers') || path.startsWith('/purchase-orders') || path.startsWith('/sales-orders')) {
         return '/purchase'
       }
       return path
@@ -221,6 +225,10 @@ export default {
     // 检查是否有查看采购单的权限
     canViewPurchaseOrder() {
       return this.hasPermission('workorder.view_purchaseorder')
+    },
+    // 检查是否有查看销售订单的权限
+    canViewSalesOrder() {
+      return this.hasPermission('workorder.view_salesorder')
     }
   },
   methods: {

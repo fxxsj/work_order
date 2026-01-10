@@ -116,6 +116,30 @@ const routes = [
         meta: { title: '采购单管理', requiresAuth: true }
       },
       {
+        path: 'sales-orders',
+        name: 'SalesOrderList',
+        component: () => import('@/views/sales/List.vue'),
+        meta: { title: '销售订单管理', requiresAuth: true }
+      },
+      {
+        path: 'sales-orders/create',
+        name: 'SalesOrderCreate',
+        component: () => import('@/views/sales/Form.vue'),
+        meta: { title: '新建销售订单', requiresAuth: true }
+      },
+      {
+        path: 'sales-orders/:id',
+        name: 'SalesOrderDetail',
+        component: () => import('@/views/sales/Detail.vue'),
+        meta: { title: '销售订单详情', requiresAuth: true }
+      },
+      {
+        path: 'sales-orders/:id/edit',
+        name: 'SalesOrderEdit',
+        component: () => import('@/views/sales/Form.vue'),
+        meta: { title: '编辑销售订单', requiresAuth: true }
+      },
+      {
         path: 'product-groups',
         name: 'ProductGroupList',
         component: () => import('@/views/productGroup/List.vue'),

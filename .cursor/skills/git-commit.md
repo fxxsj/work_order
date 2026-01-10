@@ -1,5 +1,5 @@
 ---
-name: git-commit-skill
+name: git-commit
 description: 帮助用户生成符合项目规范的 git 提交消息，分析代码变更并执行提交与推送操作。
 ---
 
