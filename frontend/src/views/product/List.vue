@@ -34,6 +34,8 @@
             ¥{{ scope.row.unit_price }}
           </template>
         </el-table-column>
+        <el-table-column prop="stock_quantity" label="库存数量" width="100" align="right"></el-table-column>
+        <el-table-column prop="min_stock_quantity" label="最小库存" width="100" align="right"></el-table-column>
         <el-table-column label="状态" width="100">
           <template slot-scope="scope">
             <el-tag :type="scope.row.is_active ? 'success' : 'info'">
@@ -104,6 +106,22 @@
             v-model="form.unit_price"
             :min="0"
             :precision="2"
+            style="width: 100%;"
+          ></el-input-number>
+        </el-form-item>
+        <el-form-item label="库存数量" prop="stock_quantity">
+          <el-input-number
+            v-model="form.stock_quantity"
+            :min="0"
+            :precision="0"
+            style="width: 100%;"
+          ></el-input-number>
+        </el-form-item>
+        <el-form-item label="最小库存" prop="min_stock_quantity">
+          <el-input-number
+            v-model="form.min_stock_quantity"
+            :min="0"
+            :precision="0"
             style="width: 100%;"
           ></el-input-number>
         </el-form-item>
@@ -241,6 +259,8 @@ export default {
         specification: '',
         unit: '件',
         unit_price: 0,
+        stock_quantity: 0,
+        min_stock_quantity: 0,
         description: '',
         is_active: true,
         default_processes: []
@@ -392,6 +412,8 @@ export default {
             specification: detail.specification || '',
             unit: detail.unit,
             unit_price: parseFloat(detail.unit_price),
+            stock_quantity: detail.stock_quantity || 0,
+            min_stock_quantity: detail.min_stock_quantity || 0,
             description: detail.description || '',
             is_active: detail.is_active,
             default_processes: detail.default_processes || []
@@ -423,6 +445,8 @@ export default {
           specification: '',
           unit: '件',
           unit_price: 0,
+          stock_quantity: 0,
+          min_stock_quantity: 0,
           description: '',
           is_active: true,
           default_processes: []
