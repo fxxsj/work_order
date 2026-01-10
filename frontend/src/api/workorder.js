@@ -298,6 +298,14 @@ export const workOrderAPI = {
       method: 'post'
     })
   },
+  // 请求重新审核（审核通过后发现错误需要修改）
+  requestReapproval(id, data) {
+    return request({
+      url: `/workorders/${id}/request_reapproval/`,
+      method: 'post',
+      data
+    })
+  },
   // 更新状态
   updateStatus(id, status) {
     return request({

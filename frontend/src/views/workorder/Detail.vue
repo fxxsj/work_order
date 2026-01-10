@@ -139,6 +139,43 @@
         </el-form-item>
       </el-card>
 
+      <!-- 请求重新审核操作（审核通过后） -->
+      <el-card v-if="canRequestReapproval && workOrder.approval_status === 'approved'" style="margin-top: 20px;">
+        <div slot="header" class="card-header">
+          <span>请求重新审核</span>
+        </div>
+        <el-alert
+          type="info"
+          :closable="false"
+          style="margin-bottom: 15px;"
+        >
+          <div slot="title">
+            <p>该施工单已审核通过。如果发现需要修改核心字段（产品、工序、版等），可以请求重新审核。</p>
+            <p style="margin-top: 5px; color: #E6A23C;">
+              <strong>注意：</strong>请求重新审核后，施工单状态将重置为"待审核"，需要重新审核后才能开始生产。
+            </p>
+          </div>
+        </el-alert>
+        <el-form :model="reapprovalForm" label-width="120px" ref="reapprovalForm">
+          <el-form-item label="请求原因" prop="reason">
+            <el-input
+              v-model="reapprovalForm.reason"
+              type="textarea"
+              :rows="3"
+              placeholder="请填写请求重新审核的原因（可选，但建议填写）"
+            ></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="warning" @click="handleRequestReapproval" :loading="requestingReapproval">
+              <i class="el-icon-refresh-left"></i> 请求重新审核
+            </el-button>
+            <span style="margin-left: 10px; color: #909399; font-size: 12px;">
+              提示：请求重新审核后，原审核人会收到通知
+            </span>
+          </el-form-item>
+        </el-form>
+      </el-card>
+
       <!-- 审核历史记录 -->
       <el-card v-if="workOrder.approval_logs && workOrder.approval_logs.length > 0" style="margin-top: 20px;">
         <div slot="header" class="card-header">
@@ -1647,9 +1684,13 @@ export default {
       },
       approving: false,
       resubmitting: false,
+      requestingReapproval: false,
       approvalForm: {
         comment: '',
         rejection_reason: ''
+      },
+      reapprovalForm: {
+        reason: ''
       },
       approvalRules: {
         rejection_reason: [
@@ -1748,6 +1789,18 @@ export default {
     },
     // 检查是否可以重新提交审核（制表人、创建人或有编辑权限的用户）
     canResubmit() {
+      const userInfo = this.$store.getters.currentUser
+      if (!userInfo || !this.workOrder) return false
+      // 检查是否是制表人或创建人
+      if (this.workOrder.manager === userInfo.id || this.workOrder.created_by === userInfo.id) {
+        return true
+      }
+      // 检查是否有编辑权限（这里简化处理，实际应该检查权限）
+      // 注意：前端无法准确判断权限，这里允许所有登录用户尝试，后端会验证
+      return true
+    },
+    // 检查是否可以请求重新审核（制表人、创建人或有编辑权限的用户）
+    canRequestReapproval() {
       const userInfo = this.$store.getters.currentUser
       if (!userInfo || !this.workOrder) return false
       // 检查是否是制表人或创建人
@@ -2864,6 +2917,36 @@ export default {
           console.error('重新提交审核失败:', error)
         } finally {
           this.resubmitting = false
+        }
+      }).catch(() => {
+        // 用户取消
+      })
+    },
+    async handleRequestReapproval() {
+      // 请求重新审核
+      if (!this.workOrder) return
+      
+      this.$confirm('确定要请求重新审核吗？请求后，施工单状态将重置为"待审核"，需要重新审核后才能开始生产。', '请求重新审核', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        this.requestingReapproval = true
+        try {
+          const response = await workOrderAPI.requestReapproval(this.workOrder.id, {
+            reason: this.reapprovalForm.reason
+          })
+          this.$message.success(response.data?.message || '重新审核请求已提交，已通知原审核人')
+          // 重置表单
+          this.reapprovalForm.reason = ''
+          // 重新加载数据
+          await this.loadData()
+        } catch (error) {
+          const errorMsg = error.response?.data?.error || error.response?.data?.detail || '请求重新审核失败'
+          this.$message.error(errorMsg)
+          console.error('请求重新审核失败:', error)
+        } finally {
+          this.requestingReapproval = false
         }
       }).catch(() => {
         // 用户取消
