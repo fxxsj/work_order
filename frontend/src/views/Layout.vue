@@ -67,6 +67,20 @@
           <i class="el-icon-goods"></i>
           <span>物料管理</span>
         </el-menu-item>
+        <el-submenu v-if="canViewSupplier || canViewPurchaseOrder" index="/purchase">
+          <template slot="title">
+            <i class="el-icon-shopping-cart-2"></i>
+            <span>采购管理</span>
+          </template>
+          <el-menu-item v-if="canViewSupplier" index="/suppliers">
+            <i class="el-icon-s-custom"></i>
+            <span>供应商管理</span>
+          </el-menu-item>
+          <el-menu-item v-if="canViewPurchaseOrder" index="/purchase-orders">
+            <i class="el-icon-document"></i>
+            <span>采购单管理</span>
+          </el-menu-item>
+        </el-submenu>
         <el-submenu v-if="canViewArtwork || canViewDie || canViewFoilingPlate || canViewEmbossingPlate" index="/plate-making">
           <template slot="title">
             <i class="el-icon-printer"></i>
@@ -145,12 +159,15 @@ export default {
       if (path.startsWith('/processes')) {
         return '/processes'
       }
-      if (path.startsWith('/artworks') || path.startsWith('/dies') || 
+      if (path.startsWith('/artworks') || path.startsWith('/dies') ||
           path.startsWith('/foiling-plates') || path.startsWith('/embossing-plates')) {
         return '/plate-making'
       }
       if (path.startsWith('/tasks')) {
         return '/tasks'
+      }
+      if (path.startsWith('/suppliers') || path.startsWith('/purchase-orders')) {
+        return '/purchase'
       }
       return path
     },
@@ -196,6 +213,14 @@ export default {
     // 检查是否有查看产品组的权限
     canViewProductGroup() {
       return this.hasPermission('workorder.view_productgroup')
+    },
+    // 检查是否有查看供应商的权限
+    canViewSupplier() {
+      return this.hasPermission('workorder.view_supplier')
+    },
+    // 检查是否有查看采购单的权限
+    canViewPurchaseOrder() {
+      return this.hasPermission('workorder.view_purchaseorder')
     }
   },
   methods: {

@@ -104,6 +104,18 @@ const routes = [
         meta: { title: '压凸版管理', requiresAuth: true }
       },
       {
+        path: 'suppliers',
+        name: 'SupplierList',
+        component: () => import('@/views/supplier/List.vue'),
+        meta: { title: '供应商管理', requiresAuth: true }
+      },
+      {
+        path: 'purchase-orders',
+        name: 'PurchaseOrderList',
+        component: () => import('@/views/purchase/List.vue'),
+        meta: { title: '采购单管理', requiresAuth: true }
+      },
+      {
         path: 'product-groups',
         name: 'ProductGroupList',
         component: () => import('@/views/productGroup/List.vue'),
