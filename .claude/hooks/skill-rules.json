@@ -1,0 +1,115 @@
+{
+  "$schema": "./skill-rules.schema.json",
+  "version": "2.0",
+  "config": {
+    "minConfidenceScore": 3,
+    "showMatchReasons": true,
+    "maxSkillsToShow": 5
+  },
+  "scoring": {
+    "keyword": 2,
+    "keywordPattern": 3,
+    "pathPattern": 4,
+    "directoryMatch": 5,
+    "intentPattern": 4
+  },
+  "directoryMappings": {
+    "frontend/src": "vue-component-patterns",
+    "frontend/src/views": "vue-component-patterns",
+    "frontend/src/components": "vue-component-patterns",
+    "frontend/src/api": "django-api-patterns",
+    "backend/workorder": "django-api-patterns",
+    "backend/config": "django-api-patterns",
+    "docs": "documentation"
+  },
+  "skills": {
+    "vue-component-patterns": {
+      "description": "Vue.js 2.7 组件开发模式，包含 Element UI 使用、状态管理和最佳实践",
+      "priority": 9,
+      "triggers": {
+        "keywords": ["vue", "component", "el-", "element", "vuetify", "computed", "watch", "props", "emit"],
+        "keywordPatterns": ["\\bvue\\b", "\\bcomponent\\b", "el-(table|form|dialog)", "v-(if|for|model)"],
+        "pathPatterns": ["frontend/**/*.vue", "frontend/src/**/*.js"],
+        "intentPatterns": [
+          "(?:create|add|build|make).*(?:vue component|component)",
+          "(?:fix|debug).*(?:vue|component)",
+          "(?:element|el-).*(?:component|ui)"
+        ],
+        "contentPatterns": ["export default", "Vue\\.", "this\\\\$"]
+      },
+      "relatedSkills": ["django-api-patterns"]
+    },
+    "django-api-patterns": {
+      "description": "Django REST Framework API 开发模式，包含视图、序列化器、路由和最佳实践",
+      "priority": 9,
+      "triggers": {
+        "keywords": ["django", "api", "serializer", "viewset", "model", "queryset", "rest", "drf"],
+        "keywordPatterns": ["\\bdjango\\b", "\\bapi\\b", "viewset", "serializer", "queryset"],
+        "pathPatterns": ["backend/**/*.py", "backend/workorder/**/*.py"],
+        "intentPatterns": [
+          "(?:create|add).*(?:api|endpoint|view)",
+          "(?:fix|debug).*(?:api|django)",
+          "(?:database|model|query).*(?:django)"
+        ],
+        "contentPatterns": ["from rest_framework", "ModelViewSet", "serializers\\.", "models\\."]
+      },
+      "relatedSkills": ["vue-component-patterns"]
+    },
+    "systematic-debugging": {
+      "description": "系统化调试方法，使用四阶段调试流程解决前端和后端问题",
+      "priority": 8,
+      "triggers": {
+        "keywords": ["debug", "bug", "error", "fix", "issue", "broken", "not working", "crash", "failing"],
+        "keywordPatterns": ["\\bbug\\b", "\\bfix\\b", "\\berror\\b", "\\bdebug\\b", "not working", "doesn't work"],
+        "intentPatterns": [
+          "(?:fix|debug|resolve).*(?:bug|error|issue|problem)",
+          "(?:why).*(?:not working|broken|failing)",
+          "(?:something).*(?:wrong|broken)"
+        ],
+        "contextPatterns": ["broken", "not working", "error message", "stack trace"]
+      },
+      "excludePatterns": ["fix typo", "fix formatting", "fix lint", "fix style"]
+    },
+    "git-commit": {
+      "description": "Git 提交规范和工作流管理",
+      "priority": 7,
+      "triggers": {
+        "keywords": ["commit", "push", "git", "branch", "merge", "pull", "pr", "changelog"],
+        "keywordPatterns": ["\\bgit\\b", "\\bcommit\\b", "\\bbranch\\b", "\\bmerge\\b"],
+        "intentPatterns": [
+          "(?:commit|push).*(?:code|changes)",
+          "(?:create|merge).*(?:branch|pr)",
+          "(?:git).*(?:workflow|commit)"
+        ]
+      }
+    },
+    "testing-patterns": {
+      "description": "前端和后端测试模式，包含单元测试、集成测试和测试最佳实践",
+      "priority": 6,
+      "triggers": {
+        "keywords": ["test", "spec", "mock", "tdd", "jest", "pytest", "unittest"],
+        "keywordPatterns": ["\\btest\\b", "\\bspec\\b", "\\bmock\\b", "unit test"],
+        "pathPatterns": ["frontend/**/*.test.js", "frontend/**/*.spec.js", "backend/**/test*.py"],
+        "intentPatterns": [
+          "(?:write|add|create).*(?:test|spec)",
+          "(?:test).*(?:for|of|the)",
+          "(?:mock).*(?:data|api)"
+        ],
+        "contentPatterns": ["describe\\(", "it\\(", "test\\(", "expect\\(", "assert"]
+      }
+    },
+    "documentation": {
+      "description": "文档编写和维护标准",
+      "priority": 4,
+      "triggers": {
+        "keywords": ["documentation", "docs", "readme", "guide", "tutorial"],
+        "keywordPatterns": ["\\bdoc\\b", "\\breadme\\b", "documentation"],
+        "pathPatterns": ["docs/**", "*.md", "README*"],
+        "intentPatterns": [
+          "(?:write|add|update).*(?:doc|documentation)",
+          "(?:document).*(?:function|component|api)"
+        ]
+      }
+    }
+  }
+}

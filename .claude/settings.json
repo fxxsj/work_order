@@ -1,0 +1,85 @@
+{
+  "includeCoAuthoredBy": true,
+  "env": {
+    "INSIDE_CLAUDE_CODE": "1",
+    "BASH_DEFAULT_TIMEOUT_MS": "420000",
+    "BASH_MAX_TIMEOUT_MS": "420000"
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill-eval.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "# Prevent editing on main branch\n[ \"$(git branch --show-current)\" != \"main\" ] || { echo '{\"block\": true, \"message\": \"不能在 main 分支上编辑文件。请先创建功能分支。\"}' >&2; exit 2; }",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "# Auto-format JS/Vue files\nif [[ \"$CLAUDE_TOOL_INPUT_FILE_PATH\" =~ \\.(js|vue|jsx)$ ]]; then\n  cd \"$CLAUDE_PROJECT_DIR/frontend\" 2>/dev/null && npx prettier --write \"${CLAUDE_TOOL_INPUT_FILE_PATH}\" 2>&1\n  exit_code=$?\n  if [ $exit_code -ne 0 ]; then\n    echo '{\"feedback\": \"代码格式化失败。请检查文件语法错误。\"}' >&2\n    exit 1\n  else\n    echo '{\"feedback\": \"已应用代码格式化。\", \"suppressOutput\": true}'\n  fi\nfi",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "# Auto-format Python files\nif [[ \"$CLAUDE_TOOL_INPUT_FILE_PATH\" =~ \\.py$ ]]; then\n  cd \"$CLAUDE_PROJECT_DIR/backend\" 2>/dev/null && npx black \"${CLAUDE_TOOL_INPUT_FILE_PATH}\" 2>&1\n  exit_code=$?\n  if [ $exit_code -ne 0 ]; then\n    echo '{\"feedback\": \"Python 代码格式化失败。请检查文件语法错误。\"}' >&2\n    exit 1\n  else\n    echo '{\"feedback\": \"已应用 Python 代码格式化。\", \"suppressOutput\": true}'\n  fi\nfi",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "# Auto-install dependencies when package.json changes\nif [[ \"$CLAUDE_TOOL_INPUT_FILE_PATH\" =~ package\\.json$ ]]; then\n  echo '{\"feedback\": \"正在安装前端依赖...\"}' >&2\n  cd \"$CLAUDE_PROJECT_DIR/frontend\" 2>/dev/null && npm install >/dev/null 2>&1 && echo '{\"feedback\": \"前端依赖已安装。\", \"suppressOutput\": true}' || {\n    echo '{\"feedback\": \"安装前端依赖失败。\"}' >&2\n    exit 1\n  }\nfi",
+            "timeout": 120
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "# Auto-install dependencies when requirements.txt changes\nif [[ \"$CLAUDE_TOOL_INPUT_FILE_PATH\" =~ requirements\\.txt$ ]]; then\n  echo '{\"feedback\": \"正在安装后端依赖...\"}' >&2\n  cd \"$CLAUDE_PROJECT_DIR/backend\" 2>/dev/null && pip install -r requirements.txt >/dev/null 2>&1 && echo '{\"feedback\": \"后端依赖已安装。\", \"suppressOutput\": true}' || {\n    echo '{\"feedback\": \"安装后端依赖失败。\"}' >&2\n    exit 1\n  }\nfi",
+            "timeout": 120
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "# Run Django migrations when models.py changes\nif [[ \"$CLAUDE_TOOL_INPUT_FILE_PATH\" =~ models\\.py$ ]]; then\n  echo '{\"feedback\": \"检测到模型变更，建议运行数据库迁移。\"}' >&2\n  echo '{\"feedback\": \"运行: cd backend && python manage.py makemigrations && python manage.py migrate\"}'\nfi",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
