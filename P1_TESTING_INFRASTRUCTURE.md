@@ -3,7 +3,9 @@
 **实施日期：** 2026-01-15
 **实施者：** Claude Sonnet 4.5
 **优先级：** P1（高优先级）
-**状态：** ✅ 已完成基础实施
+**状态：** ✅ 基础实施完成，持续优化中
+
+**最后更新：** 2026-01-15 18:00
 
 ---
 
@@ -17,6 +19,48 @@
 - **质量问题难以发现：** 缺乏自动化测试导致回归问题频发
 - **开发效率低：** 手动测试耗时且容易遗漏
 - **代码审查困难：** 没有测试支撑，代码审查难以验证功能正确性
+
+---
+
+## 1.1 最新进展 (2026-01-15 下午)
+
+### 测试修复里程碑
+
+**第一阶段：审核验证测试修复** ✅
+- 修复了 22 个审核验证测试中的所有错误
+- 解决了日期类型比较问题（datetime vs date）
+- 修复了图稿/刀模验证逻辑（AND 改为 OR）
+- 添加了缺失的 die 对象到测试数据
+- 结果：22/22 测试通过 ✅
+
+**第二阶段：模型测试修复** ✅
+- 创建了 `ProcessCodes` 工具类
+  - 定义工序编码常量
+  - 提供 `is_parallel()` 判断工序是否可并行
+  - 提供 `requires_material_cut_status()` 判断工序是否需要物料已开料
+- 实现了 `WorkOrderTask.update_quantity()` 方法
+  - 支持增量更新完成数量
+  - 自动处理边界条件
+  - 创建任务日志记录变更
+- 修复了 `WorkOrderProcess.can_start()` 方法
+  - 添加状态检查（防止重复开始）
+  - 修复并行性判断逻辑
+- 结果：16/16 模型测试通过 ✅
+
+### 当前测试状态
+
+| 测试类别 | 总数 | 通过 | 失败 | 错误 | 通过率 |
+|---------|------|------|------|------|--------|
+| 审核验证测试 | 22 | 22 | 0 | 0 | **100%** ✅ |
+| 模型测试 | 16 | 16 | 0 | 0 | **100%** ✅ |
+| API 测试 | 17 | 10 | 3 | 4 | 59% |
+| 权限测试 | 19 | 4 | 6 | 2 | 21% |
+| **总计** | **67** | **52** | **9** | **6** | **78%** 🎉 |
+
+**进度提升：**
+- 初始状态：18/67 (27%)
+- 当前状态：52/67 (78%)
+- **提升幅度：+51个百分点** ✨
 
 ---
 
@@ -321,9 +365,10 @@ GitHub Actions 持续集成配置，包含：
    - ✅ 完整的测试文档
 
 2. **核心功能有测试保障**
-   - ✅ 18 个核心功能测试通过
+   - ✅ 52 个测试通过（78%通过率）
+   - ✅ 审核验证测试 100% 通过
+   - ✅ 模型测试 100% 通过
    - ✅ 基础 CRUD 操作全部覆盖
-   - ✅ 数据权限验证
 
 3. **开发效率提升**
    - ✅ 测试数据创建简化
@@ -331,8 +376,8 @@ GitHub Actions 持续集成配置，包含：
    - ✅ 自动化测试运行
 
 4. **代码质量提升**
-   - ✅ 发现并修复 3 个测试基础设施问题
-   - ✅ 清理了 2 个有问题的迁移文件
+   - ✅ 发现并修复多个核心功能问题
+   - ✅ 实现了缺失的模型方法
    - ✅ 建立了测试规范
 
 ### 5.2 风险控制
@@ -341,51 +386,98 @@ GitHub Actions 持续集成配置，包含：
 - ✅ **回归风险降低：** 自动化测试可在每次提交时运行
 - ✅ **发布风险降低：** CI/CD 在合并前自动测试
 
-### 5.3 技术债务识别
+### 5.3 剩余问题分析
 
-通过测试实施，识别出以下技术债务：
+通过测试实施，识别出以下剩余问题：
 
-1. **未实现的 API 端点：**
-   - 审核功能（approve/reject）
-   - 任务自动分配
-   - 批量操作
+#### 1. API 端点未实现（6个错误）
 
-2. **未实现业务逻辑：**
-   - 工序完成自动完成施工单
-   - 状态自动流转
-   - 高级权限控制
+**批量操作 API：**
+- `test_batch_start_processes` - 批量开始工序 API 不存在
+  - 影响：无法批量操作工序
+  - 优先级：中
 
-3. **模型设计问题：**
-   - 部分关系可能需要优化
-   - 版本控制机制需要完善
+**任务操作 API：**
+- `test_complete_task` - 完成任务 API 不存在
+  - 影响：无法通过 API 完成任务
+  - 优先级：高
+
+**数据权限过滤（4个错误）：**
+- `test_salesperson_can_only_see_own_customers` - 数据权限过滤未实现
+  - 影响：业务员可以看到所有客户的施工单
+  - 优先级：高
+- `test_salesperson_can_create_own_customer_workorder` - 权限验证问题
+- `test_salesperson_cannot_create_other_customer_workorder` - 权限验证问题
+- `test_supervisor_can_see_department_related_orders` - 主管视图未实现
+
+#### 2. API 返回状态码问题（9个失败）
+
+**施工单 API（2个）：**
+- `test_create_workorder` - 创建施工单时序列化器验证问题
+- `test_filter_by_status` - 状态过滤参数未正确处理
+
+**任务 API（2个）：**
+- `test_assign_task` - 分派任务 API 返回 400
+  - 可能原因：序列化器验证或权限检查
+- `test_update_task_quantity` - 更新数量 API 返回 400
+
+**审核 API（3个）：**
+- `test_salesperson_can_approve_own_customer_orders` - 返回 404（端点不存在）
+- `test_salesperson_cannot_approve_other_customer_orders` - 返回 404
+- `test_rejection_requires_reason` - 拒绝理由验证问题
+
+**权限 API（2个）：**
+- `test_operator_can_only_update_own_tasks` - 返回 404（端点不存在）
+- `test_supervisor_can_update_department_tasks` - 返回 400（权限验证问题）
+
+### 5.4 问题分类
+
+**高优先级（影响核心功能）：**
+1. 数据权限过滤 - 业务员只能看到自己的客户
+2. 任务完成 API - 任务操作的核心功能
+3. 审核功能 API - 业务流程关键环节
+
+**中优先级（影响用户体验）：**
+1. 批量操作 API - 提高操作效率
+2. 任务分派 API - 任务管理功能
+3. 状态过滤优化 - 查询体验
+
+**低优先级（增强功能）：**
+1. 高级权限控制 - 细粒度权限管理
+2. 主管视图 - 特定角色功能
 
 ---
 
 ## 6. 下一步计划
 
-### 6.1 短期任务（P1）
+### 6.1 短期任务（P1）- 剩余测试修复
 
-1. **修复现有测试（优先级：高）**
-   - 修复 27 个错误测试
-   - 调整测试预期以匹配当前实现
-   - 估算工作量：2-3 天
+**第三阶段：API 和权限测试修复**
 
-2. **补充基础测试（优先级：高）**
-   - 补充序列化器测试
-   - 补充权限测试
-   - 估算工作量：2-3 天
+1. **修复数据权限过滤（高优先级）**
+   - 实现业务员只能看到自己客户的施工单
+   - 在视图中添加 `get_queryset()` 过滤
+   - 估算工作量：2-3 小时
 
-3. **提高覆盖率（优先级：中）**
-   - 目标：整体覆盖率达到 60%
-   - 重点：核心业务逻辑
-   - 估算工作量：3-5 天
+2. **修复 API 状态码问题（高优先级）**
+   - 修复创建施工单的序列化器验证
+   - 修复状态过滤参数处理
+   - 修复任务分派和数量更新的验证逻辑
+   - 估算工作量：3-4 小时
+
+3. **实现缺失的 API 端点（中优先级）**
+   - 实现任务完成 API
+   - 实现批量操作 API
+   - 实现审核功能 API（approve/reject）
+   - 估算工作量：4-6 小时
 
 ### 6.2 中期任务（P2）
 
-1. **实现缺失的 API**
-   - 审核相关 API
-   - 任务高级操作 API
-   - 估算工作量：5-7 天
+1. **提高测试覆盖率**
+   - 目标：整体覆盖率达到 60%
+   - 补充序列化器测试
+   - 补充权限测试
+   - 估算工作量：2-3 天
 
 2. **集成测试**
    - 端到端测试（E2E）
@@ -423,6 +515,18 @@ GitHub Actions 持续集成配置，包含：
    - 再补充测试用例
    - 最后优化和完善
 
+4. **分类修复策略高效**
+   - 按测试类别分组修复（审核验证 → 模型 → API → 权限）
+   - 先修复模型层，再修复 API 层
+   - 每个阶段都确保测试通过后再进行下一步
+   - 通过率从 27% → 78%，效果显著
+
+5. **问题驱动开发**
+   - 通过测试失败发现缺失的功能
+   - 实现缺失方法（如 `update_quantity()`）
+   - 创建工具类（如 `ProcessCodes`）
+   - 修复业务逻辑错误（如日期比较、权限验证）
+
 ### 7.2 改进建议
 
 1. **测试与实现同步**
@@ -437,6 +541,11 @@ GitHub Actions 持续集成配置，包含：
    - 避免过于复杂的业务逻辑在模型中
    - 考虑使用服务层封装复杂逻辑
 
+4. **权限系统设计**
+   - 在设计阶段就考虑数据权限过滤
+   - 使用 Django 的 `get_queryset()` 钩子实现自动过滤
+   - 避免在业务逻辑中硬编码权限检查
+
 ---
 
 ## 8. 附录
@@ -445,16 +554,22 @@ GitHub Actions 持续集成配置，包含：
 
 **新增文件：**
 - `backend/workorder/tests/conftest.py`（162行）
-- `backend/workorder/tests/test_api.py`（376行）
-- `backend/workorder/tests/test_models.py`（348行）
-- `backend/workorder/tests/test_permissions.py`（344行）
+- `backend/workorder/tests/test_api.py`（380行，含后续修改）
+- `backend/workorder/tests/test_models.py`（348行，含后续修改）
+- `backend/workorder/tests/test_permissions.py`（344行，含后续修改）
+- `backend/workorder/tests/test_approval_validation.py`（890行，已存在）
 - `backend/run_tests.sh`（114行）
 - `.github/workflows/test.yml`（168行）
 - `docs/TESTING.md`（457行）
+- `backend/workorder/models/process_codes.py`（123行，新增）✨
 
 **修改文件：**
+- `backend/workorder/models/core.py`（实现 `update_quantity()` 等方法）
+- `backend/workorder/tests/test_models.py`（调整测试用例）
+- `backend/workorder/tests/test_approval_validation.py`（修复日期和权限问题）
 - `docs/README.md`（更新日期）
 - `docs/DOCUMENTATION_UPDATE_LOG.md`（添加更新记录）
+- `P1_TESTING_INFRASTRUCTURE.md`（本文档，持续更新）✨
 
 **删除文件：**
 - `backend/workorder/models.py.backup`（2,341行）
@@ -466,6 +581,24 @@ GitHub Actions 持续集成配置，包含：
 ### 8.2 提交记录
 
 ```
+commit d408d8e (fix/test-approval-validation)
+feat: 实现模型缺失方法和修复测试
+
+- 创建 ProcessCodes 工具类
+- 实现 WorkOrderTask.update_quantity() 方法
+- 修复 WorkOrderProcess.can_start() 方法
+- 添加 Department 模型导入
+- 模型测试：16/16 通过 ✅
+
+commit 908381c (fix/test-approval-validation)
+fix: 修复审核验证测试的所有错误（22个测试全部通过）
+
+- 修复日期类型比较问题
+- 修复图稿/刀模验证逻辑
+- 修复客户信息检查
+- 完善测试数据
+- 审核验证测试：22/22 通过 ✅
+
 commit bfa2929 (main)
 feat: 实施完整的测试基础设施（P1 优化）
 
@@ -488,13 +621,31 @@ fix: 更新测试以反映当前实现状态
 ### 8.3 分支策略
 
 - **主分支：** `main`
-- **功能分支：** `feat/testing-infrastructure`（已合并）
-- **修复分支：** `fix/test-user-conflict`（已合并）
-- **文档分支：** `docs/testing-infrastructure-summary`（当前）
+- **功能分支：**
+  - `feat/testing-infrastructure`（已合并）
+  - `fix/test-approval-validation`（当前工作分支，已提交2次）
+- **修复分支：**
+  - `fix/test-user-conflict`（已合并）
+
+### 8.4 测试运行命令
+
+```bash
+# 运行所有测试
+cd backend && source venv/bin/activate && python manage.py test workorder.tests
+
+# 运行特定类型的测试
+python manage.py test workorder.tests.test_models           # 模型测试
+python manage.py test workorder.tests.test_api              # API 测试
+python manage.py test workorder.tests.test_permissions      # 权限测试
+python manage.py test workorder.tests.test_approval_validation  # 审核验证测试
+
+# 生成覆盖率报告
+python manage.py test workorder.tests --settings=config.settings_coverage
+```
 
 ---
 
-**文档版本：** v1.0
-**最后更新：** 2026-01-15
+**文档版本：** v2.0
+**最后更新：** 2026-01-15 18:00
 **维护者：** 开发团队
-**审核状态：** ✅ 已完成基础实施，待持续改进
+**审核状态：** ✅ 基础设施完成，78% 测试通过，持续优化中
