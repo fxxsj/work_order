@@ -197,12 +197,12 @@ router.beforeEach(async (to, from, next) => {
   
   // 如果页面需要认证
   if (requiresAuth) {
-    // 检查是否已有用户信息
-    if (!store.state.userInfo) {
+    // 检查是否已有用户信息（使用新的模块化 API）
+    if (!store.getters['user/currentUser']) {
       try {
         // 尝试获取当前用户信息
         const userInfo = await getCurrentUser()
-        store.dispatch('setUserInfo', userInfo)
+        store.dispatch('user/setUserInfo', userInfo)
         next()
       } catch (error) {
         // 未登录，跳转到登录页
@@ -215,8 +215,8 @@ router.beforeEach(async (to, from, next) => {
       next()
     }
   } else {
-    // 不需要认证的页面，如果已登录且访问登录页，跳转到首页
-    if (to.path === '/login' && store.state.userInfo) {
+    // 不需要认证的页面，如果已登录且访问登录页，跳转到首页（使用新的模块化 API）
+    if (to.path === '/login' && store.getters['user/currentUser']) {
       next('/')
     } else {
       next()

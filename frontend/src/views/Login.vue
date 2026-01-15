@@ -92,12 +92,12 @@ export default {
         this.loading = true
         try {
           const userInfo = await login(this.loginForm)
-          
-          // 保存用户信息到 Vuex
-          this.$store.dispatch('setUserInfo', userInfo)
-          
+
+          // 保存用户信息到 Vuex（使用新的模块化 API）
+          this.$store.dispatch('user/setUserInfo', userInfo)
+
           this.$message.success('登录成功')
-          
+
           // 跳转到首页或之前的页面
           const redirect = this.$route.query.redirect || '/'
           this.$router.push(redirect)

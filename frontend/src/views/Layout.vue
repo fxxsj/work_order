@@ -176,7 +176,7 @@ export default {
       return path
     },
     currentUsername() {
-      return this.$store.state.userInfo?.username || '用户'
+      return this.$store.getters['user/currentUser']?.username || '用户'
     },
     // 检查是否有查看客户的权限
     canViewCustomer() {
@@ -257,13 +257,13 @@ export default {
         }).then(async () => {
           try {
             await logout()
-            this.$store.dispatch('setUserInfo', null)
+            this.$store.dispatch('user/clearUser')
             this.$message.success('已退出登录')
             this.$router.push('/login')
           } catch (error) {
             console.error('退出登录失败:', error)
             // 即使API调用失败，也清除本地状态并跳转
-            this.$store.dispatch('setUserInfo', null)
+            this.$store.dispatch('user/clearUser')
             this.$router.push('/login')
           }
         }).catch(() => {})

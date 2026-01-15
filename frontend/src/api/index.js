@@ -59,8 +59,8 @@ service.interceptors.response.use(
       const { status, data } = error.response
       
       if (status === 401) {
-        // 清除用户信息
-        store.dispatch('setUserInfo', null)
+        // 清除用户信息（使用新的模块化 API）
+        store.dispatch('user/clearUser')
         
         // 如果不是登录页面且不是获取用户信息接口，跳转到登录页
         if (router.currentRoute.path !== '/login' && !error.config.url.includes('/auth/user/')) {
