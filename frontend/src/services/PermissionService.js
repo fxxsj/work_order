@@ -4,8 +4,6 @@
  * 提供统一的权限检查逻辑，避免在各个组件中重复编写权限代码
  */
 
-import { getUserInfo } from '@/api/auth'
-
 /**
  * 权限服务类
  */
@@ -396,14 +394,8 @@ class PermissionService {
 // 创建单例实例
 const permissionService = new PermissionService()
 
-// 自动初始化
-try {
-  const userInfo = getUserInfo()
-  if (userInfo) {
-    permissionService.initUser(userInfo)
-  }
-} catch (error) {
-  console.warn('Failed to initialize permission service:', error)
-}
+// 注意: PermissionService 不再自动初始化
+// 应该在 Vuex Store 的 user 模块中通过 initUser() 方法初始化
+// 或者在用户登录成功后手动调用 permissionService.initUser(user)
 
 export default permissionService
