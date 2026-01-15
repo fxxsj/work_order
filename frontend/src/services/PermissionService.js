@@ -4,7 +4,7 @@
  * 提供统一的权限检查逻辑，避免在各个组件中重复编写权限代码
  */
 
-import { getUserInfo } from '@/utils/auth'
+import { getUserInfo } from '@/api/auth'
 
 /**
  * 权限服务类

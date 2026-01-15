@@ -5,7 +5,7 @@
  */
 
 import BaseService from './base/BaseService'
-import taskApi from '@/api/task'
+import api from '@/api'
 
 /**
  * 任务业务状态枚举
@@ -33,7 +33,7 @@ export const TaskType = {
  */
 class TaskService extends BaseService {
   constructor() {
-    super(taskApi)
+    super(api)
   }
 
   /**
