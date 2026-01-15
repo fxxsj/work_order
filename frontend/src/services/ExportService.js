@@ -126,10 +126,9 @@ class ExportService extends BaseService {
   /**
    * 导出任务列表
    * @param {Array} tasks - 任务列表
-   * @param {Object} filters - 筛选条件
    * @returns {Promise} 导出结果
    */
-  async exportTasks(tasks, filters = {}) {
+  async exportTasks(tasks) {
     // 定义导出列
     const columns = [
       { field: 'id', label: '任务ID' },
@@ -174,10 +173,9 @@ class ExportService extends BaseService {
   /**
    * 导出施工单列表
    * @param {Array} workOrders - 施工单列表
-   * @param {Object} filters - 筛选条件
    * @returns {Promise} 导出结果
    */
-  async exportWorkOrders(workOrders, filters = {}) {
+  async exportWorkOrders(workOrders) {
     const columns = [
       { field: 'order_number', label: '施工单号' },
       { field: 'customer_name', label: '客户名称' },
@@ -340,7 +338,7 @@ class ExportService extends BaseService {
 
     const tableBody = `
       <tbody>
-        ${data.map((row, index) => `
+        ${data.map((row) => `
           <tr>
             ${columns.map(col => `
               <td>${row[col.field] || ''}</td>

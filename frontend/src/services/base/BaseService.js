@@ -5,8 +5,6 @@
  * 提高代码可维护性和可测试性
  */
 
-import axios from 'axios'
-
 /**
  * 基础 Service 类
  * 提供通用的业务逻辑处理方法
@@ -227,7 +225,7 @@ class BaseService {
     if (obj instanceof Object) {
       const clonedObj = {}
       for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
           clonedObj[key] = this.clone(obj[key])
         }
       }

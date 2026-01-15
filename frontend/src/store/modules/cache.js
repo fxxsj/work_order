@@ -237,7 +237,7 @@ const actions = {
   },
 
   // 刷新缓存（重新加载数据）
-  async refreshCache({ dispatch, commit }, { cacheKey, loadFn }) {
+  async refreshCache({ commit }, { cacheKey, loadFn }) {
     try {
       const data = await loadFn()
       const mutationMap = {

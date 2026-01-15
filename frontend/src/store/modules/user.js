@@ -122,7 +122,7 @@ const mutations = {
 // Actions
 const actions = {
   // 登录
-  async login({ commit }, { username, password }) {
+  async login({ commit }, { username }) {
     try {
       // 这里应该调用认证 API
       // const result = await authAPI.login({ username, password })
@@ -163,7 +163,7 @@ const actions = {
   },
 
   // 获取用户信息
-  async fetchUserInfo({ commit, state }) {
+  async fetchUserInfo({ state }) {
     if (!state.isAuthenticated) {
       return { success: false, error: '未登录' }
     }
@@ -173,7 +173,9 @@ const actions = {
       // const result = await authAPI.getUserInfo()
 
       // 模拟获取成功
-      return { success: true }
+      // TODO: 实现真实的 API 调用
+      const result = { success: true }
+      return result
     } catch (error) {
       return { success: false, error: error.message }
     }

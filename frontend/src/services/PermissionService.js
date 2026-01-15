@@ -249,21 +249,6 @@ class PermissionService {
    * @returns {Array} 可编辑字段列表
    */
   getEditableFields(workOrder) {
-    const protectedFields = [
-      'customer',
-      'products_data',
-      'processes',
-      'artworks',
-      'dies',
-      'foiling_plates',
-      'embossing_plates',
-      'printing_type',
-      'printing_cmyk_colors',
-      'printing_other_colors',
-      'production_quantity',
-      'total_amount'
-    ]
-
     // 如果已审核通过，只能编辑部分字段
     if (workOrder.approval_status === 'approved') {
       if (this.hasPermission('workorder.change_approved')) {
