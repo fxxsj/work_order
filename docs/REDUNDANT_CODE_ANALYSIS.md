@@ -1,6 +1,6 @@
 # 代码兼容性与优化分析
 
-**最后更新时间**：2026-01-08  
+**最后更新时间**：2026-01-08
 **文档版本**：v2.0（根据实际代码重写）
 
 > **重要说明**：本文档基于实际代码实现分析，记录当前代码中的兼容性逻辑和可能的优化点。
@@ -99,13 +99,20 @@ def get_quantity_increment(self, obj):
 - 如果前端已经使用 `base_code` 和 `version`，该字段可能不再需要
 
 **状态**：
-- ⚠️ **需要确认**：检查前端是否仍在使用 `code` 字段
-- ⚠️ **建议**：如果前端已迁移到 `base_code` 和 `version`，可以移除该字段
+- ⚠️ **前端仍在使用**：经检查，前端代码仍在使用 `artwork.code` 字段（见下文）
+- ⚠️ **建议**：需要前端迁移到 `base_code` 和 `version`，然后移除该字段
+
+**前端使用位置**（共6处）：
+1. `Detail.vue` 行466、1283 - 使用 `artwork.code || artwork.base_code`
+2. `Form.vue` 行174 - 直接使用 `artwork.code`
+3. `task/List.vue` 行378、502 - 使用 `artwork.code || artwork.base_code`
+4. `task/components/UpdateTaskDialog.vue` 行82 - 使用 `artwork.code || artwork.base_code`
 
 **优化建议**：
-1. 检查前端代码，确认是否仍在使用 `artwork.code` 字段
-2. 如果不再使用，可以移除该字段，简化序列化器
-3. 如果仍在使用，建议前端迁移到 `base_code` 和 `version`，然后移除该字段
+1. **步骤1**：将所有前端使用 `artwork.code` 的地方统一改为 `artwork.base_code`
+2. **步骤2**：删除后端 `ArtworkSerializer` 中的 `code` 字段和 `get_code()` 方法
+3. **步骤3**：测试确认功能正常
+4. 预期收益：简化代码，减少序列化器负担
 
 ---
 
@@ -188,15 +195,21 @@ def migrate_task_log_increment(apps, schema_editor):
 
 1. **高优先级**：无（所有关键冗余代码已清理）
 2. **中优先级**：
-   - 检查并移除 `ArtworkSerializer.code` 字段（如果前端不再使用）
+   - ✅ **确认项目**：前端仍在使用 `artwork.code`，需要前端迁移
+   - **优化方案**：将所有 `artwork.code` 替换为 `artwork.base_code`（6处前端代码）
 3. **低优先级**：
    - 优化 `TaskLog` 兼容逻辑（创建数据迁移或移除兼容代码）
 
 ### 6.3 建议
 
-1. **定期检查**：定期检查代码中是否还有兼容性代码，及时清理
-2. **数据迁移**：对于需要兼容旧数据的情况，优先使用数据迁移填充数据，而不是保留兼容逻辑
-3. **文档更新**：代码变更后及时更新本文档
+1. **立即行动**：
+   - 前端迁移 `artwork.code` 到 `base_code`（6处修改）
+   - 后端删除 `ArtworkSerializer.code` 字段和 `get_code()` 方法
+   - 测试验证功能正常
+
+2. **定期检查**：定期检查代码中是否还有兼容性代码，及时清理
+
+3. **数据迁移**：对于需要兼容旧数据的情况，优先使用数据迁移填充数据，而不是保留兼容逻辑
 
 ---
 
@@ -211,3 +224,4 @@ def migrate_task_log_increment(apps, schema_editor):
 **文档历史**：
 - v1.0：初始版本，记录了单产品到多产品迁移过程中的冗余代码
 - v2.0（2026-01-08）：根据实际代码重写，移除已不存在的冗余代码说明，只保留实际存在的兼容性代码
+- v2.1（2026-01-15）：经检查确认前端仍在使用 `artwork.code`，已标记需要迁移的具体位置（6处）
