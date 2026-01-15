@@ -1,8 +1,61 @@
 # 文档更新日志
 
-**最后更新时间：** 2026-01-09
+**最后更新时间：** 2026-01-15
 
 本文档记录系统文档的更新、合并和删除历史。
+
+---
+
+## 2026-01-15：代码清理和模块重构错误修复 ✅
+
+### 删除的文件
+
+1. **移除备份文件**
+   - `backend/workorder/models.py.backup` - 模块重构前的备份文件
+   - `backend/workorder/views.py.backup` - 模块重构前的备份文件
+   - **原因**：模块化重构已完成，备份文件不再需要
+
+2. **移除临时修复文件**
+   - `frontend/src/api/purchase-fixed.js` - 临时修复文件
+   - **原因**：功能已集成到主代码，临时文件不再需要
+
+### 更新的文档
+
+1. **`docs/README.md`**
+   - 更新最后更新时间：2026-01-08 → 2026-01-15
+   - 文档结构无变化，所有引用准确
+
+2. **`docs/DOCUMENTATION_UPDATE_LOG.md`**
+   - 添加本次清理记录
+   - 更新最后更新时间：2026-01-09 → 2026-01-15
+
+### 修复的错误（已完成）
+
+1. **登录 403 Forbidden 错误**
+   - 修改 `config/settings.py` 中的 DEFAULT_PERMISSION_CLASSES
+   - 从 `DjangoModelPermissions` 改为 `IsAuthenticatedOrReadOnly`
+   - Commit: `d43fdd5`
+
+2. **assignment_history 导入错误**
+   - 修复 `workorder/views/core.py` 中的导入路径
+   - 从相对导入改为绝对导入：`from workorder.serializers.core import TaskLogSerializer`
+   - Commit: `5198734`
+
+3. **模型字符串外键引用错误**
+   - 修复所有模型文件中的字符串外键引用
+   - 将模块前缀（如 `base.Customer`）改为应用标签（`workorder.Customer`）
+   - Commit: `ab24326`, `ab93502`
+
+4. **数据库迁移冲突和索引错误**
+   - 合并冲突的迁移分支
+   - 修复 ProcessLog 索引字段名称
+   - Commit: `9b5404a`
+
+### 文档状态
+
+- ✅ 无修复相关的说明文档需要移除
+- ✅ 所有文档保持最新状态
+- ✅ 历史文档已正确标记
 
 ---
 
