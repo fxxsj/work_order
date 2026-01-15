@@ -135,60 +135,19 @@ const store = new Vuex.Store({
   strict: process.env.NODE_ENV !== 'production'
 })
 
-// ============ 兼容性支持 ============
-// 为了平滑过渡，暂时保留旧的 getter 和 action 访问方式
-
-// 旧代码兼容层 - 这些将在后续版本中移除
-const compatLayer = {
-  // 兼容旧的 userInfo 访问
-  get userInfo() {
-    return store.getters['user/currentUser']
-  },
-
-  // 兼容旧的 selectedWorkOrder 访问
-  get selectedWorkOrder() {
-    return store.getters['workOrder/selectedWorkOrder']
-  },
-
-  // 兼容旧的 processList 访问
-  get processList() {
-    return store.getters['cache/processList'] || []
-  },
-
-  // 兼容旧的 customerList 访问
-  get customerList() {
-    return store.getters['cache/customerList'] || []
-  },
-
-  // 兼容旧的 materialList 访问
-  get materialList() {
-    return store.getters['cache/materialList'] || []
-  },
-
-  // 兼容旧的 isSalesperson getter
-  get isSalesperson() {
-    return store.getters['user/hasRole']('salesperson')
-  },
-
-  // 兼容旧的 userGroups getter
-  get userGroups() {
-    return store.getters['user/roles']
-  }
-}
-
-// 将兼容层挂载到 store 上（仅开发环境提示）
+// ============ 开发环境提示 ============
+// 提示开发者使用新的模块化 API
 if (process.env.NODE_ENV !== 'production') {
   console.warn(
-    '[Vuex Store] 正在使用兼容性层。建议更新代码使用新的模块化 API：\n' +
+    '[Vuex Store] 已启用模块化架构。建议使用新的模块化 API：\n' +
     '  - store.state.userInfo → store.getters["user/currentUser"]\n' +
     '  - store.state.selectedWorkOrder → store.getters["workOrder/selectedWorkOrder"]\n' +
     '  - store.getters.isSalesperson → store.getters["user/hasRole"]("salesperson")\n' +
-    '  - store.dispatch("setUserInfo", data) → store.dispatch("user/setUserInfo", data)'
+    '  - store.dispatch("setUserInfo", data) → store.dispatch("user/setUserInfo", data)\n' +
+    '\n' +
+    '向后兼容层已启用，旧代码仍可正常工作。'
   )
 }
 
-// 导出包装后的 store
+// 导出 store
 export default store
-
-// 导出类型定义（用于 TypeScript）
-export type { Store } from 'vuex'
