@@ -247,15 +247,22 @@ export default {
           type: 'warning'
         }).then(async () => {
           try {
-            await logout()
-            this.$store.dispatch('user/clearUser')
+            // 先清除用户状态（使用正确的 action 名称）
+            await this.$store.dispatch('user/logout')
             this.$message.success('已退出登录')
-            this.$router.push('/login')
+            // 调用后端 logout API（可能会因为 Token 失效而失败，但不影响退出）
+            try {
+              await logout()
+            } catch (e) {
+              // 忽略 logout API 错误
+            }
+            // 使用 window.location.href 跳转到登录页，完全刷新页面
+            window.location.href = '/login'
           } catch (error) {
             console.error('退出登录失败:', error)
-            // 即使API调用失败，也清除本地状态并跳转
-            this.$store.dispatch('user/clearUser')
-            this.$router.push('/login')
+            // 即使出错，也清除本地状态并跳转
+            await this.$store.dispatch('user/logout')
+            window.location.href = '/login'
           }
         }).catch(() => {})
       }

@@ -11,7 +11,8 @@ const state = {
   currentUser: null,
   isAuthenticated: false,
   permissions: [],
-  roles: []
+  roles: [],
+  authToken: null  // 添加认证令牌
 }
 
 // Getters
@@ -27,6 +28,9 @@ const getters = {
 
   // 获取角色列表
   roles: (state) => state.roles,
+
+  // 获取认证令牌
+  authToken: (state) => state.authToken,
 
   // 检查是否有指定权限
   hasPermission: (state) => (permission) => {
@@ -111,12 +115,18 @@ const mutations = {
     state.roles = roles || []
   },
 
+  // 设置认证令牌
+  SET_AUTH_TOKEN(state, token) {
+    state.authToken = token
+  },
+
   // 清除用户信息（登出时使用）
   CLEAR_USER(state) {
     state.currentUser = null
     state.isAuthenticated = false
     state.permissions = []
     state.roles = []
+    state.authToken = null
   }
 }
 
@@ -133,6 +143,7 @@ const actions = {
         // 后端返回的 groups 是字符串数组，需要转换为角色数组
         const roles = response.groups || []
         const permissions = response.permissions || []
+        const token = response.token || null  // 获取认证令牌
 
         const user = {
           id: response.id,
@@ -150,6 +161,7 @@ const actions = {
         commit('SET_CURRENT_USER', user)
         commit('SET_ROLES', roles)
         commit('SET_PERMISSIONS', permissions)
+        commit('SET_AUTH_TOKEN', token)  // 保存认证令牌
 
         // 初始化 PermissionService
         permissionService.initUser(user)
@@ -213,6 +225,7 @@ const actions = {
       }
 
       const permissions = user.permissions || []
+      const token = user.token || null  // 获取认证令牌
 
       // 标准化用户对象
       const normalizedUser = {
@@ -225,6 +238,7 @@ const actions = {
       commit('SET_CURRENT_USER', normalizedUser)
       commit('SET_ROLES', roles)
       commit('SET_PERMISSIONS', permissions)
+      commit('SET_AUTH_TOKEN', token)  // 保存认证令牌
 
       // 初始化 PermissionService
       permissionService.initUser(normalizedUser)
