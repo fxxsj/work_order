@@ -217,8 +217,15 @@ const actions = {
       // 标准化用户对象
       const normalizedUser = {
         ...user,
-        groups: roles.map(roleName => ({ name: roleName }))
+        groups: roles.map(roleName => ({ name: roleName })),
+        // 确保 permissions 在用户对象上
+        permissions: permissions
       }
+
+      console.log('[User Store] initUser - 原始用户数据:', user)
+      console.log('[User Store] initUser - 标准化用户数据:', normalizedUser)
+      console.log('[User Store] initUser - 提取的 roles:', roles)
+      console.log('[User Store] initUser - 提取的 permissions:', permissions)
 
       commit('SET_CURRENT_USER', normalizedUser)
       commit('SET_ROLES', roles)
