@@ -149,8 +149,39 @@ if (process.env.NODE_ENV !== 'production') {
   )
 }
 
-// 向后兼容层（添加 setUserInfo action 支持）
+// 向后兼容层（添加 setUserInfo action 和 currentUser getter 支持）
 const originalDispatch = store.dispatch
+const originalGetters = {}
+
+// 拦截 getters 访问，添加向后兼容
+Object.defineProperty(store, 'getters', {
+  get() {
+    // 合并模块化的 getters 和向后兼容的 getters
+    const moduleGetters = store._getters || {}
+    return new Proxy(moduleGetters, {
+      get(target, prop) {
+        // 如果访问的是旧的非命名空间 getter，重定向到新的命名空间 getter
+        if (prop === 'currentUser' || prop === 'userInfo') {
+          console.log(`[Vuex Store] 向后兼容: getters.${prop} → getters["user/currentUser"]`)
+          return target['user/currentUser']
+        }
+        if (prop === 'isAuthenticated') {
+          console.log(`[Vuex Store] 向后兼容: getters.${prop} → getters["user/isAuthenticated"]`)
+          return target['user/isAuthenticated']
+        }
+        if (prop === 'isSalesperson') {
+          console.log(`[Vuex Store] 向后兼容: getters.${prop} → getters["user/isSalesperson"]`)
+          return target['user/isSalesperson']
+        }
+        // 其他 getter 正常返回
+        return target[prop]
+      }
+    })
+  },
+  set(value) {
+    store._getters = value
+  }
+})
 
 store.dispatch = function(action, payload) {
   // 拦截 setUserInfo 调用并重定向到 initUser
