@@ -14,6 +14,7 @@
     "element-ui": "^2.15.14",
     "vue": "^2.7.15",
     "vue-router": "^3.6.5",
+    "vue-virtual-scroller": "^1.0.0-rc.2",
     "vuex": "^3.6.2"
   },
   "devDependencies": {
@@ -49,4 +50,3 @@
     "not dead"
   ]
 }
-

@@ -6,11 +6,16 @@ import { getCurrentUser } from '@/api/auth'
 
 Vue.use(VueRouter)
 
+// P2 优化: 使用 Webpack 魔法注释优化代码分割
+// webpackChunkName: 为 chunk 命名，便于识别
+// webpackPrefetch: 浏览器空闲时预加载资源
+// webpackPreload: 与父 chunk 并行加载（优先级高于 prefetch）
+
 const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: () => import('@/views/Login.vue'),
+    component: () => import(/* webpackChunkName: "login" */ '@/views/Login.vue'),
     meta: { title: '登录', requiresAuth: false }
   },
   {
@@ -19,166 +24,181 @@ const routes = [
     redirect: '/dashboard',
     meta: { requiresAuth: true },
     children: [
+      // 核心页面 - 使用 preload
       {
         path: 'dashboard',
         name: 'Dashboard',
-        component: () => import('@/views/Dashboard.vue'),
+        component: () => import(/* webpackChunkName: "dashboard" */ /* webpackPreload: true */ '@/views/Dashboard.vue'),
         meta: { title: '工作台', requiresAuth: true }
       },
+
+      // 施工单管理 - 按功能分组
       {
         path: 'workorders',
         name: 'WorkOrderList',
-        component: () => import('@/views/workorder/List.vue'),
+        component: () => import(/* webpackChunkName: "workorder-list" */ '@/views/workorder/List.vue'),
         meta: { title: '施工单列表', requiresAuth: true }
       },
       {
         path: 'workorders/create',
         name: 'WorkOrderCreate',
-        component: () => import('@/views/workorder/Form.vue'),
+        component: () => import(/* webpackChunkName: "workorder-form" */ '@/views/workorder/Form.vue'),
         meta: { title: '新建施工单', requiresAuth: true }
       },
       {
         path: 'workorders/:id',
         name: 'WorkOrderDetail',
-        component: () => import('@/views/workorder/Detail.vue'),
+        component: () => import(/* webpackChunkName: "workorder-detail" */ /* webpackPrefetch: true */ '@/views/workorder/Detail.vue'),
         meta: { title: '施工单详情', requiresAuth: true }
       },
       {
         path: 'workorders/:id/edit',
         name: 'WorkOrderEdit',
-        component: () => import('@/views/workorder/Form.vue'),
+        component: () => import(/* webpackChunkName: "workorder-form" */ '@/views/workorder/Form.vue'),
         meta: { title: '编辑施工单', requiresAuth: true }
       },
+
+      // 基础数据管理 - 合并到单个 chunk
       {
         path: 'customers',
         name: 'CustomerList',
-        component: () => import('@/views/customer/List.vue'),
+        component: () => import(/* webpackChunkName: "basic-data" */ '@/views/customer/List.vue'),
         meta: { title: '客户管理', requiresAuth: true }
       },
       {
         path: 'departments',
         name: 'DepartmentList',
-        component: () => import('@/views/department/List.vue'),
+        component: () => import(/* webpackChunkName: "basic-data" */ '@/views/department/List.vue'),
         meta: { title: '部门管理', requiresAuth: true }
       },
       {
         path: 'processes',
         name: 'ProcessList',
-        component: () => import('@/views/process/List.vue'),
+        component: () => import(/* webpackChunkName: "basic-data" */ '@/views/process/List.vue'),
         meta: { title: '工序管理', requiresAuth: true }
       },
       {
         path: 'products',
         name: 'ProductList',
-        component: () => import('@/views/product/List.vue'),
+        component: () => import(/* webpackChunkName: "basic-data" */ '@/views/product/List.vue'),
         meta: { title: '产品管理', requiresAuth: true }
       },
       {
         path: 'materials',
         name: 'MaterialList',
-        component: () => import('@/views/material/List.vue'),
+        component: () => import(/* webpackChunkName: "basic-data" */ '@/views/material/List.vue'),
         meta: { title: '物料管理', requiresAuth: true }
       },
       {
+        path: 'product-groups',
+        name: 'ProductGroupList',
+        component: () => import(/* webpackChunkName: "basic-data" */ '@/views/productGroup/List.vue'),
+        meta: { title: '产品组管理', requiresAuth: true }
+      },
+
+      // 版和模具管理 - 合并到单个 chunk
+      {
         path: 'artworks',
         name: 'ArtworkList',
-        component: () => import('@/views/artwork/List.vue'),
+        component: () => import(/* webpackChunkName: "plate-management" */ '@/views/artwork/List.vue'),
         meta: { title: '图稿管理', requiresAuth: true }
       },
       {
         path: 'dies',
         name: 'DieList',
-        component: () => import('@/views/die/List.vue'),
+        component: () => import(/* webpackChunkName: "plate-management" */ '@/views/die/List.vue'),
         meta: { title: '刀模管理', requiresAuth: true }
       },
       {
         path: 'foiling-plates',
         name: 'FoilingPlateList',
-        component: () => import('@/views/foilingplate/List.vue'),
+        component: () => import(/* webpackChunkName: "plate-management" */ '@/views/foilingplate/List.vue'),
         meta: { title: '烫金版管理', requiresAuth: true }
       },
       {
         path: 'embossing-plates',
         name: 'EmbossingPlateList',
-        component: () => import('@/views/embossingplate/List.vue'),
+        component: () => import(/* webpackChunkName: "plate-management" */ '@/views/embossingplate/List.vue'),
         meta: { title: '压凸版管理', requiresAuth: true }
       },
+
+      // 供应商和采购 - 合并到单个 chunk
       {
         path: 'suppliers',
         name: 'SupplierList',
-        component: () => import('@/views/supplier/List.vue'),
+        component: () => import(/* webpackChunkName: "purchase" */ '@/views/supplier/List.vue'),
         meta: { title: '供应商管理', requiresAuth: true }
       },
       {
         path: 'purchase-orders',
         name: 'PurchaseOrderList',
-        component: () => import('@/views/purchase/List.vue'),
+        component: () => import(/* webpackChunkName: "purchase" */ '@/views/purchase/List.vue'),
         meta: { title: '采购单管理', requiresAuth: true }
       },
+
+      // 销售订单 - 单独 chunk
       {
         path: 'sales-orders',
         name: 'SalesOrderList',
-        component: () => import('@/views/sales/List.vue'),
+        component: () => import(/* webpackChunkName: "sales-list" */ '@/views/sales/List.vue'),
         meta: { title: '销售订单管理', requiresAuth: true }
       },
       {
         path: 'sales-orders/create',
         name: 'SalesOrderCreate',
-        component: () => import('@/views/sales/Form.vue'),
+        component: () => import(/* webpackChunkName: "sales-form" */ '@/views/sales/Form.vue'),
         meta: { title: '新建销售订单', requiresAuth: true }
       },
       {
         path: 'sales-orders/:id',
         name: 'SalesOrderDetail',
-        component: () => import('@/views/sales/Detail.vue'),
+        component: () => import(/* webpackChunkName: "sales-detail" */ /* webpackPrefetch: true */ '@/views/sales/Detail.vue'),
         meta: { title: '销售订单详情', requiresAuth: true }
       },
       {
         path: 'sales-orders/:id/edit',
         name: 'SalesOrderEdit',
-        component: () => import('@/views/sales/Form.vue'),
+        component: () => import(/* webpackChunkName: "sales-form" */ '@/views/sales/Form.vue'),
         meta: { title: '编辑销售订单', requiresAuth: true }
       },
-      {
-        path: 'product-groups',
-        name: 'ProductGroupList',
-        component: () => import('@/views/productGroup/List.vue'),
-        meta: { title: '产品组管理', requiresAuth: true }
-      },
+
+      // 任务管理 - 单独 chunk，使用 prefetch
       {
         path: 'tasks',
         name: 'TaskList',
-        component: () => import('@/views/task/List.vue'),
+        component: () => import(/* webpackChunkName: "task-list" */ /* webpackPrefetch: true */ '@/views/task/List.vue'),
         meta: { title: '任务管理', requiresAuth: true }
       },
       {
         path: 'tasks/board',
         name: 'TaskBoard',
-        component: () => import('@/views/task/Board.vue'),
+        component: () => import(/* webpackChunkName: "task-board" */ '@/views/task/Board.vue'),
         meta: { title: '部门任务看板', requiresAuth: true }
       },
       {
         path: 'tasks/stats',
         name: 'TaskStats',
-        component: () => import('@/views/task/Stats.vue'),
+        component: () => import(/* webpackChunkName: "task-stats" */ '@/views/task/Stats.vue'),
         meta: { title: '协作统计', requiresAuth: true }
       },
       {
         path: 'tasks/assignment-history',
         name: 'AssignmentHistory',
-        component: () => import('@/views/task/AssignmentHistory.vue'),
+        component: () => import(/* webpackChunkName: "task-config" */ '@/views/task/AssignmentHistory.vue'),
         meta: { title: '分派历史', requiresAuth: true }
       },
       {
         path: 'tasks/assignment-rules',
         name: 'AssignmentRule',
-        component: () => import('@/views/task/AssignmentRule.vue'),
+        component: () => import(/* webpackChunkName: "task-config" */ '@/views/task/AssignmentRule.vue'),
         meta: { title: '分派规则配置', requiresAuth: true }
       },
+
+      // 通知中心 - 使用 prefetch
       {
         path: 'notifications',
         name: 'Notification',
-        component: () => import('@/views/Notification.vue'),
+        component: () => import(/* webpackChunkName: "notification" */ /* webpackPrefetch: true */ '@/views/Notification.vue'),
         meta: { title: '通知中心', requiresAuth: true }
       }
     ]

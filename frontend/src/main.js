@@ -6,10 +6,17 @@ import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import './assets/styles/global.css'
 
+// P2 优化: 虚拟滚动
+import VueVirtualScroller from 'vue-virtual-scroller'
+import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
+
 Vue.config.productionTip = false
 
 // 使用 Element UI
 Vue.use(ElementUI)
+
+// P2 优化: 注册虚拟滚动插件
+Vue.use(VueVirtualScroller)
 
 // 全局过滤器
 Vue.filter('formatDate', function(value) {
