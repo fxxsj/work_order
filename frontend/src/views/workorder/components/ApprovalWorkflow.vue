@@ -109,8 +109,6 @@
 </template>
 
 <script>
-import { permissionService } from '@/services'
-
 export default {
   name: 'ApprovalWorkflow',
   props: {

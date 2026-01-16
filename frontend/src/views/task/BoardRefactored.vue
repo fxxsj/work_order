@@ -168,7 +168,7 @@
 <script>
 import { taskAPI, departmentAPI } from '@/api/workorder'
 import { getUsersByDepartment } from '@/api/auth'
-import { taskService, permissionService } from '@/services'
+import { permissionService } from '@/services'
 import TaskStats from './components/TaskStats.vue'
 import TaskFilters from './components/TaskFilters.vue'
 import TaskBoardView from './components/TaskBoardView.vue'

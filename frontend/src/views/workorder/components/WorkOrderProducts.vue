@@ -48,6 +48,9 @@ export default {
   computed: {
     hasProducts() {
       return this.products && this.products.length > 0
+    },
+    totalAmount() {
+      return this.calculateTotal().toFixed(2)
     }
   },
   methods: {
@@ -62,11 +65,6 @@ export default {
         const unitPrice = product.unit_price || 0
         return sum + (quantity * unitPrice)
       }, 0)
-    }
-  },
-  computed: {
-    totalAmount() {
-      return this.calculateTotal().toFixed(2)
     }
   }
 }

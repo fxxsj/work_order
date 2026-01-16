@@ -7,6 +7,7 @@
           placeholder="搜索客户名称、联系人、电话"
           style="width: 300px;"
           clearable
+          @input="handleSearchDebounced"
           @clear="handleSearch"
         >
           <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
@@ -182,8 +183,18 @@ export default {
   created() {
     this.loadData()
     this.loadSalespersons()
+    // 创建防抖搜索函数
+    this.handleSearchDebounced = this.debounce(this.handleSearch, 300)
   },
   methods: {
+    // 防抖工具函数
+    debounce(func, wait) {
+      let timeout
+      return function(...args) {
+        clearTimeout(timeout)
+        timeout = setTimeout(() => func.apply(this, args), wait)
+      }
+    },
     // 检查用户是否有指定权限
     hasPermission(permission) {
       const userInfo = this.$store.getters.currentUser
