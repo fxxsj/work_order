@@ -91,26 +91,40 @@ export default {
 
         this.loading = true
         try {
+          console.log('[Login] 开始登录，用户名:', this.loginForm.username)
           const user = await login(this.loginForm)
+          console.log('[Login] 后端返回的用户数据:', user)
 
           if (user.id) {
+            console.log('[Login] 登录成功，准备调用 initUser action')
             // 登录成功，保存用户信息到 Vuex（使用新的模块化 API）
             // 后端直接返回用户对象，包含 groups（字符串数组）和 permissions（字符串数组）
             this.$store.dispatch('user/initUser', user)
+            console.log('[Login] initUser action 已调用完成')
+
+            // 验证 store 中的数据
+            setTimeout(() => {
+              const currentUser = this.$store.getters['user/currentUser']
+              console.log('[Login] 验证 - store 中的 currentUser:', currentUser)
+            }, 100)
+
             this.$message.success('登录成功')
 
             // 跳转到首页或之前的页面
             const redirect = this.$route.query.redirect || '/'
+            console.log('[Login] 准备跳转到:', redirect)
             this.$router.push(redirect)
           } else if (user.error) {
             // 登录失败，后端返回了错误信息
+            console.log('[Login] 登录失败:', user.error)
             this.$message.error(user.error || '登录失败')
           } else {
             // 未知错误
+            console.log('[Login] 未知错误，user 数据:', user)
             this.$message.error('登录失败，请重试')
           }
         } catch (error) {
-          console.error('登录失败:', error)
+          console.error('[Login] 登录异常:', error)
           this.$message.error(error.message || '登录失败')
         } finally {
           this.loading = false
