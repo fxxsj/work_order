@@ -384,8 +384,8 @@ describe('FormValidationService', () => {
 
     test('clearErrors 应该清除所有错误', () => {
       // 先添加一些错误
-      const result1 = formValidationService.required('', '测试')
-      const result2 = formValidationService.numberRange(-10, { min: 1 })
+      formValidationService.required('', '测试')
+      formValidationService.numberRange(-10, { min: 1 })
 
       expect(formValidationService.hasErrors()).toBe(true)
 

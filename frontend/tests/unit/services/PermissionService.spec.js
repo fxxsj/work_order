@@ -161,12 +161,6 @@ describe('PermissionService', () => {
       groups: [{ name: '业务员' }]
     }
 
-    const supervisorUser = {
-      id: 2,
-      is_superuser: false,
-      groups: [{ name: '生产主管' }]
-    }
-
     const workOrder = {
       id: 1,
       customer: { id: 1, salesperson: { id: 1 } },
