@@ -192,10 +192,13 @@ service.interceptors.response.use(
 
         default:
           // 其他错误
-          const message = data?.message || data?.detail || '请求失败，请稍后重试'
-          MessageBox.alert(message, '错误', {
-            type: 'error'
-          })
+          {
+            const message = data?.message || data?.detail || '请求失败，请稍后重试'
+            MessageBox.alert(message, '错误', {
+              type: 'error'
+            })
+          }
+          break
       }
     } else if (error.request) {
       // 请求已发送但没有收到响应

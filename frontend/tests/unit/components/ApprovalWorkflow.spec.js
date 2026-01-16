@@ -2,7 +2,7 @@
  * ApprovalWorkflow 组件单元测试
  */
 
-/* global describe, test, expect, beforeEach, afterEach, jest */
+/* global describe, test, expect, afterEach, jest */
 
 import { shallowMount, createLocalVue } from '@vue/test-utils'
 import ApprovalWorkflow from '@/views/workorder/components/ApprovalWorkflow.vue'

@@ -28,7 +28,7 @@
       </template>
 
       <!-- 列表项模板 -->
-      <template #item="{ item, index }">
+      <template #item="{ item }">
         <div
           class="task-item"
           :class="{
