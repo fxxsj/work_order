@@ -261,7 +261,7 @@ class WorkOrderService extends BaseService {
       [WorkOrderStatus.COMPLETED]: '已完成',
       [WorkOrderStatus.CANCELLED]: '已取消'
     }
-    return statusMap[status] || '未知'
+    return statusMap[status] || status
   }
 
   /**
@@ -275,7 +275,7 @@ class WorkOrderService extends BaseService {
       [ApprovalStatus.APPROVED]: '已审核',
       [ApprovalStatus.REJECTED]: '已拒绝'
     }
-    return statusMap[status] || '未知'
+    return statusMap[status] || status
   }
 
   /**
@@ -406,9 +406,14 @@ class WorkOrderService extends BaseService {
   /**
    * 获取剩余天数
    * @param {Object} workOrder - 施工单对象
-   * @returns {number} 剩余天数（负数表示逾期）
+   * @returns {number|null} 剩余天数（负数表示逾期），已完成返回null
    */
   getRemainingDays(workOrder) {
+    // 已完成的施工单不计算剩余天数
+    if (workOrder.status === WorkOrderStatus.COMPLETED) {
+      return null
+    }
+
     if (!workOrder.delivery_date) {
       return null
     }
@@ -416,6 +421,7 @@ class WorkOrderService extends BaseService {
     const deliveryDate = new Date(workOrder.delivery_date)
     const today = new Date()
     today.setHours(0, 0, 0, 0)
+    deliveryDate.setHours(0, 0, 0, 0)
 
     const diffTime = deliveryDate - today
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
@@ -596,3 +602,4 @@ WorkOrderService.Priority = Priority
 const workOrderService = new WorkOrderService()
 
 export default workOrderService
+export { WorkOrderService }
