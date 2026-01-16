@@ -55,7 +55,7 @@ describe('FormValidationService', () => {
     test('应该验证数字小于最小值（不包含）', () => {
       const result = formValidationService.numberRange(0, { min: 1, max: 100, minInclusive: false })
       expect(result.valid).toBe(false)
-      expect(result.message).toBe('不能小于 1')
+      expect(result.message).toBe('必须大于 1')
     })
 
     test('应该验证数字小于最小值（包含）', () => {
@@ -66,7 +66,7 @@ describe('FormValidationService', () => {
     test('应该验证数字大于最大值（不包含）', () => {
       const result = formValidationService.numberRange(101, { min: 1, max: 100, maxInclusive: false })
       expect(result.valid).toBe(false)
-      expect(result.message).toBe('不能大于 100')
+      expect(result.message).toBe('必须小于 100')
     })
 
     test('应该验证数字大于最大值（包含）', () => {
@@ -105,13 +105,13 @@ describe('FormValidationService', () => {
     test('应该验证字符串太短', () => {
       const result = formValidationService.stringLength('a', { min: 2, max: 10 })
       expect(result.valid).toBe(false)
-      expect(result.message).toBe('长度不能小于 2')
+      expect(result.message).toBe('长度不能少于 2 个字符')
     })
 
     test('应该验证字符串太长', () => {
       const result = formValidationService.stringLength('abcdefghijk', { min: 2, max: 10 })
       expect(result.valid).toBe(false)
-      expect(result.message).toBe('长度不能大于 10')
+      expect(result.message).toBe('长度不能超过 10 个字符')
     })
 
     test('应该验证空字符串', () => {
