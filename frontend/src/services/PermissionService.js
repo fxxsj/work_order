@@ -148,6 +148,11 @@ class PermissionService {
       return false
     }
 
+    // 已审核通过的施工单不能删除
+    if (workOrder.approval_status === 'approved') {
+      return false
+    }
+
     return this.hasPermission('workorder.delete')
   }
 
@@ -157,6 +162,11 @@ class PermissionService {
    * @returns {boolean} 是否可以审核
    */
   canApproveWorkOrder(workOrder) {
+    // 超级用户可以直接审核
+    if (this.currentUser?.is_superuser) {
+      return true
+    }
+
     if (!this.hasPermission('workorder.approve')) {
       return false
     }
@@ -166,8 +176,8 @@ class PermissionService {
       return workOrder.customer?.salesperson?.id === this.currentUser.id
     }
 
-    // 管理员可以审核所有
-    return this.hasRole('管理员') || this.currentUser.is_superuser
+    // 有审核权限的用户可以审核
+    return true
   }
 
   /**
