@@ -254,6 +254,7 @@ describe('TaskCard.vue', () => {
 
     test('已完成的任务不应该显示更新和完成按钮', () => {
       const completedTask = { ...mockTask, status: 'completed' }
+      taskService.canComplete.mockReturnValue(false) // 已完成的任务不能完成
       wrapper = factory({ task: completedTask })
 
       expect(wrapper.vm.canUpdate).toBe(false)

@@ -66,16 +66,16 @@ export default {
   },
   computed: {
     totalTasks() {
-      return this.tasks.length
+      return this.tasks.filter(task => task !== null).length
     },
     pendingCount() {
-      return this.tasks.filter(task => task.status === 'pending').length
+      return this.tasks.filter(task => task && task.status === 'pending').length
     },
     inProgressCount() {
-      return this.tasks.filter(task => task.status === 'in_progress').length
+      return this.tasks.filter(task => task && task.status === 'in_progress').length
     },
     completedCount() {
-      return this.tasks.filter(task => task.status === 'completed').length
+      return this.tasks.filter(task => task && task.status === 'completed').length
     }
   }
 }
