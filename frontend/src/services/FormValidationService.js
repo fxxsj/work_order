@@ -487,11 +487,12 @@ class FormValidationService {
 
   /**
    * 清除表单验证错误
-   * @param {Object} errors - 错误对象（可选，用于兼容）
+   * @param {Object} _errors - 错误对象（可选，用于兼容）
    * @param {string|Array} fields - 要清除的字段，如果不指定则清除所有
    * @returns {Object} 清除后的错误对象
    */
-  clearErrors(errors = {}, fields) {
+  // eslint-disable-next-line no-unused-vars
+  clearErrors(_errors = {}, fields) {
     if (!fields) {
       this._errors = {}
       return {}
