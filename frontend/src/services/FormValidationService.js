@@ -95,14 +95,13 @@ class FormValidationService {
   stringLength(value, options = {}) {
     const { min, max } = options
 
+    // 将非字符串值转换为字符串
+    let strValue = value
     if (typeof value !== 'string') {
-      return {
-        valid: false,
-        message: '请输入有效的字符串'
-      }
+      strValue = String(value)
     }
 
-    const length = value.trim().length
+    const length = strValue.trim().length
 
     if (min !== undefined && length < min) {
       return {
@@ -128,7 +127,9 @@ class FormValidationService {
    * @returns {Object} 验证结果
    */
   dateRange(value, options = {}) {
-    const { minDate, maxDate } = options
+    // 支持两种参数名：min/max 和 minDate/maxDate
+    const minDate = options.minDate || options.min
+    const maxDate = options.maxDate || options.max
 
     if (!value) {
       return { valid: true } // 空值由 required 验证
@@ -144,7 +145,12 @@ class FormValidationService {
 
     if (minDate) {
       const min = new Date(minDate)
-      if (date < min) {
+      // 重置时间为 00:00:00 以进行纯日期比较
+      min.setHours(0, 0, 0, 0)
+      const compareDate = new Date(date)
+      compareDate.setHours(0, 0, 0, 0)
+
+      if (compareDate < min) {
         return {
           valid: false,
           message: `日期不能早于 ${minDate}`
@@ -154,7 +160,12 @@ class FormValidationService {
 
     if (maxDate) {
       const max = new Date(maxDate)
-      if (date > max) {
+      // 重置时间为 00:00:00 以进行纯日期比较
+      max.setHours(0, 0, 0, 0)
+      const compareDate = new Date(date)
+      compareDate.setHours(0, 0, 0, 0)
+
+      if (compareDate > max) {
         return {
           valid: false,
           message: `日期不能晚于 ${maxDate}`

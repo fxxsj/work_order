@@ -83,9 +83,10 @@ class PermissionService {
       return true
     }
 
-    // 业务员只能查看自己的客户
+    // 业务员可以查看自己的客户或自己创建的施工单
     if (this.hasRole('业务员')) {
-      return workOrder.customer?.salesperson?.id === this.currentUser.id
+      return workOrder.customer?.salesperson?.id === this.currentUser.id ||
+             workOrder.created_by?.id === this.currentUser.id
     }
 
     // 生产主管可以查看本部门相关的施工单
@@ -268,7 +269,21 @@ class PermissionService {
       return ['notes', 'delivery_date', 'actual_delivery_date']
     }
 
-    // 未审核的施工单可以编辑所有字段
+    // 待审核或未提交的施工单，有编辑权限的用户可以编辑所有字段
+    if (this.hasPermission('workorder.change')) {
+      // 返回所有可编辑的字段列表
+      return [
+        'customer',
+        'production_quantity',
+        'order_date',
+        'delivery_date',
+        'priority',
+        'notes',
+        'products_data',
+        'processes'
+      ]
+    }
+
     return []
   }
 
@@ -335,16 +350,43 @@ class PermissionService {
       return false
     }
 
+    // 超级用户可以访问所有菜单
+    if (this.currentUser?.is_superuser) {
+      return true
+    }
+
+    // 如果是字符串，转换为菜单对象
+    let menuObj = menu
+    if (typeof menu === 'string') {
+      // 菜单路径到权限的映射
+      const menuPermissionMap = {
+        '/workorders': 'workorder.view',
+        '/tasks': 'task.view',
+        '/customers': 'customer.view',
+        '/products': 'product.view',
+        '/materials': 'material.view',
+        '/artworks': 'artwork.view',
+        '/reports': 'report.view',
+        '/settings': 'setting.view',
+        '/admin': 'admin.access'
+      }
+
+      menuObj = {
+        path: menu,
+        permission: menuPermissionMap[menu]
+      }
+    }
+
     // 检查角色权限
-    if (menu.roles && menu.roles.length > 0) {
-      if (!this.hasRole(menu.roles)) {
+    if (menuObj.roles && menuObj.roles.length > 0) {
+      if (!this.hasRole(menuObj.roles)) {
         return false
       }
     }
 
     // 检查具体权限
-    if (menu.permission) {
-      if (!this.hasPermission(menu.permission)) {
+    if (menuObj.permission) {
+      if (!this.hasPermission(menuObj.permission)) {
         return false
       }
     }
@@ -358,13 +400,30 @@ class PermissionService {
    * @returns {boolean} 是否可以导出
    */
   canExport(dataType) {
+    // 超级用户可以导出所有数据
+    if (this.currentUser?.is_superuser) {
+      return true
+    }
+
     const exportPermissionMap = {
       workorder: 'workorder.export_workorder',
       task: 'workorder.export_task',
       customer: 'workorder.export_customer'
     }
 
-    return this.hasPermission(exportPermissionMap[dataType] || 'workorder.export')
+    // 如果有具体的导出权限，允许导出
+    if (exportPermissionMap[dataType] && this.hasPermission(exportPermissionMap[dataType])) {
+      return true
+    }
+
+    // 如果有查看权限，也允许导出
+    const viewPermissionMap = {
+      workorder: 'workorder.view',
+      task: 'workorder.view',
+      customer: 'workorder.view'
+    }
+
+    return this.hasPermission(viewPermissionMap[dataType] || 'workorder.view')
   }
 
   /**
