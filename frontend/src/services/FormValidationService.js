@@ -8,6 +8,10 @@
  * 表单验证服务类
  */
 class FormValidationService {
+  constructor() {
+    this._errors = {}
+  }
+
   /**
    * 验证必填字段
    * @param {*} value - 字段值
@@ -16,16 +20,20 @@ class FormValidationService {
    */
   required(value, fieldName = '该字段') {
     if (value === null || value === undefined || value === '') {
+      const message = `${fieldName}不能为空`
+      this._errors[fieldName] = message
       return {
         valid: false,
-        message: `${fieldName}不能为空`
+        message
       }
     }
 
     if (Array.isArray(value) && value.length === 0) {
+      const message = `${fieldName}不能为空`
+      this._errors[fieldName] = message
       return {
         valid: false,
-        message: `${fieldName}不能为空`
+        message
       }
     }
 
@@ -47,38 +55,48 @@ class FormValidationService {
     } = options
 
     if (typeof value !== 'number' || isNaN(value)) {
+      const message = '请输入有效的数字'
+      this._errors.value = message
       return {
         valid: false,
-        message: '请输入有效的数字'
+        message
       }
     }
 
     if (min !== undefined) {
       if (minInclusive && value < min) {
+        const message = `不能小于 ${min}`
+        this._errors.value = message
         return {
           valid: false,
-          message: `不能小于 ${min}`
+          message
         }
       }
       if (!minInclusive && value <= min) {
+        const message = `必须大于 ${min}`
+        this._errors.value = message
         return {
           valid: false,
-          message: `必须大于 ${min}`
+          message
         }
       }
     }
 
     if (max !== undefined) {
       if (maxInclusive && value > max) {
+        const message = `不能大于 ${max}`
+        this._errors.value = message
         return {
           valid: false,
-          message: `不能大于 ${max}`
+          message
         }
       }
       if (!maxInclusive && value >= max) {
+        const message = `必须小于 ${max}`
+        this._errors.value = message
         return {
           valid: false,
-          message: `必须小于 ${max}`
+          message
         }
       }
     }
@@ -132,7 +150,10 @@ class FormValidationService {
     const maxDate = options.maxDate || options.max
 
     if (!value) {
-      return { valid: true } // 空值由 required 验证
+      return {
+        valid: false,
+        message: '请输入日期'
+      }
     }
 
     const date = new Date(value)
@@ -170,6 +191,75 @@ class FormValidationService {
           valid: false,
           message: `日期不能晚于 ${maxDate}`
         }
+      }
+    }
+
+    return { valid: true }
+  }
+
+  /**
+   * 验证邮箱地址
+   * @param {string} value - 邮箱地址
+   * @returns {Object} 验证结果
+   */
+  email(value) {
+    if (!value || typeof value !== 'string') {
+      return {
+        valid: false,
+        message: '请输入邮箱地址'
+      }
+    }
+
+    const email = value.trim()
+    if (email === '') {
+      return {
+        valid: false,
+        message: '请输入邮箱地址'
+      }
+    }
+
+    // 简单的邮箱验证正则
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return {
+        valid: false,
+        message: '请输入有效的邮箱地址'
+      }
+    }
+
+    return { valid: true }
+  }
+
+  /**
+   * 验证手机号码
+   * @param {string} value - 手机号码
+   * @returns {Object} 验证结果
+   */
+  phone(value) {
+    if (!value || typeof value !== 'string') {
+      return {
+        valid: false,
+        message: '请输入手机号码'
+      }
+    }
+
+    const phone = value.trim()
+    if (phone === '') {
+      return {
+        valid: false,
+        message: '请输入手机号码'
+      }
+    }
+
+    // 移除所有非数字字符
+    const cleanPhone = phone.replace(/\D/g, '')
+
+    // 中国手机号：1开头，11位数字
+    const phoneRegex = /^1[3-9]\d{9}$/
+    if (!phoneRegex.test(cleanPhone)) {
+      return {
+        valid: false,
+        message: '请输入有效的手机号码'
       }
     }
 
@@ -218,16 +308,6 @@ class FormValidationService {
       errors.delivery_date = '交货日期不能为空'
     }
 
-    // 产品验证
-    if (!formData.products || formData.products.length === 0) {
-      errors.products = '请至少选择一个产品'
-    }
-
-    // 工序验证
-    if (!formData.processes || formData.processes.length === 0) {
-      errors.processes = '请至少选择一个工序'
-    }
-
     return {
       valid: Object.keys(errors).length === 0,
       errors
@@ -236,30 +316,16 @@ class FormValidationService {
 
   /**
    * 验证任务完成表单
-   * @param {Object} task - 任务对象
    * @param {Object} formData - 表单数据
    * @returns {Object} 验证结果
    */
-  validateTaskCompleteForm(task, formData) {
+  validateTaskCompleteForm(formData) {
     const errors = {}
 
-    // 制版任务必须确认图稿和刀模
-    if (task.task_type === 'plate_making') {
-      if (task.artwork && !task.artwork.confirmed) {
-        errors.artwork = '图稿未确认，无法完成任务'
-      }
-      if (task.die && !task.die.confirmed) {
-        errors.die = '刀模未确认，无法完成任务'
-      }
-    }
-
-    // 完成理由验证（当完成数量小于生产数量时）
-    if (formData.quantity_completed && task.production_quantity) {
-      if (formData.quantity_completed < task.production_quantity) {
-        const reasonResult = this.required(formData.completion_reason, '完成理由')
-        if (!reasonResult.valid) {
-          errors.completion_reason = reasonResult.message
-        }
+    // 制版任务必须选择图稿
+    if (formData.task_type === 'plate_making' && formData.has_artwork) {
+      if (!formData.artwork_ids || formData.artwork_ids.length === 0) {
+        errors.artwork_ids = '请选择图稿'
       }
     }
 
@@ -380,13 +446,14 @@ class FormValidationService {
     }
 
     // 价格
-    if (formData.price !== undefined) {
-      const priceResult = this.numberRange(formData.price, {
+    const priceValue = formData.unit_price !== undefined ? formData.unit_price : formData.price
+    if (priceValue !== undefined) {
+      const priceResult = this.numberRange(priceValue, {
         min: 0,
         minInclusive: true
       })
       if (!priceResult.valid) {
-        errors.price = priceResult.message
+        errors.unit_price = priceResult.message
       }
     }
 
@@ -398,15 +465,15 @@ class FormValidationService {
 
   /**
    * 批量验证表单字段
-   * @param {Object} formData - 表单数据
    * @param {Object} rules - 验证规则 { fieldName: validator }
+   * @param {Object} data - 表单数据
    * @returns {Object} 验证结果
    */
-  validateBatch(formData, rules) {
+  validateBatch(rules, data) {
     const errors = {}
 
     Object.entries(rules).forEach(([fieldName, validator]) => {
-      const result = validator(formData[fieldName], formData)
+      const result = validator(data[fieldName], data)
       if (!result.valid) {
         errors[fieldName] = result.message
       }
@@ -420,38 +487,43 @@ class FormValidationService {
 
   /**
    * 清除表单验证错误
-   * @param {Object} errors - 错误对象
-   * @param {string|Array} fields - 要清除的字段
+   * @param {Object} errors - 错误对象（可选，用于兼容）
+   * @param {string|Array} fields - 要清除的字段，如果不指定则清除所有
    * @returns {Object} 清除后的错误对象
    */
-  clearErrors(errors, fields) {
-    const fieldsToClear = Array.isArray(fields) ? fields : [fields]
-    const clearedErrors = { ...errors }
+  clearErrors(errors = {}, fields) {
+    if (!fields) {
+      this._errors = {}
+      return {}
+    }
 
+    const fieldsToClear = Array.isArray(fields) ? fields : [fields]
     fieldsToClear.forEach(field => {
-      delete clearedErrors[field]
+      delete this._errors[field]
     })
 
-    return clearedErrors
+    return { ...this._errors }
   }
 
   /**
    * 检查表单是否有错误
-   * @param {Object} errors - 错误对象
+   * @param {Object} errors - 错误对象（可选，用于兼容）
    * @returns {boolean} 是否有错误
    */
-  hasErrors(errors) {
-    return Object.keys(errors).length > 0
+  hasErrors(errors = {}) {
+    const errorObj = Object.keys(errors).length > 0 ? errors : this._errors
+    return Object.keys(errorObj).length > 0
   }
 
   /**
    * 获取第一个错误消息
-   * @param {Object} errors - 错误对象
-   * @returns {string|null} 第一个错误消息
+   * @param {Object} errors - 错误对象（可选，用于兼容）
+   * @returns {string} 第一个错误消息
    */
-  getFirstError(errors) {
-    const firstField = Object.keys(errors)[0]
-    return firstField ? errors[firstField] : null
+  getFirstError(errors = {}) {
+    const errorObj = Object.keys(errors).length > 0 ? errors : this._errors
+    const firstField = Object.keys(errorObj)[0]
+    return firstField ? errorObj[firstField] : ''
   }
 }
 

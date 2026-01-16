@@ -204,10 +204,10 @@ class TaskService extends BaseService {
 
     if (task.task_type === TaskType.PLATE_MAKING) {
       if (task.artwork && !task.artwork.confirmed) {
-        return '图稿未确认'
+        return '需要确认图稿'
       }
       if (task.die && !task.die.confirmed) {
-        return '刀模未确认'
+        return '需要确认刀模'
       }
       if (task.foiling_plate && !task.foiling_plate.confirmed) {
         return '烫金版未确认'
@@ -217,7 +217,7 @@ class TaskService extends BaseService {
       }
     }
 
-    return null
+    return ''
   }
 
   /**
@@ -226,7 +226,7 @@ class TaskService extends BaseService {
    * @returns {boolean} 是否逾期
    */
   isOverdue(task) {
-    if (!task.deadline || task.status === TaskStatus.COMPLETED) {
+    if (!task.deadline || task.status === TaskStatus.COMPLETED || task.status === TaskStatus.CANCELLED) {
       return false
     }
 
@@ -239,7 +239,7 @@ class TaskService extends BaseService {
    * @returns {number|null} 剩余天数，null 表示无截止日期
    */
   getRemainingDays(task) {
-    if (!task.deadline) {
+    if (!task.deadline || task.status === TaskStatus.COMPLETED || task.status === TaskStatus.CANCELLED) {
       return null
     }
 

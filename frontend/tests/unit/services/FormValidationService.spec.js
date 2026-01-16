@@ -379,6 +379,8 @@ describe('FormValidationService', () => {
 
   describe('错误管理', () => {
     test('hasErrors 应该返回 false 当没有错误时', () => {
+      // 先清除之前的错误
+      formValidationService.clearErrors()
       expect(formValidationService.hasErrors()).toBe(false)
     })
 

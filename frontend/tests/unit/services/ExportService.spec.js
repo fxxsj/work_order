@@ -9,9 +9,9 @@ jest.mock('xlsx', () => ({
   utils: {
     book_new: jest.fn(() => ({})),
     json_to_sheet: jest.fn(() => ({})),
-    book_append_sheet: jest.fn(),
-    writeFile: jest.fn(() => {})
-  }
+    book_append_sheet: jest.fn()
+  },
+  writeFile: jest.fn(() => {})
 }))
 
 describe('ExportService', () => {
@@ -155,10 +155,12 @@ describe('ExportService', () => {
           quantity_completed: 50,
           status: 'in_progress',
           status_display: '进行中',
-          work_order_process_info: {
-            process: { name: '印刷' },
-            work_order: { order_number: 'WO2026001' }
-          }
+          task_type_display: '通用任务',
+          process_name: '印刷',
+          quantity_defective: 0,
+          assigned_department_name: '印刷车间',
+          assigned_operator_name: '张三',
+          created_at: '2026-01-15T10:30:00'
         }
       ]
 
@@ -175,7 +177,12 @@ describe('ExportService', () => {
           work_content: '测试任务',
           production_quantity: 100,
           quantity_completed: 100,
-          status: 'completed'
+          status: 'completed',
+          status_display: '已完成',
+          task_type_display: '通用任务',
+          process_name: '印刷',
+          quantity_defective: 0,
+          created_at: '2026-01-15T10:30:00'
         }
       ]
 
@@ -185,7 +192,16 @@ describe('ExportService', () => {
     })
 
     test('应该生成带时间戳的文件名', async () => {
-      const tasks = [{ id: 1, work_content: '测试' }]
+      const tasks = [
+        {
+          id: 1,
+          work_content: '测试',
+          status_display: '待开始',
+          task_type_display: '通用任务',
+          process_name: '印刷',
+          created_at: '2026-01-15T10:30:00'
+        }
+      ]
 
       const result = await exportService.exportTasks(tasks)
 
@@ -229,9 +245,19 @@ describe('ExportService', () => {
           id: 1,
           order_number: 'WO2026001',
           customer_name: '客户A',
+          product_name: '测试产品',
+          quantity: 100,
+          unit: '件',
           status: 'pending',
+          status_display: '待开始',
           priority: 'high',
-          order_date: '2026-01-15'
+          priority_display: '紧急',
+          order_date: '2026-01-15',
+          delivery_date: '2026-12-31',
+          production_quantity: 100,
+          progress_percentage: 0,
+          manager_name: '张三',
+          created_at: '2026-01-15T10:00:00'
         }
       ]
 
@@ -241,7 +267,26 @@ describe('ExportService', () => {
     })
 
     test('应该生成带时间戳的文件名', async () => {
-      const workOrders = [{ id: 1, order_number: 'WO001' }]
+      const workOrders = [
+        {
+          id: 1,
+          order_number: 'WO001',
+          customer_name: '客户',
+          product_name: '产品',
+          quantity: 100,
+          unit: '件',
+          status: 'pending',
+          status_display: '待开始',
+          priority: 'normal',
+          priority_display: '普通',
+          order_date: '2026-01-15',
+          delivery_date: '2026-12-31',
+          production_quantity: 100,
+          progress_percentage: 0,
+          manager_name: '李四',
+          created_at: '2026-01-15T10:00:00'
+        }
+      ]
 
       const result = await exportService.exportWorkOrders(workOrders)
 
