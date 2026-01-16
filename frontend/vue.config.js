@@ -41,7 +41,7 @@ module.exports = defineConfig({
         ws: true,
         timeout: 30000,
         proxyTimeout: 30000,
-        onError: (err, req, _res) => {
+        onError: (err, req) => {
           console.error('Proxy error:', err.message)
           console.error('Request URL:', req.url)
           if (err.code === 'ECONNREFUSED') {
@@ -49,7 +49,7 @@ module.exports = defineConfig({
             console.error('请确保后端服务器正在运行: cd backend && python manage.py runserver')
           }
         },
-        onProxyReq: (proxyReq, req, _res) => {
+        onProxyReq: (proxyReq, req) => {
           // 只在开发环境打印日志
           if (process.env.NODE_ENV === 'development') {
             console.log('Proxying:', req.method, req.url)
