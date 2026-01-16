@@ -213,7 +213,7 @@
 </template>
 
 <script>
-import { taskService, workOrderService } from '@/services'
+import { taskService } from '@/services'
 import TaskManagement from './TaskManagement.vue'
 
 export default {
