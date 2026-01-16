@@ -222,7 +222,7 @@ router.beforeEach(async (to, from, next) => {
       try {
         // 尝试获取当前用户信息
         const userInfo = await getCurrentUser()
-        store.dispatch('user/setUserInfo', userInfo)
+        store.dispatch('user/initUser', userInfo)
         next()
       } catch (error) {
         // 未登录，跳转到登录页

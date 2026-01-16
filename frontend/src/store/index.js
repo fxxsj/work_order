@@ -149,5 +149,18 @@ if (process.env.NODE_ENV !== 'production') {
   )
 }
 
+// 向后兼容层（添加 setUserInfo action 支持）
+const originalDispatch = store.dispatch
+
+store.dispatch = function(action, payload) {
+  // 拦截 setUserInfo 调用并重定向到 initUser
+  if (action === 'user/setUserInfo') {
+    console.warn('[Vuex Store] 检测到过时的 setUserInfo 调用，正在重定向到 user/initUser')
+    return originalDispatch.call(store, 'user/initUser', payload)
+  }
+  // 其他 action 正常处理
+  return originalDispatch.call(store, action, payload)
+}
+
 // 导出 store
 export default store
