@@ -88,15 +88,10 @@ describe('ExportService', () => {
       global.URL.createObjectURL = jest.fn(() => 'blob:url')
       global.URL.revokeObjectURL = jest.fn()
 
-      const createElementSpy = jest.spyOn(document, 'createElement')
-      const appendChildSpy = jest.spyOn(document.body, 'appendChild')
-      const removeChildSpy = jest.spyOn(document.body, 'removeChild')
-
-      createElementSpy.mockReturnValue({
-        href: '',
-        download: '',
-        click: jest.fn()
-      })
+      const mockLink = { href: '', download: '', click: jest.fn() }
+      const createElementSpy = jest.spyOn(document, 'createElement').mockReturnValue(mockLink)
+      const appendChildSpy = jest.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink)
+      const removeChildSpy = jest.spyOn(document.body, 'removeChild').mockImplementation(() => {})
 
       const result = await exportService.exportToCSV(data, {
         filename: 'test_csv',
@@ -125,15 +120,10 @@ describe('ExportService', () => {
       global.URL.createObjectURL = jest.fn(() => 'blob:url')
       global.URL.revokeObjectURL = jest.fn()
 
-      const createElementSpy = jest.spyOn(document, 'createElement')
-      createElementSpy.mockReturnValue({
-        href: '',
-        download: '',
-        click: jest.fn()
-      })
-
-      const appendChildSpy = jest.spyOn(document.body, 'appendChild')
-      const removeChildSpy = jest.spyOn(document.body, 'removeChild')
+      const mockLink = { href: '', download: '', click: jest.fn() }
+      const createElementSpy = jest.spyOn(document, 'createElement').mockReturnValue(mockLink)
+      const appendChildSpy = jest.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink)
+      const removeChildSpy = jest.spyOn(document.body, 'removeChild').mockImplementation(() => {})
 
       const result = await exportService.exportToCSV(data, { columns })
 

@@ -66,7 +66,7 @@ export default {
   },
   computed: {
     totalTasks() {
-      return this.tasks.filter(task => task !== null).length
+      return this.tasks.length
     },
     pendingCount() {
       return this.tasks.filter(task => task && task.status === 'pending').length
