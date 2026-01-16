@@ -219,24 +219,19 @@ router.beforeEach(async (to, from, next) => {
   if (requiresAuth) {
     // 检查是否已有用户信息（使用新的模块化 API）
     if (!store.getters['user/currentUser']) {
-      console.log('[Router] 路由守卫 - currentUser 为空，尝试获取用户信息')
       try {
         // 尝试获取当前用户信息
         const userInfo = await getCurrentUser()
-        console.log('[Router] 路由守卫 - 成功获取用户信息:', userInfo)
         if (userInfo && userInfo.id) {
           store.dispatch('user/initUser', userInfo)
-          console.log('[Router] 路由守卫 - 用户信息已存入 store')
           next()
         } else {
-          console.log('[Router] 路由守卫 - 用户信息无效，跳转登录页')
           next({
             path: '/login',
             query: { redirect: to.fullPath }
           })
         }
       } catch (error) {
-        console.log('[Router] 路由守卫 - 获取用户信息失败:', error)
         // 未登录，跳转到登录页
         next({
           path: '/login',
@@ -244,7 +239,6 @@ router.beforeEach(async (to, from, next) => {
         })
       }
     } else {
-      console.log('[Router] 路由守卫 - currentUser 已存在，直接放行')
       next()
     }
   } else {

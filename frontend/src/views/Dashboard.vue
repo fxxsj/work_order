@@ -781,7 +781,7 @@ export default {
     },
     // 检查用户是否为管理员
     isAdmin() {
-      const userInfo = this.$store.getters.currentUser
+      const userInfo = this.$store.getters['user/currentUser']
       return userInfo && userInfo.is_superuser === true
     },
     // 获取业务分析数据
@@ -915,7 +915,7 @@ export default {
 
         // 如果是操作员，加载我的任务
         if (this.isOperator) {
-          const userInfo = this.$store.getters.currentUser
+          const userInfo = this.$store.getters['user/currentUser']
           if (userInfo && userInfo.id) {
             try {
               const taskResponse = await workOrderTaskAPI.getList({
@@ -987,7 +987,7 @@ export default {
     },
     goToPendingApprovals() {
       // 跳转到施工单列表，并筛选出当前业务员负责的待审核施工单
-      const userInfo = this.$store.getters.currentUser
+      const userInfo = this.$store.getters['user/currentUser']
       if (!userInfo || !userInfo.id) return
       
       this.$router.push({
@@ -1036,7 +1036,7 @@ export default {
     },
     // 跳转到我的任务
     goToMyTasks() {
-      const userInfo = this.$store.getters.currentUser
+      const userInfo = this.$store.getters['user/currentUser']
       if (userInfo && userInfo.id) {
         this.goToTaskList({ assigned_operator: userInfo.id })
       }

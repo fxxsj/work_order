@@ -208,7 +208,7 @@ export default {
   computed: {
     // 检查用户是否为业务员
     isSalesperson() {
-      const userInfo = this.$store.getters.currentUser
+      const userInfo = this.$store.getters['user/currentUser']
       return userInfo && userInfo.is_salesperson
     },
     // 检查是否有编辑权限
@@ -252,7 +252,7 @@ export default {
   methods: {
     // 检查用户是否有指定权限
     hasPermission(permission) {
-      const userInfo = this.$store.getters.currentUser
+      const userInfo = this.$store.getters['user/currentUser']
       if (!userInfo) return false
       
       // 超级用户拥有所有权限

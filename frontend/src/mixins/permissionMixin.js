@@ -10,7 +10,7 @@ export default {
      * @returns {boolean} 是否有权限
      */
     hasPermission(permission) {
-      const userInfo = this.$store.getters.currentUser
+      const userInfo = this.$store.getters['user/currentUser']
       if (!userInfo) return false
       if (userInfo.is_superuser) return true
       const permissions = userInfo.permissions || []

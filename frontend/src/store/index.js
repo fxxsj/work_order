@@ -138,59 +138,13 @@ const store = new Vuex.Store({
 // ============ 开发环境提示 ============
 // 提示开发者使用新的模块化 API
 if (process.env.NODE_ENV !== 'production') {
-  console.warn(
-    '[Vuex Store] 已启用模块化架构。建议使用新的模块化 API：\n' +
-    '  - store.state.userInfo → store.getters["user/currentUser"]\n' +
-    '  - store.state.selectedWorkOrder → store.getters["workOrder/selectedWorkOrder"]\n' +
-    '  - store.getters.isSalesperson → store.getters["user/hasRole"]("salesperson")\n' +
-    '  - store.dispatch("setUserInfo", data) → store.dispatch("user/setUserInfo", data)\n' +
-    '\n' +
-    '向后兼容层已启用，旧代码仍可正常工作。'
+  console.info(
+    '[Vuex Store] 模块化架构已启用。\n' +
+    '使用命名空间访问模块：\n' +
+    '  - store.getters["user/currentUser"]\n' +
+    '  - store.getters["user/isAuthenticated"]\n' +
+    '  - store.dispatch("user/initUser", data)\n'
   )
-}
-
-// 向后兼容层（添加 setUserInfo action 和 currentUser getter 支持）
-const originalDispatch = store.dispatch
-const originalGetters = {}
-
-// 拦截 getters 访问，添加向后兼容
-Object.defineProperty(store, 'getters', {
-  get() {
-    // 合并模块化的 getters 和向后兼容的 getters
-    const moduleGetters = store._getters || {}
-    return new Proxy(moduleGetters, {
-      get(target, prop) {
-        // 如果访问的是旧的非命名空间 getter，重定向到新的命名空间 getter
-        if (prop === 'currentUser' || prop === 'userInfo') {
-          console.log(`[Vuex Store] 向后兼容: getters.${prop} → getters["user/currentUser"]`)
-          return target['user/currentUser']
-        }
-        if (prop === 'isAuthenticated') {
-          console.log(`[Vuex Store] 向后兼容: getters.${prop} → getters["user/isAuthenticated"]`)
-          return target['user/isAuthenticated']
-        }
-        if (prop === 'isSalesperson') {
-          console.log(`[Vuex Store] 向后兼容: getters.${prop} → getters["user/isSalesperson"]`)
-          return target['user/isSalesperson']
-        }
-        // 其他 getter 正常返回
-        return target[prop]
-      }
-    })
-  },
-  set(value) {
-    store._getters = value
-  }
-})
-
-store.dispatch = function(action, payload) {
-  // 拦截 setUserInfo 调用并重定向到 initUser
-  if (action === 'user/setUserInfo') {
-    console.warn('[Vuex Store] 检测到过时的 setUserInfo 调用，正在重定向到 user/initUser')
-    return originalDispatch.call(store, 'user/initUser', payload)
-  }
-  // 其他 action 正常处理
-  return originalDispatch.call(store, action, payload)
 }
 
 // 导出 store

@@ -156,19 +156,13 @@ export default {
       return this.isEdit ? '编辑工序' : '新建工序'
     },
     canCreate() {
-      const result = this.hasPermission('workorder.add_process')
-      console.log('[Process List] canCreate - 检查权限 workorder.add_process:', result)
-      return result
+      return this.hasPermission('workorder.add_process')
     },
     canEdit() {
-      const result = this.hasPermission('workorder.change_process')
-      console.log('[Process List] canEdit - 检查权限 workorder.change_process:', result)
-      return result
+      return this.hasPermission('workorder.change_process')
     },
     canDelete() {
-      const result = this.hasPermission('workorder.delete_process')
-      console.log('[Process List] canDelete - 检查权限 workorder.delete_process:', result)
-      return result
+      return this.hasPermission('workorder.delete_process')
     }
   },
   created() {
@@ -177,33 +171,17 @@ export default {
   methods: {
     // 检查用户是否有指定权限
     hasPermission(permission) {
-      const userInfo = this.$store.getters.currentUser
-      console.log('[Process List] hasPermission - userInfo:', userInfo)
-      console.log('[Process List] hasPermission - 检查权限:', permission)
-
-      if (!userInfo) {
-        console.log('[Process List] hasPermission - userInfo 为空，返回 false')
-        return false
-      }
+      const userInfo = this.$store.getters['user/currentUser']
+      if (!userInfo) return false
 
       // 超级用户拥有所有权限
-      if (userInfo.is_superuser) {
-        console.log('[Process List] hasPermission - 是超级用户，返回 true')
-        return true
-      }
+      if (userInfo.is_superuser) return true
 
       // 检查权限列表
       const permissions = userInfo.permissions || []
-      console.log('[Process List] hasPermission - permissions 数组:', permissions)
+      if (permissions.includes('*')) return true
 
-      if (permissions.includes('*')) {
-        console.log('[Process List] hasPermission - permissions 包含 *，返回 true')
-        return true
-      }
-
-      const hasPermission = permissions.includes(permission)
-      console.log('[Process List] hasPermission - 检查结果:', hasPermission)
-      return hasPermission
+      return permissions.includes(permission)
     },
     async loadData() {
       this.loading = true

@@ -1781,7 +1781,7 @@ export default {
     },
     // 检查是否可以审核（用户是业务员且负责该施工单的客户）
     canApprove() {
-      const userInfo = this.$store.getters.currentUser
+      const userInfo = this.$store.getters['user/currentUser']
       if (!userInfo || !userInfo.is_salesperson) return false
       if (!this.workOrder || !this.workOrder.customer_detail) return false
       // 检查施工单的客户对应的业务员是否是当前登录的业务员
@@ -1789,7 +1789,7 @@ export default {
     },
     // 检查是否可以重新提交审核（制表人、创建人或有编辑权限的用户）
     canResubmit() {
-      const userInfo = this.$store.getters.currentUser
+      const userInfo = this.$store.getters['user/currentUser']
       if (!userInfo || !this.workOrder) return false
       // 检查是否是制表人或创建人
       if (this.workOrder.manager === userInfo.id || this.workOrder.created_by === userInfo.id) {
@@ -1801,7 +1801,7 @@ export default {
     },
     // 检查是否可以请求重新审核（制表人、创建人或有编辑权限的用户）
     canRequestReapproval() {
-      const userInfo = this.$store.getters.currentUser
+      const userInfo = this.$store.getters['user/currentUser']
       if (!userInfo || !this.workOrder) return false
       // 检查是否是制表人或创建人
       if (this.workOrder.manager === userInfo.id || this.workOrder.created_by === userInfo.id) {

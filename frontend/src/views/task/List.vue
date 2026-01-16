@@ -1516,7 +1516,7 @@ export default {
     },
     // 检查是否有导出权限
     canExport() {
-      const userInfo = this.$store.getters.currentUser
+      const userInfo = this.$store.getters['user/currentUser']
       if (!userInfo) return false
       if (userInfo.is_superuser) return true
       const permissions = userInfo.permissions || []
