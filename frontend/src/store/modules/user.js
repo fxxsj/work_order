@@ -127,9 +127,13 @@ const actions = {
     try {
       // 调用认证 API
       const response = await login({ username, password })
-      
+
       if (response.id) {
         // 登录成功，提取用户信息
+        // 后端返回的 groups 是字符串数组，需要转换为角色数组
+        const roles = response.groups || []
+        const permissions = response.permissions || []
+
         const user = {
           id: response.id,
           username: response.username,
@@ -137,14 +141,15 @@ const actions = {
           email: response.email,
           is_superuser: response.is_superuser,
           is_staff: response.is_staff,
-          groups: response.groups || [],
-          permissions: response.permissions || [],
+          // 保持原始格式（字符串数组），以便前端使用
+          groups: roles.map(roleName => ({ name: roleName })),
+          permissions: permissions,
           is_salesperson: response.is_salesperson || false
         }
 
         commit('SET_CURRENT_USER', user)
-        commit('SET_ROLES', user.groups?.map(g => g.name) || [])
-        commit('SET_PERMISSIONS', user.permissions || [])
+        commit('SET_ROLES', roles)
+        commit('SET_PERMISSIONS', permissions)
 
         // 初始化 PermissionService
         permissionService.initUser(user)
@@ -193,12 +198,34 @@ const actions = {
   // 初始化用户信息（从 localStorage 或其他来源）
   initUser({ commit }, user) {
     if (user) {
-      commit('SET_CURRENT_USER', user)
-      commit('SET_ROLES', user.groups?.map(g => g.name) || [])
-      commit('SET_PERMISSIONS', user.permissions || [])
+      // 处理两种可能的 groups 格式：
+      // 1. 字符串数组（来自后端 API）: ['管理员']
+      // 2. 对象数组（已经处理过）: [{ name: '管理员' }]
+      let roles = []
+      if (Array.isArray(user.groups)) {
+        if (user.groups.length > 0 && typeof user.groups[0] === 'string') {
+          // 字符串数组格式
+          roles = user.groups
+        } else if (user.groups.length > 0 && typeof user.groups[0] === 'object') {
+          // 对象数组格式
+          roles = user.groups.map(g => g.name).filter(Boolean)
+        }
+      }
+
+      const permissions = user.permissions || []
+
+      // 标准化用户对象
+      const normalizedUser = {
+        ...user,
+        groups: roles.map(roleName => ({ name: roleName }))
+      }
+
+      commit('SET_CURRENT_USER', normalizedUser)
+      commit('SET_ROLES', roles)
+      commit('SET_PERMISSIONS', permissions)
 
       // 初始化 PermissionService
-      permissionService.initUser(user)
+      permissionService.initUser(normalizedUser)
     }
   }
 }
