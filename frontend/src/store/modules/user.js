@@ -3,6 +3,7 @@
  * 管理用户信息和认证状态
  */
 
+import { login } from '@/api/auth'
 import { permissionService } from '@/services'
 
 // 初始状态
@@ -122,33 +123,36 @@ const mutations = {
 // Actions
 const actions = {
   // 登录
-  async login({ commit }, { username }) {
+  async login({ commit }, { username, password }) {
     try {
-      // 这里应该调用认证 API
-      // const result = await authAPI.login({ username, password })
+      // 调用认证 API
+      const response = await login({ username, password })
+      
+      if (response.id) {
+        // 登录成功，提取用户信息
+        const user = {
+          id: response.id,
+          username: response.username,
+          full_name: `${response.first_name || ''} ${response.last_name || ''}`.trim(),
+          email: response.email,
+          is_superuser: response.is_superuser,
+          is_staff: response.is_staff,
+          groups: response.groups || [],
+          permissions: response.permissions || [],
+          is_salesperson: response.is_salesperson || false
+        }
 
-      // 模拟登录成功
-      const user = {
-        id: 1,
-        username,
-        full_name: '测试用户',
-        is_superuser: false,
-        groups: [
-          { id: 1, name: '业务员' }
-        ],
-        permissions: ['workorder.view', 'task.view']
-      }
+        commit('SET_CURRENT_USER', user)
+        commit('SET_ROLES', user.groups?.map(g => g.name) || [])
+        commit('SET_PERMISSIONS', user.permissions || [])
 
-      commit('SET_CURRENT_USER', user)
-      commit('SET_ROLES', user.groups?.map(g => g.name) || [])
-      commit('SET_PERMISSIONS', user.permissions || [])
-
-      // 初始化 PermissionService
-      if (user) {
+        // 初始化 PermissionService
         permissionService.initUser(user)
-      }
 
-      return { success: true, user }
+        return { success: true, user }
+      } else {
+        return { success: false, error: response.error || '登录失败' }
+      }
     } catch (error) {
       return { success: false, error: error.message }
     }

@@ -91,18 +91,22 @@ export default {
 
         this.loading = true
         try {
-          const userInfo = await login(this.loginForm)
+          const userInfo = await login(this.loginForm) 
 
-          // 保存用户信息到 Vuex（使用新的模块化 API）
-          this.$store.dispatch('user/setUserInfo', userInfo)
+          if (userInfo.success) {
+            // 保存用户信息到 Vuex（使用新的模块化 API）
+            this.$store.dispatch('user/initUser', userInfo.user)
+            this.$message.success('登录成功')
 
-          this.$message.success('登录成功')
-
-          // 跳转到首页或之前的页面
-          const redirect = this.$route.query.redirect || '/'
-          this.$router.push(redirect)
+            // 跳转到首页或之前的页面
+            const redirect = this.$route.query.redirect || '/'
+            this.$router.push(redirect)
+          } else {
+            this.$message.error(userInfo.error || '登录失败')
+          }
         } catch (error) {
           console.error('登录失败:', error)
+          this.$message.error(error.message || '登录失败')
         } finally {
           this.loading = false
         }

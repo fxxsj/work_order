@@ -232,19 +232,10 @@ export default {
     }
   },
   methods: {
-    // 检查用户是否有指定权限
+     // 检查用户是否有指定权限
     hasPermission(permission) {
-      const userInfo = this.$store.getters.currentUser
-      if (!userInfo) return false
-      
-      // 超级用户拥有所有权限
-      if (userInfo.is_superuser) return true
-      
-      // 检查权限列表
-      const permissions = userInfo.permissions || []
-      if (permissions.includes('*')) return true
-      
-      return permissions.includes(permission)
+      // 使用 store getter 检查权限
+      return this.$store.getters['user/hasPermission'](permission)
     },
     handleCommand(command) {
       if (command === 'admin') {
