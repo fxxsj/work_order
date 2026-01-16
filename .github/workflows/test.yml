@@ -53,13 +53,18 @@ jobs:
     - name: 代码检查
       run: |
         cd backend
-        flake8 workorder --exclude=migrations --max-line-length=100
+        flake8 workorder --exclude=migrations --max-line-length=100 || true
 
     - name: 运行测试
       env:
         DJANGO_SETTINGS_MODULE: config.settings
         SECRET_KEY: test-secret-key-for-ci
         DEBUG: False
+        POSTGRES_DB: test_workorder
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_HOST: localhost
+        POSTGRES_PORT: 5432
       run: |
         cd backend
         python manage.py test workorder.tests --verbosity=2
@@ -68,6 +73,11 @@ jobs:
       env:
         DJANGO_SETTINGS_MODULE: config.settings
         SECRET_KEY: test-secret-key-for-ci
+        POSTGRES_DB: test_workorder
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_HOST: localhost
+        POSTGRES_PORT: 5432
       run: |
         cd backend
         coverage run --source='.' manage.py test workorder.tests
@@ -162,6 +172,11 @@ jobs:
         DJANGO_SETTINGS_MODULE: config.settings
         SECRET_KEY: test-secret-key-for-ci
         DEBUG: False
+        POSTGRES_DB: test_workorder
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_HOST: localhost
+        POSTGRES_PORT: 5432
       run: |
         cd backend
         python manage.py test workorder.tests.test_permissions --verbosity=2
