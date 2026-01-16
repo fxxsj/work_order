@@ -301,6 +301,78 @@ class TaskService extends BaseService {
   }
 
   /**
+   * 获取任务状态 Element UI Tag 类型
+   * @param {string} status - 状态码
+   * @returns {string} Tag 类型
+   */
+  getStatusType(status) {
+    const typeMap = {
+      [TaskStatus.PENDING]: 'info',
+      [TaskStatus.IN_PROGRESS]: 'warning',
+      [TaskStatus.COMPLETED]: 'success',
+      [TaskStatus.CANCELLED]: 'danger'
+    }
+
+    return typeMap[status] || 'info'
+  }
+
+  /**
+   * 格式化日期时间
+   * @param {string|null|undefined} dateTime - 日期时间字符串
+   * @returns {string} 格式化后的日期时间
+   */
+  formatDateTime(dateTime) {
+    if (!dateTime) {
+      return ''
+    }
+
+    try {
+      const date = new Date(dateTime)
+      if (isNaN(date.getTime())) {
+        return ''
+      }
+
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      const seconds = String(date.getSeconds()).padStart(2, '0')
+
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+    } catch (e) {
+      return ''
+    }
+  }
+
+  /**
+   * 获取任务状态选项
+   * @returns {Array} 状态选项列表
+   */
+  getStatusOptions() {
+    return [
+      { value: TaskStatus.PENDING, label: '待开始' },
+      { value: TaskStatus.IN_PROGRESS, label: '进行中' },
+      { value: TaskStatus.COMPLETED, label: '已完成' },
+      { value: TaskStatus.CANCELLED, label: '已取消' }
+    ]
+  }
+
+  /**
+   * 获取任务类型选项
+   * @returns {Array} 类型选项列表
+   */
+  getTaskTypeOptions() {
+    return [
+      { value: TaskType.GENERAL, label: '通用任务' },
+      { value: TaskType.PLATE_MAKING, label: '制版任务' },
+      { value: TaskType.CUTTING, label: '开料任务' },
+      { value: TaskType.PRINTING, label: '印刷任务' },
+      { value: TaskType.POST_PROCESSING, label: '后道任务' }
+    ]
+  }
+
+  /**
    * 验证任务拆分数据
    * @param {Object} task - 原任务
    * @param {Array} splits - 拆分方案

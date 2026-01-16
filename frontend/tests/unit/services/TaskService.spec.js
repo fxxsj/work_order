@@ -271,7 +271,7 @@ describe('TaskService', () => {
 
       const result = taskService.validateSplit(task, splits)
       expect(result.valid).toBe(false)
-      expect(result.errors).toContain('至少需要2个子任务')
+      expect(result.errors).toContain('至少需要拆分为 2 个子任务')
     })
 
     test('子任务数量总和不能超过父任务', () => {
@@ -283,7 +283,7 @@ describe('TaskService', () => {
 
       const result = taskService.validateSplit(task, splits)
       expect(result.valid).toBe(false)
-      expect(result.errors).toContain('子任务数量总和不能超过父任务数量')
+      expect(result.errors).toContain('拆分后的总数量(110)必须等于原任务数量(100)')
     })
 
     test('子任务数量为0应该报错', () => {
