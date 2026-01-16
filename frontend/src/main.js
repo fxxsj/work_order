@@ -10,6 +10,9 @@ import './assets/styles/global.css'
 import VueVirtualScroller from 'vue-virtual-scroller'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 
+// P2 优化: 图片懒加载
+import VueLazyload from 'vue-lazyload'
+
 Vue.config.productionTip = false
 
 // 使用 Element UI
@@ -17,6 +20,36 @@ Vue.use(ElementUI)
 
 // P2 优化: 注册虚拟滚动插件
 Vue.use(VueVirtualScroller)
+
+// P2 优化: 配置图片懒加载
+Vue.use(VueLazyload, {
+  preLoad: 1.3, // 预加载高度比例
+  error: 'https://via.placeholder.com/200x200?text=Error', // 错误图
+  loading: 'https://via.placeholder.com/200x200?text=Loading', // 加载中图
+  attempt: 1, // 尝试加载次数
+  listenEvents: ['scroll', 'wheel', 'mousewheel', 'resize', 'animationend', 'transitionend', 'touchmove'], // 监听的事件
+  adapter: {
+    loaded({ bindType, el, naturalHeight, naturalWidth, $parent, src, loading, errorComponent }) {
+      // 图片加载成功后的回调
+      el.setAttribute('data-loaded', 'true')
+    },
+    loading(listender, el) {
+      // 图片加载中
+      el.setAttribute('data-loading', 'true')
+    },
+    error(listender, el) {
+      // 图片加载失败
+      el.setAttribute('data-error', 'true')
+    }
+  },
+  filter: {
+    // 图片过滤器
+    progressive(listener, options) {
+      // 可以在这里处理图片 URL
+      return listener.src
+    }
+  }
+})
 
 // 全局过滤器
 Vue.filter('formatDate', function(value) {
