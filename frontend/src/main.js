@@ -29,7 +29,7 @@ Vue.use(VueLazyload, {
   attempt: 1, // 尝试加载次数
   listenEvents: ['scroll', 'wheel', 'mousewheel', 'resize', 'animationend', 'transitionend', 'touchmove'], // 监听的事件
   adapter: {
-    loaded({ bindType, el, naturalHeight, naturalWidth, $parent, src, loading, errorComponent }) {
+    loaded({ el }) {
       // 图片加载成功后的回调
       el.setAttribute('data-loaded', 'true')
     },
@@ -44,7 +44,7 @@ Vue.use(VueLazyload, {
   },
   filter: {
     // 图片过滤器
-    progressive(listener, options) {
+    progressive(listener) {
       // 可以在这里处理图片 URL
       return listener.src
     }
