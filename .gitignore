@@ -59,3 +59,21 @@ frontend/src/config/index.js
 htmlcov/
 .pytest_cache/
 
+# Coverage Reports (P1 Optimization)
+backend/htmlcov/
+backend/coverage/
+backend/.coverage
+backend/coverage.xml
+backend/coverage.json
+
+# Frontend Coverage (P1 Optimization)
+frontend/coverage/
+frontend/lcov-report/
+frontend/.nyc_output
+frontend/node_modules/coverage/
+frontend/node_modules/istanbul-lib-coverage/
+frontend/node_modules/@bcoe/v8-coverage
+frontend/node_modules/collect-v8-coverage
+frontend/node_modules/istanbul-lib-instrument
+frontend/node_modules/@types/istanbul-lib-coverage
+

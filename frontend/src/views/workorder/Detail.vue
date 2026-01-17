@@ -1607,6 +1607,7 @@
 
 <script>
 import Vue from 'vue'
+import DOMPurify from 'dompurify'
 import { workOrderAPI, processAPI, materialAPI, workOrderProcessAPI, workOrderMaterialAPI, workOrderTaskAPI, departmentAPI, artworkAPI, dieAPI } from '@/api/workorder'
 import { getUsersByDepartment } from '@/api/auth'
 import ProcessFlowChart from '@/components/ProcessFlowChart.vue'
@@ -3145,7 +3146,7 @@ export default {
           </style>
         </head>
         <body>
-          ${printContent.innerHTML}
+          ${DOMPurify.sanitize(printContent.innerHTML)}
         </body>
         </html>
       `
