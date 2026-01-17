@@ -385,6 +385,7 @@ export default {
     },
     async handleSubmitForm(formData) {
       try {
+        console.log('[DEBUG] Submitting sales order:', formData)
         if (this.dialogMode === 'add') {
           await createSalesOrder(formData)
           this.$message.success('创建成功')
@@ -395,8 +396,23 @@ export default {
         this.dialogVisible = false
         this.fetchData()
       } catch (error) {
-        console.error('保存销售订单失败:', error)
-        this.$message.error(error.response?.data?.error || '保存失败')
+        console.error('[ERROR] Save sales order failed:', error)
+        console.error('[ERROR] Response data:', error.response?.data)
+
+        // 显示详细错误信息
+        let errorMsg = '保存失败'
+        if (error.response?.data) {
+          if (error.response.data.error) {
+            errorMsg = error.response.data.error
+          } else if (error.response.data.non_field_errors) {
+            errorMsg = Object.entries(error.response.data.non_field_errors)
+              .map(([field, errors]) => `${field}: ${errors.join(', ')}`)
+              .join('; ')
+          } else if (typeof error.response.data === 'string') {
+            errorMsg = error.response.data
+          }
+        }
+        this.$message.error(errorMsg)
       }
     },
     handleDialogClose() {

@@ -316,8 +316,13 @@ export default {
               notes: item.notes || undefined
             }))
           }
+
+          // 调试日志
+          console.log('[DEBUG] Submitting sales order data:', submitData)
+
           this.$emit('submit', submitData)
         } catch (error) {
+          console.error('[ERROR] Submit failed:', error)
           this.$message.error('保存失败')
         } finally {
           this.submitting = false
