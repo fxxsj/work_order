@@ -295,7 +295,28 @@ export default {
 
         this.submitting = true
         try {
-          this.$emit('submit', this.form)
+          // 准备提交数据，确保字段类型正确
+          const submitData = {
+            customer: this.form.customer,
+            order_date: this.form.order_date,
+            delivery_date: this.form.delivery_date,
+            contact_person: this.form.contact_person || undefined,
+            contact_phone: this.form.contact_phone || undefined,
+            shipping_address: this.form.shipping_address || undefined,
+            tax_rate: parseFloat(this.form.tax_rate) || 0,
+            discount_amount: parseFloat(this.form.discount_amount) || 0,
+            notes: this.form.notes || undefined,
+            items: this.form.items.map(item => ({
+              product: item.product,
+              quantity: parseInt(item.quantity) || 0,
+              unit: item.unit || '件',
+              unit_price: parseFloat(item.unit_price) || 0,
+              tax_rate: parseFloat(item.tax_rate) || 0,
+              discount_amount: parseFloat(item.discount_amount) || 0,
+              notes: item.notes || undefined
+            }))
+          }
+          this.$emit('submit', submitData)
         } catch (error) {
           this.$message.error('保存失败')
         } finally {
