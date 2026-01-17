@@ -247,24 +247,53 @@ export default {
           type: 'warning'
         }).then(async () => {
           try {
-            // 先清除用户状态（使用正确的 action 名称）
-            await this.$store.dispatch('user/logout')
-            this.$message.success('已退出登录')
-            // 调用后端 logout API（可能会因为 Token 失效而失败，但不影响退出）
+            // 显示加载提示
+            const loading = this.$loading({
+              lock: true,
+              text: '正在退出登录...',
+              spinner: 'el-icon-loading',
+              background: 'rgba(0, 0, 0, 0.7)'
+            })
+
             try {
+              // 调用后端 logout API
               await logout()
             } catch (e) {
-              // 忽略 logout API 错误
+              // 忽略 logout API 错误，继续清除本地状态
+              console.warn('后端登出API调用失败，但继续清除本地状态:', e)
             }
-            // 使用 window.location.href 跳转到登录页，完全刷新页面
-            window.location.href = '/login'
+
+            // 清除用户状态（使用正确的 action 名称）
+            await this.$store.dispatch('user/logout')
+
+            // 清除完成后关闭加载提示
+            loading.close()
+
+            // 显示成功提示
+            this.$message({
+              message: '已退出登录',
+              type: 'success',
+              duration: 2000
+            })
+
+            // 延迟跳转，让用户看到成功提示
+            setTimeout(() => {
+              // 使用 window.location.href 跳转到登录页，完全刷新页面
+              window.location.href = '/login'
+            }, 500)
           } catch (error) {
             console.error('退出登录失败:', error)
+            this.$message.error('退出登录时发生错误，请刷新页面')
+
             // 即使出错，也清除本地状态并跳转
             await this.$store.dispatch('user/logout')
-            window.location.href = '/login'
+            setTimeout(() => {
+              window.location.href = '/login'
+            }, 1000)
           }
-        }).catch(() => {})
+        }).catch(() => {
+          // 用户取消操作
+        })
       }
     }
   }

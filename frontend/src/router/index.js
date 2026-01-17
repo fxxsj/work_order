@@ -214,7 +214,10 @@ const router = new VueRouter({
 // 全局路由守卫
 router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  
+
+  // 设置页面标题
+  document.title = to.meta.title ? `${to.meta.title} - 印刷施工单跟踪系统` : '印刷施工单跟踪系统'
+
   // 如果页面需要认证
   if (requiresAuth) {
     // 检查是否已有用户信息（使用新的模块化 API）
@@ -226,13 +229,14 @@ router.beforeEach(async (to, from, next) => {
           store.dispatch('user/initUser', userInfo)
           next()
         } else {
+          // 未登录，跳转到登录页，携带重定向信息
           next({
             path: '/login',
             query: { redirect: to.fullPath }
           })
         }
       } catch (error) {
-        // 未登录，跳转到登录页
+        // 未登录，跳转到登录页，携带重定向信息
         next({
           path: '/login',
           query: { redirect: to.fullPath }
@@ -244,7 +248,9 @@ router.beforeEach(async (to, from, next) => {
   } else {
     // 不需要认证的页面，如果已登录且访问登录页，跳转到首页（使用新的模块化 API）
     if (to.path === '/login' && store.getters['user/currentUser']) {
-      next('/')
+      // 如果有重定向参数，跳转到重定向页面
+      const redirect = to.query.redirect || from.fullPath || '/'
+      next(redirect)
     } else {
       next()
     }

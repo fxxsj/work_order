@@ -189,6 +189,14 @@ const actions = {
     permissionService.userPermissions = new Set()
   },
 
+  // 清除用户信息（用于 401 错误等场景）
+  clearUser({ commit }) {
+    commit('CLEAR_USER')
+    permissionService.currentUser = null
+    permissionService.userRoles = new Set()
+    permissionService.userPermissions = new Set()
+  },
+
   // 获取用户信息
   async fetchUserInfo({ state }) {
     if (!state.isAuthenticated) {
