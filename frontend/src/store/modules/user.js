@@ -12,7 +12,7 @@ const state = {
   isAuthenticated: false,
   permissions: [],
   roles: [],
-  authToken: null  // 添加认证令牌
+  authToken: localStorage.getItem('authToken') || null  // 从 localStorage 恢复 Token
 }
 
 // Getters
@@ -118,6 +118,10 @@ const mutations = {
   // 设置认证令牌
   SET_AUTH_TOKEN(state, token) {
     state.authToken = token
+    // 持久化到 localStorage
+    if (token) {
+      localStorage.setItem('authToken', token)
+    }
   },
 
   // 清除用户信息（登出时使用）
@@ -127,6 +131,8 @@ const mutations = {
     state.permissions = []
     state.roles = []
     state.authToken = null
+    // 清除 localStorage 中的 token
+    localStorage.removeItem('authToken')
   }
 }
 

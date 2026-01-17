@@ -32,7 +32,7 @@ const service = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
   config => {
-    // 添加认证 Token（优先使用 Token 认证）
+    // 添加认证 Token
     const token = store.getters['user/authToken']
     if (token) {
       config.headers['Authorization'] = `Token ${token}`
@@ -43,6 +43,7 @@ service.interceptors.request.use(
     if (csrfToken) {
       config.headers['X-CSRFToken'] = csrfToken
     }
+
     return config
   },
   error => {
