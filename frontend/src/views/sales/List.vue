@@ -134,6 +134,7 @@
 <script>
 import { getSalesOrderList, createSalesOrder, updateSalesOrder, deleteSalesOrder, getSalesOrderDetail, approveSalesOrder, cancelSalesOrder } from '@/api/sales'
 import { mapState, mapActions } from 'vuex'
+import { submitSalesOrder } from '@/api/sales'
 
 export default {
   name: 'SalesOrderList',
@@ -315,6 +316,13 @@ export default {
     handleDetail(row) {
       this.currentOrderId = row.id
       this.detailVisible = true
+    },
+    handleApprove(row) {
+      if (!row) return
+      this.approveOrder = row
+      this.approveForm.approval_comment = ''
+      this.approveErrors = []
+      this.approveVisible = true
     },
     handleCommand(command, row) {
       switch (command) {
