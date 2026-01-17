@@ -200,6 +200,14 @@ const routes = [
         name: 'Notification',
         component: () => import(/* webpackChunkName: "notification" */ /* webpackPrefetch: true */ '@/views/Notification.vue'),
         meta: { title: '通知中心', requiresAuth: true }
+      },
+
+      // 用户设置
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: () => import(/* webpackChunkName: "profile" */ '@/views/Profile.vue'),
+        meta: { title: '个人信息', requiresAuth: true }
       }
     ]
   }

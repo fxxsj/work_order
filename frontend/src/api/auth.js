@@ -55,3 +55,20 @@ export function getUsersByDepartment(departmentId) {
   })
 }
 
+// 修改密码
+export function changePassword(data) {
+  return request({
+    url: '/auth/change-password/',
+    method: 'post',
+    data
+  })
+}
+
+// 更新个人信息
+export function updateProfile(data) {
+  return request({
+    url: '/auth/update-profile/',
+    method: 'put',
+    data
+  })
+}

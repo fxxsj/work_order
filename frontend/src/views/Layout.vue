@@ -132,6 +132,7 @@
               <i class="el-icon-arrow-down el-icon--right"></i>
             </span>
             <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="profile">个人信息</el-dropdown-item>
               <el-dropdown-item command="admin">管理后台</el-dropdown-item>
               <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
             </el-dropdown-menu>
@@ -238,7 +239,9 @@ export default {
       return this.$store.getters['user/hasPermission'](permission)
     },
     handleCommand(command) {
-      if (command === 'admin') {
+      if (command === 'profile') {
+        this.$router.push('/profile')
+      } else if (command === 'admin') {
         window.open('/admin/', '_blank')
       } else if (command === 'logout') {
         this.$confirm('确定要退出登录吗?', '提示', {
