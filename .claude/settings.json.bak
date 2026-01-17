@@ -1,0 +1,33 @@
+{
+  "includeCoAuthoredBy": true,
+  "env": {
+    "INSIDE_CLAUDE_CODE": "1",
+    "BASH_DEFAULT_TIMEOUT_MS": "420000",
+    "BASH_MAX_TIMEOUT_MS": "420000"
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill-eval.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c '# Prevent editing on main branch\nif [ \"$(git branch --show-current)\" = \"main\" ]; then\n  echo \"{\\\"block\\\": true, \\\"message\\\": \\\"不能在 main 分支上编辑文件。请先创建功能分支。\\\"}\" >&2\n  exit 2\nfi'",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
