@@ -386,6 +386,16 @@ export default {
     async handleSubmitForm(formData) {
       try {
         console.log('[DEBUG] Submitting sales order:', formData)
+        
+        // 检查用户认证状态
+        if (!this.$store.getters['user/isAuthenticated']) {
+          this.$message.warning('请先登录后再创建销售订单')
+          this.$router.push('/login')
+          return
+        }
+        
+        console.log('[DEBUG] User authenticated, proceeding with order creation')
+        
         if (this.dialogMode === 'add') {
           await createSalesOrder(formData)
           this.$message.success('创建成功')
@@ -393,6 +403,35 @@ export default {
           await updateSalesOrder(formData.id, formData)
           this.$message.success('更新成功')
         }
+        this.dialogVisible = false
+        this.fetchData()
+      } catch (error) {
+        console.error('[ERROR] Save sales order failed:', error)
+        console.error('[ERROR] Response data:', error.response?.data)
+        
+        // 显示详细错误信息
+        let errorMsg = '保存失败'
+        if (error.response?.data) {
+          if (error.response.data.error) {
+            errorMsg = error.response.data.error
+          } else if (error.response.data.non_field_errors) {
+            errorMsg = Object.entries(error.response.data.non_field_errors)
+              .map(([field, errors]) => `${field}: ${errors.join(', ')}`)
+              .join('; ')
+          }
+        }
+        
+        // 如果是认证错误，跳转到登录页
+        if (error.response?.status === 401) {
+          this.$message.warning('登录已过期，请重新登录')
+          this.$store.dispatch('user/clearUser')
+          this.$router.push('/login')
+          return
+        }
+        
+        this.$message.error(errorMsg)
+      }
+    }
         this.dialogVisible = false
         this.fetchData()
       } catch (error) {
