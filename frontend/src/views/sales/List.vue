@@ -153,6 +153,8 @@
 <script>
 import {
   getSalesOrderList,
+  createSalesOrder,
+  updateSalesOrder,
   deleteSalesOrder,
   submitSalesOrder,
   approveSalesOrder,
@@ -381,9 +383,21 @@ export default {
         this.$message.error('操作失败')
       }
     },
-    handleSubmitForm() {
-      this.dialogVisible = false
-      this.fetchData()
+    async handleSubmitForm(formData) {
+      try {
+        if (this.dialogMode === 'add') {
+          await createSalesOrder(formData)
+          this.$message.success('创建成功')
+        } else {
+          await updateSalesOrder(formData.id, formData)
+          this.$message.success('更新成功')
+        }
+        this.dialogVisible = false
+        this.fetchData()
+      } catch (error) {
+        console.error('保存销售订单失败:', error)
+        this.$message.error(error.response?.data?.error || '保存失败')
+      }
     },
     handleDialogClose() {
       this.form = null
