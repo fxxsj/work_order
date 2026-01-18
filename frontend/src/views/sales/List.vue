@@ -44,74 +44,118 @@
       @sort-change="handleSortChange"
     >
       <el-table-column type="selection" width="55" />
-      <el-table-column prop="order_number" label="订单号" width="120" />
-      <el-table-column prop="customer_name" label="客户名称" width="120" />
-      <el-table-column prop="order_date" label="订单日期" width="120" />
-      <el-table-column prop="delivery_date" label="交货日期" width="120" />
-      <el-table-column prop="total_amount" label="总金额" width="120" />
-      <el-table-column prop="status" label="状态" width="100">
+      <el-table-column prop="order_number" label="订单号" width="150" fixed="left">
         <template slot-scope="scope">
-          <el-tag :type="getStatusType(scope.row.status)">
+          <el-link type="primary" @click="handleView(scope.row)">
+            {{ scope.row.order_number }}
+          </el-link>
+        </template>
+      </el-table-column>
+      <el-table-column prop="customer_name" label="客户名称" width="150" show-overflow-tooltip />
+      <el-table-column prop="order_date" label="订单日期" width="120" />
+      <el-table-column prop="delivery_date" label="交货日期" width="120">
+        <template slot-scope="scope">
+          <span :class="{ 'text-danger': isOverdue(scope.row) }">
+            {{ scope.row.delivery_date }}
+            <el-tooltip v-if="isOverdue(scope.row)" content="已逾期" placement="top">
+              <i class="el-icon-warning" style="color: #f56c6c;"></i>
+            </el-tooltip>
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="total_amount" label="订单金额" width="120" align="right">
+        <template slot-scope="scope">
+          <span class="amount-text">¥{{ formatAmount(scope.row.total_amount) }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="status" label="订单状态" width="100" align="center">
+        <template slot-scope="scope">
+          <el-tag :type="getStatusType(scope.row.status)" effect="plain">
             {{ getStatusText(scope.row.status) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="payment_status" label="付款状态" width="100">
+      <el-table-column prop="payment_status" label="付款状态" width="100" align="center">
         <template slot-scope="scope">
-          <el-tag :type="getPaymentStatusType(scope.row.payment_status)">
+          <el-tag :type="getPaymentStatusType(scope.row.payment_status)" effect="plain">
             {{ getPaymentStatusText(scope.row.payment_status) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="200" fixed="right">
+      <el-table-column prop="items_count" label="明细数" width="80" align="center">
         <template slot-scope="scope">
-          <el-button
-            size="mini"
-            type="text"
-            @click="handleView(scope.row)"
-            icon="el-icon-view"
-          >
-            查看
-          </el-button>
-          <el-button
-            v-if="canEdit(scope.row)"
-            size="mini"
-            type="primary"
-            @click="handleEdit(scope.row)"
-            icon="el-icon-edit"
-          >
-            编辑
-          </el-button>
-          <el-button
-            size="mini"
-            type="warning"
-            @click="handleSubmit(scope.row)"
-            icon="el-icon-s-check"
-            v-if="scope.row.status === 'draft'"
-          >
-            提交
-          </el-button>
-          <el-button
-            size="mini"
-            type="success"
-            @click="handleApprove(scope.row)"
-            icon="el-icon-s-check"
-            v-if="scope.row.status === 'submitted'"
-          >
-            审核
-          </el-button>
-          <el-dropdown @command="handleCommand(scope.row)">
-            <el-button size="mini" type="text" icon="el-icon-more">
-              更多
-            </el-button>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click.native="handleDetail(scope.row)">详情</el-dropdown-item>
-              <el-dropdown-item @click.native="handleCancel(scope.row)" v-if="scope.row.status === 'submitted'">取消订单</el-dropdown-item>
-              <el-dropdown-item @click.native="handleApprove(scope.row)" v-if="scope.row.status === 'submitted'">审核通过</el-dropdown-item>
-              <el-dropdown-item @click.native="handleReject(scope.row)" v-if="scope.row.status === 'submitted'">审核拒绝</el-dropdown-item>
-              <el-dropdown-item @click.native="handleDelete(scope.row)" divided>删除订单</el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
+          <el-tag size="mini" type="info">{{ scope.row.items_count || 0 }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="280" fixed="right" align="center">
+        <template slot-scope="scope">
+          <div class="action-buttons">
+            <!-- 查看按钮 - 始终显示 -->
+            <el-tooltip content="查看详情" placement="top">
+              <el-button
+                size="mini"
+                type="text"
+                @click="handleView(scope.row)"
+                icon="el-icon-view"
+              />
+            </el-tooltip>
+
+            <!-- 编辑按钮 - 仅草稿状态显示 -->
+            <el-tooltip v-if="canEdit(scope.row)" content="编辑订单" placement="top">
+              <el-button
+                size="mini"
+                type="primary"
+                @click="handleEdit(scope.row)"
+                icon="el-icon-edit"
+              />
+            </el-tooltip>
+
+            <!-- 提交按钮 - 草稿状态 -->
+            <el-tooltip v-if="scope.row.status === 'draft'" content="提交审核" placement="top">
+              <el-button
+                size="mini"
+                type="success"
+                @click="handleSubmit(scope.row)"
+                icon="el-icon-upload2"
+              />
+            </el-tooltip>
+
+            <!-- 审核相关按钮 - 已提交状态 -->
+            <template v-if="scope.row.status === 'submitted'">
+              <el-tooltip content="审核通过" placement="top">
+                <el-button
+                  size="mini"
+                  type="success"
+                  @click="handleApprove(scope.row)"
+                  icon="el-icon-check"
+                />
+              </el-tooltip>
+              <el-tooltip content="审核拒绝" placement="top">
+                <el-button
+                  size="mini"
+                  type="warning"
+                  @click="handleReject(scope.row)"
+                  icon="el-icon-close"
+                />
+              </el-tooltip>
+            </template>
+
+            <!-- 更多操作 -->
+            <el-dropdown @command="(cmd) => handleCommand(cmd, scope.row)" trigger="click">
+              <el-button size="mini" type="text" icon="el-icon-more" />
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item command="detail">
+                  <i class="el-icon-document"></i> 订单详情
+                </el-dropdown-item>
+                <el-dropdown-item command="cancel" v-if="canCancel(scope.row)" divided>
+                  <i class="el-icon-remove-outline"></i> 取消订单
+                </el-dropdown-item>
+                <el-dropdown-item command="delete" divided>
+                  <i class="el-icon-delete"></i> 删除订单
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -442,22 +486,13 @@ export default {
     },
     handleCommand(command, row) {
       switch (command) {
-        case 'handleView':
-          this.handleView(row)
-          break
-        case 'handleDetail':
+        case 'detail':
           this.handleDetail(row)
           break
-        case 'handleCancel':
+        case 'cancel':
           this.handleCancel(row)
           break
-        case 'handleApprove':
-          this.handleApprove(row)
-          break
-        case 'handleReject':
-          this.handleReject(row)
-          break
-        case 'handleDelete':
+        case 'delete':
           this.handleDelete(row)
           break
       }
@@ -506,22 +541,85 @@ export default {
     },
     canEdit(row) {
       return row.status === 'draft'
+    },
+    canCancel(row) {
+      return ['draft', 'submitted'].includes(row.status)
+    },
+    isOverdue(row) {
+      if (!row.delivery_date) return false
+      const deliveryDate = new Date(row.delivery_date)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      return deliveryDate < today && !['completed', 'cancelled'].includes(row.status)
+    },
+    formatAmount(amount) {
+      if (!amount) return '0.00'
+      return parseFloat(amount).toFixed(2)
     }
   }
 }
 </script>
 
 <style scoped>
-.sales-order-list {
+.sales-order-container {
   padding: 20px;
 }
 
-.search-form {
+.search-section {
   margin-bottom: 20px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 4px;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}
+
+.action-buttons .el-button {
+  margin-left: 0;
+  padding: 5px 8px;
+}
+
+.amount-text {
+  font-weight: 600;
+  color: #303133;
+}
+
+.text-danger {
+  color: #f56c6c;
 }
 
 .pagination {
   margin-top: 20px;
   text-align: right;
+}
+
+/* 表格列对齐优化 */
+.el-table .el-table__cell {
+  padding: 8px 0;
+}
+
+/* 操作按钮样式优化 */
+.el-button--mini {
+  padding: 5px 10px;
+}
+
+/* 链接样式优化 */
+.el-link {
+  font-weight: 500;
+}
+
+/* 标签样式优化 */
+.el-tag {
+  font-weight: 500;
+}
+
+/* 下拉菜单项图标间距 */
+.el-dropdown-menu__item i {
+  margin-right: 8px;
 }
 </style>
