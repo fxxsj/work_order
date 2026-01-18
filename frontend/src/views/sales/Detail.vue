@@ -41,25 +41,25 @@
           <el-col :span="6">
             <div class="amount-item">
               <div class="label">小计</div>
-              <div class="value">¥{{ (detailData.subtotal || 0).toFixed(2) }}</div>
+              <div class="value">¥{{ formatAmount(detailData.subtotal) }}</div>
             </div>
           </el-col>
           <el-col :span="6">
             <div class="amount-item">
               <div class="label">税额 ({{ detailData.tax_rate }}%)</div>
-              <div class="value">¥{{ (detailData.tax_amount || 0).toFixed(2) }}</div>
+              <div class="value">¥{{ formatAmount(detailData.tax_amount) }}</div>
             </div>
           </el-col>
           <el-col :span="6">
             <div class="amount-item">
               <div class="label">折扣金额</div>
-              <div class="value discount">-¥{{ (detailData.discount_amount || 0).toFixed(2) }}</div>
+              <div class="value discount">-¥{{ formatAmount(detailData.discount_amount) }}</div>
             </div>
           </el-col>
           <el-col :span="6">
             <div class="amount-item">
               <div class="label">订单总金额</div>
-              <div class="value total">¥{{ (detailData.total_amount || 0).toFixed(2) }}</div>
+              <div class="value total">¥{{ formatAmount(detailData.total_amount) }}</div>
             </div>
           </el-col>
         </el-row>
@@ -68,13 +68,13 @@
           <el-col :span="6">
             <div class="amount-item">
               <div class="label">定金</div>
-              <div class="value">¥{{ (detailData.deposit_amount || 0).toFixed(2) }}</div>
+              <div class="value">¥{{ formatAmount(detailData.deposit_amount) }}</div>
             </div>
           </el-col>
           <el-col :span="6">
             <div class="amount-item">
               <div class="label">已付金额</div>
-              <div class="value">¥{{ (detailData.paid_amount || 0).toFixed(2) }}</div>
+              <div class="value">¥{{ formatAmount(detailData.paid_amount) }}</div>
             </div>
           </el-col>
           <el-col :span="6">
@@ -86,7 +86,7 @@
           <el-col :span="6">
             <div class="amount-item">
               <div class="label">待付金额</div>
-              <div class="value pending">¥{{ ((detailData.total_amount || 0) - (detailData.paid_amount || 0)).toFixed(2) }}</div>
+              <div class="value pending">¥{{ formatAmount(parseFloat(detailData.total_amount || 0) - parseFloat(detailData.paid_amount || 0)) }}</div>
             </div>
           </el-col>
         </el-row>
@@ -103,14 +103,14 @@
           <el-table-column prop="quantity" label="数量" width="100" align="right" />
           <el-table-column prop="unit" label="单位" width="80" />
           <el-table-column prop="unit_price" label="单价" width="120" align="right">
-            <template slot-scope="scope">¥{{ (scope.row.unit_price || 0).toFixed(2) }}</template>
+            <template slot-scope="scope">¥{{ formatAmount(scope.row.unit_price) }}</template>
           </el-table-column>
           <el-table-column prop="tax_rate" label="税率(%)" width="100" align="right" />
           <el-table-column prop="discount_amount" label="折扣金额" width="120" align="right">
-            <template slot-scope="scope">¥{{ (scope.row.discount_amount || 0).toFixed(2) }}</template>
+            <template slot-scope="scope">¥{{ formatAmount(scope.row.discount_amount) }}</template>
           </el-table-column>
           <el-table-column prop="subtotal" label="小计" width="120" align="right">
-            <template slot-scope="scope">¥{{ (scope.row.subtotal || 0).toFixed(2) }}</template>
+            <template slot-scope="scope">¥{{ formatAmount(scope.row.subtotal) }}</template>
           </el-table-column>
           <el-table-column prop="notes" label="备注" min-width="150" show-overflow-tooltip />
         </el-table>
@@ -378,6 +378,11 @@ export default {
         paid: 'success'
       }
       return typeMap[status] || 'info'
+    },
+    formatAmount(value) {
+      if (!value) return '0.00'
+      const num = parseFloat(value)
+      return isNaN(num) ? '0.00' : num.toFixed(2)
     },
     formatDate(dateStr) {
       if (!dateStr) return ''
