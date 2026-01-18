@@ -300,12 +300,8 @@ export default {
             customer: this.form.customer,
             order_date: this.form.order_date,
             delivery_date: this.form.delivery_date,
-            contact_person: this.form.contact_person || undefined,
-            contact_phone: this.form.contact_phone || undefined,
-            shipping_address: this.form.shipping_address || undefined,
             tax_rate: parseFloat(this.form.tax_rate) || 0,
             discount_amount: parseFloat(this.form.discount_amount) || 0,
-            notes: this.form.notes || undefined,
             items: this.form.items.map(item => ({
               product: item.product,
               quantity: parseInt(item.quantity) || 0,
@@ -313,12 +309,23 @@ export default {
               unit_price: parseFloat(item.unit_price) || 0,
               tax_rate: parseFloat(item.tax_rate) || 0,
               discount_amount: parseFloat(item.discount_amount) || 0,
-              notes: item.notes || undefined
+              notes: item.notes || ''
             }))
           }
 
-          // 调试日志
-          console.log('[DEBUG] Submitting sales order data:', submitData)
+          // 只添加有值的可选字段
+          if (this.form.contact_person) {
+            submitData.contact_person = this.form.contact_person
+          }
+          if (this.form.contact_phone) {
+            submitData.contact_phone = this.form.contact_phone
+          }
+          if (this.form.shipping_address) {
+            submitData.shipping_address = this.form.shipping_address
+          }
+          if (this.form.notes) {
+            submitData.notes = this.form.notes
+          }
 
           this.$emit('submit', submitData)
         } catch (error) {

@@ -128,16 +128,60 @@
         layout="total, sizes, prev, pager, jumper"
       />
     </div>
+
+    <!-- 新建/编辑订单对话框 -->
+    <el-dialog
+      :title="dialogMode === 'add' ? '新建销售订单' : '编辑销售订单'"
+      :visible.sync="dialogVisible"
+      width="80%"
+      :close-on-click-modal="false"
+      @closed="handleDialogClose"
+    >
+      <div v-if="submitErrors.length" style="color: red; margin-bottom: 10px;">
+        <div v-for="error in submitErrors" :key="error">{{ error }}</div>
+      </div>
+      <sales-order-form
+        v-if="dialogVisible"
+        :form-data="submitForm"
+        :dialog-mode="dialogMode"
+        @submit="handleFormSubmit"
+        @cancel="dialogVisible = false"
+      />
+    </el-dialog>
+
+    <!-- 审核/拒绝对话框 -->
+    <el-dialog
+      title="审核销售订单"
+      :visible.sync="approveVisible"
+      width="50%"
+    >
+      <div v-if="approveForm.approveErrors.length" style="color: red; margin-bottom: 10px;">
+        <div v-for="error in approveForm.approveErrors" :key="error">{{ error }}</div>
+      </div>
+      <el-form :model="approveForm">
+        <el-form-item label="审核意见">
+          <el-input v-model="approveForm.approval_comment" type="textarea" rows="4" placeholder="请输入审核意见"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="approveVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmApprove">通过</el-button>
+        <el-button type="danger" @click="confirmReject">拒绝</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { getSalesOrderList, createSalesOrder, updateSalesOrder, deleteSalesOrder, getSalesOrderDetail, approveSalesOrder, cancelSalesOrder } from '@/api/sales'
-import { mapState, mapActions } from 'vuex'
-import { submitSalesOrder } from '@/api/sales'
+import { getSalesOrderList, createSalesOrder, updateSalesOrder, deleteSalesOrder, getSalesOrderDetail, approveSalesOrder, cancelSalesOrder, submitSalesOrder } from '@/api/sales'
+import { mapState } from 'vuex'
+import SalesOrderForm from './Form.vue'
 
 export default {
   name: 'SalesOrderList',
+  components: {
+    SalesOrderForm
+  },
   data() {
     return {
       loading: false,
@@ -160,12 +204,15 @@ export default {
         approval_comment: '',
         approveErrors: []
       },
+      approveVisible: false,
+      approveOrder: null,
       cancelForm: {
         reason: '',
         cancelErrors: []
       },
       detailVisible: false,
-      currentOrder: null
+      currentOrder: null,
+      currentOrderId: null
     }
   },
   computed: {
@@ -216,21 +263,31 @@ export default {
       this.pagination.page = val
       this.fetchData()
     },
+    handleSortChange(column) {
+      // 处理排序变化
+      if (!column.prop) return
+      // 可以根据需要实现排序逻辑
+    },
     handleView(row) {
       this.currentOrderId = row.id
       this.detailVisible = true
     },
     handleAdd() {
       this.dialogMode = 'add'
-      this.submitForm = null
+      this.submitForm = {}
       this.submitErrors = []
-      this.submitVisible = true
+      this.dialogVisible = true
     },
-    handleEdit(row) {
-      this.dialogMode = 'edit'
-      this.submitForm = { ...row }
-      this.submitErrors = []
-      this.submitVisible = true
+    async handleEdit(row) {
+      try {
+        const response = await getSalesOrderDetail(row.id)
+        this.dialogMode = 'edit'
+        this.submitForm = response
+        this.submitErrors = []
+        this.dialogVisible = true
+      } catch (error) {
+        this.$message.error('获取订单详情失败')
+      }
     },
     handleDelete(row) {
       if (!row) return
@@ -250,22 +307,72 @@ export default {
     },
     handleSubmit(row) {
       if (!row) return
-      this.submitOrder = row
-      this.submitErrors = []
-      this.submitVisible = true
+      this.$confirm(`确定要提交销售订单"${row.order_number}"吗？`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        try {
+          await submitSalesOrder(row.id)
+          this.$message.success('提交成功')
+          this.fetchData()
+        } catch (error) {
+          if (error.response && error.response.data) {
+            const errors = error.response.data.errors || []
+            if (errors.length > 0) {
+              this.$message.error(errors[0])
+            } else {
+              this.$message.error('提交失败')
+            }
+          } else {
+            this.$message.error('提交失败')
+          }
+        }
+      }).catch(() => {})
     },
-    async confirmSubmit() {
+    async handleFormSubmit(formData) {
       try {
-        await submitSalesOrder(this.submitOrder.id)
-        this.$message.success('提交成功')
-        this.submitVisible = false
+        if (this.dialogMode === 'add') {
+          await createSalesOrder(formData)
+          this.$message.success('创建成功')
+        } else {
+          await updateSalesOrder(this.submitForm.id, formData)
+          this.$message.success('更新成功')
+        }
+        this.dialogVisible = false
         this.fetchData()
       } catch (error) {
+        console.error('[ERROR] Form submit error:', error)
         if (error.response && error.response.data) {
-          this.submitErrors = error.response.data.errors || []
-          this.$message.error('提交失败')
+          // 尝试从不同的字段获取错误信息
+          const responseData = error.response.data
+          this.submitErrors = responseData.errors || []
+
+          // 如果没有 errors 字段，尝试其他可能的字段
+          if (this.submitErrors.length === 0) {
+            if (responseData.detail) {
+              this.submitErrors = [responseData.detail]
+            } else if (responseData.non_field_errors) {
+              this.submitErrors = responseData.non_field_errors
+            } else if (typeof responseData === 'string') {
+              this.submitErrors = [responseData]
+            } else {
+              // 尝试将所有错误收集起来
+              const allErrors = []
+              for (const key in responseData) {
+                if (Array.isArray(responseData[key])) {
+                  allErrors.push(`${key}: ${responseData[key].join(', ')}`)
+                }
+              }
+              this.submitErrors = allErrors.length > 0 ? allErrors : ['保存失败，请检查输入']
+            }
+          }
+
+          if (this.submitErrors.length > 0) {
+            this.$message.error(this.submitErrors[0])
+          }
         } else {
-          this.$message.error('提交失败')
+          this.$message.error('保存失败')
         }
       }
     },
@@ -295,8 +402,24 @@ export default {
       if (!row) return
       this.approveOrder = row
       this.approveForm.approval_comment = ''
-      this.approveErrors = []
+      this.approveForm.approveErrors = []
       this.approveVisible = true
+    },
+    handleCancel(row) {
+      if (!row) return
+      this.$confirm(`确定要取消销售订单"${row.order_number}"吗？`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        try {
+          await cancelSalesOrder(row.id, { reason: '用户取消' })
+          this.$message.success('已取消')
+          this.fetchData()
+        } catch (error) {
+          this.$message.error('取消失败')
+        }
+      }).catch(() => {})
     },
     async confirmReject() {
       try {
@@ -316,13 +439,6 @@ export default {
     handleDetail(row) {
       this.currentOrderId = row.id
       this.detailVisible = true
-    },
-    handleApprove(row) {
-      if (!row) return
-      this.approveOrder = row
-      this.approveForm.approval_comment = ''
-      this.approveErrors = []
-      this.approveVisible = true
     },
     handleCommand(command, row) {
       switch (command) {
@@ -347,7 +463,8 @@ export default {
       }
     },
     handleDialogClose() {
-      this.form = null
+      this.submitForm = null
+      this.submitErrors = []
     },
     getStatusType(status) {
       const typeMap = {
