@@ -23,9 +23,9 @@
           <el-descriptions-item label="状态">
             <el-tag :type="getStatusType(detailData.status)">{{ detailData.status_display }}</el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="订单日期">{{ detailData.order_date }}</el-descriptions-item>
-          <el-descriptions-item label="预计交货日期">{{ detailData.delivery_date }}</el-descriptions-item>
-          <el-descriptions-item label="实际交货日期">{{ detailData.actual_delivery_date || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="订单日期">{{ formatDate(detailData.order_date) }}</el-descriptions-item>
+          <el-descriptions-item label="预计交货日期">{{ formatDate(detailData.delivery_date) }}</el-descriptions-item>
+          <el-descriptions-item label="实际交货日期">{{ formatDate(detailData.actual_delivery_date) || '-' }}</el-descriptions-item>
           <el-descriptions-item label="联系人">{{ detailData.contact_person || '-' }}</el-descriptions-item>
           <el-descriptions-item label="联系电话">{{ detailData.contact_phone || '-' }}</el-descriptions-item>
           <el-descriptions-item label="送货地址" :span="3">{{ detailData.shipping_address || '-' }}</el-descriptions-item>
@@ -80,7 +80,7 @@
           <el-col :span="6">
             <div class="amount-item">
               <div class="label">付款日期</div>
-              <div class="value">{{ detailData.payment_date || '-' }}</div>
+              <div class="value">{{ formatDate(detailData.payment_date) || '-' }}</div>
             </div>
           </el-col>
           <el-col :span="6">
@@ -95,7 +95,7 @@
       <!-- 订单明细 -->
       <el-card class="mb-20">
         <div slot="header" class="card-header">
-          <span class="title">订单明细 ({{ detailData.items_count || 0 }})</span>
+          <span class="title">订单明细 ({{ detailData.items ? detailData.items.length : 0 }})</span>
         </div>
         <el-table :data="detailData.items" border>
           <el-table-column prop="product_code" label="产品编码" width="120" />
@@ -123,9 +123,9 @@
         </div>
         <el-descriptions :column="2" border>
           <el-descriptions-item label="提交人">{{ detailData.submitted_by_name || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="提交时间">{{ detailData.submitted_at || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="提交时间">{{ formatDateTime(detailData.submitted_at) || '-' }}</el-descriptions-item>
           <el-descriptions-item label="审核人">{{ detailData.approved_by_name || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="审核时间">{{ detailData.approved_at || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="审核时间">{{ formatDateTime(detailData.approved_at) || '-' }}</el-descriptions-item>
           <el-descriptions-item label="审核意见" :span="2">{{ detailData.approval_comment || '-' }}</el-descriptions-item>
           <el-descriptions-item label="拒绝原因" :span="2">
             <el-tag v-if="detailData.rejection_reason" type="danger">{{ detailData.rejection_reason }}</el-tag>
@@ -166,9 +166,9 @@
           <span class="title">系统信息</span>
         </div>
         <el-descriptions :column="2" border>
-          <el-descriptions-item label="创建人">{{ detailData.created_by_name || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ detailData.created_at }}</el-descriptions-item>
-          <el-descriptions-item label="更新时间">{{ detailData.updated_at }}</el-descriptions-item>
+          <el-descriptions-item label="创建人">{{ detailData.created_by || detailData.submitted_by_name || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="创建时间">{{ formatDateTime(detailData.created_at) }}</el-descriptions-item>
+          <el-descriptions-item label="更新时间">{{ formatDateTime(detailData.updated_at) }}</el-descriptions-item>
         </el-descriptions>
       </el-card>
 
@@ -240,8 +240,10 @@ export default {
       this.loading = true
       try {
         const response = await getSalesOrderDetail(this.orderId)
+        console.log('[DEBUG] Order detail response:', response)
         this.detailData = response
       } catch (error) {
+        console.error('[ERROR] Failed to fetch order detail:', error)
         this.$message.error('获取订单详情失败')
       } finally {
         this.loading = false
@@ -376,6 +378,25 @@ export default {
         paid: 'success'
       }
       return typeMap[status] || 'info'
+    },
+    formatDate(dateStr) {
+      if (!dateStr) return ''
+      // 处理日期格式
+      const date = new Date(dateStr)
+      if (isNaN(date.getTime())) return dateStr
+      return date.toISOString().split('T')[0]
+    },
+    formatDateTime(dateStr) {
+      if (!dateStr) return ''
+      const date = new Date(dateStr)
+      if (isNaN(date.getTime())) return dateStr
+      return date.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
     }
   }
 }
