@@ -158,6 +158,12 @@
           </div>
         </template>
       </el-table-column>
+      <!-- 空状态提示 -->
+      <template slot="empty">
+        <el-empty description="暂无销售订单数据">
+          <el-button type="primary" @click="handleAdd">创建销售订单</el-button>
+        </el-empty>
+      </template>
     </el-table>
 
     <!-- 分页 -->
@@ -265,6 +271,9 @@ export default {
       isAuthenticated: state => state.user.isAuthenticated
     }),
   },
+  mounted() {
+    this.fetchData()
+  },
   methods: {
     async fetchData() {
       this.loading = true
@@ -276,10 +285,15 @@ export default {
           status: this.searchForm.status || undefined,
           payment_status: this.searchForm.payment_status || undefined
         }
+        console.log('[DEBUG] Fetching sales orders with params:', params)
         const response = await getSalesOrderList(params)
-        this.tableData = response.results
-        this.pagination.total = response.count
+        console.log('[DEBUG] Sales orders response:', response)
+        this.tableData = response.results || []
+        this.pagination.total = response.count || 0
+        console.log('[DEBUG] Table data:', this.tableData)
+        console.log('[DEBUG] Total count:', this.pagination.total)
       } catch (error) {
+        console.error('[ERROR] Failed to fetch sales orders:', error)
         this.$message.error('获取销售订单列表失败')
       } finally {
         this.loading = false
