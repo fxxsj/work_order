@@ -87,19 +87,9 @@
           <el-tag size="mini" type="info">{{ scope.row.items_count || 0 }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="280" fixed="right" align="center">
+      <el-table-column label="操作" width="200" fixed="right" align="center">
         <template slot-scope="scope">
           <div class="action-buttons">
-            <!-- 查看按钮 - 始终显示 -->
-            <el-tooltip content="查看详情" placement="top">
-              <el-button
-                size="mini"
-                type="text"
-                @click="handleView(scope.row)"
-                icon="el-icon-view"
-              />
-            </el-tooltip>
-
             <!-- 编辑按钮 - 仅草稿状态显示 -->
             <el-tooltip v-if="canEdit(scope.row)" content="编辑订单" placement="top">
               <el-button
@@ -145,7 +135,7 @@
               <el-button size="mini" type="text" icon="el-icon-more" />
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item command="detail">
-                  <i class="el-icon-document"></i> 订单详情
+                  <i class="el-icon-view"></i> 查看详情
                 </el-dropdown-item>
                 <el-dropdown-item command="cancel" v-if="canCancel(scope.row)" divided>
                   <i class="el-icon-remove-outline"></i> 取消订单
