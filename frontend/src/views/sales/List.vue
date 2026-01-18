@@ -209,6 +209,23 @@
         <el-button type="danger" @click="confirmReject">拒绝</el-button>
       </span>
     </el-dialog>
+
+    <!-- 订单详情对话框 -->
+    <el-dialog
+      title="销售订单详情"
+      :visible.sync="detailVisible"
+      width="90%"
+      :close-on-click-modal="false"
+      @closed="handleDetailClose"
+    >
+      <sales-order-detail
+        v-if="detailVisible && currentOrderId"
+        :order-id="currentOrderId"
+        @refresh="fetchData"
+        @edit="handleEditFromDetail"
+        @close="detailVisible = false"
+      />
+    </el-dialog>
   </div>
 </template>
 
@@ -216,11 +233,13 @@
 import { getSalesOrderList, createSalesOrder, updateSalesOrder, deleteSalesOrder, getSalesOrderDetail, approveSalesOrder, cancelSalesOrder, submitSalesOrder } from '@/api/sales'
 import { mapState } from 'vuex'
 import SalesOrderForm from './Form.vue'
+import SalesOrderDetail from './Detail.vue'
 
 export default {
   name: 'SalesOrderList',
   components: {
-    SalesOrderForm
+    SalesOrderForm,
+    SalesOrderDetail
   },
   data() {
     return {
@@ -504,6 +523,21 @@ export default {
     handleDialogClose() {
       this.submitForm = null
       this.submitErrors = []
+    },
+    handleDetailClose() {
+      this.currentOrderId = null
+    },
+    async handleEditFromDetail(orderId) {
+      try {
+        const response = await getSalesOrderDetail(orderId)
+        this.dialogMode = 'edit'
+        this.submitForm = response
+        this.submitErrors = []
+        this.detailVisible = false
+        this.dialogVisible = true
+      } catch (error) {
+        this.$message.error('获取订单详情失败')
+      }
     },
     getStatusType(status) {
       const typeMap = {

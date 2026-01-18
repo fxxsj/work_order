@@ -174,21 +174,22 @@
 
       <!-- 操作按钮 -->
       <div class="action-buttons">
-        <el-button @click="$emit('close')">关闭</el-button>
+        <el-button @click="handleClose">关闭</el-button>
         <el-button v-if="canEdit" type="primary" @click="handleEdit">编辑</el-button>
-        <el-button v-if="canSubmit" type="warning" @click="handleSubmit">提交</el-button>
+        <el-button v-if="canSubmit" type="warning" @click="handleSubmit">提交审核</el-button>
         <el-button v-if="canApprove" type="success" @click="handleApprove">审核通过</el-button>
         <el-button v-if="canApprove" type="danger" @click="handleReject">拒绝</el-button>
         <el-button v-if="canStartProduction" type="primary" @click="handleStartProduction">开始生产</el-button>
         <el-button v-if="canComplete" type="success" @click="handleComplete">完成订单</el-button>
         <el-button v-if="canCancel" type="danger" @click="handleCancel">取消订单</el-button>
+        <el-button @click="handleRefresh">刷新</el-button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { getSalesOrderDetail } from '@/api/sales'
+import { getSalesOrderDetail, submitSalesOrder, approveSalesOrder, cancelSalesOrder, startProduction, completeSalesOrder } from '@/api/sales'
 
 export default {
   name: 'SalesOrderDetail',
@@ -246,26 +247,113 @@ export default {
         this.loading = false
       }
     },
+    handleClose() {
+      this.$emit('close')
+    },
     handleEdit() {
-      this.$router.push(`/sales-orders/${this.orderId}/edit`)
+      this.$emit('edit', this.orderId)
     },
-    handleSubmit() {
-      this.$router.push(`/sales-orders`)
+    async handleSubmit() {
+      this.$confirm('确定要提交该销售订单吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        try {
+          await submitSalesOrder(this.orderId)
+          this.$message.success('提交成功')
+          this.$emit('refresh')
+          this.fetchData()
+        } catch (error) {
+          this.$message.error('提交失败')
+        }
+      }).catch(() => {})
     },
-    handleApprove() {
-      this.$router.push(`/sales-orders`)
+    async handleApprove() {
+      this.$prompt('请输入审核意见', '审核通过', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPattern: /.+/,
+        inputErrorMessage: '请输入审核意见'
+      }).then(async ({ value }) => {
+        try {
+          await approveSalesOrder(this.orderId, { approval_comment: value })
+          this.$message.success('审核通过')
+          this.$emit('refresh')
+          this.fetchData()
+        } catch (error) {
+          this.$message.error('审核失败')
+        }
+      }).catch(() => {})
     },
-    handleReject() {
-      this.$router.push(`/sales-orders`)
+    async handleReject() {
+      this.$prompt('请输入拒绝原因', '拒绝订单', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPattern: /.+/,
+        inputErrorMessage: '请输入拒绝原因'
+      }).then(async ({ value }) => {
+        try {
+          await cancelSalesOrder(this.orderId, { reason: value })
+          this.$message.success('已拒绝该订单')
+          this.$emit('refresh')
+          this.fetchData()
+        } catch (error) {
+          this.$message.error('操作失败')
+        }
+      }).catch(() => {})
     },
-    handleStartProduction() {
-      this.$router.push(`/sales-orders`)
+    async handleStartProduction() {
+      this.$confirm('确定要开始生产吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        try {
+          await startProduction(this.orderId)
+          this.$message.success('已开始生产')
+          this.$emit('refresh')
+          this.fetchData()
+        } catch (error) {
+          this.$message.error('操作失败')
+        }
+      }).catch(() => {})
     },
-    handleComplete() {
-      this.$router.push(`/sales-orders`)
+    async handleComplete() {
+      this.$confirm('确定要完成该订单吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        try {
+          await completeSalesOrder(this.orderId)
+          this.$message.success('订单已完成')
+          this.$emit('refresh')
+          this.fetchData()
+        } catch (error) {
+          this.$message.error('操作失败')
+        }
+      }).catch(() => {})
     },
-    handleCancel() {
-      this.$router.push(`/sales-orders`)
+    async handleCancel() {
+      this.$prompt('请输入取消原因', '取消订单', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPattern: /.+/,
+        inputErrorMessage: '请输入取消原因'
+      }).then(async ({ value }) => {
+        try {
+          await cancelSalesOrder(this.orderId, { reason: value })
+          this.$message.success('订单已取消')
+          this.$emit('refresh')
+          this.fetchData()
+        } catch (error) {
+          this.$message.error('取消失败')
+        }
+      }).catch(() => {})
+    },
+    handleRefresh() {
+      this.fetchData()
     },
     viewWorkOrder(orderNumber) {
       this.$router.push(`/workorders?search=${orderNumber}`)
