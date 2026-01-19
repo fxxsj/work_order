@@ -21,6 +21,7 @@ export { dieAPI } from './die'
 export { foilingPlateAPI } from './foiling-plate'
 export { embossingPlateAPI } from './embossing-plate'
 export { productMaterialAPI } from './product-material'
+export { supplierAPI } from './supplier'
 
 // Complex API Modules (包含自定义操作)
 export { workOrderAPI } from './workorder'
@@ -28,6 +29,7 @@ export { workOrderTaskAPI } from './workorder-task'
 export { workOrderProcessAPI } from './workorder-process'
 export { workOrderMaterialAPI } from './workorder-material'
 export { workOrderProductAPI } from './workorder-product'
+export { purchaseOrderAPI } from './purchase'
 
 // Notification API (包含自定义操作)
 export { notificationAPI } from './notification'
