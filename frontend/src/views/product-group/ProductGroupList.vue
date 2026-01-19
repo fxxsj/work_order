@@ -164,7 +164,7 @@
 </template>
 
 <script>
-import { product-groupAPI, productAPI } from '@/api/modules'
+import { productGroupAPI, productAPI } from '@/api/modules'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 

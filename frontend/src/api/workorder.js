@@ -398,7 +398,7 @@ export const workOrderProcessAPI = {
 // 施工单物料管理
 // 施工单任务管理
 // 产品组管理
-export const product-groupAPI = {
+export const productGroupAPI = {
   getList(params) {
     return request({
       url: '/product-groups/',
@@ -435,7 +435,7 @@ export const product-groupAPI = {
 }
 
 // 产品组子项管理
-export const product-groupItemAPI = {
+export const productGroupItemAPI = {
   getList(params) {
     return request({
       url: '/product-group-items/',
