@@ -36,25 +36,25 @@ const routes = [
       {
         path: 'workorders',
         name: 'WorkOrderList',
-        component: () => import(/* webpackChunkName: "workorder-list" */ '@/views/workorder/List.vue'),
+        component: () => import(/* webpackChunkName: "workorder-list" */ '@/views/workorder/WorkOrderList.vue'),
         meta: { title: '施工单列表', requiresAuth: true }
       },
       {
         path: 'workorders/create',
         name: 'WorkOrderCreate',
-        component: () => import(/* webpackChunkName: "workorder-form" */ '@/views/workorder/Form.vue'),
+        component: () => import(/* webpackChunkName: "workorder-form" */ '@/views/workorder/WorkOrderForm.vue'),
         meta: { title: '新建施工单', requiresAuth: true }
       },
       {
         path: 'workorders/:id',
         name: 'WorkOrderDetail',
-        component: () => import(/* webpackChunkName: "workorder-detail" */ /* webpackPrefetch: true */ '@/views/workorder/Detail.vue'),
+        component: () => import(/* webpackChunkName: "workorder-detail" */ /* webpackPrefetch: true */ '@/views/workorder/WorkOrderDetail.vue'),
         meta: { title: '施工单详情', requiresAuth: true }
       },
       {
         path: 'workorders/:id/edit',
         name: 'WorkOrderEdit',
-        component: () => import(/* webpackChunkName: "workorder-form" */ '@/views/workorder/Form.vue'),
+        component: () => import(/* webpackChunkName: "workorder-form" */ '@/views/workorder/WorkOrderForm.vue'),
         meta: { title: '编辑施工单', requiresAuth: true }
       },
 
@@ -62,37 +62,37 @@ const routes = [
       {
         path: 'customers',
         name: 'CustomerList',
-        component: () => import(/* webpackChunkName: "basic-data" */ '@/views/customer/List.vue'),
+        component: () => import(/* webpackChunkName: "basic-data" */ '@/views/customer/CustomerList.vue'),
         meta: { title: '客户管理', requiresAuth: true }
       },
       {
         path: 'departments',
         name: 'DepartmentList',
-        component: () => import(/* webpackChunkName: "basic-data" */ '@/views/department/List.vue'),
+        component: () => import(/* webpackChunkName: "basic-data" */ '@/views/department/DepartmentList.vue'),
         meta: { title: '部门管理', requiresAuth: true }
       },
       {
         path: 'processes',
         name: 'ProcessList',
-        component: () => import(/* webpackChunkName: "basic-data" */ '@/views/process/List.vue'),
+        component: () => import(/* webpackChunkName: "basic-data" */ '@/views/process/ProcessList.vue'),
         meta: { title: '工序管理', requiresAuth: true }
       },
       {
         path: 'products',
         name: 'ProductList',
-        component: () => import(/* webpackChunkName: "basic-data" */ '@/views/product/List.vue'),
+        component: () => import(/* webpackChunkName: "basic-data" */ '@/views/product/ProductList.vue'),
         meta: { title: '产品管理', requiresAuth: true }
       },
       {
         path: 'materials',
         name: 'MaterialList',
-        component: () => import(/* webpackChunkName: "basic-data" */ '@/views/material/List.vue'),
+        component: () => import(/* webpackChunkName: "basic-data" */ '@/views/material/MaterialList.vue'),
         meta: { title: '物料管理', requiresAuth: true }
       },
       {
         path: 'product-groups',
         name: 'ProductGroupList',
-        component: () => import(/* webpackChunkName: "basic-data" */ '@/views/productGroup/List.vue'),
+        component: () => import(/* webpackChunkName: "basic-data" */ '@/views/product-group/ProductGroupList.vue'),
         meta: { title: '产品组管理', requiresAuth: true }
       },
 
@@ -100,25 +100,25 @@ const routes = [
       {
         path: 'artworks',
         name: 'ArtworkList',
-        component: () => import(/* webpackChunkName: "plate-management" */ '@/views/artwork/List.vue'),
+        component: () => import(/* webpackChunkName: "plate-management" */ '@/views/artwork/ArtworkList.vue'),
         meta: { title: '图稿管理', requiresAuth: true }
       },
       {
         path: 'dies',
         name: 'DieList',
-        component: () => import(/* webpackChunkName: "plate-management" */ '@/views/die/List.vue'),
+        component: () => import(/* webpackChunkName: "plate-management" */ '@/views/die/DieList.vue'),
         meta: { title: '刀模管理', requiresAuth: true }
       },
       {
         path: 'foiling-plates',
         name: 'FoilingPlateList',
-        component: () => import(/* webpackChunkName: "plate-management" */ '@/views/foilingplate/List.vue'),
+        component: () => import(/* webpackChunkName: "plate-management" */ '@/views/foiling-plate/FoilingPlateList.vue'),
         meta: { title: '烫金版管理', requiresAuth: true }
       },
       {
         path: 'embossing-plates',
         name: 'EmbossingPlateList',
-        component: () => import(/* webpackChunkName: "plate-management" */ '@/views/embossingplate/List.vue'),
+        component: () => import(/* webpackChunkName: "plate-management" */ '@/views/embossing-plate/EmbossingPlateList.vue'),
         meta: { title: '压凸版管理', requiresAuth: true }
       },
 
@@ -126,13 +126,13 @@ const routes = [
       {
         path: 'suppliers',
         name: 'SupplierList',
-        component: () => import(/* webpackChunkName: "purchase" */ '@/views/supplier/List.vue'),
+        component: () => import(/* webpackChunkName: "purchase" */ '@/views/supplier/SupplierList.vue'),
         meta: { title: '供应商管理', requiresAuth: true }
       },
       {
         path: 'purchase-orders',
         name: 'PurchaseOrderList',
-        component: () => import(/* webpackChunkName: "purchase" */ '@/views/purchase/List.vue'),
+        component: () => import(/* webpackChunkName: "purchase" */ '@/views/purchase/PurchaseList.vue'),
         meta: { title: '采购单管理', requiresAuth: true }
       },
 
@@ -140,25 +140,25 @@ const routes = [
       {
         path: 'sales-orders',
         name: 'SalesOrderList',
-        component: () => import(/* webpackChunkName: "sales-list" */ '@/views/sales/List.vue'),
+        component: () => import(/* webpackChunkName: "sales-list" */ '@/views/sales/SalesList.vue'),
         meta: { title: '销售订单管理', requiresAuth: true }
       },
       {
         path: 'sales-orders/create',
         name: 'SalesOrderCreate',
-        component: () => import(/* webpackChunkName: "sales-form" */ '@/views/sales/Form.vue'),
+        component: () => import(/* webpackChunkName: "sales-form" */ '@/views/sales/SalesForm.vue'),
         meta: { title: '新建销售订单', requiresAuth: true }
       },
       {
         path: 'sales-orders/:id',
         name: 'SalesOrderDetail',
-        component: () => import(/* webpackChunkName: "sales-detail" */ /* webpackPrefetch: true */ '@/views/sales/Detail.vue'),
+        component: () => import(/* webpackChunkName: "sales-detail" */ /* webpackPrefetch: true */ '@/views/sales/SalesDetail.vue'),
         meta: { title: '销售订单详情', requiresAuth: true }
       },
       {
         path: 'sales-orders/:id/edit',
         name: 'SalesOrderEdit',
-        component: () => import(/* webpackChunkName: "sales-form" */ '@/views/sales/Form.vue'),
+        component: () => import(/* webpackChunkName: "sales-form" */ '@/views/sales/SalesForm.vue'),
         meta: { title: '编辑销售订单', requiresAuth: true }
       },
 
@@ -166,7 +166,7 @@ const routes = [
       {
         path: 'tasks',
         name: 'TaskList',
-        component: () => import(/* webpackChunkName: "task-list" */ /* webpackPrefetch: true */ '@/views/task/List.vue'),
+        component: () => import(/* webpackChunkName: "task-list" */ /* webpackPrefetch: true */ '@/views/task/TaskList.vue'),
         meta: { title: '任务管理', requiresAuth: true }
       },
       {

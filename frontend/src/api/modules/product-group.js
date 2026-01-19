@@ -10,5 +10,5 @@ class ProductGroupAPI extends BaseAPI {
   }
 }
 
-export const productGroupAPI = new ProductGroupAPI()
-export default productGroupAPI
+export const product-groupAPI = new ProductGroupAPI()
+export default product-groupAPI

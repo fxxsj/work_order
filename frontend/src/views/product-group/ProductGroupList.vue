@@ -164,7 +164,7 @@
 </template>
 
 <script>
-import { productGroupAPI, productAPI } from '@/api/modules'
+import { product-groupAPI, productAPI } from '@/api/modules'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 
@@ -174,7 +174,7 @@ export default {
   data() {
     return {
       // API 服务和权限配置
-      apiService: productGroupAPI,
+      apiService: product-groupAPI,
       permissionPrefix: 'productgroup',
 
       // 表单相关

@@ -1,10 +1,10 @@
 <template>
-  <div class="embossing-plate-list">
+  <div class="foiling-plate-list">
     <el-card>
       <div class="header-section">
         <el-input
           v-model="searchText"
-          placeholder="搜索压凸版编码、名称、尺寸、材质"
+          placeholder="搜索烫金版编码、名称、尺寸、材质"
           style="width: 300px;"
           clearable
           @input="handleSearchDebounced"
@@ -17,7 +17,7 @@
           type="primary"
           icon="el-icon-plus"
           @click="showDialog()">
-          新建压凸版
+          新建烫金版
         </el-button>
       </div>
 
@@ -26,8 +26,15 @@
         :data="tableData"
         style="width: 100%; margin-top: 20px;"
       >
-        <el-table-column prop="code" label="压凸版编码" width="150"></el-table-column>
-        <el-table-column prop="name" label="压凸版名称" width="200"></el-table-column>
+        <el-table-column prop="code" label="烫金版编码" width="150"></el-table-column>
+        <el-table-column prop="name" label="烫金版名称" width="200"></el-table-column>
+        <el-table-column prop="foiling_type" label="类型" width="100">
+          <template slot-scope="scope">
+            <el-tag :type="scope.row.foiling_type === 'gold' ? 'warning' : 'info'">
+              {{ scope.row.foiling_type === 'gold' ? '烫金' : '烫银' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="size" label="尺寸" width="180"></el-table-column>
         <el-table-column prop="material" label="材质" width="120"></el-table-column>
         <el-table-column prop="thickness" label="厚度" width="100"></el-table-column>
@@ -82,7 +89,7 @@
       </el-pagination>
     </el-card>
 
-    <!-- 压凸版表单对话框 -->
+    <!-- 烫金版表单对话框 -->
     <el-dialog
       :title="dialogTitle"
       :visible.sync="dialogVisible"
@@ -94,17 +101,23 @@
         :rules="rules"
         label-width="120px"
       >
-        <el-form-item label="压凸版编码" prop="code">
+        <el-form-item label="烫金版编码" prop="code">
           <el-input
             v-model="form.code"
-            placeholder="留空则系统自动生成（格式：EP + yyyymm + 序号）"
+            placeholder="留空则系统自动生成（格式：FP + yyyymm + 序号）"
           ></el-input>
           <div style="font-size: 12px; color: #909399; margin-top: 5px;">
-            留空则自动生成，格式：EP202412001
+            留空则自动生成，格式：FP202412001
           </div>
         </el-form-item>
-        <el-form-item label="压凸版名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入压凸版名称"></el-input>
+        <el-form-item label="烫金版名称" prop="name">
+          <el-input v-model="form.name" placeholder="请输入烫金版名称"></el-input>
+        </el-form-item>
+        <el-form-item label="类型" prop="foiling_type">
+          <el-select v-model="form.foiling_type" placeholder="请选择类型" style="width: 100%;">
+            <el-option label="烫金" value="gold"></el-option>
+            <el-option label="烫银" value="silver"></el-option>
+          </el-select>
         </el-form-item>
         <el-row :gutter="20">
           <el-col :span="12">
@@ -193,18 +206,18 @@
 </template>
 
 <script>
-import { embossingPlateAPI, productAPI } from '@/api/modules'
+import { foilingPlateAPI, productAPI } from '@/api/modules'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 
 export default {
-  name: 'EmbossingPlateList',
+  name: 'FoilingPlateList',
   mixins: [listPageMixin, crudPermissionMixin],
   data() {
     return {
       // API 服务和权限配置
-      apiService: embossingPlateAPI,
-      permissionPrefix: 'embossingplate',
+      apiService: foilingPlateAPI,
+      permissionPrefix: 'foiling-plate',
 
       // 表单相关
       productList: [],
@@ -213,6 +226,7 @@ export default {
       form: {
         code: '',
         name: '',
+        foiling_type: 'gold',
         size: '',
         material: '',
         thickness: '',
@@ -220,14 +234,14 @@ export default {
       },
       rules: {
         name: [
-          { required: true, message: '请输入压凸版名称', trigger: 'blur' }
+          { required: true, message: '请输入烫金版名称', trigger: 'blur' }
         ]
       }
     }
   },
   computed: {
     dialogTitle() {
-      return this.isEdit ? '编辑压凸版' : '新建压凸版'
+      return this.isEdit ? '编辑烫金版' : '新建烫金版'
     }
   },
   created() {
@@ -289,10 +303,11 @@ export default {
         this.dialogType = 'edit'
 
         try {
-          const detail = await embossingPlateAPI.getDetail(row.id)
+          const detail = await foilingPlateAPI.getDetail(row.id)
           this.form = {
             code: detail.code,
             name: detail.name,
+            foiling_type: detail.foiling_type || 'gold',
             size: detail.size || '',
             material: detail.material || '',
             thickness: detail.thickness || '',
@@ -310,7 +325,7 @@ export default {
             this.productItems = []
           }
         } catch (error) {
-          console.error('加载压凸版详情失败:', error)
+          console.error('加载烫金版详情失败:', error)
         }
       } else {
         this.isEdit = false
@@ -319,6 +334,7 @@ export default {
         this.form = {
           code: '',
           name: '',
+          foiling_type: 'gold',
           size: '',
           material: '',
           thickness: '',
@@ -386,7 +402,7 @@ export default {
 </script>
 
 <style scoped>
-.embossing-plate-list {
+.foiling-plate-list {
   padding: 20px;
 }
 
