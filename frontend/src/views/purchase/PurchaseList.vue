@@ -4,7 +4,7 @@
       <!-- 搜索和筛选 -->
       <el-form :inline="true" :model="filters" class="search-form" @keyup.enter.native="handleSearch">
         <el-form-item label="采购单号">
-          <el-input v-model="filters.search" placeholder="请输入采购单号" clearable />
+          <el-input v-model="searchText" placeholder="请输入采购单号" clearable />
         </el-form-item>
         <el-form-item label="供应商">
           <el-input v-model="filters.supplier_name" placeholder="请输入供应商名称" clearable />
@@ -21,8 +21,8 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-          <el-button type="success" @click="handleAdd">新增采购单</el-button>
+          <el-button @click="resetFilters">重置</el-button>
+          <el-button v-if="canCreate()" type="success" @click="showCreateDialog">新增采购单</el-button>
           <el-button type="warning" @click="handleLowStock">库存预警</el-button>
         </el-form-item>
       </el-form>
@@ -54,7 +54,7 @@
         <el-table-column label="操作" width="300" fixed="right">
           <template slot-scope="scope">
             <el-button size="mini" type="primary" @click="handleView(scope.row)">查看</el-button>
-            <el-button v-if="scope.row.status === 'draft'" size="mini" type="success" @click="handleEdit(scope.row)">编辑</el-button>
+            <el-button v-if="scope.row.status === 'draft' && canEdit()" size="mini" type="success" @click="showEditDialog(scope.row)">编辑</el-button>
             <el-button v-if="scope.row.status === 'draft'" size="mini" type="warning" @click="handleSubmit(scope.row)">提交</el-button>
             <el-button v-if="scope.row.status === 'submitted'" size="mini" type="success" @click="handleApprove(scope.row)">批准</el-button>
             <el-button v-if="scope.row.status === 'submitted'" size="mini" type="danger" @click="handleReject(scope.row)">拒绝</el-button>
@@ -67,21 +67,21 @@
 
       <!-- 分页 -->
       <Pagination
-        :current-page="pagination.page"
-        :page-size="pagination.pageSize"
-        :total="pagination.total"
+        :current-page="currentPage"
+        :page-size="pageSize"
+        :total="total"
         @current-change="handlePageChange"
         @size-change="handleSizeChange"
       />
     </el-card>
 
     <!-- 新增/编辑对话框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="900px" @close="handleDialogClose">
+    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="900px" @close="resetForm">
       <el-form :model="form" :rules="rules" ref="form" label-width="100px">
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="供应商" prop="supplier">
-              <el-select v-model="form.supplier" placeholder="请选择供应商" filterable>
+              <el-select v-model="form.supplier" placeholder="请选择供应商" filterable style="width: 100%">
                 <el-option
                   v-for="item in supplierOptions"
                   :key="item.id"
@@ -141,7 +141,7 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleFormSubmit">确定</el-button>
+        <el-button type="primary" :loading="dialogLoading" @click="submitForm">确定</el-button>
       </span>
     </el-dialog>
 
@@ -209,121 +209,148 @@
 </template>
 
 <script>
-import { getPurchaseOrderList, createPurchaseOrder, updatePurchaseOrder, deletePurchaseOrder, submitPurchaseOrder, approvePurchaseOrder, rejectPurchaseOrder, placePurchaseOrder, receivePurchaseOrder, cancelPurchaseOrder, getLowStockMaterials, getSupplierList, getMaterialList } from '@/api/purchase'
+import { purchaseOrderAPI, supplierAPI, materialAPI } from '@/api/modules'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import formDialogMixin from '@/mixins/formDialogMixin'
 import Pagination from '@/components/common/Pagination.vue'
+import ErrorHandler from '@/utils/errorHandler'
 
 export default {
   name: 'PurchaseOrderList',
+
   components: {
     Pagination
   },
+
+  mixins: [listPageMixin, crudPermissionMixin, formDialogMixin],
+
   data() {
     return {
-      loading: false,
-      filters: {
-        search: '',
-        supplier_name: '',
-        status: ''
-      },
-      tableData: [],
-      pagination: {
-        page: 1,
-        pageSize: 20,
-        total: 0
-      },
-      dialogVisible: false,
-      dialogMode: 'add',
+      // API 服务和权限配置
+      apiService: purchaseOrderAPI,
+      permissionPrefix: 'purchaseorder',
+
+      // 表单数据
       form: {
         supplier: null,
         work_order_number: '',
         notes: '',
         items: []
       },
+
+      // 验证规则
       rules: {
         supplier: [{ required: true, message: '请选择供应商', trigger: 'change' }]
       },
+
+      // 选项数据
       supplierOptions: [],
       materialOptions: [],
+
+      // 详情对话框
       detailDialogVisible: false,
       detailData: {},
+
+      // 库存预警对话框
       lowStockDialogVisible: false,
       lowStockMaterials: []
     }
   },
-  computed: {
-    dialogTitle() {
-      return this.dialogMode === 'add' ? '新增采购单' : '编辑采购单'
-    }
-  },
+
   created() {
-    this.fetchData()
+    this.loadData()
     this.fetchOptions()
   },
+
   methods: {
+    /**
+     * 获取数据（listPageMixin 要求实现）
+     */
     async fetchData() {
-      this.loading = true
-      try {
-        const params = {
-          page: this.pagination.page,
-          page_size: this.pagination.pageSize,
-          search: this.filters.search || undefined,
-          status: this.filters.status || undefined
-        }
-        const response = await getPurchaseOrderList(params)
-        this.tableData = response.results || []
-        this.pagination.total = response.count || 0
-      } catch (error) {
-        this.$message.error(`获取采购单列表失败: ${error.message || error}`)
-      } finally {
-        this.loading = false
+      const params = {
+        page: this.currentPage,
+        page_size: this.pageSize,
+        search: this.searchText || undefined,
+        supplier_name: this.filters.supplier_name || undefined,
+        status: this.filters.status || undefined
       }
+      return await this.apiService.getList(params)
     },
+
+    /**
+     * 加载选项数据
+     */
     async fetchOptions() {
       try {
         const [supplierRes, materialRes] = await Promise.all([
-          getSupplierList({ page_size: 1000, status: 'active' }),
-          getMaterialList({ page_size: 1000 })
+          supplierAPI.getList({ page_size: 1000, status: 'active' }),
+          materialAPI.getList({ page_size: 1000 })
         ])
         this.supplierOptions = supplierRes.results || []
         this.materialOptions = materialRes.results || []
       } catch (error) {
-        this.$message.error(`获取选项数据失败: ${error.message || error}`)
+        ErrorHandler.showMessage(error, '获取选项数据')
       }
     },
-    handleSearch() {
-      this.pagination.page = 1
-      this.fetchData()
+
+    /**
+     * 处理表单提交（formDialogMixin 要求实现）
+     */
+    async handleFormSubmit(formData) {
+      // 验证明细数据
+      if (!formData.items || formData.items.length === 0) {
+        ErrorHandler.showWarning('请至少添加一条采购明细')
+        throw new Error('请至少添加一条采购明细')
+      }
+
+      // 准备提交数据
+      const data = {
+        supplier: formData.supplier,
+        work_order_number: formData.work_order_number,
+        notes: formData.notes,
+        items: formData.items.map(item => ({
+          material: item.material,
+          quantity: item.quantity,
+          unit_price: item.unit_price
+        }))
+      }
+
+      if (this.dialogType === 'create') {
+        await this.apiService.create(data)
+        ErrorHandler.showSuccess('创建成功')
+      } else {
+        await this.apiService.update(formData.id, data)
+        ErrorHandler.showSuccess('更新成功')
+      }
+
+      await this.loadData()
     },
-    handleReset() {
-      this.filters = { search: '', supplier_name: '', status: '' }
-      this.pagination.page = 1
-      this.fetchData()
-    },
-    handleSizeChange(size) {
-      this.pagination.pageSize = size
-      this.pagination.page = 1
-      this.fetchData()
-    },
-    handlePageChange(page) {
-      this.pagination.page = page
-      this.fetchData()
-    },
-    handleAdd() {
-      this.dialogMode = 'add'
-      this.dialogVisible = true
-      this.$nextTick(() => {
-        this.$refs.form && this.$refs.form.clearValidate()
-      })
-    },
-    handleView(row) {
-      this.detailData = { ...row }
-      this.detailDialogVisible = true
-    },
-    handleEdit(row) {
-      this.dialogMode = 'edit'
+
+    /**
+     * 自定义重置表单（formDialogMixin 使用）
+     */
+    customResetForm() {
       this.form = {
-        ...row,
-        items: row.items.map(item => ({
+        supplier: null,
+        work_order_number: '',
+        notes: '',
+        items: []
+      }
+    },
+
+    /**
+     * 显示编辑对话框（覆盖 formDialogMixin）
+     */
+    showEditDialog(row) {
+      this.dialogType = 'edit'
+      this.dialogTitle = '编辑采购单'
+      this.form = {
+        id: row.id,
+        supplier: row.supplier,
+        work_order_number: row.work_order_number || '',
+        notes: row.notes || '',
+        items: (row.items || []).map(item => ({
           id: item.id,
           material: item.material,
           quantity: item.quantity,
@@ -331,147 +358,173 @@ export default {
         }))
       }
       this.dialogVisible = true
-      this.$nextTick(() => {
-        this.$refs.form && this.$refs.form.clearValidate()
-      })
     },
-    handleDelete(row) {
-      this.$confirm(`确定要删除采购单"${row.order_number}"吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(async () => {
-        try {
-          await deletePurchaseOrder(row.id)
-          this.$message.success('删除成功')
-          this.fetchData()
-        } catch (error) {
-          this.$message.error('删除失败')
-        }
-      }).catch(() => {})
+
+    /**
+     * 查看详情
+     */
+    handleView(row) {
+      this.detailData = { ...row, items: row.items || [] }
+      this.detailDialogVisible = true
     },
-    handleAction(row, actionFn, successMsg) {
-      this.$confirm(`确定要${successMsg}采购单"${row.order_number}"吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(async () => {
-        try {
-          await actionFn(row.id)
-          this.$message.success(`${successMsg}成功`)
-          this.fetchData()
-        } catch (error) {
-          this.$message.error(`${successMsg}失败`)
-        }
-      }).catch(() => {})
-    },
-    handleSubmit(row) {
-      this.handleAction(row, submitPurchaseOrder, '提交')
-    },
-    handleApprove(row) {
-      this.handleAction(row, approvePurchaseOrder, '批准')
-    },
-    handleReject(row) {
-      this.$prompt('请输入拒绝原因', '拒绝采购单', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        inputPattern: /\S+/,
-        inputErrorMessage: '拒绝原因不能为空'
-      }).then(async ({ value }) => {
-        try {
-          await rejectPurchaseOrder(row.id, { rejection_reason: value })
-          this.$message.success('拒绝成功')
-          this.fetchData()
-        } catch (error) {
-          this.$message.error('拒绝失败')
-        }
-      }).catch(() => {})
-    },
-    handlePlaceOrder(row) {
-      this.handleAction(row, (id) => placePurchaseOrder(id, { ordered_date: new Date().toISOString().split('T')[0] }), '下单')
-    },
-    handleReceive(row) {
-      this.$confirm(`确定要收货采购单"${row.order_number}"吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(async () => {
-        try {
-          const items = row.items.map(item => ({ id: item.id, received_quantity: item.quantity }))
-          await receivePurchaseOrder(row.id, { items })
-          this.$message.success('收货成功')
-          this.fetchData()
-        } catch (error) {
-          this.$message.error('收货失败')
-        }
-      }).catch(() => {})
-    },
-    handleCancel(row) {
-      this.handleAction(row, cancelPurchaseOrder, '取消')
-    },
-    handleLowStock() {
-      this.fetchLowStockMaterials()
-    },
-    async fetchLowStockMaterials() {
+
+    /**
+     * 提交采购单
+     */
+    async handleSubmit(row) {
       try {
-        const response = await getLowStockMaterials()
-        this.lowStockMaterials = response.data.materials
-        this.lowStockDialogVisible = true
+        await ErrorHandler.confirm(`确定要提交采购单"${row.order_number}"吗？`)
+        await this.apiService.submit(row.id)
+        ErrorHandler.showSuccess('提交成功')
+        await this.loadData()
       } catch (error) {
-        this.$message.error('获取库存不足物料失败')
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '提交')
+        }
       }
     },
+
+    /**
+     * 批准采购单
+     */
+    async handleApprove(row) {
+      try {
+        await ErrorHandler.confirm(`确定要批准采购单"${row.order_number}"吗？`)
+        await this.apiService.approve(row.id)
+        ErrorHandler.showSuccess('批准成功')
+        await this.loadData()
+      } catch (error) {
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '批准')
+        }
+      }
+    },
+
+    /**
+     * 拒绝采购单
+     */
+    async handleReject(row) {
+      try {
+        const { value } = await this.$prompt('请输入拒绝原因', '拒绝采购单', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          inputPattern: /\S+/,
+          inputErrorMessage: '拒绝原因不能为空'
+        })
+        await this.apiService.reject(row.id, { rejection_reason: value })
+        ErrorHandler.showSuccess('拒绝成功')
+        await this.loadData()
+      } catch (error) {
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '拒绝')
+        }
+      }
+    },
+
+    /**
+     * 下单
+     */
+    async handlePlaceOrder(row) {
+      try {
+        await ErrorHandler.confirm(`确定要下单采购单"${row.order_number}"吗？`)
+        await this.apiService.placeOrder(row.id, { ordered_date: new Date().toISOString().split('T')[0] })
+        ErrorHandler.showSuccess('下单成功')
+        await this.loadData()
+      } catch (error) {
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '下单')
+        }
+      }
+    },
+
+    /**
+     * 收货
+     */
+    async handleReceive(row) {
+      try {
+        await ErrorHandler.confirm(`确定要收货采购单"${row.order_number}"吗？`)
+        const items = (row.items || []).map(item => ({
+          id: item.id,
+          received_quantity: item.quantity
+        }))
+        await this.apiService.receive(row.id, { items })
+        ErrorHandler.showSuccess('收货成功')
+        await this.loadData()
+      } catch (error) {
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '收货')
+        }
+      }
+    },
+
+    /**
+     * 取消采购单
+     */
+    async handleCancel(row) {
+      try {
+        await ErrorHandler.confirm(`确定要取消采购单"${row.order_number}"吗？`)
+        await this.apiService.cancel(row.id)
+        ErrorHandler.showSuccess('取消成功')
+        await this.loadData()
+      } catch (error) {
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '取消')
+        }
+      }
+    },
+
+    /**
+     * 库存预警
+     */
+    async handleLowStock() {
+      try {
+        const response = await this.apiService.getLowStockMaterials()
+        this.lowStockMaterials = response.data?.materials || []
+        this.lowStockDialogVisible = true
+      } catch (error) {
+        ErrorHandler.showMessage(error, '获取库存预警')
+      }
+    },
+
+    /**
+     * 从库存预警创建采购单
+     */
     handleCreatePurchaseFromLowStock() {
       this.lowStockDialogVisible = false
-      this.handleAdd()
+      this.showCreateDialog()
     },
+
+    /**
+     * 添加明细行
+     */
     handleAddItem() {
-      this.form.items.push({ material: null, quantity: 1, unit_price: 0 })
+      this.form.items.push({
+        material: null,
+        quantity: 1,
+        unit_price: 0
+      })
     },
+
+    /**
+     * 删除明细行
+     */
     handleDeleteItem(index) {
       this.form.items.splice(index, 1)
     },
+
+    /**
+     * 物料变化时自动填充单价
+     */
     handleMaterialChange(row) {
       const material = this.materialOptions.find(m => m.id === row.material)
-      if (material) {
+      if (material && material.unit_price) {
         row.unit_price = material.unit_price
       }
     },
-    handleFormSubmit() {
-      this.$refs.form.validate(async (valid) => {
-        if (!valid) return
 
-        if (this.form.items.length === 0) {
-          this.$message.warning('请至少添加一条采购明细')
-          return
-        }
-
-        try {
-          const data = {
-            ...this.form,
-            items: this.form.items.map(item => ({
-              material: item.material,
-              quantity: item.quantity,
-              unit_price: item.unit_price
-            }))
-          }
-          if (this.dialogMode === 'add') {
-            await createPurchaseOrder(data)
-            this.$message.success('创建成功')
-          } else {
-            await updatePurchaseOrder(this.form.id, data)
-            this.$message.success('更新成功')
-          }
-          this.dialogVisible = false
-          this.fetchData()
-        } catch (error) {
-          this.$message.error(this.dialogMode === 'add' ? '创建失败' : '更新失败')
-        }
-      })
-    },
-    handleDialogClose() {
-      this.form = { supplier: null, work_order_number: '', notes: '', items: [] }
-    },
+    /**
+     * 获取状态类型
+     */
     getStatusType(status) {
       const map = {
         draft: 'info',
@@ -483,6 +536,10 @@ export default {
       }
       return map[status] || 'info'
     },
+
+    /**
+     * 获取明细状态类型
+     */
     getItemStatusType(status) {
       const map = {
         pending: 'info',
@@ -491,6 +548,10 @@ export default {
       }
       return map[status] || 'info'
     },
+
+    /**
+     * 获取进度条颜色
+     */
     getProgressColor(percentage) {
       if (percentage >= 100) return '#67c23a'
       if (percentage >= 50) return '#e6a23c'
