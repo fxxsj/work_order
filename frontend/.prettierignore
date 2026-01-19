@@ -1,0 +1,23 @@
+# 编辑器和 IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 依赖
+node_modules/
+.pnp
+.pnp.js
+
+# 测试
+coverage/
+*.log
+
+# 构建产物
+dist/
+build/
+
+# 系统文件
+.DS_Store
+Thumbs.db
