@@ -274,7 +274,7 @@ export default {
       this.loading = true
       try {
         const params = {
-          page: this.pagination.page - 1,
+          page: this.pagination.page,
           page_size: this.pagination.pageSize
         }
 

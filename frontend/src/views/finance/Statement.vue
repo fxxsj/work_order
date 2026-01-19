@@ -377,7 +377,7 @@ export default {
       this.loading = true
       try {
         const params = {
-          page: this.pagination.page - 1,
+          page: this.pagination.page,
           page_size: this.pagination.pageSize
         }
 
@@ -391,8 +391,16 @@ export default {
           params.status = this.filters.status
         }
         if (this.filters.period_range && this.filters.period_range.length === 2) {
-          params.period_start = this.filters.period_range[0]
-          params.period_end = this.filters.period_range[1]
+          // 格式化日期为 YYYY-MM-DD
+          const formatDate = (date) => {
+            const d = new Date(date)
+            const year = d.getFullYear()
+            const month = String(d.getMonth() + 1).padStart(2, '0')
+            const day = String(d.getDate()).padStart(2, '0')
+            return `${year}-${month}-${day}`
+          }
+          params.period_start = formatDate(this.filters.period_range[0])
+          params.period_end = formatDate(this.filters.period_range[1])
         }
 
         const response = await getStatements(params)
