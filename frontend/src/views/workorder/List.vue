@@ -158,18 +158,7 @@
       </el-table>
 
       <!-- 分页 -->
-      <el-pagination
-        v-if="total > 0"
-        :current-page="currentPage"
-        :page-sizes="[10, 20, 50, 100]"
-        :page-size="pageSize"
-        :total="total"
-        layout="total, sizes, prev, pager, next, jumper"
-        style="margin-top: 20px; text-align: right;"
-        @size-change="handleSizeChange"
-        @current-change="handlePageChange"
-      >
-      </el-pagination>
+      <Pagination v-if="total > 0" :current-page="currentPage" :page-size="pageSize" :total="total" @current-change="handlePageChange" @size-change="handleSizeChange" />
     </el-card>
   </div>
 </template>
@@ -179,12 +168,11 @@ import { workOrderAPI } from '@/api/workorder'
 import { getSalespersons } from '@/api/auth'
 import { debounce } from '@/utils/debounce'
 import SkeletonLoader from '@/components/SkeletonLoader.vue'
+import Pagination from '@/components/common/Pagination.vue'
 
 export default {
   name: 'WorkOrderList',
-  components: {
-    SkeletonLoader
-  },
+  components: { SkeletonLoader, Pagination },
   data() {
     return {
       loading: false,
@@ -194,15 +182,7 @@ export default {
       pageSize: 20,
       total: 0,
       salespersons: [],
-      filters: {
-        search: '',
-        status: '',
-        priority: '',
-        approval_status: '',
-        customer__salesperson: '',
-        delivery_date__gte: '',
-        delivery_date__lte: ''
-      }
+      filters: { search: '', status: '', priority: '', approval_status: '', customer__salesperson: '', delivery_date__gte: '', delivery_date__lte: '' }
     }
   },
   computed: {
@@ -250,177 +230,57 @@ export default {
     this.loadData()
   },
   methods: {
-    // 检查用户是否有指定权限
     hasPermission(permission) {
       const userInfo = this.$store.getters['user/currentUser']
       if (!userInfo) return false
-      
-      // 超级用户拥有所有权限
       if (userInfo.is_superuser) return true
-      
-      // 检查权限列表
       const permissions = userInfo.permissions || []
       if (permissions.includes('*')) return true
-      
       return permissions.includes(permission)
     },
     async loadData() {
       this.loading = true
       try {
-        const params = {
-          page: this.currentPage,
-          page_size: this.pageSize,
-          ordering: '-created_at'
-        }
-        
-        if (this.filters.search) {
-          params.search = this.filters.search
-        }
-        if (this.filters.status) {
-          params.status = this.filters.status
-        }
-        if (this.filters.priority) {
-          params.priority = this.filters.priority
-        }
-        if (this.filters.approval_status) {
-          params.approval_status = this.filters.approval_status
-        }
-        if (this.filters.customer__salesperson) {
-          params.customer__salesperson = this.filters.customer__salesperson
-        }
-        if (this.filters.delivery_date__gte) {
-          params.delivery_date__gte = this.filters.delivery_date__gte
-        }
-        if (this.filters.delivery_date__lte) {
-          params.delivery_date__lte = this.filters.delivery_date__lte
-        }
-        
+        const params = { page: this.currentPage, page_size: this.pageSize, ordering: '-created_at' }
+        if (this.filters.search) params.search = this.filters.search
+        if (this.filters.status) params.status = this.filters.status
+        if (this.filters.priority) params.priority = this.filters.priority
+        if (this.filters.approval_status) params.approval_status = this.filters.approval_status
+        if (this.filters.customer__salesperson) params.customer__salesperson = this.filters.customer__salesperson
+        if (this.filters.delivery_date__gte) params.delivery_date__gte = this.filters.delivery_date__gte
+        if (this.filters.delivery_date__lte) params.delivery_date__lte = this.filters.delivery_date__lte
         const response = await workOrderAPI.getList(params)
         this.tableData = response.results || []
         this.total = response.count || 0
-      } catch (error) {
-        this.$message.error('加载数据失败')
-        console.error(error)
-      } finally {
-        this.loading = false
-      }
+      } catch (error) { this.$message.error('加载数据失败') }
+      finally { this.loading = false }
     },
-    async loadSalespersons() {
-      try {
-        const response = await getSalespersons()
-        this.salespersons = response || []
-      } catch (error) {
-        console.error('加载业务员列表失败:', error)
-        this.salespersons = []
-      }
-    },
-    handleSearch() {
-      this.currentPage = 1
-      this.loadData()
-    },
-    handleSearchDebounced: debounce(function() {
-      this.currentPage = 1
-      this.loadData()
-    }, 300),
+    async loadSalespersons() { try { this.salespersons = await getSalespersons() || [] } catch (error) { console.error('加载业务员列表失败:', error); this.salespersons = [] } },
+    handleSearch() { this.currentPage = 1; this.loadData() },
+    handleSearchDebounced: debounce(function() { this.currentPage = 1; this.loadData() }, 300),
     handleReset() {
-      // 重置所有筛选条件
-      this.filters = {
-        search: '',
-        status: '',
-        priority: '',
-        approval_status: '',
-        customer__salesperson: '',
-        delivery_date__gte: '',
-        delivery_date__lte: ''
-      }
+      this.filters = { search: '', status: '', priority: '', approval_status: '', customer__salesperson: '', delivery_date__gte: '', delivery_date__lte: '' }
       this.currentPage = 1
-      // 清除URL参数，避免重复导航错误
-      const hasQueryParams = Object.keys(this.$route.query).length > 0
-      if (hasQueryParams) {
-        this.$router.replace({ query: {} }).catch(err => {
-          // 忽略 NavigationDuplicated 错误
-          if (err.name !== 'NavigationDuplicated') {
-            console.error('导航错误:', err)
-          }
-        })
-      }
+      if (Object.keys(this.$route.query).length > 0) { this.$router.replace({ query: {} }).catch(err => { if (err.name !== 'NavigationDuplicated') console.error('导航错误:', err) }) }
       this.loadData()
     },
-    handleSizeChange(size) {
-      this.pageSize = size
-      this.loadData()
-    },
-    handlePageChange(page) {
-      this.currentPage = page
-      this.loadData()
-    },
-    handleCreate() {
-      this.$router.push('/workorders/create')
-    },
-    handleView(row) {
-      this.$router.push(`/workorders/${row.id}`)
-    },
-    handleEdit(row) {
-      // 如果审核状态为 approved，显示提示对话框
-      if (row.approval_status === 'approved') {
-        this.$confirm(
-          '该施工单已审核通过。核心字段（产品、工序、版选择等）不能修改，非核心字段（备注、交货日期等）可以修改。确定要继续编辑吗？',
-          '编辑已审核的施工单',
-          {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }
-        ).then(() => {
-          this.$router.push(`/workorders/${row.id}/edit`)
-        }).catch(() => {
-          // 用户取消
-        })
-      } else {
-        this.$router.push(`/workorders/${row.id}/edit`)
-      }
-    },
-    handleRowClick(row) {
-      this.handleView(row)
-    },
-    handleDelete(row) {
-      this.$confirm(`确定要删除施工单 ${row.order_number} 吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(async () => {
-        try {
-          await workOrderAPI.delete(row.id)
-          this.$message.success('删除成功')
-          this.loadData()
-        } catch (error) {
-          this.$message.error('删除失败')
-          console.error(error)
-        }
-      }).catch(() => {})
-    },
+    handleSizeChange(size) { this.pageSize = size; this.loadData() },
+    handlePageChange(page) { this.currentPage = page; this.loadData() },
+    handleCreate() { this.$router.push('/workorders/create') },
+    handleView(row) { this.$router.push(`/workorders/${row.id}`) },
+    handleEdit(row) { if (row.approval_status === 'approved') { this.$confirm('该施工单已审核通过。核心字段（产品、工序、版选择等）不能修改，非核心字段（备注、交货日期等）可以修改。确定要继续编辑吗？', '编辑已审核的施工单', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }).then(() => { this.$router.push(`/workorders/${row.id}/edit`) }).catch(() => {}) } else { this.$router.push(`/workorders/${row.id}/edit`) } },
+    handleRowClick(row) { this.handleView(row) },
+    handleDelete(row) { this.$confirm(`确定要删除施工单 ${row.order_number} 吗？`, '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }).then(async () => { try { await workOrderAPI.delete(row.id); this.$message.success('删除成功'); this.loadData() } catch { this.$message.error('删除失败') } }).catch(() => {}) },
     getDeliveryDateStyle(date, status) {
-      if (status === 'completed' || status === 'cancelled') {
-        return {}
-      }
-      
-      const today = new Date()
-      const deliveryDate = new Date(date)
-      const diffDays = Math.ceil((deliveryDate - today) / (1000 * 60 * 60 * 24))
-      
-      if (diffDays < 0) {
-        return { color: '#F56C6C', fontWeight: 'bold' } // 已逾期
-      } else if (diffDays <= 3) {
-        return { color: '#E6A23C', fontWeight: 'bold' } // 即将到期
-      }
+      if (status === 'completed' || status === 'cancelled') return {}
+      const diffDays = Math.ceil((new Date(date) - new Date()) / (1000 * 60 * 60 * 24))
+      if (diffDays < 0) return { color: '#F56C6C', fontWeight: 'bold' }
+      if (diffDays <= 3) return { color: '#E6A23C', fontWeight: 'bold' }
       return {}
     },
-    // 导出施工单列表
     async handleExport() {
       try {
         this.exporting = true
-        
-        // 构建导出参数（使用当前筛选条件）
         const params = {}
         if (this.filters.search) params.search = this.filters.search
         if (this.filters.status) params.status = this.filters.status
@@ -429,18 +289,11 @@ export default {
         if (this.filters.customer__salesperson) params.customer__salesperson = this.filters.customer__salesperson
         if (this.filters.delivery_date__gte) params.delivery_date__gte = this.filters.delivery_date__gte
         if (this.filters.delivery_date__lte) params.delivery_date__lte = this.filters.delivery_date__lte
-        
-        // 生成文件名
         const now = new Date()
         const filename = `施工单列表_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}.xlsx`
         params.filename = filename
-        
         const response = await workOrderAPI.export(params)
-        
-        // 创建下载链接
-        const blob = new Blob([response], {
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        })
+        const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
         const url = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
@@ -449,39 +302,23 @@ export default {
         link.click()
         document.body.removeChild(link)
         window.URL.revokeObjectURL(url)
-        
         this.$message.success('导出成功')
       } catch (error) {
         console.error('导出失败:', error)
         if (error.response && error.response.data) {
-          // 如果是文本错误消息
           const reader = new FileReader()
-          reader.onload = () => {
-            this.$message.error(reader.result)
-          }
+          reader.onload = () => { this.$message.error(reader.result) }
           reader.readAsText(error.response.data)
-        } else {
-          this.$message.error('导出失败：' + (error.message || '未知错误'))
-        }
-      } finally {
-        this.exporting = false
-      }
+        } else { this.$message.error('导出失败：' + (error.message || '未知错误')) }
+      } finally { this.exporting = false }
     }
   }
 }
 </script>
 
 <style scoped>
-.workorder-list {
-  padding: 20px;
-}
-
-.filter-section {
-  margin-bottom: 20px;
-}
-
-.el-table {
-  cursor: pointer;
-}
+.workorder-list { padding: 20px; }
+.filter-section { margin-bottom: 20px; }
+.el-table { cursor: pointer; }
 </style>
 
