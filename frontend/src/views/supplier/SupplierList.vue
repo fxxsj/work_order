@@ -4,7 +4,7 @@
       <!-- 搜索和筛选 -->
       <el-form :inline="true" :model="filters" class="search-form" @keyup.enter.native="handleSearch">
         <el-form-item label="供应商名称/编码">
-          <el-input v-model="filters.search" placeholder="请输入" clearable />
+          <el-input v-model="searchText" placeholder="请输入" clearable />
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="filters.status" placeholder="请选择" clearable>
@@ -14,8 +14,8 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-          <el-button type="success" @click="handleAdd">新增供应商</el-button>
+          <el-button @click="resetFilters">重置</el-button>
+          <el-button v-if="canCreate()" type="success" @click="showCreateDialog">新增供应商</el-button>
         </el-form-item>
       </el-form>
 
@@ -37,27 +37,27 @@
         <el-table-column prop="notes" label="备注" min-width="200" show-overflow-tooltip />
         <el-table-column label="操作" width="200" fixed="right">
           <template slot-scope="scope">
-            <el-button size="mini" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+            <el-button v-if="canEdit()" size="mini" type="primary" @click="showEditDialog(scope.row)">编辑</el-button>
+            <el-button v-if="canDelete()" size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
 
       <!-- 分页 -->
       <Pagination
-        :current-page="pagination.page"
-        :page-size="pagination.pageSize"
-        :total="pagination.total"
+        :current-page="currentPage"
+        :page-size="pageSize"
+        :total="total"
         @current-change="handlePageChange"
         @size-change="handleSizeChange"
       />
     </el-card>
 
     <!-- 新增/编辑对话框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="600px" @close="handleDialogClose">
+    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="600px" @close="resetForm">
       <el-form :model="form" :rules="rules" ref="form" label-width="100px">
         <el-form-item label="供应商编码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入供应商编码" :disabled="dialogMode === 'edit'" />
+          <el-input v-model="form.code" placeholder="请输入供应商编码" :disabled="isEditMode" />
         </el-form-item>
         <el-form-item label="供应商名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入供应商名称" />
@@ -86,36 +86,36 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <el-button type="primary" :loading="dialogLoading" @click="submitForm">确定</el-button>
       </span>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import { getSupplierList, createSupplier, updateSupplier, deleteSupplier } from '@/api/purchase'
+import { supplierAPI } from '@/api/modules'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import formDialogMixin from '@/mixins/formDialogMixin'
 import Pagination from '@/components/common/Pagination.vue'
+import ErrorHandler from '@/utils/errorHandler'
 
 export default {
   name: 'SupplierList',
+
   components: {
     Pagination
   },
+
+  mixins: [listPageMixin, crudPermissionMixin, formDialogMixin],
+
   data() {
     return {
-      loading: false,
-      filters: {
-        search: '',
-        status: ''
-      },
-      tableData: [],
-      pagination: {
-        page: 1,
-        pageSize: 20,
-        total: 0
-      },
-      dialogVisible: false,
-      dialogMode: 'add',
+      // API 服务
+      apiService: supplierAPI,
+      permissionPrefix: 'supplier',
+
+      // 表单数据
       form: {
         code: '',
         name: '',
@@ -126,6 +126,8 @@ export default {
         status: 'active',
         notes: ''
       },
+
+      // 验证规则
       rules: {
         code: [{ required: true, message: '请输入供应商编码', trigger: 'blur' }],
         name: [{ required: true, message: '请输入供应商名称', trigger: 'blur' }],
@@ -134,101 +136,59 @@ export default {
       }
     }
   },
-  computed: {
-    dialogTitle() {
-      return this.dialogMode === 'add' ? '新增供应商' : '编辑供应商'
-    }
-  },
+
   created() {
-    this.fetchData()
+    this.loadData()
   },
+
   methods: {
+    /**
+     * 获取数据
+     */
     async fetchData() {
-      this.loading = true
+      const params = {
+        page: this.currentPage,
+        page_size: this.pageSize,
+        search: this.searchText || undefined,
+        status: this.filters.status || undefined
+      }
+      return await this.apiService.getList(params)
+    },
+
+    /**
+     * 处理表单提交
+     */
+    async handleFormSubmit(formData) {
+      if (this.dialogType === 'create') {
+        await this.apiService.create(formData)
+        ErrorHandler.showSuccess('创建成功')
+      } else {
+        await this.apiService.update(formData.id, formData)
+        ErrorHandler.showSuccess('更新成功')
+      }
+      await this.loadData()
+    },
+
+    /**
+     * 处理删除
+     */
+    async handleDelete(row) {
       try {
-        const params = {
-          page: this.pagination.page,
-          page_size: this.pagination.pageSize,
-          search: this.filters.search || undefined,
-          status: this.filters.status || undefined
-        }
-        const response = await getSupplierList(params)
-        this.tableData = response.results
-        this.pagination.total = response.count
+        await ErrorHandler.confirm(`确定要删除供应商"${row.name}"吗？`)
+        await this.apiService.delete(row.id)
+        ErrorHandler.showSuccess('删除成功')
+        await this.loadData()
       } catch (error) {
-        this.$message.error('获取供应商列表失败')
-      } finally {
-        this.loading = false
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '删除')
+        }
       }
     },
-    handleSearch() {
-      this.pagination.page = 1
-      this.fetchData()
-    },
-    handleReset() {
-      this.filters = { search: '', status: '' }
-      this.pagination.page = 1
-      this.fetchData()
-    },
-    handleSizeChange(size) {
-      this.pagination.pageSize = size
-      this.pagination.page = 1
-      this.fetchData()
-    },
-    handlePageChange(page) {
-      this.pagination.page = page
-      this.fetchData()
-    },
-    handleAdd() {
-      this.dialogMode = 'add'
-      this.dialogVisible = true
-      this.$nextTick(() => {
-        this.$refs.form && this.$refs.form.clearValidate()
-      })
-    },
-    handleEdit(row) {
-      this.dialogMode = 'edit'
-      this.form = { ...row }
-      this.dialogVisible = true
-      this.$nextTick(() => {
-        this.$refs.form && this.$refs.form.clearValidate()
-      })
-    },
-    handleDelete(row) {
-      this.$confirm(`确定要删除供应商"${row.name}"吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(async () => {
-        try {
-          await deleteSupplier(row.id)
-          this.$message.success('删除成功')
-          this.fetchData()
-        } catch (error) {
-          this.$message.error('删除失败')
-        }
-      }).catch(() => {})
-    },
-    handleSubmit() {
-      this.$refs.form.validate(async (valid) => {
-        if (!valid) return
 
-        try {
-          if (this.dialogMode === 'add') {
-            await createSupplier(this.form)
-            this.$message.success('创建成功')
-          } else {
-            await updateSupplier(this.form.id, this.form)
-            this.$message.success('更新成功')
-          }
-          this.dialogVisible = false
-          this.fetchData()
-        } catch (error) {
-          this.$message.error(this.dialogMode === 'add' ? '创建失败' : '更新失败')
-        }
-      })
-    },
-    handleDialogClose() {
+    /**
+     * 自定义重置表单
+     */
+    customResetForm() {
       this.form = {
         code: '',
         name: '',
