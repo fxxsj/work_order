@@ -111,6 +111,46 @@
           <i class="el-icon-collection"></i>
           <span>产品组管理</span>
         </el-menu-item>
+        <el-submenu index="/inventory">
+          <template slot="title">
+            <i class="el-icon-box"></i>
+            <span>库存管理</span>
+          </template>
+          <el-menu-item index="/inventory/stocks">
+            <i class="el-icon-goods"></i>
+            <span>成品库存</span>
+          </el-menu-item>
+          <el-menu-item index="/inventory/delivery">
+            <i class="el-icon-truck"></i>
+            <span>发货管理</span>
+          </el-menu-item>
+          <el-menu-item index="/inventory/quality">
+            <i class="el-icon-circle-check"></i>
+            <span>质量检验</span>
+          </el-menu-item>
+        </el-submenu>
+        <el-submenu index="/finance">
+          <template slot="title">
+            <i class="el-icon-wallet"></i>
+            <span>财务管理</span>
+          </template>
+          <el-menu-item index="/finance/invoices">
+            <i class="el-icon-ticket"></i>
+            <span>发票管理</span>
+          </el-menu-item>
+          <el-menu-item index="/finance/payments">
+            <i class="el-icon-coin"></i>
+            <span>收款管理</span>
+          </el-menu-item>
+          <el-menu-item index="/finance/costs">
+            <i class="el-icon-pie-chart"></i>
+            <span>成本核算</span>
+          </el-menu-item>
+          <el-menu-item index="/finance/statements">
+            <i class="el-icon-s-finance"></i>
+            <span>对账管理</span>
+          </el-menu-item>
+        </el-submenu>
       </el-menu>
     </el-aside>
 
@@ -173,6 +213,12 @@ export default {
       }
       if (path.startsWith('/suppliers') || path.startsWith('/purchase-orders') || path.startsWith('/sales-orders')) {
         return '/purchase'
+      }
+      if (path.startsWith('/inventory')) {
+        return '/inventory'
+      }
+      if (path.startsWith('/finance')) {
+        return '/finance'
       }
       return path
     },

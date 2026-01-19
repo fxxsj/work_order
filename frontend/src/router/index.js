@@ -202,6 +202,52 @@ const routes = [
         meta: { title: '通知中心', requiresAuth: true }
       },
 
+      // 财务管理 - 合并到单个 chunk
+      {
+        path: 'finance/invoices',
+        name: 'InvoiceList',
+        component: () => import(/* webpackChunkName: "finance" */ '@/views/finance/Invoice.vue'),
+        meta: { title: '发票管理', requiresAuth: true }
+      },
+      {
+        path: 'finance/payments',
+        name: 'PaymentList',
+        component: () => import(/* webpackChunkName: "finance" */ '@/views/finance/Payment.vue'),
+        meta: { title: '收款管理', requiresAuth: true }
+      },
+      {
+        path: 'finance/costs',
+        name: 'CostList',
+        component: () => import(/* webpackChunkName: "finance" */ '@/views/finance/Cost.vue'),
+        meta: { title: '成本核算', requiresAuth: true }
+      },
+      {
+        path: 'finance/statements',
+        name: 'StatementList',
+        component: () => import(/* webpackChunkName: "finance" */ '@/views/finance/Statement.vue'),
+        meta: { title: '对账管理', requiresAuth: true }
+      },
+
+      // 库存管理 - 合并到单个 chunk
+      {
+        path: 'inventory/stocks',
+        name: 'StockList',
+        component: () => import(/* webpackChunkName: "inventory" */ '@/views/inventory/Stock.vue'),
+        meta: { title: '成品库存', requiresAuth: true }
+      },
+      {
+        path: 'inventory/delivery',
+        name: 'DeliveryList',
+        component: () => import(/* webpackChunkName: "inventory" */ '@/views/inventory/Delivery.vue'),
+        meta: { title: '发货管理', requiresAuth: true }
+      },
+      {
+        path: 'inventory/quality',
+        name: 'QualityList',
+        component: () => import(/* webpackChunkName: "inventory" */ '@/views/inventory/Quality.vue'),
+        meta: { title: '质量检验', requiresAuth: true }
+      },
+
       // 用户设置
       {
         path: 'profile',
