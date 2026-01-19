@@ -195,7 +195,7 @@
 
 <script>
 import { getSalesOrderList, createSalesOrder, updateSalesOrder, deleteSalesOrder, getSalesOrderDetail, approveSalesOrder, cancelSalesOrder, submitSalesOrder } from '@/api/sales'
-import SalesOrderForm from './Form.vue'
+import SalesOrderForm from './SalesForm.vue'
 import SalesOrderDetail from './SalesDetail.vue'
 import Pagination from '@/components/common/Pagination.vue'
 
