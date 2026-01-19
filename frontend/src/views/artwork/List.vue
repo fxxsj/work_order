@@ -7,14 +7,15 @@
           placeholder="搜索图稿编码、名称、拼版尺寸"
           style="width: 300px;"
           clearable
+          @input="handleSearchDebounced"
           @clear="handleSearch"
         >
           <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
         </el-input>
-        <el-button 
-          v-if="canCreate" 
-          type="primary" 
-          icon="el-icon-plus" 
+        <el-button
+          v-if="canCreate()"
+          type="primary"
+          icon="el-icon-plus"
           @click="showDialog()">
           新建图稿
         </el-button>
@@ -114,33 +115,33 @@
         </el-table-column>
         <el-table-column label="操作" width="280" fixed="right">
           <template slot-scope="scope">
-            <el-button 
-              v-if="canEdit" 
-              type="text" 
-              size="small" 
+            <el-button
+              v-if="canEdit()"
+              type="text"
+              size="small"
               @click="showDialog(scope.row)">
               编辑
             </el-button>
-            <el-button 
-              v-if="canEdit" 
-              type="text" 
-              size="small" 
+            <el-button
+              v-if="canEdit()"
+              type="text"
+              size="small"
               @click="createNewVersion(scope.row)">
               创建新版本
             </el-button>
-            <el-button 
-              v-if="!scope.row.confirmed && canConfirm" 
-              type="text" 
-              size="small" 
-              style="color: #67C23A;" 
+            <el-button
+              v-if="!scope.row.confirmed && canConfirm()"
+              type="text"
+              size="small"
+              style="color: #67C23A;"
               @click="handleConfirm(scope.row)">
               确认
             </el-button>
-            <el-button 
-              v-if="canDelete" 
-              type="text" 
-              size="small" 
-              style="color: #F56C6C;" 
+            <el-button
+              v-if="canDelete()"
+              type="text"
+              size="small"
+              style="color: #F56C6C;"
               @click="handleDelete(scope.row)">
               删除
             </el-button>
@@ -284,7 +285,7 @@
         </el-form-item>
 
         <el-divider content-position="left">包含产品及拼版数量</el-divider>
-        
+
         <el-form-item label="产品列表">
           <el-button type="primary" size="small" icon="el-icon-plus" @click="addProductItem">
             添加产品
@@ -347,33 +348,33 @@
       </el-form>
       <div slot="footer">
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <el-button type="primary" :loading="formLoading" @click="handleSubmit">确定</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import { artworkAPI, productAPI, dieAPI, foilingPlateAPI, embossingPlateAPI } from '@/api/workorder'
+import { artworkAPI, productAPI, dieAPI, foilingPlateAPI, embossingPlateAPI } from '@/api/modules'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 
 export default {
   name: 'ArtworkList',
+  mixins: [listPageMixin, crudPermissionMixin],
   data() {
     return {
-      loading: false,
-      tableData: [],
+      // API 服务和权限配置
+      apiService: artworkAPI,
+      permissionPrefix: 'artwork',
+
+      // 表单相关
       productList: [],
-      dieList: [], // 刀模列表
-      foilingPlateList: [], // 烫金版列表
-      embossingPlateList: [], // 压凸版列表
-      currentPage: 1,
-      pageSize: 20,
-      total: 0,
-      searchText: '',
-      dialogVisible: false,
+      dieList: [],
+      foilingPlateList: [],
+      embossingPlateList: [],
       isEdit: false,
-      editId: null,
-      productItems: [], // 产品列表
+      productItems: [],
       form: {
         base_code: '',
         version: 1,
@@ -381,9 +382,9 @@ export default {
         cmyk_colors: [],
         other_colors: [],
         imposition_size: '',
-        dies: [], // 关联刀模
-        foiling_plates: [], // 关联烫金版
-        embossing_plates: [], // 关联压凸版
+        dies: [],
+        foiling_plates: [],
+        embossing_plates: [],
         notes: ''
       },
       rules: {
@@ -396,20 +397,6 @@ export default {
   computed: {
     dialogTitle() {
       return this.isEdit ? '编辑图稿' : '新建图稿'
-    },
-    canCreate() {
-      return this.hasPermission('workorder.add_artwork')
-    },
-    canEdit() {
-      return this.hasPermission('workorder.change_artwork')
-    },
-    canDelete() {
-      return this.hasPermission('workorder.delete_artwork')
-    },
-    canConfirm() {
-      // 设计部用户可以确认图稿，这里可以根据用户部门判断
-      // 暂时使用 change_artwork 权限
-      return this.hasPermission('workorder.change_artwork')
     }
   },
   created() {
@@ -420,20 +407,26 @@ export default {
     this.loadEmbossingPlateList()
   },
   methods: {
-    // 检查用户是否有指定权限
-    hasPermission(permission) {
-      const userInfo = this.$store.getters['user/currentUser']
-      if (!userInfo) return false
-      
-      // 超级用户拥有所有权限
-      if (userInfo.is_superuser) return true
-      
-      // 检查权限列表
-      const permissions = userInfo.permissions || []
-      if (permissions.includes('*')) return true
-      
-      return permissions.includes(permission)
+    // 实现 fetchData 方法（listPageMixin 要求）
+    async fetchData() {
+      const params = {
+        page: this.currentPage,
+        page_size: this.pageSize
+      }
+
+      if (this.searchText) {
+        params.search = this.searchText
+      }
+
+      return this.apiService.getList(params)
     },
+
+    canConfirm() {
+      // 设计部用户可以确认图稿，这里可以根据用户部门判断
+      // 暂时使用 change_artwork 权限
+      return this.checkPermission('change')
+    },
+
     formatDate(dateString) {
       if (!dateString) return ''
       const date = new Date(dateString)
@@ -445,6 +438,7 @@ export default {
         minute: '2-digit'
       })
     },
+
     async loadProductList() {
       try {
         const response = await productAPI.getList({ is_active: true, page_size: 100 })
@@ -453,6 +447,7 @@ export default {
         console.error('加载产品列表失败:', error)
       }
     },
+
     async loadDieList() {
       try {
         const response = await dieAPI.getList({ page_size: 100 })
@@ -461,6 +456,7 @@ export default {
         console.error('加载刀模列表失败:', error)
       }
     },
+
     async loadFoilingPlateList() {
       try {
         const response = await foilingPlateAPI.getList({ page_size: 100 })
@@ -469,6 +465,7 @@ export default {
         console.error('加载烫金版列表失败:', error)
       }
     },
+
     async loadEmbossingPlateList() {
       try {
         const response = await embossingPlateAPI.getList({ page_size: 100 })
@@ -477,36 +474,7 @@ export default {
         console.error('加载压凸版列表失败:', error)
       }
     },
-    async loadData() {
-      this.loading = true
-      try {
-        const params = {
-          page: this.currentPage,
-          page_size: this.pageSize
-        }
-        
-        if (this.searchText) {
-          params.search = this.searchText
-        }
-        
-        const response = await artworkAPI.getList(params)
-        this.tableData = response.results || []
-        this.total = response.count || 0
-      } catch (error) {
-        this.$message.error('加载数据失败')
-        console.error(error)
-      } finally {
-        this.loading = false
-      }
-    },
-    handleSearch() {
-      this.currentPage = 1
-      this.loadData()
-    },
-    handlePageChange(page) {
-      this.currentPage = page
-      this.loadData()
-    },
+
     addProductItem() {
       this.productItems.push({
         product: null,
@@ -514,15 +482,19 @@ export default {
         sort_order: this.productItems.length
       })
     },
+
     removeProductItem(index) {
       this.productItems.splice(index, 1)
     },
+
     addOtherColor() {
       this.form.other_colors.push('')
     },
+
     removeOtherColor(index) {
       this.form.other_colors.splice(index, 1)
     },
+
     async handleConfirm(row) {
       try {
         await this.$confirm('确认该图稿？', '提示', {
@@ -531,21 +503,16 @@ export default {
           type: 'warning'
         })
         await artworkAPI.confirm(row.id)
-        this.$message.success('图稿已确认')
+        this.showSuccess('图稿已确认')
         this.loadData()
       } catch (error) {
         if (error !== 'cancel') {
-          if (error.response && error.response.data && error.response.data.error) {
-            this.$message.error(error.response.data.error)
-          } else {
-            this.$message.error('确认失败')
-          }
-          console.error(error)
+          this.showMessage(error, '确认失败')
         }
       }
     },
+
     async createNewVersion(row) {
-      // 创建新版本
       const fullCode = row.code || (row.base_code + (row.version > 1 ? '-v' + row.version : ''))
       this.$confirm(`确定要基于 "${fullCode}" 创建新版本吗？`, '提示', {
         confirmButtonText: '确定',
@@ -554,20 +521,21 @@ export default {
       }).then(async () => {
         try {
           await artworkAPI.createVersion(row.id)
-          this.$message.success('新版本创建成功')
-          this.loadData() // 重新加载列表
+          this.showSuccess('新版本创建成功')
+          this.loadData()
         } catch (error) {
           console.error('创建新版本失败:', error)
-          this.$message.error('创建新版本失败')
+          this.showMessage(error, '创建新版本失败')
         }
       }).catch(() => {})
     },
+
     async showDialog(row = null) {
       if (row) {
         this.isEdit = true
-        this.editId = row.id
-        
-        // 加载图稿详情
+        this.currentRow = row
+        this.dialogType = 'edit'
+
         try {
           const detail = await artworkAPI.getDetail(row.id)
           this.form = {
@@ -582,11 +550,10 @@ export default {
             embossing_plates: detail.embossing_plates || [],
             notes: detail.notes || ''
           }
-          
-          // 加载产品列表
+
           if (detail.products && detail.products.length > 0) {
             this.productItems = detail.products.map(p => ({
-              id: p.id, // 编辑时保留ID
+              id: p.id,
               product: p.product,
               imposition_quantity: p.imposition_quantity,
               sort_order: p.sort_order || 0
@@ -599,7 +566,8 @@ export default {
         }
       } else {
         this.isEdit = false
-        this.editId = null
+        this.currentRow = null
+        this.dialogType = 'create'
         this.form = {
           base_code: '',
           version: 1,
@@ -608,82 +576,73 @@ export default {
           other_colors: [],
           imposition_size: '',
           dies: [],
+          foiling_plates: [],
+          embossing_plates: [],
           notes: ''
         }
         this.productItems = []
       }
       this.dialogVisible = true
-      this.$nextTick(() => {
-        if (this.$refs.form) {
-          this.$refs.form.clearValidate()
-        }
-      })
     },
+
     async handleSubmit() {
       this.$refs.form.validate(async (valid) => {
         if (!valid) {
           return false
         }
-        
+
+        this.formLoading = true
         try {
           const data = { ...this.form }
-          
-          // 如果是新建且主编码为空，不传主编码字段（让后端自动生成）
+
           if (!this.isEdit && !data.base_code) {
             delete data.base_code
           }
-          // 新建时不需要传 version，后端会自动设置为 1
           if (!this.isEdit) {
             delete data.version
           }
-          
-          // 过滤掉其他颜色中的空字符串
+
           if (data.other_colors) {
             data.other_colors = data.other_colors.filter(color => color && color.trim())
           }
-          
-          // 准备产品数据
+
           const productsData = this.productItems
             .filter(item => item.product)
             .map(item => ({
               product: item.product,
               imposition_quantity: item.imposition_quantity || 1
             }))
-          
-          // 将产品数据添加到请求中
+
           data.products_data = productsData
-          
+
           if (this.isEdit) {
-            await artworkAPI.update(this.editId, data)
-            this.$message.success('保存成功')
+            await this.apiService.update(this.currentRow.id, data)
+            this.showSuccess('保存成功')
           } else {
-            await artworkAPI.create(data)
-            this.$message.success('创建成功')
+            await this.apiService.create(data)
+            this.showSuccess('创建成功')
           }
-          
+
           this.dialogVisible = false
           this.loadData()
         } catch (error) {
-          this.$message.error(this.isEdit ? '保存失败' : '创建失败')
-          console.error(error)
+          this.showMessage(error, this.isEdit ? '保存失败' : '创建失败')
+        } finally {
+          this.formLoading = false
         }
       })
-    },
-    handleDelete(row) {
-      this.$confirm(`确定要删除图稿 ${row.name} 吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(async () => {
-        try {
-          await artworkAPI.delete(row.id)
-          this.$message.success('删除成功')
-          this.loadData()
-        } catch (error) {
-          this.$message.error('删除失败')
-          console.error(error)
-        }
-      }).catch(() => {})
+    }
+  },
+  watch: {
+    // 监听对话框显示状态，编辑时填充表单
+    dialogVisible(val) {
+      if (!val) {
+        this.$nextTick(() => {
+          if (this.$refs.form) {
+            this.$refs.form.clearValidate()
+          }
+        })
+      }
     }
   }
 }
@@ -700,4 +659,3 @@ export default {
   align-items: center;
 }
 </style>
-

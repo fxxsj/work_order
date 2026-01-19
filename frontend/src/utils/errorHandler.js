@@ -2,7 +2,7 @@
  * 统一错误处理器
  * 提供统一的错误处理和消息显示
  */
-import { Message } from 'element-ui'
+import { Message, MessageBox } from 'element-ui'
 
 export class ErrorHandler {
   /**
@@ -68,6 +68,117 @@ export class ErrorHandler {
    */
   static showInfo(message) {
     Message.info(message)
+  }
+
+  /**
+   * 处理验证错误（表单验证）
+   * @param {Error} error - 错误对象
+   * @param {Object} formRef - 表单引用（可选）
+   * @returns {Object} 错误字段映射
+   */
+  static handleValidationError(error, formRef = null) {
+    const errors = {}
+
+    if (error.response?.data) {
+      const data = error.response.data
+
+      // 处理 DRF 验证错误格式
+      if (typeof data === 'object') {
+        for (const [field, messages] of Object.entries(data)) {
+          if (Array.isArray(messages)) {
+            errors[field] = messages.join(', ')
+          } else if (typeof messages === 'string') {
+            errors[field] = messages
+          }
+        }
+      }
+
+      // 设置表单错误
+      if (formRef && typeof formRef.setFields === 'function') {
+        const formErrors = {}
+        for (const [field, message] of Object.entries(errors)) {
+          formErrors[field] = [{ message, field }]
+        }
+        formRef.setFields(formErrors)
+      }
+    }
+
+    return errors
+  }
+
+  /**
+   * 显示确认对话框
+   * @param {string} message - 确认消息
+   * @param {string} title - 对话框标题
+   * @param {Object} options - MessageBox 选项
+   * @returns {Promise<boolean>} 用户是否确认
+   */
+  static confirm(message, title = '确认操作', options = {}) {
+    const defaultOptions = {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+
+    return MessageBox.confirm(message, title, { ...defaultOptions, ...options })
+      .then(() => true)
+      .catch(() => false)
+  }
+
+  /**
+   * 包装异步函数，添加确认对话框
+   * @param {Function} asyncFn - 异步函数
+   * @param {string} message - 确认消息
+   * @param {string} title - 对话框标题
+   * @returns {Promise} 执行结果
+   */
+  static async withConfirm(asyncFn, message, title = '确认操作') {
+    const confirmed = await this.confirm(message, title)
+    if (!confirmed) {
+      throw new Error('cancel')
+    }
+    return asyncFn()
+  }
+
+  /**
+   * 包装异步函数，自动处理错误和加载状态
+   * @param {Function} asyncFn - 异步函数
+   * @param {Object} options - 选项
+   * @returns {Promise} 执行结果
+   */
+  static async withErrorHandling(asyncFn, options = {}) {
+    const {
+      loadingRef = null,
+      successMessage = '操作成功',
+      errorMessage = '操作失败',
+      showSuccess = true,
+      context = ''
+    } = options
+
+    try {
+      if (loadingRef) {
+        loadingRef.value = true
+      }
+
+      const result = await asyncFn()
+
+      if (showSuccess) {
+        this.showSuccess(successMessage)
+      }
+
+      return result
+    } catch (error) {
+      if (error.message === 'cancel') {
+        throw error
+      }
+
+      this.showMessage(error, context || errorMessage)
+      throw error
+    } finally {
+      if (loadingRef) {
+        loadingRef.value = false
+      }
+    }
   }
 }
 

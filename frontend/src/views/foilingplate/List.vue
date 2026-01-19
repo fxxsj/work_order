@@ -7,14 +7,15 @@
           placeholder="搜索烫金版编码、名称、尺寸、材质"
           style="width: 300px;"
           clearable
+          @input="handleSearchDebounced"
           @clear="handleSearch"
         >
           <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
         </el-input>
-        <el-button 
-          v-if="canCreate" 
-          type="primary" 
-          icon="el-icon-plus" 
+        <el-button
+          v-if="canCreate()"
+          type="primary"
+          icon="el-icon-plus"
           @click="showDialog()">
           新建烫金版
         </el-button>
@@ -57,18 +58,18 @@
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template slot-scope="scope">
-            <el-button 
-              v-if="canEdit" 
-              type="text" 
-              size="small" 
+            <el-button
+              v-if="canEdit()"
+              type="text"
+              size="small"
               @click="showDialog(scope.row)">
               编辑
             </el-button>
-            <el-button 
-              v-if="canDelete" 
-              type="text" 
-              size="small" 
-              style="color: #F56C6C;" 
+            <el-button
+              v-if="canDelete()"
+              type="text"
+              size="small"
+              style="color: #F56C6C;"
               @click="handleDelete(scope.row)">
               删除
             </el-button>
@@ -135,7 +136,7 @@
         </el-form-item>
 
         <el-divider content-position="left">包含产品及数量</el-divider>
-        
+
         <el-form-item label="产品列表">
           <el-button type="primary" size="small" icon="el-icon-plus" @click="addProductItem">
             添加产品
@@ -198,30 +199,30 @@
       </el-form>
       <div slot="footer">
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <el-button type="primary" :loading="formLoading" @click="handleSubmit">确定</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import { foilingPlateAPI, productAPI } from '@/api/workorder'
+import { foilingPlateAPI, productAPI } from '@/api/modules'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 
 export default {
   name: 'FoilingPlateList',
+  mixins: [listPageMixin, crudPermissionMixin],
   data() {
     return {
-      loading: false,
-      tableData: [],
+      // API 服务和权限配置
+      apiService: foilingPlateAPI,
+      permissionPrefix: 'foilingplate',
+
+      // 表单相关
       productList: [],
-      currentPage: 1,
-      pageSize: 20,
-      total: 0,
-      searchText: '',
-      dialogVisible: false,
       isEdit: false,
-      editId: null,
-      productItems: [], // 产品列表
+      productItems: [],
       form: {
         code: '',
         name: '',
@@ -241,15 +242,6 @@ export default {
   computed: {
     dialogTitle() {
       return this.isEdit ? '编辑烫金版' : '新建烫金版'
-    },
-    canCreate() {
-      return this.hasPermission('workorder.add_foilingplate')
-    },
-    canEdit() {
-      return this.hasPermission('workorder.change_foilingplate')
-    },
-    canDelete() {
-      return this.hasPermission('workorder.delete_foilingplate')
     }
   },
   created() {
@@ -257,20 +249,20 @@ export default {
     this.loadProductList()
   },
   methods: {
-    // 检查用户是否有指定权限
-    hasPermission(permission) {
-      const userInfo = this.$store.getters['user/currentUser']
-      if (!userInfo) return false
-      
-      // 超级用户拥有所有权限
-      if (userInfo.is_superuser) return true
-      
-      // 检查权限列表
-      const permissions = userInfo.permissions || []
-      if (permissions.includes('*')) return true
-      
-      return permissions.includes(permission)
+    // 实现 fetchData 方法（listPageMixin 要求）
+    async fetchData() {
+      const params = {
+        page: this.currentPage,
+        page_size: this.pageSize
+      }
+
+      if (this.searchText) {
+        params.search = this.searchText
+      }
+
+      return this.apiService.getList(params)
     },
+
     formatDate(dateString) {
       if (!dateString) return ''
       const date = new Date(dateString)
@@ -282,6 +274,7 @@ export default {
         minute: '2-digit'
       })
     },
+
     async loadProductList() {
       try {
         const response = await productAPI.getList({ is_active: true, page_size: 100 })
@@ -290,36 +283,7 @@ export default {
         console.error('加载产品列表失败:', error)
       }
     },
-    async loadData() {
-      this.loading = true
-      try {
-        const params = {
-          page: this.currentPage,
-          page_size: this.pageSize
-        }
-        
-        if (this.searchText) {
-          params.search = this.searchText
-        }
-        
-        const response = await foilingPlateAPI.getList(params)
-        this.tableData = response.results || []
-        this.total = response.count || 0
-      } catch (error) {
-        this.$message.error('加载数据失败')
-        console.error(error)
-      } finally {
-        this.loading = false
-      }
-    },
-    handleSearch() {
-      this.currentPage = 1
-      this.loadData()
-    },
-    handlePageChange(page) {
-      this.currentPage = page
-      this.loadData()
-    },
+
     addProductItem() {
       this.productItems.push({
         product: null,
@@ -327,15 +291,17 @@ export default {
         sort_order: this.productItems.length
       })
     },
+
     removeProductItem(index) {
       this.productItems.splice(index, 1)
     },
+
     async showDialog(row = null) {
       if (row) {
         this.isEdit = true
-        this.editId = row.id
-        
-        // 加载烫金版详情
+        this.currentRow = row
+        this.dialogType = 'edit'
+
         try {
           const detail = await foilingPlateAPI.getDetail(row.id)
           this.form = {
@@ -347,11 +313,10 @@ export default {
             thickness: detail.thickness || '',
             notes: detail.notes || ''
           }
-          
-          // 加载产品列表
+
           if (detail.products && detail.products.length > 0) {
             this.productItems = detail.products.map(p => ({
-              id: p.id, // 编辑时保留ID
+              id: p.id,
               product: p.product,
               quantity: p.quantity,
               sort_order: p.sort_order || 0
@@ -364,7 +329,8 @@ export default {
         }
       } else {
         this.isEdit = false
-        this.editId = null
+        this.currentRow = null
+        this.dialogType = 'create'
         this.form = {
           code: '',
           name: '',
@@ -377,68 +343,59 @@ export default {
         this.productItems = []
       }
       this.dialogVisible = true
-      this.$nextTick(() => {
-        if (this.$refs.form) {
-          this.$refs.form.clearValidate()
-        }
-      })
     },
+
     async handleSubmit() {
       this.$refs.form.validate(async (valid) => {
         if (!valid) {
           return false
         }
-        
+
+        this.formLoading = true
         try {
           const data = { ...this.form }
-          
-          // 如果是新建且编码为空，不传编码字段（让后端自动生成）
+
           if (!this.isEdit && !data.code) {
             delete data.code
           }
-          
-          // 准备产品数据
+
           const productsData = this.productItems
             .filter(item => item.product)
             .map(item => ({
               product: item.product,
               quantity: item.quantity || 1
             }))
-          
-          // 将产品数据添加到请求中
+
           data.products_data = productsData
-          
+
           if (this.isEdit) {
-            await foilingPlateAPI.update(this.editId, data)
-            this.$message.success('保存成功')
+            await this.apiService.update(this.currentRow.id, data)
+            this.showSuccess('保存成功')
           } else {
-            await foilingPlateAPI.create(data)
-            this.$message.success('创建成功')
+            await this.apiService.create(data)
+            this.showSuccess('创建成功')
           }
-          
+
           this.dialogVisible = false
           this.loadData()
         } catch (error) {
-          this.$message.error(this.isEdit ? '保存失败' : '创建失败')
-          console.error(error)
+          this.showMessage(error, this.isEdit ? '保存失败' : '创建失败')
+        } finally {
+          this.formLoading = false
         }
       })
-    },
-    handleDelete(row) {
-      this.$confirm(`确定要删除烫金版 ${row.name} 吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(async () => {
-        try {
-          await foilingPlateAPI.delete(row.id)
-          this.$message.success('删除成功')
-          this.loadData()
-        } catch (error) {
-          this.$message.error('删除失败')
-          console.error(error)
-        }
-      }).catch(() => {})
+    }
+  },
+  watch: {
+    // 监听对话框显示状态，编辑时填充表单
+    dialogVisible(val) {
+      if (!val) {
+        this.$nextTick(() => {
+          if (this.$refs.form) {
+            this.$refs.form.clearValidate()
+          }
+        })
+      }
     }
   }
 }
@@ -455,4 +412,3 @@ export default {
   align-items: center;
 }
 </style>
-

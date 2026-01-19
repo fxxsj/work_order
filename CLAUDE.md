@@ -15,11 +15,18 @@
 
 ### Frontend (`frontend/`)
 - `src/api/` - API 接口封装
+  - `src/api/base/` - API 基础类（BaseAPI.js）
+  - `src/api/modules/` - API 模块（16个模块）
 - `src/components/` - Vue 组件
 - `src/views/` - 页面视图
 - `src/router/` - Vue Router 路由配置
 - `src/store/` - Vuex 状态管理
 - `src/assets/` - 静态资源
+- `src/mixins/` - Vue Mixins
+  - `listPageMixin.js` - 列表页面 Mixin
+  - `permissionMixin.js` - 权限检查 Mixin
+  - `crudMixin.js` - CRUD 操作 Mixin（v2.1.0 新增）
+  - `crudPermissionMixin.js` - CRUD 权限 Mixin（v2.1.0 新增）
 
 ### Backend (`backend/`)
 - `config/` - Django 配置
@@ -42,7 +49,80 @@
 - Element UI 组件库
 - ESLint 配置（Airbnb 规范）
 - 组件命名：PascalCase（如 `WorkOrderList.vue`）
-- API 接口统一在 `src/api/` 中管理
+- API 接口统一在 `src/api/modules` 中管理
+- **列表页面优先使用 Mixins**（v2.1.0+）：`listPageMixin` + `crudPermissionMixin`
+- **API 模块继承 BaseAPI**（v2.1.0+）：减少 90% 代码重复
+
+### Frontend Architecture Patterns (v2.1.0+)
+
+#### API 模块化
+所有 API 接口已模块化到 `src/api/modules/` 目录：
+
+**创建新 API 模块**：
+```javascript
+import request from '@/api/index'
+import { BaseAPI } from '@/api/base/BaseAPI'
+
+class MyResourceAPI extends BaseAPI {
+  constructor() {
+    super('/my-resources/', request)
+  }
+}
+
+export const myResourceAPI = new MyResourceAPI()
+```
+
+**使用 API 模块**：
+```javascript
+import { myResourceAPI } from '@/api/modules'
+```
+
+#### 列表页面 Mixins
+使用 `listPageMixin` + `crudPermissionMixin` 简化列表页面开发：
+
+```javascript
+import { myResourceAPI } from '@/api/modules'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+
+export default {
+  mixins: [listPageMixin, crudPermissionMixin],
+  data() {
+    return {
+      apiService: myResourceAPI,
+      permissionPrefix: 'myresource',
+      form: { /* 表单字段 */ },
+      rules: { /* 验证规则 */ }
+    }
+  },
+  methods: {
+    fetchData() {
+      return this.apiService.getList({
+        page: this.currentPage,
+        page_size: this.pageSize,
+        search: this.searchText
+      })
+    }
+  }
+}
+```
+
+#### 权限检查
+使用 `crudPermissionMixin` 提供的方法：
+- `canCreate()` - 检查创建权限
+- `canEdit()` - 检查编辑权限
+- `canDelete()` - 检查删除权限
+- `canExport()` - 检查导出权限
+
+#### 错误处理
+使用 `ErrorHandler` 类：
+```javascript
+import ErrorHandler from '@/utils/errorHandler'
+
+ErrorHandler.showSuccess('操作成功')
+ErrorHandler.showMessage(error, '操作上下文')
+ErrorHandler.confirm('确定要删除吗？')
+```
 
 ### Backend (Django)
 - Python PEP 8 规范

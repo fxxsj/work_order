@@ -7,15 +7,16 @@
           placeholder="搜索工序名称、编码"
           style="width: 300px;"
           clearable
+          @input="handleSearchDebounced"
           @clear="handleSearch"
         >
           <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
         </el-input>
-        <el-button 
-          v-if="canCreate" 
-          type="primary" 
-          icon="el-icon-plus" 
-          @click="showDialog()">
+        <el-button
+          v-if="canCreate()"
+          type="primary"
+          icon="el-icon-plus"
+          @click="showCreateDialog()">
           新建工序
         </el-button>
       </div>
@@ -39,18 +40,18 @@
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template slot-scope="scope">
-            <el-button 
-              v-if="canEdit" 
-              type="text" 
-              size="small" 
-              @click="showDialog(scope.row)">
+            <el-button
+              v-if="canEdit()"
+              type="text"
+              size="small"
+              @click="handleEdit(scope.row)">
               编辑
             </el-button>
-            <el-button 
-              v-if="canDelete" 
-              type="text" 
-              size="small" 
-              style="color: #F56C6C;" 
+            <el-button
+              v-if="canDelete()"
+              type="text"
+              size="small"
+              style="color: #F56C6C;"
               @click="handleDelete(scope.row)">
               删除
             </el-button>
@@ -72,7 +73,7 @@
 
     <!-- 工序表单对话框 -->
     <el-dialog
-      :title="dialogTitle"
+      :title="formTitle"
       :visible.sync="dialogVisible"
       width="600px"
     >
@@ -83,7 +84,7 @@
         label-width="120px"
       >
         <el-form-item label="工序编码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入工序编码" :disabled="isEdit"></el-input>
+          <el-input v-model="form.code" placeholder="请输入工序编码" :disabled="dialogType === 'edit'"></el-input>
         </el-form-item>
         <el-form-item label="工序名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入工序名称"></el-input>
@@ -111,28 +112,27 @@
       </el-form>
       <div slot="footer">
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <el-button type="primary" :loading="formLoading" @click="handleSubmit">确定</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import { processAPI } from '@/api/workorder'
+import { processAPI } from '@/api/modules'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 
 export default {
   name: 'ProcessList',
+  mixins: [listPageMixin, crudPermissionMixin],
   data() {
     return {
-      loading: false,
-      tableData: [],
-      currentPage: 1,
-      pageSize: 20,
-      total: 0,
-      searchText: '',
-      dialogVisible: false,
-      isEdit: false,
-      editId: null,
+      // API 服务和权限配置
+      apiService: processAPI,
+      permissionPrefix: 'process',
+
+      // 表单相关
       form: {
         code: '',
         name: '',
@@ -147,137 +147,86 @@ export default {
         ],
         name: [
           { required: true, message: '请输入工序名称', trigger: 'blur' }
-        ],
+        ]
       }
     }
   },
   computed: {
-    dialogTitle() {
-      return this.isEdit ? '编辑工序' : '新建工序'
-    },
-    canCreate() {
-      return this.hasPermission('workorder.add_process')
-    },
-    canEdit() {
-      return this.hasPermission('workorder.change_process')
-    },
-    canDelete() {
-      return this.hasPermission('workorder.delete_process')
+    formTitle() {
+      return this.dialogType === 'edit' ? '编辑工序' : '新建工序'
     }
   },
   created() {
     this.loadData()
   },
   methods: {
-    // 检查用户是否有指定权限
-    hasPermission(permission) {
-      const userInfo = this.$store.getters['user/currentUser']
-      if (!userInfo) return false
+    // 实现 fetchData 方法（listPageMixin 要求）
+    async fetchData() {
+      const params = {
+        page: this.currentPage,
+        page_size: this.pageSize
+      }
 
-      // 超级用户拥有所有权限
-      if (userInfo.is_superuser) return true
+      if (this.searchText) {
+        params.search = this.searchText
+      }
 
-      // 检查权限列表
-      const permissions = userInfo.permissions || []
-      if (permissions.includes('*')) return true
-
-      return permissions.includes(permission)
+      return this.apiService.getList(params)
     },
-    async loadData() {
-      this.loading = true
-      try {
-        const params = {
-          page: this.currentPage,
-          page_size: this.pageSize
-        }
-        
-        if (this.searchText) {
-          params.search = this.searchText
-        }
-        
-        const response = await processAPI.getList(params)
-        this.tableData = response.results || []
-        this.total = response.count || 0
-      } catch (error) {
-        this.$message.error('加载数据失败')
-        console.error(error)
-      } finally {
-        this.loading = false
+
+    showCreateDialog() {
+      this.resetForm()
+      this.handleCreate()
+    },
+
+    resetForm() {
+      this.form = {
+        code: '',
+        name: '',
+        description: '',
+        standard_duration: 0,
+        sort_order: 0,
+        is_active: true
       }
     },
-    handleSearch() {
-      this.currentPage = 1
-      this.loadData()
-    },
-    handlePageChange(page) {
-      this.currentPage = page
-      this.loadData()
-    },
-    showDialog(row = null) {
-      if (row) {
-        this.isEdit = true
-        this.editId = row.id
-        this.form = {
-          code: row.code,
-          name: row.name,
-          department: row.department,
-          description: row.description || '',
-          standard_duration: row.standard_duration,
-          sort_order: row.sort_order,
-          is_active: row.is_active
-        }
-      } else {
-        this.isEdit = false
-        this.editId = null
-        this.form = {
-          code: '',
-          name: '',
-          description: '',
-          standard_duration: 0,
-          sort_order: 0,
-          is_active: true
-        }
-      }
-      this.dialogVisible = true
-    },
-    handleSubmit() {
+
+    async handleSubmit() {
       this.$refs.form.validate(async (valid) => {
-        if (!valid) {
-          return false
-        }
-        
+        if (!valid) return false
+
+        this.formLoading = true
         try {
-          if (this.isEdit) {
-            await processAPI.update(this.editId, this.form)
-            this.$message.success('保存成功')
+          if (this.dialogType === 'edit') {
+            await this.apiService.update(this.currentRow.id, this.form)
+            this.showSuccess('保存成功')
           } else {
-            await processAPI.create(this.form)
-            this.$message.success('创建成功')
+            await this.apiService.create(this.form)
+            this.showSuccess('创建成功')
           }
-          
+
           this.dialogVisible = false
           this.loadData()
         } catch (error) {
-          this.$message.error(this.isEdit ? '保存失败' : '创建失败')
-          console.error(error)
+          this.showMessage(error, this.dialogType === 'edit' ? '保存失败' : '创建失败')
+        } finally {
+          this.formLoading = false
         }
       })
-    },
-    handleDelete(row) {
-      this.$confirm(`确定要删除工序 ${row.name} 吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(async () => {
-        try {
-          await processAPI.delete(row.id)
-          this.$message.success('删除成功')
-          this.loadData()
-        } catch (error) {
-          this.$message.error('删除失败')
-          console.error(error)
+    }
+  },
+  watch: {
+    // 监听对话框显示状态，编辑时填充表单
+    dialogVisible(val) {
+      if (val && this.dialogType === 'edit' && this.currentRow) {
+        this.form = {
+          code: this.currentRow.code,
+          name: this.currentRow.name,
+          description: this.currentRow.description || '',
+          standard_duration: this.currentRow.standard_duration,
+          sort_order: this.currentRow.sort_order,
+          is_active: this.currentRow.is_active
         }
-      }).catch(() => {})
+      }
     }
   }
 }
@@ -294,4 +243,3 @@ export default {
   align-items: center;
 }
 </style>
-

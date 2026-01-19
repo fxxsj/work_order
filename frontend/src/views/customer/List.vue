@@ -12,11 +12,11 @@
         >
           <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
         </el-input>
-        <el-button 
-          v-if="canCreate" 
-          type="primary" 
-          icon="el-icon-plus" 
-          @click="showDialog()">
+        <el-button
+          v-if="canCreate()"
+          type="primary"
+          icon="el-icon-plus"
+          @click="showCreateDialog()">
           新建客户
         </el-button>
       </div>
@@ -43,18 +43,18 @@
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template slot-scope="scope">
-            <el-button 
-              v-if="canEdit" 
-              type="text" 
-              size="small" 
-              @click="showDialog(scope.row)">
+            <el-button
+              v-if="canEdit()"
+              type="text"
+              size="small"
+              @click="handleEdit(scope.row)">
               编辑
             </el-button>
-            <el-button 
-              v-if="canDelete" 
-              type="text" 
-              size="small" 
-              style="color: #F56C6C;" 
+            <el-button
+              v-if="canDelete()"
+              type="text"
+              size="small"
+              style="color: #F56C6C;"
               @click="handleDelete(scope.row)">
               删除
             </el-button>
@@ -76,7 +76,7 @@
 
     <!-- 客户表单对话框 -->
     <el-dialog
-      :title="dialogTitle"
+      :title="formTitle"
       :visible.sync="dialogVisible"
       width="600px"
     >
@@ -130,22 +130,22 @@
 </template>
 
 <script>
-import { customerAPI } from '@/api/workorder'
+import { customerAPI } from '@/api/modules'
 import { getSalespersons } from '@/api/auth'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 
 export default {
   name: 'CustomerList',
+  mixins: [listPageMixin, crudPermissionMixin],
   data() {
     return {
-      loading: false,
-      tableData: [],
-      currentPage: 1,
-      pageSize: 20,
-      total: 0,
-      searchText: '',
+      // API 服务和权限配置
+      apiService: customerAPI,
+      permissionPrefix: 'customer',
+
+      // 表单相关
       dialogVisible: false,
-      isEdit: false,
-      editId: null,
       form: {
         name: '',
         contact_person: '',
@@ -163,82 +163,25 @@ export default {
       }
     }
   },
-  computed: {
-    dialogTitle() {
-      return this.isEdit ? '编辑客户' : '新建客户'
-    },
-    // 检查是否有创建权限
-    canCreate() {
-      return this.hasPermission('workorder.add_customer')
-    },
-    // 检查是否有编辑权限
-    canEdit() {
-      return this.hasPermission('workorder.change_customer')
-    },
-    // 检查是否有删除权限
-    canDelete() {
-      return this.hasPermission('workorder.delete_customer')
-    }
-  },
   created() {
     this.loadData()
     this.loadSalespersons()
-    // 创建防抖搜索函数
-    this.handleSearchDebounced = this.debounce(this.handleSearch, 300)
   },
   methods: {
-    // 防抖工具函数
-    debounce(func, wait) {
-      let timeout
-      return function(...args) {
-        clearTimeout(timeout)
-        timeout = setTimeout(() => func.apply(this, args), wait)
+    // 实现 fetchData 方法（listPageMixin 要求）
+    async fetchData() {
+      const params = {
+        page: this.currentPage,
+        page_size: this.pageSize
       }
-    },
-    // 检查用户是否有指定权限
-    hasPermission(permission) {
-      const userInfo = this.$store.getters['user/currentUser']
-      if (!userInfo) return false
-      
-      // 超级用户拥有所有权限
-      if (userInfo.is_superuser) return true
-      
-      // 检查权限列表
-      const permissions = userInfo.permissions || []
-      if (permissions.includes('*')) return true
-      
-      return permissions.includes(permission)
-    },
-    async loadData() {
-      this.loading = true
-      try {
-        const params = {
-          page: this.currentPage,
-          page_size: this.pageSize
-        }
-        
-        if (this.searchText) {
-          params.search = this.searchText
-        }
-        
-        const response = await customerAPI.getList(params)
-        this.tableData = response.results || []
-        this.total = response.count || 0
-      } catch (error) {
-        this.$message.error('加载数据失败')
-        console.error(error)
-      } finally {
-        this.loading = false
+
+      if (this.searchText) {
+        params.search = this.searchText
       }
+
+      return this.apiService.getList(params)
     },
-    handleSearch() {
-      this.currentPage = 1
-      this.loadData()
-    },
-    handlePageChange(page) {
-      this.currentPage = page
-      this.loadData()
-    },
+
     async loadSalespersons() {
       try {
         const salespersons = await getSalespersons()
@@ -247,72 +190,73 @@ export default {
         console.error('加载业务员列表失败:', error)
       }
     },
-    showDialog(row = null) {
-      if (row) {
-        this.isEdit = true
-        this.editId = row.id
-        this.form = {
-          name: row.name,
-          contact_person: row.contact_person || '',
-          phone: row.phone || '',
-          email: row.email || '',
-          address: row.address || '',
-          salesperson: row.salesperson || null,
-          notes: row.notes || ''
-        }
-      } else {
-        this.isEdit = false
-        this.editId = null
-        this.form = {
-          name: '',
-          contact_person: '',
-          phone: '',
-          email: '',
-          address: '',
-          salesperson: null,
-          notes: ''
-        }
-      }
-      this.dialogVisible = true
+
+    // 显示创建对话框
+    showCreateDialog() {
+      this.resetForm()
+      this.handleCreate()
     },
-    handleSubmit() {
+
+    // 重置表单
+    resetForm() {
+      this.form = {
+        name: '',
+        contact_person: '',
+        phone: '',
+        email: '',
+        address: '',
+        salesperson: null,
+        notes: ''
+      }
+    },
+
+    async handleSubmit() {
       this.$refs.form.validate(async (valid) => {
-        if (!valid) {
-          return false
-        }
-        
+        if (!valid) return false
+
+        this.formLoading = true
         try {
-          if (this.isEdit) {
-            await customerAPI.update(this.editId, this.form)
-            this.$message.success('保存成功')
+          if (this.dialogType === 'edit') {
+            await this.apiService.update(this.currentRow.id, this.form)
+            this.showSuccess('保存成功')
           } else {
-            await customerAPI.create(this.form)
-            this.$message.success('创建成功')
+            await this.apiService.create(this.form)
+            this.showSuccess('创建成功')
           }
-          
+
           this.dialogVisible = false
           this.loadData()
         } catch (error) {
-          this.$message.error(this.isEdit ? '保存失败' : '创建失败')
-          console.error(error)
+          this.showMessage(error, this.dialogType === 'edit' ? '保存失败' : '创建失败')
+        } finally {
+          this.formLoading = false
         }
       })
-    },
-    handleDelete(row) {
-      this.$confirm(`确定要删除客户 ${row.name} 吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(async () => {
-        try {
-          await customerAPI.delete(row.id)
-          this.$message.success('删除成功')
-          this.loadData()
-        } catch (error) {
-          this.$message.error('删除失败')
-          console.error(error)
+    }
+  },
+  watch: {
+    // 监听对话框显示状态，编辑时填充表单
+    dialogVisible(val) {
+      if (val && this.dialogType === 'edit' && this.currentRow) {
+        this.form = {
+          name: this.currentRow.name,
+          contact_person: this.currentRow.contact_person || '',
+          phone: this.currentRow.phone || '',
+          email: this.currentRow.email || '',
+          address: this.currentRow.address || '',
+          salesperson: this.currentRow.salesperson || null,
+          notes: this.currentRow.notes || ''
         }
-      }).catch(() => {})
+        // 清除验证
+        this.$nextTick(() => {
+          this.$refs.form?.clearValidate()
+        })
+      }
+    }
+  },
+  computed: {
+    formTitle() {
+      return this.dialogType === 'edit' ? '编辑客户' : '新建客户'
     }
   }
 }

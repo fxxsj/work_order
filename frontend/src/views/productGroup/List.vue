@@ -1,16 +1,32 @@
 <template>
   <div class="product-group-list">
     <el-card>
-      <div slot="header" class="card-header">
-        <span>产品组管理</span>
-        <el-button 
-          v-if="canCreate" 
-          type="primary" 
-          icon="el-icon-plus" 
-          @click="handleAdd">新增产品组</el-button>
+      <div class="header-section">
+        <el-input
+          v-model="searchText"
+          placeholder="搜索产品组编码、名称"
+          style="width: 300px;"
+          clearable
+          @input="handleSearchDebounced"
+          @clear="handleSearch"
+        >
+          <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
+        </el-input>
+        <el-button
+          v-if="canCreate()"
+          type="primary"
+          icon="el-icon-plus"
+          @click="handleAdd()">
+          新增产品组
+        </el-button>
       </div>
 
-      <el-table :data="list" border style="width: 100%" v-loading="loading">
+      <el-table
+        v-loading="loading"
+        :data="tableData"
+        border
+        style="width: 100%; margin-top: 20px;"
+      >
         <el-table-column prop="code" label="编码" width="150"></el-table-column>
         <el-table-column prop="name" label="名称"></el-table-column>
         <el-table-column prop="description" label="描述" show-overflow-tooltip></el-table-column>
@@ -28,14 +44,14 @@
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template slot-scope="scope">
-            <el-button 
-              v-if="canEdit" 
-              size="mini" 
+            <el-button
+              v-if="canEdit()"
+              size="mini"
               @click="handleEdit(scope.row)">编辑</el-button>
-            <el-button 
-              v-if="canDelete" 
-              size="mini" 
-              type="danger" 
+            <el-button
+              v-if="canDelete()"
+              size="mini"
+              type="danger"
               @click="handleDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -43,15 +59,14 @@
 
       <el-pagination
         v-if="total > 0"
-        @size-change="handleSizeChange"
-        @current-change="handlePageChange"
-        :current-page="page"
-        :page-sizes="[10, 20, 50, 100]"
+        :current-page="currentPage"
         :page-size="pageSize"
-        layout="total, sizes, prev, pager, next, jumper"
         :total="total"
+        layout="total, prev, pager, next"
         style="margin-top: 20px; text-align: right;"
-      ></el-pagination>
+        @current-change="handlePageChange"
+      >
+      </el-pagination>
     </el-card>
 
     <!-- 新增/编辑对话框 -->
@@ -142,28 +157,30 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="submitting">确定</el-button>
+        <el-button type="primary" @click="handleSubmit" :loading="formLoading">确定</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import { productGroupAPI, productGroupItemAPI, productAPI } from '@/api/workorder'
+import { productGroupAPI, productAPI } from '@/api/modules'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 
 export default {
   name: 'ProductGroupList',
+  mixins: [listPageMixin, crudPermissionMixin],
   data() {
     return {
-      loading: false,
-      list: [],
-      total: 0,
-      page: 1,
-      pageSize: 20,
-      dialogVisible: false,
-      dialogTitle: '新增产品组',
-      submitting: false,
+      // API 服务和权限配置
+      apiService: productGroupAPI,
+      permissionPrefix: 'productgroup',
+
+      // 表单相关
       productList: [],
+      dialogTitle: '新增产品组',
+      isEdit: false,
       form: {
         id: null,
         code: '',
@@ -188,52 +205,25 @@ export default {
       }
     }
   },
-  computed: {
-    canCreate() {
-      return this.hasPermission('workorder.add_productgroup')
-    },
-    canEdit() {
-      return this.hasPermission('workorder.change_productgroup')
-    },
-    canDelete() {
-      return this.hasPermission('workorder.delete_productgroup')
-    }
-  },
   created() {
     this.loadData()
     this.loadProductList()
   },
   methods: {
-    // 检查用户是否有指定权限
-    hasPermission(permission) {
-      const userInfo = this.$store.getters['user/currentUser']
-      if (!userInfo) return false
-      
-      // 超级用户拥有所有权限
-      if (userInfo.is_superuser) return true
-      
-      // 检查权限列表
-      const permissions = userInfo.permissions || []
-      if (permissions.includes('*')) return true
-      
-      return permissions.includes(permission)
-    },
-    async loadData() {
-      this.loading = true
-      try {
-        const response = await productGroupAPI.getList({
-          page: this.page,
-          page_size: this.pageSize
-        })
-        this.list = response.results || []
-        this.total = response.count || 0
-      } catch (error) {
-        this.$message.error('加载数据失败')
-        console.error(error)
-      } finally {
-        this.loading = false
+    // 实现 fetchData 方法（listPageMixin 要求）
+    async fetchData() {
+      const params = {
+        page: this.currentPage,
+        page_size: this.pageSize
       }
+
+      if (this.searchText) {
+        params.search = this.searchText
+      }
+
+      return this.apiService.getList(params)
     },
+
     async loadProductList() {
       try {
         const response = await productAPI.getList({ page_size: 1000 })
@@ -242,8 +232,12 @@ export default {
         console.error('加载产品列表失败:', error)
       }
     },
+
     handleAdd() {
       this.dialogTitle = '新增产品组'
+      this.isEdit = false
+      this.currentRow = null
+      this.dialogType = 'create'
       this.form = {
         id: null,
         code: '',
@@ -260,10 +254,15 @@ export default {
       }
       this.dialogVisible = true
     },
+
     async handleEdit(row) {
       this.dialogTitle = '编辑产品组'
+      this.isEdit = true
+      this.currentRow = row
+      this.dialogType = 'edit'
+
       try {
-        const detail = await productGroupAPI.getDetail(row.id)
+        const detail = await this.apiService.getDetail(row.id)
         this.form = {
           id: detail.id,
           code: detail.code,
@@ -287,25 +286,10 @@ export default {
         }
         this.dialogVisible = true
       } catch (error) {
-        this.$message.error('加载详情失败')
-        console.error(error)
+        this.showMessage(error, '加载详情失败')
       }
     },
-    async handleDelete(row) {
-      try {
-        await this.$confirm('确定要删除该产品组吗？', '提示', {
-          type: 'warning'
-        })
-        await productGroupAPI.delete(row.id)
-        this.$message.success('删除成功')
-        this.loadData()
-      } catch (error) {
-        if (error !== 'cancel') {
-          this.$message.error('删除失败')
-          console.error(error)
-        }
-      }
-    },
+
     addItem() {
       this.form.items.push({
         product: null,
@@ -313,9 +297,11 @@ export default {
         sort_order: this.form.items.length
       })
     },
+
     removeItem(index) {
       this.form.items.splice(index, 1)
     },
+
     async handleSubmit() {
       this.$refs.form.validate(async (valid) => {
         if (!valid) {
@@ -340,7 +326,7 @@ export default {
           }
         }
 
-        this.submitting = true
+        this.formLoading = true
         try {
           const data = {
             code: this.form.code,
@@ -351,78 +337,38 @@ export default {
 
           if (this.form.id) {
             // 更新
-            await productGroupAPI.update(this.form.id, data)
-            
-            // 更新子产品列表
-            const existingItems = await productGroupItemAPI.getList({ product_group: this.form.id })
-            const existingIds = (existingItems.results || []).map(item => item.id)
-            const newIds = this.form.items.filter(item => item.id).map(item => item.id)
-            
-            // 删除不存在的子产品
-            for (const id of existingIds) {
-              if (!newIds.includes(id)) {
-                await productGroupItemAPI.delete(id)
-              }
-            }
-            
-            // 创建或更新子产品
-            for (let i = 0; i < this.form.items.length; i++) {
-              const item = this.form.items[i]
-              const itemData = {
-                product_group: this.form.id,
-                product: item.product,
-                item_name: item.item_name,
-                sort_order: i
-              }
-              
-              if (item.id) {
-                await productGroupItemAPI.update(item.id, itemData)
-              } else {
-                await productGroupItemAPI.create(itemData)
-              }
-            }
-            
-            this.$message.success('更新成功')
+            await this.apiService.update(this.form.id, data)
+            this.showSuccess('更新成功')
           } else {
             // 创建
-            const result = await productGroupAPI.create(data)
-            const groupId = result.id
-            
-            // 创建子产品
-            for (let i = 0; i < this.form.items.length; i++) {
-              const item = this.form.items[i]
-              await productGroupItemAPI.create({
-                product_group: groupId,
-                product: item.product,
-                item_name: item.item_name,
-                sort_order: i
-              })
-            }
-            
-            this.$message.success('创建成功')
+            await this.apiService.create(data)
+            this.showSuccess('创建成功')
           }
-          
+
           this.dialogVisible = false
           this.loadData()
         } catch (error) {
-          this.$message.error(this.form.id ? '更新失败' : '创建失败')
-          console.error(error)
+          this.showMessage(error, this.form.id ? '更新失败' : '创建失败')
         } finally {
-          this.submitting = false
+          this.formLoading = false
         }
       })
     },
+
     resetForm() {
       this.$refs.form && this.$refs.form.resetFields()
-    },
-    handleSizeChange(val) {
-      this.pageSize = val
-      this.page = 1
-      this.loadData()
-    },
-    handlePageChange(val) {
-      this.page = val
-      this.loadData()
+    }
+  },
+  watch: {
+    // 监听对话框显示状态，编辑时填充表单
+    dialogVisible(val) {
+      if (!val) {
+        this.$nextTick(() => {
+          if (this.$refs.form) {
+            this.$refs.form.clearValidate()
+          }
+        })
+      }
     }
   }
 }
@@ -433,10 +379,9 @@ export default {
   padding: 20px;
 }
 
-.card-header {
+.header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 </style>
-
