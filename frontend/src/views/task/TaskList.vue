@@ -6,7 +6,7 @@
         <el-row :gutter="20">
           <el-col :span="5">
             <el-input
-              v-model="filters.search"
+              v-model="searchText"
               placeholder="搜索任务内容、施工单号"
               clearable
               @input="handleSearchDebounced"
@@ -55,19 +55,18 @@
               ></el-option>
             </el-select>
           </el-col>
-          <el-col :span="10" style="text-align: right;">
-            <el-button icon="el-icon-refresh-left" @click="handleReset">重置筛选</el-button>
+          <el-col :span="7" style="text-align: right;">
+            <el-button icon="el-icon-refresh-left" @click="resetFilters">重置筛选</el-button>
             <el-button
-              v-if="permissionService.canExport()"
+              v-if="canExport()"
               type="success"
               icon="el-icon-download"
               @click="handleExport"
               :loading="exporting"
-              style="margin-left: 10px;"
             >
               导出Excel
             </el-button>
-            <el-button type="primary" icon="el-icon-refresh" @click="loadData" style="margin-left: 10px;">刷新</el-button>
+            <el-button type="primary" icon="el-icon-refresh" @click="loadData">刷新</el-button>
           </el-col>
         </el-row>
       </div>
@@ -82,7 +81,7 @@
 
       <!-- 骨架屏 -->
       <SkeletonLoader
-        v-if="loading && taskList.length === 0"
+        v-if="loading && tableData.length === 0"
         type="table"
         :rows="5"
         style="margin-top: 20px;"
@@ -91,15 +90,15 @@
       <!-- 看板视图 -->
       <TaskKanban
         v-if="viewMode === 'kanban'"
-        :tasks="taskList"
+        :tasks="tableData"
         @task-click="handleTaskClickFromKanban"
       />
 
       <!-- 任务列表 -->
       <el-table
         v-if="viewMode === 'table'"
-        v-loading="loading && taskList.length > 0"
-        :data="taskList"
+        v-loading="loading && tableData.length > 0"
+        :data="tableData"
         border
         style="width: 100%; margin-top: 20px;"
         @sort-change="handleSortChange"
@@ -175,17 +174,14 @@
       </el-table>
 
       <!-- 分页 -->
-      <div class="pagination-section" style="margin-top: 20px; text-align: right;">
-        <el-pagination
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-          :current-page="pagination.page"
-          :page-sizes="[10, 20, 50, 100]"
-          :page-size="pagination.page_size"
-          :total="pagination.total"
-          layout="total, sizes, prev, pager, next, jumper"
-        ></el-pagination>
-      </div>
+      <Pagination
+        v-if="viewMode === 'table'"
+        :current-page="currentPage"
+        :page-size="pageSize"
+        :total="total"
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"
+      />
     </el-card>
 
     <!-- 完成任务对话框 -->
@@ -228,10 +224,15 @@
 </template>
 
 <script>
+import { workOrderTaskAPI, departmentAPI, processAPI } from '@/api/modules'
+import { getUserList } from '@/api/user'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import exportMixin from '@/mixins/exportMixin'
+import Pagination from '@/components/common/Pagination.vue'
+import ErrorHandler from '@/utils/errorHandler'
 import { debounce } from '@/utils/debounce'
 import taskService from '@/services/TaskService'
-import permissionService from '@/services/PermissionService'
-import exportService from '@/services/ExportService'
 import SkeletonLoader from '@/components/SkeletonLoader.vue'
 import TaskKanban from '@/components/TaskKanban.vue'
 
@@ -246,7 +247,9 @@ import SplitTaskDialog from './components/SplitTaskDialog.vue'
 
 export default {
   name: 'TaskList',
+
   components: {
+    Pagination,
     SkeletonLoader,
     TaskKanban,
     TaskLogs,
@@ -257,37 +260,36 @@ export default {
     AssignTaskDialog,
     SplitTaskDialog
   },
+
+  mixins: [listPageMixin, crudPermissionMixin, exportMixin],
+
   data() {
     return {
-      // 服务实例
-      taskService,
-      permissionService,
-      exportService,
+      // API 服务和权限配置
+      apiService: workOrderTaskAPI,
+      permissionPrefix: 'workordertask',
 
-      // 数据状态
-      loading: false,
-      exporting: false,
-      taskList: [],
+      // TaskService（保留业务逻辑）
+      taskService,
+
+      // 视图模式
       viewMode: 'table',
+
+      // 额外的筛选条件
+      filters: {
+        task_type: '',
+        work_order_process: '',
+        assigned_department: ''
+      },
+
+      // 选项数据
       processList: [],
       departmentList: [],
       userList: [],
       loadingDepartments: false,
       loadingUsers: false,
 
-      // 筛选和分页
-      filters: {
-        search: '',
-        status: '',
-        task_type: '',
-        work_order_process: '',
-        assigned_department: ''
-      },
-      pagination: {
-        page: 1,
-        page_size: 20,
-        total: 0
-      },
+      // 排序
       ordering: '-created_at',
 
       // 对话框状态
@@ -296,24 +298,37 @@ export default {
       assignDialogVisible: false,
       splitDialogVisible: false,
       currentTask: null,
-      currentSplitTask: null
+      currentSplitTask: null,
+
+      // 导出状态
+      exporting: false
     }
   },
+
   computed: {
-    // 任务状态选项
+    /**
+     * 任务状态选项
+     */
     taskStatusOptions() {
       return this.taskService.getStatusOptions()
     },
-    // 任务类型选项
+
+    /**
+     * 任务类型选项
+     */
     taskTypeOptions() {
       return this.taskService.getTaskTypeOptions()
     }
   },
+
   created() {
     this.initData()
   },
+
   methods: {
-    // 初始化数据
+    /**
+     * 初始化数据
+     */
     async initData() {
       await Promise.all([
         this.loadProcessList(),
@@ -322,198 +337,191 @@ export default {
       await this.loadData()
     },
 
-    // 加载任务列表
-    async loadData() {
-      this.loading = true
-      try {
-        const result = await this.taskService.getTasks({
-          page: this.pagination.page,
-          page_size: this.pagination.page_size,
-          ordering: this.ordering,
-          ...this.filters
-        })
-
-        if (result.success) {
-          this.taskList = result.data.results || []
-          this.pagination.total = result.data.count || 0
-        } else {
-          this.$message.error(result.error || '加载任务列表失败')
-          this.taskList = []
-          this.pagination.total = 0
-        }
-      } finally {
-        this.loading = false
+    /**
+     * 获取数据（listPageMixin 要求实现）
+     */
+    async fetchData() {
+      const params = {
+        page: this.currentPage,
+        page_size: this.pageSize,
+        ordering: this.ordering,
+        search: this.searchText || undefined,
+        status: this.filters.status || undefined,
+        task_type: this.filters.task_type || undefined,
+        work_order_process: this.filters.work_order_process || undefined,
+        assigned_department: this.filters.assigned_department || undefined
       }
+      return await this.apiService.getList(params)
     },
 
-    // 加载工序列表
+    /**
+     * 加载工序列表
+     */
     async loadProcessList() {
       try {
-        const result = await this.taskService.getProcessList()
-        if (result.success) {
-          this.processList = result.data || []
-        }
+        const response = await processAPI.getList({ page_size: 1000 })
+        this.processList = response.results || []
       } catch (error) {
-        console.error('加载工序列表失败:', error)
+        ErrorHandler.showMessage(error, '加载工序列表')
       }
     },
 
-    // 加载部门列表
+    /**
+     * 加载部门列表
+     */
     async loadDepartmentList() {
       if (this.departmentList.length > 0) return
 
       this.loadingDepartments = true
       try {
-        const result = await this.taskService.getDepartmentList()
-        if (result.success) {
-          this.departmentList = result.data || []
-        }
+        const response = await departmentAPI.getList({ page_size: 1000 })
+        this.departmentList = response.results || []
       } catch (error) {
-        console.error('加载部门列表失败:', error)
+        ErrorHandler.showMessage(error, '加载部门列表')
       } finally {
         this.loadingDepartments = false
       }
     },
 
-    // 加载用户列表
+    /**
+     * 加载用户列表
+     */
     async loadUserList(departmentId = null) {
       this.loadingUsers = true
       try {
-        const result = await this.taskService.getUserList(departmentId)
-        if (result.success) {
-          this.userList = result.data || []
-        }
+        const params = departmentId ? { department: departmentId } : {}
+        const response = await getUserList(params)
+        this.userList = response.results || []
       } catch (error) {
-        console.error('加载用户列表失败:', error)
+        ErrorHandler.showMessage(error, '加载用户列表')
       } finally {
         this.loadingUsers = false
       }
     },
 
-    // 搜索和筛选
-    handleSearch() {
-      this.pagination.page = 1
-      this.loadData()
-    },
+    /**
+     * 防抖搜索
+     */
     handleSearchDebounced: debounce(function() {
       this.handleSearch()
     }, 300),
-    handleReset() {
-      this.filters = {
-        search: '',
-        status: '',
-        task_type: '',
-        work_order_process: '',
-        assigned_department: ''
-      }
-      this.pagination.page = 1
-      this.loadData()
-    },
 
-    // 分页和排序
-    handleSizeChange(val) {
-      this.pagination.page_size = val
-      this.pagination.page = 1
-      this.loadData()
-    },
-    handleCurrentChange(val) {
-      this.pagination.page = val
-      this.loadData()
-    },
+    /**
+     * 排序变化
+     */
     handleSortChange({ prop, order }) {
       if (order && prop) {
         this.ordering = order === 'ascending' ? prop : `-${prop}`
-        this.pagination.page = 1
+        this.currentPage = 1
         this.loadData()
       }
     },
 
-    // 表格行键
+    /**
+     * 表格行键
+     */
     getRowKey(row) {
       return row.id
     },
 
-    // 从看板点击任务
+    /**
+     * 从看板点击任务
+     */
     handleTaskClickFromKanban(task) {
       if (task.work_order_id) {
         this.$router.push(`/workorders/${task.work_order_id}`)
       }
     },
 
-    // 跳转到施工单详情
+    /**
+     * 跳转到施工单详情
+     */
     goToWorkOrderDetail(workOrder) {
       if (workOrder && workOrder.id) {
         this.$router.push(`/workorders/${workOrder.id}`)
       } else {
-        this.$message.warning('施工单信息不存在')
+        ErrorHandler.showWarning('施工单信息不存在')
       }
     },
 
-    // 完成任务
+    /**
+     * 完成任务
+     */
     handleCompleteTask(task) {
       this.currentTask = { ...task }
       this.completeTaskDialogVisible = true
     },
+
+    /**
+     * 确认完成任务
+     */
     async handleConfirmCompleteTask(data) {
       try {
-        const result = await this.taskService.completeTask(this.currentTask.id, data)
-        if (result.success) {
-          this.$message.success('任务已完成')
-          this.completeTaskDialogVisible = false
-          await this.loadData()
-        } else {
-          this.$message.error(result.error || '操作失败')
-        }
+        await this.apiService.complete(this.currentTask.id, data)
+        ErrorHandler.showSuccess('任务已完成')
+        this.completeTaskDialogVisible = false
+        await this.loadData()
       } catch (error) {
-        this.$message.error(error.message || '操作失败')
+        ErrorHandler.showMessage(error, '完成任务')
       }
     },
 
-    // 更新任务
+    /**
+     * 显示更新对话框
+     */
     showUpdateDialog(task) {
       this.currentTask = { ...task }
       this.updateDialogVisible = true
     },
+
+    /**
+     * 更新任务数量
+     */
     async handleUpdateTask(data) {
       try {
-        const result = await this.taskService.updateTaskQuantity(
-          this.currentTask.id,
-          data.quantity_increment,
-          this.currentTask.version
-        )
-        if (result.success) {
-          this.$message.success('更新成功')
-          this.updateDialogVisible = false
-          await this.loadData()
-        } else {
-          this.$message.error(result.error || '更新失败')
-        }
+        await this.apiService.updateQuantity(this.currentTask.id, {
+          quantity_increment: data.quantity_increment,
+          version: this.currentTask.version
+        })
+        ErrorHandler.showSuccess('更新成功')
+        this.updateDialogVisible = false
+        await this.loadData()
       } catch (error) {
-        this.$message.error(error.message || '更新失败')
+        if (error.response?.status === 409) {
+          ErrorHandler.showError('任务已被其他操作员更新，请刷新后重试')
+        } else {
+          ErrorHandler.showMessage(error, '更新任务')
+        }
       }
     },
 
-    // 分派任务
+    /**
+     * 显示分派对话框
+     */
     showAssignDialog(task) {
       this.currentTask = { ...task }
       this.assignDialogVisible = true
       this.loadDepartmentListForProcess(task)
       this.loadUserList(task.assigned_department || null)
     },
+
+    /**
+     * 分派任务
+     */
     async handleAssignTask(data) {
       try {
-        const result = await this.taskService.assignTask(this.currentTask.id, data)
-        if (result.success) {
-          this.$message.success('任务分派已更新')
-          this.assignDialogVisible = false
-          await this.loadData()
-        } else {
-          this.$message.error(result.error || '操作失败')
-        }
+        await this.apiService.assign(this.currentTask.id, data)
+        ErrorHandler.showSuccess('任务分派已更新')
+        this.assignDialogVisible = false
+        await this.loadData()
       } catch (error) {
-        this.$message.error(error.message || '操作失败')
+        ErrorHandler.showMessage(error, '分派任务')
       }
     },
+
+    /**
+     * 加载工序关联的部门列表
+     */
     loadDepartmentListForProcess(task) {
       if (task.work_order_process_info && task.work_order_process_info.process) {
         const processDepartments = task.work_order_process_info.process.departments || []
@@ -526,58 +534,83 @@ export default {
         this.loadDepartmentList()
       }
     },
+
+    /**
+     * 部门变化时加载用户
+     */
     handleDepartmentChange(departmentId) {
       this.loadUserList(departmentId)
     },
 
-    // 拆分任务
+    /**
+     * 显示拆分对话框
+     */
     showSplitDialog(task) {
       this.currentSplitTask = { ...task }
       this.splitDialogVisible = true
       this.loadDepartmentListForProcess(task)
       this.loadUserList()
     },
+
+    /**
+     * 拆分任务
+     */
     async handleSplitTask(data) {
       try {
-        const result = await this.taskService.splitTask(this.currentSplitTask.id, data)
-        if (result.success) {
-          this.$message.success('任务拆分成功')
-          this.splitDialogVisible = false
-          await this.loadData()
-        } else {
-          this.$message.error(result.error || '操作失败')
-        }
+        await this.apiService.split(this.currentSplitTask.id, data)
+        ErrorHandler.showSuccess('任务拆分成功')
+        this.splitDialogVisible = false
+        await this.loadData()
       } catch (error) {
-        this.$message.error(error.message || '操作失败')
+        ErrorHandler.showMessage(error, '拆分任务')
       }
     },
 
-    // 导出
+    /**
+     * 导出任务列表
+     */
     async handleExport() {
       try {
         this.exporting = true
 
         // 获取所有符合筛选条件的数据
-        const result = await this.taskService.getTasks({
-          ...this.filters,
-          page_size: 9999, // 获取所有数据
+        const response = await this.apiService.getList({
+          search: this.searchText || undefined,
+          status: this.filters.status || undefined,
+          task_type: this.filters.task_type || undefined,
+          work_order_process: this.filters.work_order_process || undefined,
+          assigned_department: this.filters.assigned_department || undefined,
+          page_size: 9999,
           ordering: this.ordering
         })
 
-        if (result.success) {
-          const tasks = result.data.results || []
-          const exportResult = await this.exportService.exportTasks(tasks, this.filters)
+        const tasks = response.results || []
 
-          if (exportResult.success) {
-            this.$message.success(exportResult.message)
-          } else {
-            this.$message.error(exportResult.error || '导出失败')
-          }
-        } else {
-          this.$message.error(result.error || '获取数据失败')
-        }
+        // 准备导出数据
+        const exportData = tasks.map(task => ({
+          ID: task.id,
+          施工单号: task.work_order_process_info?.work_order?.order_number || '-',
+          工序: task.work_order_process_info?.process?.name || '-',
+          任务内容: task.work_content,
+          分派部门: task.assigned_department_name || '-',
+          分派操作员: task.assigned_operator_name || '-',
+          生产数量: task.production_quantity,
+          完成数量: task.quantity_completed,
+          进度: `${this.taskService.calculateProgress(task)}%`,
+          状态: task.status_display
+        }))
+
+        // 使用 exportMixin 的方法导出
+        this.exportExcel(
+          exportData,
+          Object.keys(exportData[0] || {}),
+          Object.keys(exportData[0] || {}),
+          '任务列表.xlsx'
+        )
+
+        ErrorHandler.showSuccess('导出成功')
       } catch (error) {
-        this.$message.error(error.message || '导出失败')
+        ErrorHandler.showMessage(error, '导出任务')
       } finally {
         this.exporting = false
       }
@@ -593,9 +626,5 @@ export default {
 
 .filter-section {
   margin-bottom: 20px;
-}
-
-.pagination-section {
-  margin-top: 20px;
 }
 </style>
