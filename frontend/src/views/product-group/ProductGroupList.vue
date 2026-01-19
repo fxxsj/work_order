@@ -174,7 +174,7 @@ export default {
   data() {
     return {
       // API 服务和权限配置
-      apiService: product-groupAPI,
+      apiService: productGroupAPI,
       permissionPrefix: 'productgroup',
 
       // 表单相关
