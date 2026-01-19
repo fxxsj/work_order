@@ -2,15 +2,15 @@
   <div class="purchase-order-list">
     <el-card>
       <!-- 搜索和筛选 -->
-      <el-form :inline="true" :model="searchForm" class="search-form" @keyup.enter.native="handleSearch">
+      <el-form :inline="true" :model="filters" class="search-form" @keyup.enter.native="handleSearch">
         <el-form-item label="采购单号">
-          <el-input v-model="searchForm.search" placeholder="请输入采购单号" clearable />
+          <el-input v-model="filters.search" placeholder="请输入采购单号" clearable />
         </el-form-item>
         <el-form-item label="供应商">
-          <el-input v-model="searchForm.supplier_name" placeholder="请输入供应商名称" clearable />
+          <el-input v-model="filters.supplier_name" placeholder="请输入供应商名称" clearable />
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择" clearable>
+          <el-select v-model="filters.status" placeholder="请选择" clearable>
             <el-option label="草稿" value="draft" />
             <el-option label="已提交" value="submitted" />
             <el-option label="已批准" value="approved" />
@@ -66,17 +66,13 @@
       </el-table>
 
       <!-- 分页 -->
-      <div class="pagination">
-        <el-pagination
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-          :current-page="pagination.page"
-          :page-sizes="[10, 20, 50, 100]"
-          :page-size="pagination.pageSize"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="pagination.total">
-        </el-pagination>
-      </div>
+      <Pagination
+        :current-page="pagination.page"
+        :page-size="pagination.pageSize"
+        :total="pagination.total"
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"
+      />
     </el-card>
 
     <!-- 新增/编辑对话框 -->
@@ -145,7 +141,7 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <el-button type="primary" @click="handleFormSubmit">确定</el-button>
       </span>
     </el-dialog>
 
@@ -214,13 +210,17 @@
 
 <script>
 import { getPurchaseOrderList, createPurchaseOrder, updatePurchaseOrder, deletePurchaseOrder, submitPurchaseOrder, approvePurchaseOrder, rejectPurchaseOrder, placePurchaseOrder, receivePurchaseOrder, cancelPurchaseOrder, getLowStockMaterials, getSupplierList, getMaterialList } from '@/api/purchase'
+import Pagination from '@/components/common/Pagination.vue'
 
 export default {
   name: 'PurchaseOrderList',
+  components: {
+    Pagination
+  },
   data() {
     return {
       loading: false,
-      searchForm: {
+      filters: {
         search: '',
         supplier_name: '',
         status: ''
@@ -240,9 +240,7 @@ export default {
         items: []
       },
       rules: {
-        supplier: [
-          { required: true, message: '请选择供应商', trigger: 'change' }
-        ]
+        supplier: [{ required: true, message: '请选择供应商', trigger: 'change' }]
       },
       supplierOptions: [],
       materialOptions: [],
@@ -268,8 +266,8 @@ export default {
         const params = {
           page: this.pagination.page,
           page_size: this.pagination.pageSize,
-          search: this.searchForm.search || undefined,
-          status: this.searchForm.status || undefined
+          search: this.filters.search || undefined,
+          status: this.filters.status || undefined
         }
         const response = await getPurchaseOrderList(params)
         this.tableData = response.results || []
@@ -297,21 +295,17 @@ export default {
       this.fetchData()
     },
     handleReset() {
-      this.searchForm = {
-        search: '',
-        supplier_name: '',
-        status: ''
-      }
+      this.filters = { search: '', supplier_name: '', status: '' }
       this.pagination.page = 1
       this.fetchData()
     },
-    handleSizeChange(val) {
-      this.pagination.pageSize = val
+    handleSizeChange(size) {
+      this.pagination.pageSize = size
       this.pagination.page = 1
       this.fetchData()
     },
-    handleCurrentChange(val) {
-      this.pagination.page = val
+    handlePageChange(page) {
+      this.pagination.page = page
       this.fetchData()
     },
     handleAdd() {
@@ -356,35 +350,26 @@ export default {
         }
       }).catch(() => {})
     },
-    handleSubmit(row) {
-      this.$confirm(`确定要提交采购单"${row.order_number}"吗？`, '提示', {
+    handleAction(row, actionFn, successMsg) {
+      this.$confirm(`确定要${successMsg}采购单"${row.order_number}"吗？`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(async () => {
         try {
-          await submitPurchaseOrder(row.id)
-          this.$message.success('提交成功')
+          await actionFn(row.id)
+          this.$message.success(`${successMsg}成功`)
           this.fetchData()
         } catch (error) {
-          this.$message.error('提交失败')
+          this.$message.error(`${successMsg}失败`)
         }
       }).catch(() => {})
     },
+    handleSubmit(row) {
+      this.handleAction(row, submitPurchaseOrder, '提交')
+    },
     handleApprove(row) {
-      this.$confirm(`确定要批准采购单"${row.order_number}"吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(async () => {
-        try {
-          await approvePurchaseOrder(row.id)
-          this.$message.success('批准成功')
-          this.fetchData()
-        } catch (error) {
-          this.$message.error('批准失败')
-        }
-      }).catch(() => {})
+      this.handleAction(row, approvePurchaseOrder, '批准')
     },
     handleReject(row) {
       this.$prompt('请输入拒绝原因', '拒绝采购单', {
@@ -403,21 +388,7 @@ export default {
       }).catch(() => {})
     },
     handlePlaceOrder(row) {
-      this.$confirm(`确定要确认下单采购单"${row.order_number}"吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(async () => {
-        try {
-          await placePurchaseOrder(row.id, {
-            ordered_date: new Date().toISOString().split('T')[0]
-          })
-          this.$message.success('下单成功')
-          this.fetchData()
-        } catch (error) {
-          this.$message.error('下单失败')
-        }
-      }).catch(() => {})
+      this.handleAction(row, (id) => placePurchaseOrder(id, { ordered_date: new Date().toISOString().split('T')[0] }), '下单')
     },
     handleReceive(row) {
       this.$confirm(`确定要收货采购单"${row.order_number}"吗？`, '提示', {
@@ -426,10 +397,7 @@ export default {
         type: 'warning'
       }).then(async () => {
         try {
-          const items = row.items.map(item => ({
-            id: item.id,
-            received_quantity: item.quantity // 全部收货
-          }))
+          const items = row.items.map(item => ({ id: item.id, received_quantity: item.quantity }))
           await receivePurchaseOrder(row.id, { items })
           this.$message.success('收货成功')
           this.fetchData()
@@ -439,19 +407,7 @@ export default {
       }).catch(() => {})
     },
     handleCancel(row) {
-      this.$confirm(`确定要取消采购单"${row.order_number}"吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(async () => {
-        try {
-          await cancelPurchaseOrder(row.id)
-          this.$message.success('取消成功')
-          this.fetchData()
-        } catch (error) {
-          this.$message.error('取消失败')
-        }
-      }).catch(() => {})
+      this.handleAction(row, cancelPurchaseOrder, '取消')
     },
     handleLowStock() {
       this.fetchLowStockMaterials()
@@ -466,16 +422,11 @@ export default {
       }
     },
     handleCreatePurchaseFromLowStock() {
-      // 简化处理，关闭对话框并跳转到新增页面
       this.lowStockDialogVisible = false
       this.handleAdd()
     },
     handleAddItem() {
-      this.form.items.push({
-        material: null,
-        quantity: 1,
-        unit_price: 0
-      })
+      this.form.items.push({ material: null, quantity: 1, unit_price: 0 })
     },
     handleDeleteItem(index) {
       this.form.items.splice(index, 1)
@@ -486,7 +437,7 @@ export default {
         row.unit_price = material.unit_price
       }
     },
-    handleSubmitForm() {
+    handleFormSubmit() {
       this.$refs.form.validate(async (valid) => {
         if (!valid) return
 
@@ -519,12 +470,7 @@ export default {
       })
     },
     handleDialogClose() {
-      this.form = {
-        supplier: null,
-        work_order_number: '',
-        notes: '',
-        items: []
-      }
+      this.form = { supplier: null, work_order_number: '', notes: '', items: [] }
     },
     getStatusType(status) {
       const map = {
@@ -561,10 +507,5 @@ export default {
 
 .search-form {
   margin-bottom: 20px;
-}
-
-.pagination {
-  margin-top: 20px;
-  text-align: right;
 }
 </style>

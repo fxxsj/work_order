@@ -3,12 +3,12 @@
   <div class="sales-order-container">
     <!-- 搜索和操作区域 -->
     <div class="search-section">
-      <el-form :model="searchForm" inline>
+      <el-form :model="filters" inline @submit.native.prevent="handleSearch">
         <el-form-item label="搜索">
-          <el-input v-model="searchForm.search" placeholder="订单号/客户名称" clearable @keyup.enter.native="handleSearch" style="width: 200px;" />
+          <el-input v-model="filters.search" placeholder="订单号/客户名称" clearable @keyup.enter.native="handleSearch" style="width: 200px;" />
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="订单状态" clearable style="width: 150px;">
+          <el-select v-model="filters.status" placeholder="订单状态" clearable style="width: 150px;">
             <el-option label="全部" value=""></el-option>
             <el-option label="草稿" value="draft"></el-option>
             <el-option label="已提交" value="submitted"></el-option>
@@ -19,7 +19,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="付款状态">
-          <el-select v-model="searchForm.payment_status" placeholder="付款状态" clearable style="width: 150px;">
+          <el-select v-model="filters.payment_status" placeholder="付款状态" clearable style="width: 150px;">
             <el-option label="全部" value=""></el-option>
             <el-option label="未付款" value="unpaid"></el-option>
             <el-option label="部分付款" value="partial"></el-option>
@@ -90,47 +90,20 @@
       <el-table-column label="操作" width="200" fixed="right" align="center">
         <template slot-scope="scope">
           <div class="action-buttons">
-            <!-- 编辑按钮 - 仅草稿状态显示 -->
             <el-tooltip v-if="canEdit(scope.row)" content="编辑订单" placement="top">
-              <el-button
-                size="mini"
-                type="primary"
-                @click="handleEdit(scope.row)"
-                icon="el-icon-edit"
-              />
+              <el-button size="mini" type="primary" @click="handleEdit(scope.row)" icon="el-icon-edit" />
             </el-tooltip>
-
-            <!-- 提交按钮 - 草稿状态 -->
             <el-tooltip v-if="scope.row.status === 'draft'" content="提交审核" placement="top">
-              <el-button
-                size="mini"
-                type="success"
-                @click="handleSubmit(scope.row)"
-                icon="el-icon-upload2"
-              />
+              <el-button size="mini" type="success" @click="handleSubmit(scope.row)" icon="el-icon-upload2" />
             </el-tooltip>
-
-            <!-- 审核相关按钮 - 已提交状态 -->
             <template v-if="scope.row.status === 'submitted'">
               <el-tooltip content="审核通过" placement="top">
-                <el-button
-                  size="mini"
-                  type="success"
-                  @click="handleApprove(scope.row)"
-                  icon="el-icon-check"
-                />
+                <el-button size="mini" type="success" @click="handleApprove(scope.row)" icon="el-icon-check" />
               </el-tooltip>
               <el-tooltip content="审核拒绝" placement="top">
-                <el-button
-                  size="mini"
-                  type="warning"
-                  @click="handleReject(scope.row)"
-                  icon="el-icon-close"
-                />
+                <el-button size="mini" type="warning" @click="handleReject(scope.row)" icon="el-icon-close" />
               </el-tooltip>
             </template>
-
-            <!-- 更多操作 -->
             <el-dropdown @command="(cmd) => handleCommand(cmd, scope.row)" trigger="click">
               <el-button size="mini" type="text" icon="el-icon-more" />
               <el-dropdown-menu slot="dropdown">
@@ -148,7 +121,6 @@
           </div>
         </template>
       </el-table-column>
-      <!-- 空状态提示 -->
       <template slot="empty">
         <el-empty description="暂无销售订单数据">
           <el-button type="primary" @click="handleAdd">创建销售订单</el-button>
@@ -157,17 +129,13 @@
     </el-table>
 
     <!-- 分页 -->
-    <div class="pagination">
-      <el-pagination
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        :current-page="pagination.page"
-        :page-sizes="[10, 20, 50, 100]"
-        :page-size="pagination.pageSize"
-        :total="pagination.total"
-        layout="total, sizes, prev, pager, jumper"
-      />
-    </div>
+    <Pagination
+      :current-page="pagination.page"
+      :page-size="pagination.pageSize"
+      :total="pagination.total"
+      @current-change="handlePageChange"
+      @size-change="handleSizeChange"
+    />
 
     <!-- 新建/编辑订单对话框 -->
     <el-dialog
@@ -190,13 +158,9 @@
     </el-dialog>
 
     <!-- 审核/拒绝对话框 -->
-    <el-dialog
-      title="审核销售订单"
-      :visible.sync="approveVisible"
-      width="50%"
-    >
-      <div v-if="approveForm.approveErrors.length" style="color: red; margin-bottom: 10px;">
-        <div v-for="error in approveForm.approveErrors" :key="error">{{ error }}</div>
+    <el-dialog title="审核销售订单" :visible.sync="approveVisible" width="50%">
+      <div v-if="approveErrors.length" style="color: red; margin-bottom: 10px;">
+        <div v-for="error in approveErrors" :key="error">{{ error }}</div>
       </div>
       <el-form :model="approveForm">
         <el-form-item label="审核意见">
@@ -231,21 +195,22 @@
 
 <script>
 import { getSalesOrderList, createSalesOrder, updateSalesOrder, deleteSalesOrder, getSalesOrderDetail, approveSalesOrder, cancelSalesOrder, submitSalesOrder } from '@/api/sales'
-import { mapState } from 'vuex'
 import SalesOrderForm from './Form.vue'
 import SalesOrderDetail from './Detail.vue'
+import Pagination from '@/components/common/Pagination.vue'
 
 export default {
   name: 'SalesOrderList',
   components: {
     SalesOrderForm,
-    SalesOrderDetail
+    SalesOrderDetail,
+    Pagination
   },
   data() {
     return {
       loading: false,
       tableData: [],
-      searchForm: {
+      filters: {
         search: '',
         status: '',
         payment_status: ''
@@ -263,22 +228,12 @@ export default {
         approval_comment: '',
         approveErrors: []
       },
+      approveErrors: [],
       approveVisible: false,
       approveOrder: null,
-      cancelForm: {
-        reason: '',
-        cancelErrors: []
-      },
       detailVisible: false,
-      currentOrder: null,
       currentOrderId: null
     }
-  },
-  computed: {
-    ...mapState({
-      currentUser: state => state.user.currentUser,
-      isAuthenticated: state => state.user.isAuthenticated
-    }),
   },
   mounted() {
     this.fetchData()
@@ -290,19 +245,14 @@ export default {
         const params = {
           page: this.pagination.page,
           page_size: this.pagination.pageSize,
-          search: this.searchForm.search || undefined,
-          status: this.searchForm.status || undefined,
-          payment_status: this.searchForm.payment_status || undefined
+          search: this.filters.search || undefined,
+          status: this.filters.status || undefined,
+          payment_status: this.filters.payment_status || undefined
         }
-        console.log('[DEBUG] Fetching sales orders with params:', params)
         const response = await getSalesOrderList(params)
-        console.log('[DEBUG] Sales orders response:', response)
         this.tableData = response.results || []
         this.pagination.total = response.count || 0
-        console.log('[DEBUG] Table data:', this.tableData)
-        console.log('[DEBUG] Total count:', this.pagination.total)
       } catch (error) {
-        console.error('[ERROR] Failed to fetch sales orders:', error)
         this.$message.error('获取销售订单列表失败')
       } finally {
         this.loading = false
@@ -313,27 +263,21 @@ export default {
       this.fetchData()
     },
     handleReset() {
-      this.searchForm = {
-        search: '',
-        status: '',
-        payment_status: ''
-      }
+      this.filters = { search: '', status: '', payment_status: '' }
       this.pagination.page = 1
       this.fetchData()
     },
-    handleSizeChange(val) {
-      this.pagination.pageSize = val
+    handleSizeChange(size) {
+      this.pagination.pageSize = size
       this.pagination.page = 1
       this.fetchData()
     },
-    handleCurrentChange(val) {
-      this.pagination.page = val
+    handlePageChange(page) {
+      this.pagination.page = page
       this.fetchData()
     },
     handleSortChange(column) {
-      // 处理排序变化
       if (!column.prop) return
-      // 可以根据需要实现排序逻辑
     },
     handleView(row) {
       this.currentOrderId = row.id
@@ -357,7 +301,6 @@ export default {
       }
     },
     handleDelete(row) {
-      if (!row) return
       this.$confirm(`确定要删除销售订单"${row.order_number}"吗？`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -373,7 +316,6 @@ export default {
       }).catch(() => {})
     },
     handleSubmit(row) {
-      if (!row) return
       this.$confirm(`确定要提交销售订单"${row.order_number}"吗？`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -384,16 +326,8 @@ export default {
           this.$message.success('提交成功')
           this.fetchData()
         } catch (error) {
-          if (error.response && error.response.data) {
-            const errors = error.response.data.errors || []
-            if (errors.length > 0) {
-              this.$message.error(errors[0])
-            } else {
-              this.$message.error('提交失败')
-            }
-          } else {
-            this.$message.error('提交失败')
-          }
+          const errors = error.response?.data?.errors || []
+          this.$message.error(errors[0] || '提交失败')
         }
       }).catch(() => {})
     },
@@ -409,42 +343,18 @@ export default {
         this.dialogVisible = false
         this.fetchData()
       } catch (error) {
-        console.error('[ERROR] Form submit error:', error)
-        if (error.response && error.response.data) {
-          // 尝试从不同的字段获取错误信息
-          const responseData = error.response.data
-          this.submitErrors = responseData.errors || []
-
-          // 如果没有 errors 字段，尝试其他可能的字段
-          if (this.submitErrors.length === 0) {
-            if (responseData.detail) {
-              this.submitErrors = [responseData.detail]
-            } else if (responseData.non_field_errors) {
-              this.submitErrors = responseData.non_field_errors
-            } else if (typeof responseData === 'string') {
-              this.submitErrors = [responseData]
-            } else {
-              // 尝试将所有错误收集起来
-              const allErrors = []
-              for (const key in responseData) {
-                if (Array.isArray(responseData[key])) {
-                  allErrors.push(`${key}: ${responseData[key].join(', ')}`)
-                }
-              }
-              this.submitErrors = allErrors.length > 0 ? allErrors : ['保存失败，请检查输入']
-            }
-          }
-
-          if (this.submitErrors.length > 0) {
-            this.$message.error(this.submitErrors[0])
-          }
-        } else {
-          this.$message.error('保存失败')
+        const responseData = error.response?.data || {}
+        this.submitErrors = responseData.errors ||
+          responseData.detail ? [responseData.detail] :
+          Object.keys(responseData).length > 0 ?
+            Object.entries(responseData).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`) :
+            ['保存失败，请检查输入']
+        if (this.submitErrors.length > 0) {
+          this.$message.error(this.submitErrors[0])
         }
       }
     },
     handleApprove(row) {
-      if (!row) return
       this.approveOrder = row
       this.approveForm.approval_comment = ''
       this.approveErrors = []
@@ -457,23 +367,28 @@ export default {
         this.approveVisible = false
         this.fetchData()
       } catch (error) {
-        if (error.response && error.response.data) {
-          this.approveErrors = error.response.data.errors || []
-          this.$message.error('审核失败')
-        } else {
-          this.$message.error('审核失败')
-        }
+        this.approveErrors = error.response?.data?.errors || []
+        this.$message.error('审核失败')
       }
     },
     handleReject(row) {
-      if (!row) return
       this.approveOrder = row
       this.approveForm.approval_comment = ''
-      this.approveForm.approveErrors = []
+      this.approveErrors = []
       this.approveVisible = true
     },
+    async confirmReject() {
+      try {
+        await cancelSalesOrder(this.approveOrder.id, { reason: this.approveForm.approval_comment })
+        this.$message.success('已拒绝')
+        this.approveVisible = false
+        this.fetchData()
+      } catch (error) {
+        this.approveErrors = error.response?.data?.errors || []
+        this.$message.error('拒绝失败')
+      }
+    },
     handleCancel(row) {
-      if (!row) return
       this.$confirm(`确定要取消销售订单"${row.order_number}"吗？`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -488,37 +403,13 @@ export default {
         }
       }).catch(() => {})
     },
-    async confirmReject() {
-      try {
-        await cancelSalesOrder(this.approveOrder.id, { reason: this.approveForm.reason })
-        this.$message.success('已取消')
-        this.approveVisible = false
-        this.fetchData()
-      } catch (error) {
-        if (error.response && error.response.data) {
-          this.approveErrors = error.response.data.errors || []
-          this.$message.error('取消失败')
-        } else {
-          this.$message.error('取消失败')
-        }
-      }
-    },
-    handleDetail(row) {
-      this.currentOrderId = row.id
-      this.detailVisible = true
-    },
     handleCommand(command, row) {
-      switch (command) {
-        case 'detail':
-          this.handleDetail(row)
-          break
-        case 'cancel':
-          this.handleCancel(row)
-          break
-        case 'delete':
-          this.handleDelete(row)
-          break
+      const commands = {
+        detail: () => this.handleView(row),
+        cancel: () => this.handleCancel(row),
+        delete: () => this.handleDelete(row)
       }
+      commands[command]?.()
     },
     handleDialogClose() {
       this.submitForm = null
@@ -629,35 +520,5 @@ export default {
 
 .text-danger {
   color: #f56c6c;
-}
-
-.pagination {
-  margin-top: 20px;
-  text-align: right;
-}
-
-/* 表格列对齐优化 */
-.el-table .el-table__cell {
-  padding: 8px 0;
-}
-
-/* 操作按钮样式优化 */
-.el-button--mini {
-  padding: 5px 10px;
-}
-
-/* 链接样式优化 */
-.el-link {
-  font-weight: 500;
-}
-
-/* 标签样式优化 */
-.el-tag {
-  font-weight: 500;
-}
-
-/* 下拉菜单项图标间距 */
-.el-dropdown-menu__item i {
-  margin-right: 8px;
 }
 </style>

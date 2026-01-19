@@ -4,12 +4,8 @@
     <div class="header">
       <h2>成品库存</h2>
       <div class="actions">
-        <el-button icon="el-icon-warning" type="warning" @click="handleLowStock">
-          库存预警
-        </el-button>
-        <el-button icon="el-icon-time" type="danger" @click="handleExpired">
-          过期库存
-        </el-button>
+        <el-button icon="el-icon-warning" type="warning" @click="handleLowStock">库存预警</el-button>
+        <el-button icon="el-icon-time" type="danger" @click="handleExpired">过期库存</el-button>
         <el-button icon="el-icon-refresh" @click="fetchStockList">刷新</el-button>
       </div>
     </div>
@@ -57,12 +53,7 @@
       <el-form :inline="true" :model="filters" class="filter-form">
         <el-form-item label="产品">
           <el-select v-model="filters.product" placeholder="全部产品" clearable filterable>
-            <el-option
-              v-for="product in productList"
-              :key="product.id"
-              :label="product.name"
-              :value="product.id"
-            />
+            <el-option v-for="product in productList" :key="product.id" :label="product.name" :value="product.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
@@ -85,12 +76,7 @@
 
     <!-- 数据表格 -->
     <div class="table-section">
-      <el-table
-        v-loading="loading"
-        :data="stockList"
-        border
-        style="width: 100%"
-      >
+      <el-table v-loading="loading" :data="stockList" border style="width: 100%">
         <el-table-column prop="product_name" label="产品名称" width="200" />
         <el-table-column prop="batch_number" label="批次号" width="150" />
         <el-table-column prop="quantity" label="库存数量" width="100" align="right">
@@ -133,26 +119,17 @@
       </el-table>
 
       <!-- 分页 -->
-      <div class="pagination-section">
-        <el-pagination
-          :current-page="pagination.page"
-          :page-size="pagination.pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          :total="pagination.total"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
-      </div>
+      <Pagination
+        :current-page="pagination.page"
+        :page-size="pagination.pageSize"
+        :total="pagination.total"
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"
+      />
     </div>
 
     <!-- 库存详情对话框 -->
-    <el-dialog
-      :visible.sync="detailDialogVisible"
-      title="库存详情"
-      width="800px"
-      :close-on-click-modal="false"
-    >
+    <el-dialog :visible.sync="detailDialogVisible" title="库存详情" width="800px" :close-on-click-modal="false">
       <el-descriptions v-if="currentStock" :column="2" border>
         <el-descriptions-item label="产品名称">{{ currentStock.product_name }}</el-descriptions-item>
         <el-descriptions-item label="批次号">{{ currentStock.batch_number }}</el-descriptions-item>
@@ -164,29 +141,17 @@
         <el-descriptions-item label="过期日期">{{ currentStock.expiry_date || '-' }}</el-descriptions-item>
         <el-descriptions-item label="状态">{{ currentStock.status_display }}</el-descriptions-item>
         <el-descriptions-item label="单位成本">¥{{ currentStock.unit_cost ? currentStock.unit_cost.toLocaleString() : '-' }}</el-descriptions-item>
-        <el-descriptions-item label="总价值" :span="2">
-          ¥{{ currentStock.total_value ? currentStock.total_value.toLocaleString() : '-' }}
-        </el-descriptions-item>
+        <el-descriptions-item label="总价值" :span="2">¥{{ currentStock.total_value ? currentStock.total_value.toLocaleString() : '-' }}</el-descriptions-item>
         <el-descriptions-item label="创建时间" :span="2">{{ currentStock.created_at }}</el-descriptions-item>
       </el-descriptions>
-
       <template #footer>
         <el-button @click="detailDialogVisible = false">关闭</el-button>
       </template>
     </el-dialog>
 
     <!-- 库存预警对话框 -->
-    <el-dialog
-      :visible.sync="lowStockDialogVisible"
-      title="库存预警"
-      width="900px"
-    >
-      <el-table
-        v-loading="loadingLowStock"
-        :data="lowStockList"
-        border
-        max-height="400"
-      >
+    <el-dialog :visible.sync="lowStockDialogVisible" title="库存预警" width="900px">
+      <el-table v-loading="loadingLowStock" :data="lowStockList" border max-height="400">
         <el-table-column prop="product_name" label="产品名称" width="200" />
         <el-table-column prop="batch_number" label="批次号" width="150" />
         <el-table-column prop="quantity" label="当前库存" width="100" align="right" />
@@ -201,17 +166,8 @@
     </el-dialog>
 
     <!-- 过期库存对话框 -->
-    <el-dialog
-      :visible.sync="expiredDialogVisible"
-      title="过期库存"
-      width="900px"
-    >
-      <el-table
-        v-loading="loadingExpired"
-        :data="expiredList"
-        border
-        max-height="400"
-      >
+    <el-dialog :visible.sync="expiredDialogVisible" title="过期库存" width="900px">
+      <el-table v-loading="loadingExpired" :data="expiredList" border max-height="400">
         <el-table-column prop="product_name" label="产品名称" width="200" />
         <el-table-column prop="batch_number" label="批次号" width="150" />
         <el-table-column prop="quantity" label="库存数量" width="100" align="right" />
@@ -228,15 +184,14 @@
 </template>
 
 <script>
-import {
-  getProductStocks,
-  getLowStock,
-  getExpiredStock,
-  getStockSummary
-} from '@/api/inventory'
+import { getProductStocks, getLowStock, getExpiredStock, getStockSummary } from '@/api/inventory'
+import Pagination from '@/components/common/Pagination.vue'
 
 export default {
   name: 'StockList',
+  components: {
+    Pagination
+  },
   data() {
     return {
       loading: false,
@@ -269,52 +224,25 @@ export default {
     this.fetchProducts()
   },
   methods: {
-    // 获取库存列表
     async fetchStockList() {
       this.loading = true
       try {
         const params = {
           page: this.pagination.page,
-          page_size: this.pagination.pageSize
+          page_size: this.pagination.pageSize,
+          ...(this.filters.product && { product: this.filters.product }),
+          ...(this.filters.status && { status: this.filters.status }),
+          ...(this.filters.batch_number && { batch_number: this.filters.batch_number })
         }
-
-        if (this.filters.product) {
-          params.product = this.filters.product
-        }
-        if (this.filters.status) {
-          params.status = this.filters.status
-        }
-        if (this.filters.batch_number) {
-          params.batch_number = this.filters.batch_number
-        }
-
         const response = await getProductStocks(params)
         this.stockList = response.results || []
         this.pagination.total = response.count || 0
       } catch (error) {
-        let errorMessage = '获取库存列表失败'
-        if (error.response) {
-          const status = error.response.status
-          if (status === 401) {
-            errorMessage = '登录已过期，请重新登录'
-          } else if (status === 403) {
-            errorMessage = '您没有权限访问此功能'
-          } else if (status >= 500) {
-            errorMessage = '服务器错误，请稍后重试'
-          } else if (error.response.data?.detail) {
-            errorMessage = `获取库存列表失败: ${error.response.data.detail}`
-          }
-        } else if (error.message) {
-          errorMessage = `网络错误: ${error.message}`
-        }
-        this.$message.error(errorMessage)
-        console.error('获取库存列表失败:', error)
+        this.$message.error('获取库存列表失败')
       } finally {
         this.loading = false
       }
     },
-
-    // 获取库存汇总
     async fetchStockSummary() {
       try {
         const response = await getStockSummary()
@@ -323,47 +251,38 @@ export default {
         console.error('获取库存汇总失败', error)
       }
     },
-
-    // 获取产品列表
     async fetchProducts() {
       try {
-        // TODO: 从API获取产品列表
         this.productList = []
       } catch (error) {
         console.error('获取产品列表失败', error)
       }
     },
-
-    // 搜索
     handleSearch() {
       this.pagination.page = 1
       this.fetchStockList()
     },
-
-    // 重置
     handleReset() {
-      this.filters = {
-        product: '',
-        status: '',
-        batch_number: ''
-      }
+      this.filters = { product: '', status: '', batch_number: '' }
       this.pagination.page = 1
       this.fetchStockList()
     },
-
-    // 查看详情
+    handleSizeChange(size) {
+      this.pagination.pageSize = size
+      this.pagination.page = 1
+      this.fetchStockList()
+    },
+    handlePageChange(page) {
+      this.pagination.page = page
+      this.fetchStockList()
+    },
     handleView(row) {
       this.currentStock = row
       this.detailDialogVisible = true
     },
-
-    // 调整库存
-    // eslint-disable-next-line no-unused-vars
-    handleAdjust(row) {
+    handleAdjust() {
       this.$message.info('库存调整功能开发中')
     },
-
-    // 库存预警
     async handleLowStock() {
       this.lowStockDialogVisible = true
       this.loadingLowStock = true
@@ -372,13 +291,10 @@ export default {
         this.lowStockList = response.results || []
       } catch (error) {
         this.$message.error('获取库存预警失败')
-        console.error(error)
       } finally {
         this.loadingLowStock = false
       }
     },
-
-    // 过期库存
     async handleExpired() {
       this.expiredDialogVisible = true
       this.loadingExpired = true
@@ -387,25 +303,10 @@ export default {
         this.expiredList = response.results || []
       } catch (error) {
         this.$message.error('获取过期库存失败')
-        console.error(error)
       } finally {
         this.loadingExpired = false
       }
     },
-
-    // 分页
-    handleSizeChange(val) {
-      this.pagination.pageSize = val
-      this.pagination.page = 1
-      this.fetchStockList()
-    },
-
-    handleCurrentChange(val) {
-      this.pagination.page = val
-      this.fetchStockList()
-    },
-
-    // 数量样式类
     getQuantityClass(row) {
       const available = row.quantity - row.reserved_quantity
       if (row.min_stock_level && available <= row.min_stock_level) {
@@ -413,30 +314,17 @@ export default {
       }
       return ''
     },
-
-    // 过期样式类
     getExpiryClass(row) {
-      if (row.days_until_expiry !== null) {
-        if (row.days_until_expiry < 0) {
-          return 'expired'
-        } else if (row.days_until_expiry <= 30) {
-          return 'expiring-soon'
-        }
-      }
+      if (row.days_until_expiry === null) return ''
+      if (row.days_until_expiry < 0) return 'expired'
+      if (row.days_until_expiry <= 30) return 'expiring-soon'
       return ''
     },
-
-    // 过期标签类型
     getExpiryTagType(days) {
-      if (days < 0) {
-        return 'danger'
-      } else if (days <= 30) {
-        return 'warning'
-      }
+      if (days < 0) return 'danger'
+      if (days <= 30) return 'warning'
       return 'success'
     },
-
-    // 状态标签类型
     getStatusType(status) {
       const typeMap = {
         in_stock: 'success',
@@ -510,12 +398,6 @@ export default {
   background: #fff;
   border-radius: 4px;
   padding: 20px;
-}
-
-.pagination-section {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
 }
 
 .low-stock {

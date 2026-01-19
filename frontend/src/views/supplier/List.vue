@@ -2,12 +2,12 @@
   <div class="supplier-list">
     <el-card>
       <!-- 搜索和筛选 -->
-      <el-form :inline="true" :model="searchForm" class="search-form" @keyup.enter.native="handleSearch">
+      <el-form :inline="true" :model="filters" class="search-form" @keyup.enter.native="handleSearch">
         <el-form-item label="供应商名称/编码">
-          <el-input v-model="searchForm.search" placeholder="请输入" clearable />
+          <el-input v-model="filters.search" placeholder="请输入" clearable />
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择" clearable>
+          <el-select v-model="filters.status" placeholder="请选择" clearable>
             <el-option label="启用" value="active" />
             <el-option label="停用" value="inactive" />
           </el-select>
@@ -44,17 +44,13 @@
       </el-table>
 
       <!-- 分页 -->
-      <div class="pagination">
-        <el-pagination
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-          :current-page="pagination.page"
-          :page-sizes="[10, 20, 50, 100]"
-          :page-size="pagination.pageSize"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="pagination.total">
-        </el-pagination>
-      </div>
+      <Pagination
+        :current-page="pagination.page"
+        :page-size="pagination.pageSize"
+        :total="pagination.total"
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"
+      />
     </el-card>
 
     <!-- 新增/编辑对话框 -->
@@ -98,13 +94,17 @@
 
 <script>
 import { getSupplierList, createSupplier, updateSupplier, deleteSupplier } from '@/api/purchase'
+import Pagination from '@/components/common/Pagination.vue'
 
 export default {
   name: 'SupplierList',
+  components: {
+    Pagination
+  },
   data() {
     return {
       loading: false,
-      searchForm: {
+      filters: {
         search: '',
         status: ''
       },
@@ -115,7 +115,7 @@ export default {
         total: 0
       },
       dialogVisible: false,
-      dialogMode: 'add', // 'add' or 'edit'
+      dialogMode: 'add',
       form: {
         code: '',
         name: '',
@@ -127,18 +127,10 @@ export default {
         notes: ''
       },
       rules: {
-        code: [
-          { required: true, message: '请输入供应商编码', trigger: 'blur' }
-        ],
-        name: [
-          { required: true, message: '请输入供应商名称', trigger: 'blur' }
-        ],
-        phone: [
-          { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的联系电话', trigger: 'blur' }
-        ],
-        email: [
-          { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
-        ]
+        code: [{ required: true, message: '请输入供应商编码', trigger: 'blur' }],
+        name: [{ required: true, message: '请输入供应商名称', trigger: 'blur' }],
+        phone: [{ pattern: /^1[3-9]\d{9}$/, message: '请输入正确的联系电话', trigger: 'blur' }],
+        email: [{ type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }]
       }
     }
   },
@@ -157,8 +149,8 @@ export default {
         const params = {
           page: this.pagination.page,
           page_size: this.pagination.pageSize,
-          search: this.searchForm.search || undefined,
-          status: this.searchForm.status || undefined
+          search: this.filters.search || undefined,
+          status: this.filters.status || undefined
         }
         const response = await getSupplierList(params)
         this.tableData = response.results
@@ -174,20 +166,17 @@ export default {
       this.fetchData()
     },
     handleReset() {
-      this.searchForm = {
-        search: '',
-        status: ''
-      }
+      this.filters = { search: '', status: '' }
       this.pagination.page = 1
       this.fetchData()
     },
-    handleSizeChange(val) {
-      this.pagination.pageSize = val
+    handleSizeChange(size) {
+      this.pagination.pageSize = size
       this.pagination.page = 1
       this.fetchData()
     },
-    handleCurrentChange(val) {
-      this.pagination.page = val
+    handlePageChange(page) {
+      this.pagination.page = page
       this.fetchData()
     },
     handleAdd() {
@@ -262,10 +251,5 @@ export default {
 
 .search-form {
   margin-bottom: 20px;
-}
-
-.pagination {
-  margin-top: 20px;
-  text-align: right;
 }
 </style>
