@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>质检API测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .status {
+            font-weight: bold;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>质检管理 API 测试</h1>
+
+    <div class="test-section">
+        <h2>测试1: 获取质检列表</h2>
+        <button onclick="testGetQualityInspections()">测试</button>
+        <div id="result1"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试2: API健康检查</h2>
+        <button onclick="testHealthCheck()">测试</button>
+        <div id="result2"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试3: CORS配置检查</h2>
+        <button onclick="testCORS()">测试</button>
+        <div id="result3"></div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+
+        async function testGetQualityInspections() {
+            const resultDiv = document.getElementById('result1');
+            resultDiv.innerHTML = '<div class="status">正在测试...</div>';
+
+            try {
+                const startTime = Date.now();
+                const response = await fetch(`${API_BASE}/quality-inspections/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include'
+                });
+
+                const endTime = Date.now();
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="status success">✓ 测试通过</div>
+                        <p><strong>状态码:</strong> ${response.status}</p>
+                        <p><strong>响应时间:</strong> ${endTime - startTime}ms</p>
+                        <p><strong>数据:</strong></p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="status error">✗ 测试失败</div>
+                        <p><strong>状态码:</strong> ${response.status}</p>
+                        <p><strong>错误信息:</strong></p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">✗ 请求异常</div>
+                    <p><strong>错误:</strong> ${error.message}</p>
+                    <pre>${error.stack}</pre>
+                `;
+            }
+        }
+
+        async function testHealthCheck() {
+            const resultDiv = document.getElementById('result2');
+            resultDiv.innerHTML = '<div class="status">正在测试...</div>';
+
+            try {
+                // 测试多个API端点
+                const endpoints = [
+                    '/quality-inspections/',
+                    '/product-stocks/',
+                    '/delivery-orders/'
+                ];
+
+                const results = await Promise.all(
+                    endpoints.map(async endpoint => {
+                        const response = await fetch(`${API_BASE}${endpoint}`, {
+                            credentials: 'include'
+                        });
+                        return {
+                            endpoint,
+                            status: response.status,
+                            ok: response.ok
+                        };
+                    })
+                );
+
+                const allOk = results.every(r => r.ok);
+
+                resultDiv.innerHTML = `
+                    <div class="status ${allOk ? 'success' : 'error'}">
+                        ${allOk ? '✓ 所有API正常' : '✗ 部分API异常'}
+                    </div>
+                    <ul>
+                        ${results.map(r => `
+                            <li>
+                                <strong>${r.endpoint}</strong>: ${r.ok ? '✓' : '✗'} (${r.status})
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">✗ 健康检查失败</div>
+                    <p><strong>错误:</strong> ${error.message}</p>
+                `;
+            }
+        }
+
+        async function testCORS() {
+            const resultDiv = document.getElementById('result3');
+            resultDiv.innerHTML = '<div class="status">正在测试...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/quality-inspections/`, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': window.location.origin,
+                        'Access-Control-Request-Method': 'GET',
+                        'Access-Control-Request-Headers': 'Content-Type,Authorization'
+                    }
+                });
+
+                const corsHeaders = {
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers'),
+                    'Access-Control-Allow-Credentials': response.headers.get('Access-Control-Allow-Credentials')
+                };
+
+                resultDiv.innerHTML = `
+                    <div class="status success">✓ CORS检查完成</div>
+                    <h3>CORS响应头:</h3>
+                    <pre>${JSON.stringify(corsHeaders, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">✗ CORS检查失败</div>
+                    <p><strong>错误:</strong> ${error.message}</p>
+                `;
+            }
+        }
+
+        // 页面加载时自动运行测试
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testGetQualityInspections();
+                testHealthCheck();
+            }, 500);
+        });
+    </script>
+</body>
+</html>
