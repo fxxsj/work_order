@@ -510,7 +510,7 @@ export default {
     },
     async handleEditFromDetail(orderId) {
       try {
-        const response = await getSalesOrderDetail(orderId)
+        const response = await salesOrderAPI.getDetail(orderId)
         this.dialogMode = 'edit'
         this.submitForm = response
         this.submitErrors = []

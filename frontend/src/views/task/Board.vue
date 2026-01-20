@@ -187,7 +187,7 @@
 </template>
 
 <script>
-import { departmentAPI, authAPI } from '@/api/modules'
+import { departmentAPI, authAPI, workOrderTaskAPI } from '@/api/modules'
 import { permissionService } from '@/services'
 import TaskStats from './components/TaskStats.vue'
 import TaskFilters from './components/TaskFilters.vue'
@@ -303,7 +303,7 @@ export default {
           params.search = this.filters.search
         }
 
-        const result = await taskAPI.list(params)
+        const result = await workOrderTaskAPI.getList(params)
         if (result.data) {
           this.tasks = result.data.results || []
           this.pagination.total = result.data.count || 0
@@ -376,7 +376,7 @@ export default {
         if (valid) {
           this.updating = true
           try {
-            const result = await taskAPI.update(this.currentTask.id, this.updateForm)
+            const result = await workOrderTaskAPI.update(this.currentTask.id, this.updateForm)
             if (result.data) {
               this.$message.success('任务更新成功')
               this.updateDialogVisible = false
@@ -409,7 +409,7 @@ export default {
         if (valid) {
           this.assigning = true
           try {
-            const result = await taskAPI.assign(this.currentTask.id, this.assignForm)
+            const result = await workOrderTaskAPI.assign(this.currentTask.id, this.assignForm)
             if (result.data) {
               this.$message.success('任务分派成功')
               this.assignDialogVisible = false
@@ -437,7 +437,7 @@ export default {
         if (valid) {
           this.completing = true
           try {
-            const result = await taskAPI.complete(this.currentTask.id, this.completeForm)
+            const result = await workOrderTaskAPI.complete(this.currentTask.id, this.completeForm)
             if (result.data) {
               this.$message.success('任务完成成功')
               this.completeDialogVisible = false
