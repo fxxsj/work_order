@@ -102,6 +102,18 @@
         @current-change="handlePageChange"
         @size-change="handleSizeChange"
       />
+
+      <!-- 空状态显示 -->
+      <el-empty
+        v-if="!loading && tableData.length === 0"
+        description="暂无产品数据"
+        :image-size="200"
+        style="margin-top: 50px;"
+      >
+        <el-button v-if="canCreate()" type="primary" @click="showCreateDialog()">
+          创建第一个产品
+        </el-button>
+      </el-empty>
     </el-card>
 
     <!-- 产品表单对话框 -->
@@ -295,6 +307,12 @@ export default {
       apiService: productAPI,
       permissionPrefix: 'product',
 
+      // 对话框状态（crudMixin 提供的属性）
+      dialogVisible: false,
+      dialogType: 'create',
+      formLoading: false,
+      currentRow: null,
+
       // 自定义数据
       allProcesses: [],
       materialList: [],
@@ -417,7 +435,59 @@ export default {
 
     showCreateDialog() {
       this.resetForm()
-      this.handleCreate()
+      this.dialogType = 'create'
+      this.currentRow = null
+      this.dialogVisible = true
+    },
+
+    handleEdit(row) {
+      this.dialogType = 'edit'
+      this.currentRow = row
+      this.loadProductDetail(row)
+      this.dialogVisible = true
+    },
+
+    async handleDelete(row) {
+      try {
+        await this.$confirm(
+          `确定要删除产品"${row.name}"吗？此操作不可撤销。`,
+          '确认删除',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        )
+
+        await this.apiService.delete(row.id)
+        this.$message.success('删除成功')
+        await this.loadData()
+      } catch (error) {
+        if (error !== 'cancel') {
+          console.error('删除失败:', error)
+          this.$message.error('删除失败')
+        }
+      }
+    },
+
+    showMessage(error, defaultMessage = '操作失败') {
+      let message = defaultMessage
+
+      if (error.response && error.response.data) {
+        if (typeof error.response.data === 'string') {
+          message = error.response.data
+        } else if (error.response.data.detail) {
+          message = error.response.data.detail
+        } else if (error.response.data.message) {
+          message = error.response.data.message
+        } else if (error.response.data.error) {
+          message = error.response.data.error
+        }
+      } else if (error.message) {
+        message = error.message
+      }
+
+      this.$message.error(message)
     },
 
     resetForm() {

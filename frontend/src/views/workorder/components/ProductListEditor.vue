@@ -19,11 +19,16 @@
         </el-col>
         <el-col :span="4">
           <el-input
-            :value="(getImpositionQuantity(item.product) || 1) + '拼'"
-            placeholder="选择产品后自动填充"
-            disabled
-            style="color: #909399;"
-          />
+            :value="item.imposition_quantity || 1"
+            type="number"
+            placeholder="拼版"
+            :disabled="disabled"
+            @input="handleImpositionQuantityChange(index, $event)"
+          >
+            <template slot="suffix">
+              <span style="color: #909399; padding-right: 8px;">拼</span>
+            </template>
+          </el-input>
         </el-col>
         <el-col :span="4">
           <el-input
@@ -73,7 +78,7 @@
 </template>
 
 <script>
-import { productAPI } from '@/api/workorder'
+import { productAPI } from '@/api/modules'
 import ProductSelector from './ProductSelector.vue'
 
 export default {
@@ -123,6 +128,7 @@ export default {
         this.productList = response.results || []
       } catch (error) {
         console.error('加载产品列表失败:', error)
+        this.$message.error('加载产品列表失败')
       }
     },
     getProductSpecification(productId) {
@@ -130,16 +136,10 @@ export default {
       const product = this.productList.find(p => p.id === productId)
       return product ? product.specification : ''
     },
-    getImpositionQuantity(productId) {
-      if (!productId) return 1
-      const product = this.productList.find(p => p.id === productId)
-      return product ? product.imposition_quantity : 1
-    },
     handleProductChange(index, productId) {
       this.$set(this.items, index, {
         ...this.items[index],
-        product: productId,
-        quantity: this.calculateQuantity(productId)
+        product: productId
       })
     },
     handleQuantityChange(index, value) {
@@ -148,17 +148,17 @@ export default {
         quantity: parseInt(value) || 0
       })
     },
-    calculateQuantity(productId) {
-      const product = this.productList.find(p => p.id === productId)
-      if (!product) return 1
-
-      const imposition = product.imposition_quantity || 1
-      return imposition
+    handleImpositionQuantityChange(index, value) {
+      this.$set(this.items, index, {
+        ...this.items[index],
+        imposition_quantity: parseInt(value) || 1
+      })
     },
     addItem() {
       this.items.push({
         product: null,
         quantity: 1,
+        imposition_quantity: 1,
         unit: '件'
       })
     },

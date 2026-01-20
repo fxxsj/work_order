@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import { productAPI } from '@/api/workorder'
+import { productAPI } from '@/api/modules'
 
 export default {
   name: 'ProductSelector',
@@ -50,7 +50,8 @@ export default {
     async loadProductList() {
       this.loading = true
       try {
-        const response = await productAPI.getList({ is_active: true, page_size: 1000 })
+        // 减少页面大小以提升性能
+        const response = await productAPI.getList({ is_active: true, page_size: 100 })
         this.productList = response.results || []
       } catch (error) {
         console.error('加载产品列表失败:', error)
