@@ -1,198 +1,146 @@
 <template>
-  <div v-if="hasArtworkOrDie">
-    <!-- 图稿信息 -->
-    <el-card v-if="hasArtworks" style="margin-top: 20px;">
-      <div slot="header" class="card-header">
-        <span>图稿信息</span>
-      </div>
-      <el-table :data="artworks" border style="width: 100%">
-        <el-table-column prop="artwork_number" label="图稿编号" width="150" />
-        <el-table-column
-          prop="version"
-          label="版本"
-          width="80"
-          align="center"
-        />
-        <el-table-column label="确认状态" width="100" align="center">
-          <template slot-scope="scope">
-            <el-tag :type="getArtworkStatusType(scope.row.confirmed)" size="small">
-              {{ getArtworkStatusText(scope.row.confirmed) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="确认时间" width="180">
-          <template slot-scope="scope">
-            {{ formatDateTime(scope.row.confirmed_at) }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="notes"
-          label="备注"
-          min-width="200"
-          show-overflow-tooltip
-        />
-      </el-table>
-    </el-card>
+  <div class="artwork-die-info">
+    <!-- 空状态 -->
+    <el-empty v-if="!items || items.length === 0" :description="emptyText">
+      <el-button v-if="!disabled" type="primary" size="small" @click="handleAdd">
+        <i class="el-icon-plus"></i>
+        {{ addButtonText }}
+      </el-button>
+    </el-empty>
 
-    <!-- 刀模信息 -->
-    <el-card v-if="hasDies" style="margin-top: 20px;">
-      <div slot="header" class="card-header">
-        <span>刀模信息</span>
+    <!-- 列表展示 -->
+    <div v-else>
+      <div class="list-header">
+        <span class="list-title">{{ title }}（{{ items.length }}）</span>
+        <el-button v-if="!disabled" type="primary" size="small" @click="handleAdd">
+          <i class="el-icon-plus"></i>
+          添加
+        </el-button>
       </div>
-      <el-table :data="dies" border style="width: 100%">
-        <el-table-column prop="die_number" label="刀模编号" width="150" />
-        <el-table-column prop="die_size" label="刀模尺寸" width="150" />
-        <el-table-column label="确认状态" width="100" align="center">
-          <template slot-scope="scope">
-            <el-tag :type="getDieStatusType(scope.row.confirmed)" size="small">
-              {{ getDieStatusText(scope.row.confirmed) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="确认时间" width="180">
-          <template slot-scope="scope">
-            {{ formatDateTime(scope.row.confirmed_at) }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="notes"
-          label="备注"
-          min-width="200"
-          show-overflow-tooltip
-        />
-      </el-table>
-    </el-card>
 
-    <!-- 烫金版信息 -->
-    <el-card v-if="hasFoilingPlates" style="margin-top: 20px;">
-      <div slot="header" class="card-header">
-        <span>烫金版信息</span>
-      </div>
-      <el-table :data="foilingPlates" border style="width: 100%">
-        <el-table-column prop="plate_number" label="烫金版编号" width="150" />
-        <el-table-column prop="plate_size" label="尺寸" width="150" />
+      <el-table :data="items" border size="small" style="width: 100%">
+        <el-table-column prop="name" :label="nameLabel" min-width="150" />
+        <el-table-column prop="version" label="版本" width="80" align="center" />
         <el-table-column label="确认状态" width="100" align="center">
           <template slot-scope="scope">
-            <el-tag :type="getPlateStatusType(scope.row.confirmed)" size="small">
-              {{ getPlateStatusText(scope.row.confirmed) }}
+            <el-tag :type="scope.row.confirmed ? 'success' : 'warning'" size="small">
+              {{ scope.row.confirmed ? '已确认' : '待确认' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="确认时间" width="180">
+        <el-table-column prop="notes" label="备注" min-width="150" show-overflow-tooltip />
+        <el-table-column v-if="!disabled" label="操作" width="120" align="center">
           <template slot-scope="scope">
-            {{ formatDateTime(scope.row.confirmed_at) }}
+            <el-button type="text" size="small" @click="handleEdit(scope.$index)">
+              编辑
+            </el-button>
+            <el-button type="text" size="small" style="color: #F56C6C;" @click="handleDelete(scope.$index)">
+              删除
+            </el-button>
           </template>
         </el-table-column>
-        <el-table-column
-          prop="notes"
-          label="备注"
-          min-width="200"
-          show-overflow-tooltip
-        />
       </el-table>
-    </el-card>
-
-    <!-- 压纹版信息 -->
-    <el-card v-if="hasEmbossingPlates" style="margin-top: 20px;">
-      <div slot="header" class="card-header">
-        <span>压纹版信息</span>
-      </div>
-      <el-table :data="embossingPlates" border style="width: 100%">
-        <el-table-column prop="plate_number" label="压纹版编号" width="150" />
-        <el-table-column prop="plate_size" label="尺寸" width="150" />
-        <el-table-column label="确认状态" width="100" align="center">
-          <template slot-scope="scope">
-            <el-tag :type="getPlateStatusType(scope.row.confirmed)" size="small">
-              {{ getPlateStatusText(scope.row.confirmed) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="确认时间" width="180">
-          <template slot-scope="scope">
-            {{ formatDateTime(scope.row.confirmed_at) }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="notes"
-          label="备注"
-          min-width="200"
-          show-overflow-tooltip
-        />
-      </el-table>
-    </el-card>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
   name: 'ArtworkAndDieInfo',
+  model: {
+    prop: 'value',
+    event: 'change'
+  },
   props: {
-    workOrder: {
-      type: Object,
-      required: true
+    value: {
+      type: Array,
+      default: () => []
+    },
+    type: {
+      type: String,
+      default: 'artwork',
+      validator: val => ['artwork', 'die', 'foiling_plate', 'embossing_plate'].includes(val)
+    },
+    disabled: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
-    artworks() {
-      return this.workOrder.artworks || []
+    items() {
+      return this.value || []
     },
-    dies() {
-      return this.workOrder.dies || []
+    title() {
+      const titles = {
+        artwork: '图稿',
+        die: '刀模',
+        foiling_plate: '烫金版',
+        embossing_plate: '压纹版'
+      }
+      return titles[this.type] || '资产'
     },
-    foilingPlates() {
-      return this.workOrder.foiling_plates || []
+    nameLabel() {
+      const labels = {
+        artwork: '图稿编号',
+        die: '刀模编号',
+        foiling_plate: '烫金版编号',
+        embossing_plate: '压纹版编号'
+      }
+      return labels[this.type] || '编号'
     },
-    embossingPlates() {
-      return this.workOrder.embossing_plates || []
+    emptyText() {
+      return `暂无${this.title}信息`
     },
-    hasArtworks() {
-      return this.artworks.length > 0
-    },
-    hasDies() {
-      return this.dies.length > 0
-    },
-    hasFoilingPlates() {
-      return this.foilingPlates.length > 0
-    },
-    hasEmbossingPlates() {
-      return this.embossingPlates.length > 0
-    },
-    hasArtworkOrDie() {
-      return this.hasArtworks || this.hasDies || this.hasFoilingPlates || this.hasEmbossingPlates
+    addButtonText() {
+      return `添加${this.title}`
     }
   },
   methods: {
-    getArtworkStatusText(confirmed) {
-      return confirmed ? '已确认' : '待确认'
+    handleAdd() {
+      // 添加新项目
+      const newItem = {
+        name: '',
+        version: '1',
+        confirmed: false,
+        notes: ''
+      }
+      const newItems = [...this.items, newItem]
+      this.$emit('change', newItems)
     },
-    getArtworkStatusType(confirmed) {
-      return confirmed ? 'success' : 'warning'
+    handleEdit(index) {
+      // 编辑项目 - 可以扩展为弹窗编辑
+      this.$emit('edit', index, this.items[index])
     },
-    getDieStatusText(confirmed) {
-      return confirmed ? '已确认' : '待确认'
-    },
-    getDieStatusType(confirmed) {
-      return confirmed ? 'success' : 'warning'
-    },
-    getPlateStatusText(confirmed) {
-      return confirmed ? '已确认' : '待确认'
-    },
-    getPlateStatusType(confirmed) {
-      return confirmed ? 'success' : 'warning'
-    },
-    formatDateTime(dateStr) {
-      if (!dateStr) return '-'
-      const date = new Date(dateStr)
-      return date.toLocaleString('zh-CN')
+    handleDelete(index) {
+      this.$confirm(`确定删除该${this.title}吗？`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        const newItems = this.items.filter((_, i) => i !== index)
+        this.$emit('change', newItems)
+        this.$message.success('删除成功')
+      }).catch(() => {})
     }
   }
 }
 </script>
 
 <style scoped>
-.card-header {
+.artwork-die-info {
+  padding: 10px 0;
+}
+
+.list-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 10px;
+}
+
+.list-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #303133;
 }
 </style>

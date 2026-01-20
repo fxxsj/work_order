@@ -46,6 +46,7 @@
 
         <!-- 步骤内容 -->
         <div class="step-content">
+          <el-form ref="workOrderForm" :model="form" label-width="100px">
           <!-- 步骤1: 基本信息 -->
           <div v-show="currentStep === 0" class="step-panel">
             <h3>基本信息</h3>
@@ -255,6 +256,7 @@
               </el-row>
             </div>
           </div>
+          </el-form>
         </div>
 
         <!-- 步骤导航按钮 -->
@@ -300,6 +302,10 @@ import ProductListEditor from './components/ProductListEditor.vue'
 import ProcessSelector from './components/ProcessSelector.vue'
 import MaterialManagement from './components/MaterialManagement.vue'
 import ArtworkAndDieInfo from './components/ArtworkAndDieInfo.vue'
+// 导入 API 模块
+import { customerAPI } from '@/api/modules/customer'
+import { workOrderAPI } from '@/api/modules/workOrder'
+import { authAPI } from '@/api/modules/auth'
 
 export default {
   name: 'WorkOrderFormSimplified',
@@ -402,19 +408,25 @@ export default {
   methods: {
     async loadData() {
       // 并行加载基础数据
-      const [customers, managers] = await Promise.all([
-        this.$api.customer.getList(),
-        this.$api.user.getManagers()
-      ])
+      try {
+        const [customersRes, managersRes] = await Promise.all([
+          customerAPI.getList(),
+          authAPI.getUsersByDepartment()
+        ])
 
-      this.customerList = customers.data
-      this.managerList = managers.data
+        this.customerList = customersRes.results || customersRes.data || customersRes
+        this.managerList = managersRes.results || managersRes.data || managersRes
+      } catch (error) {
+        console.error('加载基础数据失败:', error)
+        this.$message.error('加载基础数据失败')
+      }
     },
 
     async loadWorkOrder() {
       try {
-        const response = await this.$api.workorder.getDetail(this.id)
-        this.form = { ...this.form, ...response.data }
+        const response = await workOrderAPI.getDetail(this.id)
+        const data = response.data || response
+        this.form = { ...this.form, ...data }
       } catch (error) {
         this.$message.error('加载施工单失败')
       }
@@ -507,7 +519,7 @@ export default {
     async saveDraft() {
       this.saving = true
       try {
-        await this.$api.workorder.saveDraft(this.form)
+        await workOrderAPI.create({ ...this.form, status: 'draft' })
         this.$message.success('草稿保存成功')
       } catch (error) {
         this.$message.error('草稿保存失败')
@@ -519,7 +531,12 @@ export default {
     async submitForApproval() {
       this.submitting = true
       try {
-        await this.$api.workorder.submitForApproval(this.form)
+        const data = { ...this.form, approval_status: 'pending' }
+        if (this.isEdit) {
+          await workOrderAPI.update(this.id, data)
+        } else {
+          await workOrderAPI.create(data)
+        }
         this.$message.success('提交审核成功')
         this.$router.push('/workorders')
       } catch (error) {
@@ -535,10 +552,10 @@ export default {
       this.saving = true
       try {
         if (this.isEdit) {
-          await this.$api.workorder.update(this.id, this.form)
+          await workOrderAPI.update(this.id, this.form)
           this.$message.success('施工单更新成功')
         } else {
-          await this.$api.workorder.create(this.form)
+          await workOrderAPI.create(this.form)
           this.$message.success('施工单创建成功')
         }
 
