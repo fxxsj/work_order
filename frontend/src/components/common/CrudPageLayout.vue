@@ -3,7 +3,9 @@
     <!-- 页面头部 -->
     <div v-if="title || $slots.header" class="crud-header">
       <div class="crud-header-left">
-        <h2 v-if="title" class="crud-title">{{ title }}</h2>
+        <h2 v-if="title" class="crud-title">
+          {{ title }}
+        </h2>
         <slot name="header"></slot>
       </div>
       <div v-if="$slots.actions" class="crud-header-actions">
@@ -20,10 +22,20 @@
     <!-- 工具栏区域 -->
     <div v-if="showToolbar || $slots.toolbar" class="crud-toolbar">
       <slot name="toolbar">
-        <el-button v-if="showCreate" type="primary" icon="el-icon-plus" @click="$emit('create')">
+        <el-button
+          v-if="showCreate"
+          type="primary"
+          icon="el-icon-plus"
+          @click="$emit('create')"
+        >
           {{ createText }}
         </el-button>
-        <el-button v-if="showExport" type="success" icon="el-icon-download" @click="$emit('export')">
+        <el-button
+          v-if="showExport"
+          type="success"
+          icon="el-icon-download"
+          @click="$emit('export')"
+        >
           导出
         </el-button>
         <el-button v-if="showRefresh" icon="el-icon-refresh" @click="$emit('refresh')">
@@ -40,7 +52,7 @@
     <!-- 空状态 -->
     <div v-if="showEmpty && isEmpty && !loading" class="crud-empty">
       <slot name="empty">
-        <el-empty :description="emptyText"></el-empty>
+        <el-empty :description="emptyText" />
       </slot>
     </div>
   </div>

@@ -4,21 +4,21 @@
       <div slot="header" class="card-header">
         <span>通知中心</span>
         <div>
-          <el-button 
+          <el-button
             v-if="unreadCount > 0"
-            type="primary" 
-            size="small" 
-            @click="markAllRead"
+            type="primary"
+            size="small"
             :loading="markingAll"
+            @click="markAllRead"
           >
             标记全部已读
           </el-button>
-          <el-button 
-            type="default" 
-            size="small" 
-            icon="el-icon-refresh" 
-            @click="loadData"
+          <el-button
+            type="default"
+            size="small"
+            icon="el-icon-refresh"
             style="margin-left: 10px;"
+            @click="loadData"
           >
             刷新
           </el-button>
@@ -28,9 +28,15 @@
       <!-- 筛选 -->
       <div class="filter-section">
         <el-radio-group v-model="filters.is_read" size="small" @change="handleFilterChange">
-          <el-radio-button :label="null">全部</el-radio-button>
-          <el-radio-button :label="false">未读</el-radio-button>
-          <el-radio-button :label="true">已读</el-radio-button>
+          <el-radio-button :label="null">
+            全部
+          </el-radio-button>
+          <el-radio-button :label="false">
+            未读
+          </el-radio-button>
+          <el-radio-button :label="true">
+            已读
+          </el-radio-button>
         </el-radio-group>
         <el-select
           v-model="filters.notification_type"
@@ -40,13 +46,13 @@
           style="width: 200px; margin-left: 10px;"
           @change="handleFilterChange"
         >
-          <el-option label="审核通过" value="approval_passed"></el-option>
-          <el-option label="审核拒绝" value="approval_rejected"></el-option>
-          <el-option label="任务分派" value="task_assigned"></el-option>
-          <el-option label="任务取消" value="task_cancelled"></el-option>
-          <el-option label="工序完成" value="process_completed"></el-option>
-          <el-option label="施工单完成" value="workorder_completed"></el-option>
-          <el-option label="系统通知" value="system"></el-option>
+          <el-option label="审核通过" value="approval_passed" />
+          <el-option label="审核拒绝" value="approval_rejected" />
+          <el-option label="任务分派" value="task_assigned" />
+          <el-option label="任务取消" value="task_cancelled" />
+          <el-option label="工序完成" value="process_completed" />
+          <el-option label="施工单完成" value="workorder_completed" />
+          <el-option label="系统通知" value="system" />
         </el-select>
       </div>
 
@@ -59,13 +65,18 @@
       >
         <el-table-column label="状态" width="80" align="center">
           <template slot-scope="scope">
-            <el-badge v-if="!scope.row.is_read" is-dot class="unread-badge"></el-badge>
+            <el-badge v-if="!scope.row.is_read" is-dot class="unread-badge" />
             <span v-else style="color: #909399;">已读</span>
           </template>
         </el-table-column>
-        <el-table-column prop="notification_type_display" label="类型" width="120"></el-table-column>
-        <el-table-column prop="title" label="标题" min-width="200"></el-table-column>
-        <el-table-column prop="content" label="内容" min-width="300" show-overflow-tooltip></el-table-column>
+        <el-table-column prop="notification_type_display" label="类型" width="120" />
+        <el-table-column prop="title" label="标题" min-width="200" />
+        <el-table-column
+          prop="content"
+          label="内容"
+          min-width="300"
+          show-overflow-tooltip
+        />
         <el-table-column label="关联对象" width="150">
           <template slot-scope="scope">
             <el-link
@@ -104,14 +115,14 @@
       <!-- 分页 -->
       <div class="pagination-section">
         <el-pagination
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
           :current-page="pagination.page"
           :page-sizes="[10, 20, 50, 100]"
           :page-size="pagination.page_size"
           layout="total, sizes, prev, pager, next, jumper"
           :total="pagination.total"
-        ></el-pagination>
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
       </div>
     </el-card>
   </div>
@@ -152,7 +163,7 @@ export default {
           page_size: this.pagination.page_size,
           ordering: '-created_at'
         }
-        
+
         if (this.filters.is_read !== null) {
           params.is_read = this.filters.is_read
         }

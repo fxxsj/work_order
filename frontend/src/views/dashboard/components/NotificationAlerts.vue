@@ -10,7 +10,12 @@
     >
       <template slot="title">
         <span>您有 <strong class="count-text">{{ unreadCount }}</strong> 条未读通知</span>
-        <el-link type="primary" :underline="false" class="action-link" @click="$emit('view-notifications')">
+        <el-link
+          type="primary"
+          :underline="false"
+          class="action-link"
+          @click="$emit('view-notifications')"
+        >
           查看通知
         </el-link>
       </template>
@@ -26,7 +31,12 @@
     >
       <template slot="title">
         <span>您有 <strong class="count-text warning">{{ pendingApprovalCount }}</strong> 个待审核的施工单，请及时处理。</span>
-        <el-link type="primary" :underline="false" class="action-link" @click="$emit('view-pending-approvals')">
+        <el-link
+          type="primary"
+          :underline="false"
+          class="action-link"
+          @click="$emit('view-pending-approvals')"
+        >
           点击查看
         </el-link>
       </template>
@@ -42,7 +52,12 @@
     >
       <template slot="title">
         <span>有 <strong class="count-text error">{{ urgentPriorityCount }}</strong> 个紧急优先级的施工单需要处理</span>
-        <el-link type="primary" :underline="false" class="action-link" @click="$emit('view-urgent-priority')">
+        <el-link
+          type="primary"
+          :underline="false"
+          class="action-link"
+          @click="$emit('view-urgent-priority')"
+        >
           查看详情
         </el-link>
       </template>
@@ -58,7 +73,12 @@
     >
       <template slot="title">
         <span>有 <strong class="count-text warning">{{ upcomingDeadlineCount }}</strong> 个即将到期的施工单（7天内）需要关注</span>
-        <el-link type="primary" :underline="false" class="action-link" @click="$emit('view-upcoming-deadline')">
+        <el-link
+          type="primary"
+          :underline="false"
+          class="action-link"
+          @click="$emit('view-upcoming-deadline')"
+        >
           查看详情
         </el-link>
       </template>

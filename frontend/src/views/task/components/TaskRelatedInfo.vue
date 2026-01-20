@@ -57,21 +57,21 @@ export default {
   methods: {
     getMaterialStatusTagType(status) {
       const statusMap = {
-        'pending': 'info',
-        'ordered': 'primary',
-        'received': 'success',
-        'cut': 'warning',
-        'completed': 'success'
+        pending: 'info',
+        ordered: 'primary',
+        received: 'success',
+        cut: 'warning',
+        completed: 'success'
       }
       return statusMap[status] || 'info'
     },
     getMaterialStatusText(status) {
       const statusMap = {
-        'pending': '待采购',
-        'ordered': '已下单',
-        'received': '已回料',
-        'cut': '已开料',
-        'completed': '已完成'
+        pending: '待采购',
+        ordered: '已下单',
+        received: '已回料',
+        cut: '已开料',
+        completed: '已完成'
       }
       return statusMap[status] || status
     }

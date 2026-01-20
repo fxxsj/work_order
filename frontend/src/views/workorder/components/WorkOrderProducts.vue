@@ -9,17 +9,32 @@
           {{ scope.row.product_name || scope.row.name }}
         </template>
       </el-table-column>
-      <el-table-column prop="specification" label="规格" min-width="200" show-overflow-tooltip>
+      <el-table-column
+        prop="specification"
+        label="规格"
+        min-width="200"
+        show-overflow-tooltip
+      >
         <template slot-scope="scope">
           {{ scope.row.specification || '-' }}
         </template>
       </el-table-column>
-      <el-table-column prop="imposition_quantity" label="拼版" width="100" align="center">
+      <el-table-column
+        prop="imposition_quantity"
+        label="拼版"
+        width="100"
+        align="center"
+      >
         <template slot-scope="scope">
           {{ scope.row.imposition_quantity || '-' }}
         </template>
       </el-table-column>
-      <el-table-column prop="quantity" label="数量" width="120" align="right">
+      <el-table-column
+        prop="quantity"
+        label="数量"
+        width="120"
+        align="right"
+      >
         <template slot-scope="scope">
           {{ scope.row.quantity || 0 }}
         </template>

@@ -7,7 +7,9 @@
         <el-button type="primary" icon="el-icon-plus" @click="handleCreate">
           新建发货单
         </el-button>
-        <el-button icon="el-icon-refresh" @click="fetchDeliveryOrders">刷新</el-button>
+        <el-button icon="el-icon-refresh" @click="fetchDeliveryOrders">
+          刷新
+        </el-button>
       </div>
     </div>
 

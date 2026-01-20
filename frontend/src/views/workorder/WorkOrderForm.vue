@@ -8,23 +8,23 @@
         </div>
         <div class="header-right">
           <el-tooltip content="保存为草稿" placement="top">
-            <el-button 
-              type="info" 
-              size="small" 
-              @click="saveDraft"
+            <el-button
+              type="info"
+              size="small"
               :loading="saving"
+              @click="saveDraft"
             >
               <i class="el-icon-document"></i>
               草稿
             </el-button>
           </el-tooltip>
-          
-          <el-tooltip content="提交审核" placement="top" v-if="!isEdit || form.approval_status === 'rejected'">
-            <el-button 
-              type="success" 
-              size="small" 
-              @click="submitForApproval"
+
+          <el-tooltip v-if="!isEdit || form.approval_status === 'rejected'" content="提交审核" placement="top">
+            <el-button
+              type="success"
+              size="small"
               :loading="submitting"
+              @click="submitForApproval"
             >
               <i class="el-icon-check"></i>
               提交审核
@@ -37,11 +37,11 @@
       <div class="form-content">
         <!-- 步骤指示器 -->
         <el-steps :active="currentStep" align-center class="form-steps">
-          <el-step title="基本信息" icon="el-icon-info"></el-step>
-          <el-step title="产品配置" icon="el-icon-goods"></el-step>
-          <el-step title="工序安排" icon="el-icon-setting"></el-step>
-          <el-step title="物料资产" icon="el-icon-box"></el-step>
-          <el-step title="确认提交" icon="el-icon-check"></el-step>
+          <el-step title="基本信息" icon="el-icon-info" />
+          <el-step title="产品配置" icon="el-icon-goods" />
+          <el-step title="工序安排" icon="el-icon-setting" />
+          <el-step title="物料资产" icon="el-icon-box" />
+          <el-step title="确认提交" icon="el-icon-check" />
         </el-steps>
 
         <!-- 步骤内容 -->
@@ -52,21 +52,21 @@
             <el-row :gutter="20">
               <el-col :xs="24" :sm="12" :md="8">
                 <el-form-item label="客户" prop="customer">
-                  <customer-selector 
-                    v-model="form.customer" 
-                    @change="onCustomerChange"
+                  <customer-selector
+                    v-model="form.customer"
                     :disabled="isApproved"
+                    @change="onCustomerChange"
                   />
                 </el-form-item>
               </el-col>
-              
+
               <el-col :xs="24" :sm="12" :md="8">
                 <el-form-item label="优先级" prop="priority">
                   <el-select v-model="form.priority" style="width: 100%;">
-                    <el-option 
-                      v-for="item in priorityOptions" 
+                    <el-option
+                      v-for="item in priorityOptions"
                       :key="item.value"
-                      :label="item.label" 
+                      :label="item.label"
                       :value="item.value"
                     >
                       <span :style="{color: item.color}">{{ item.label }}</span>
@@ -74,19 +74,19 @@
                   </el-select>
                 </el-form-item>
               </el-col>
-              
+
               <el-col :xs="24" :sm="12" :md="8">
                 <el-form-item label="制表人" prop="manager">
-                  <el-select 
-                    v-model="form.manager" 
+                  <el-select
+                    v-model="form.manager"
                     filterable
                     style="width: 100%;"
                     :disabled="isApproved"
                   >
-                    <el-option 
-                      v-for="user in managerList" 
+                    <el-option
+                      v-for="user in managerList"
                       :key="user.id"
-                      :label="user.username" 
+                      :label="user.username"
                       :value="user.id"
                     />
                   </el-select>
@@ -107,7 +107,7 @@
                   />
                 </el-form-item>
               </el-col>
-              
+
               <el-col :xs="24" :sm="12">
                 <el-form-item label="交货日期" prop="delivery_date">
                   <el-date-picker
@@ -142,9 +142,9 @@
                 添加产品
               </el-button>
             </div>
-            
-            <product-list-editor 
-              v-model="form.products" 
+
+            <product-list-editor
+              v-model="form.products"
               :disabled="isApproved"
               @change="onProductsChange"
             />
@@ -165,9 +165,9 @@
                 </el-button>
               </el-button-group>
             </div>
-            
-            <process-selector 
-              v-model="form.processes" 
+
+            <process-selector
+              v-model="form.processes"
               :disabled="isApproved"
               @change="onProcessesChange"
             />
@@ -177,31 +177,31 @@
           <div v-show="currentStep === 3" class="step-panel">
             <el-tabs v-model="materialTab" class="material-tabs">
               <el-tab-pane label="物料配置" name="materials">
-                <material-management 
-                  v-model="form.materials" 
+                <material-management
+                  v-model="form.materials"
                   :disabled="isApproved"
                   @change="onMaterialsChange"
                 />
               </el-tab-pane>
-              
+
               <el-tab-pane label="图稿" name="artworks">
-                <artwork-and-die-info 
+                <artwork-and-die-info
                   v-model="form.artworks"
                   type="artwork"
                   :disabled="isApproved"
                 />
               </el-tab-pane>
-              
+
               <el-tab-pane label="刀模" name="dies">
-                <artwork-and-die-info 
+                <artwork-and-die-info
                   v-model="form.dies"
                   type="die"
                   :disabled="isApproved"
                 />
               </el-tab-pane>
-              
+
               <el-tab-pane label="烫金版" name="foiling_plates">
-                <artwork-and-die-info 
+                <artwork-and-die-info
                   v-model="form.foiling_plates"
                   type="foiling_plate"
                   :disabled="isApproved"
@@ -234,7 +234,7 @@
                     </div>
                   </div>
                 </el-col>
-                
+
                 <el-col :span="12">
                   <div class="summary-card">
                     <h4>配置统计</h4>
@@ -259,31 +259,31 @@
 
         <!-- 步骤导航按钮 -->
         <div class="step-navigation">
-          <el-button 
-            v-if="currentStep > 0" 
-            @click="prevStep"
+          <el-button
+            v-if="currentStep > 0"
             :disabled="saving || submitting"
+            @click="prevStep"
           >
             <i class="el-icon-arrow-left"></i>
             上一步
           </el-button>
-          
-          <el-button 
-            v-if="currentStep < 4" 
-            type="primary" 
-            @click="nextStep"
+
+          <el-button
+            v-if="currentStep < 4"
+            type="primary"
             :disabled="!canGoNext || saving || submitting"
+            @click="nextStep"
           >
             <i class="el-icon-arrow-right"></i>
             下一步
           </el-button>
-          
-          <el-button 
-            v-if="currentStep === 4" 
-            type="success" 
-            @click="saveAll"
+
+          <el-button
+            v-if="currentStep === 4"
+            type="success"
             :loading="saving || submitting"
             size="medium"
+            @click="saveAll"
           >
             <i class="el-icon-check"></i>
             {{ isEdit ? '更新施工单' : '创建施工单' }}
@@ -320,10 +320,10 @@ export default {
     return {
       // 当前步骤
       currentStep: 0,
-      
+
       // 物料标签页
       materialTab: 'materials',
-      
+
       // 表单数据
       form: {
         customer: null,
@@ -348,11 +348,11 @@ export default {
         printing_cmyk_colors: [],
         printing_other_colors: []
       },
-      
+
       // 加载状态
       saving: false,
       submitting: false,
-      
+
       // 选项数据
       priorityOptions: [
         { label: '低', value: 'low', color: '#67C23A' },
@@ -360,7 +360,7 @@ export default {
         { label: '高', value: 'high', color: '#E6A23C' },
         { label: '紧急', value: 'urgent', color: '#F56C6C' }
       ],
-      
+
       // 列表数据
       customerList: [],
       managerList: []
@@ -406,11 +406,11 @@ export default {
         this.$api.customer.getList(),
         this.$api.user.getManagers()
       ])
-      
+
       this.customerList = customers.data
       this.managerList = managers.data
     },
-    
+
     async loadWorkOrder() {
       try {
         const response = await this.$api.workorder.getDetail(this.id)
@@ -419,92 +419,90 @@ export default {
         this.$message.error('加载施工单失败')
       }
     },
-    
+
     // 步骤导航
     nextStep() {
       if (this.currentStep < 4) {
         this.currentStep++
       }
     },
-    
+
     prevStep() {
       if (this.currentStep > 0) {
         this.currentStep--
       }
     },
-    
+
     // 事件处理
     onCustomerChange(customer) {
       this.form.customer = customer
       // 可以根据客户信息预填充其他字段
     },
-    
+
     onProductsChange(products) {
       this.form.products = products
       this.calculateProductionQuantity()
     },
-    
+
     onProcessesChange(processes) {
       this.form.processes = processes
     },
-    
+
     onMaterialsChange(materials) {
       this.form.materials = materials
     },
-    
+
     calculateProductionQuantity() {
       // 根据产品计算生产数量
-      const totalQuantity = this.form.products.reduce((sum, product) => {
-        return sum + (product.quantity || 0)
-      }, 0)
+      const totalQuantity = this.form.products.reduce((sum, product) => sum + (product.quantity || 0), 0)
       this.form.production_quantity = totalQuantity
     },
-    
+
     // 智能排程
     autoArrangeProcesses() {
       if (!this.form.products.length) {
         this.$message.warning('请先添加产品')
         return
       }
-      
+
       // 根据产品自动推荐工序
       const recommendedProcesses = this.getRecommendedProcesses(this.form.products)
       this.form.processes = recommendedProcesses
     },
-    
+
     getRecommendedProcesses(products) {
       // 简化版：根据产品类型推荐工序
       const processMap = {
-        '印刷品': ['CTP', 'CUT', 'PRT', 'PACK'],
-        '包装盒': ['CTP', 'CUT', 'PRT', 'DIE', 'BOX', 'PACK'],
-        '标签': ['CTP', 'CUT', 'PRT', 'DIE', 'PACK']
+        印刷品: ['CTP', 'CUT', 'PRT', 'PACK'],
+        包装盒: ['CTP', 'CUT', 'PRT', 'DIE', 'BOX', 'PACK'],
+        标签: ['CTP', 'CUT', 'PRT', 'DIE', 'PACK']
       }
-      
+
       // 获取产品类型并返回对应工序
       const productTypes = products.map(p => p.category)
       const uniqueTypes = [...new Set(productTypes)]
-      
-      let allProcesses = []
+
+      const allProcesses = []
       uniqueTypes.forEach(type => {
         if (processMap[type]) {
           allProcesses.push(...processMap[type])
         }
       })
-      
+
       return [...new Set(allProcesses)] // 去重
     },
-    
+
     // 添加操作
     addProduct() {
       // 触发产品选择器
       this.$refs.productSelector.show()
     },
-    
+
     addProcess() {
       // 触发工序选择器
       this.$refs.processSelector.show()
     },
-    
+
     // 保存操作
     async saveDraft() {
       this.saving = true
@@ -517,7 +515,7 @@ export default {
         this.saving = false
       }
     },
-    
+
     async submitForApproval() {
       this.submitting = true
       try {
@@ -530,10 +528,10 @@ export default {
         this.submitting = false
       }
     },
-    
+
     async saveAll() {
       if (this.saving || this.submitting) return
-      
+
       this.saving = true
       try {
         if (this.isEdit) {
@@ -543,7 +541,7 @@ export default {
           await this.$api.workorder.create(this.form)
           this.$message.success('施工单创建成功')
         }
-        
+
         this.$router.push('/workorders')
       } catch (error) {
         this.$message.error('保存失败')
@@ -551,19 +549,19 @@ export default {
         this.saving = false
       }
     },
-    
+
     // 工具方法
     getPriorityLabel(priority) {
       const option = this.priorityOptions.find(opt => opt.value === priority)
       return option ? option.label : priority
     },
-    
+
     getPriorityTagType(priority) {
       const typeMap = {
-        'low': 'info',
-        'normal': 'primary',
-        'high': 'warning',
-        'urgent': 'danger'
+        low: 'info',
+        normal: 'primary',
+        high: 'warning',
+        urgent: 'danger'
       }
       return typeMap[priority] || 'info'
     }
@@ -694,27 +692,27 @@ export default {
   .workorder-form-simplified {
     padding: 10px;
   }
-  
+
   .form-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
   }
-  
+
   .header-right {
     width: 100%;
     justify-content: flex-end;
   }
-  
+
   .step-navigation {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .step-panel {
     padding: 15px;
   }
-  
+
   .summary-section .el-col {
     margin-bottom: 20px;
   }
@@ -724,11 +722,11 @@ export default {
   .form-steps {
     display: none;
   }
-  
+
   .step-panel {
     padding: 10px;
   }
-  
+
   .panel-header {
     flex-direction: column;
     align-items: flex-start;

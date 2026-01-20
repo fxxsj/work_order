@@ -37,7 +37,7 @@
                 :color="getProcessColor(process.status)"
                 :show-text="false"
                 style="width: 100px; margin-left: 10px;"
-              ></el-progress>
+              />
             </div>
           </div>
 
@@ -80,12 +80,12 @@
             >
               完成工序
             </el-button>
-            <el-dropdown @command="(cmd) => handleProcessAction(cmd, process)" style="margin-left: 10px;">
+            <el-dropdown style="margin-left: 10px;" @command="(cmd) => handleProcessAction(cmd, process)">
               <el-button size="mini" type="text">
                 更多<i class="el-icon-arrow-down el-icon--right"></i>
               </el-button>
               <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item command="reassign" v-if="canReassignProcess(process)">
+                <el-dropdown-item v-if="canReassignProcess(process)" command="reassign">
                   <i class="el-icon-user"></i> 重新分派
                 </el-dropdown-item>
                 <el-dropdown-item command="view-tasks">
@@ -96,7 +96,7 @@
           </div>
 
           <!-- 任务列表 -->
-          <div style="margin-top: 15px;" v-if="process.tasks && process.tasks.length > 0">
+          <div v-if="process.tasks && process.tasks.length > 0" style="margin-top: 15px;">
             <task-management
               :tasks="process.tasks"
               :process="process"
@@ -118,7 +118,12 @@
       :visible.sync="addProcessDialogVisible"
       width="600px"
     >
-      <el-form :model="addProcessForm" label-width="120px" :rules="addProcessRules" ref="addProcessFormRef">
+      <el-form
+        ref="addProcessFormRef"
+        :model="addProcessForm"
+        label-width="120px"
+        :rules="addProcessRules"
+      >
         <el-form-item label="工序" prop="process_id">
           <el-select
             v-model="addProcessForm.process_id"
@@ -131,7 +136,7 @@
               :key="process.id"
               :label="process.name"
               :value="process.id"
-            ></el-option>
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="顺序" prop="sequence">
@@ -139,12 +144,14 @@
             v-model="addProcessForm.sequence"
             :min="1"
             :step="1"
-          ></el-input-number>
+          />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="addProcessDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleConfirmAddProcess" :loading="addingProcess">
+        <el-button @click="addProcessDialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="addingProcess" @click="handleConfirmAddProcess">
           确定
         </el-button>
       </div>
@@ -163,16 +170,16 @@
         type="warning"
         :closable="false"
         style="margin-bottom: 15px;"
-      ></el-alert>
+      />
 
-      <el-form :model="completeProcessForm" label-width="120px" ref="completeProcessFormRef">
+      <el-form ref="completeProcessFormRef" :model="completeProcessForm" label-width="120px">
         <el-form-item label="完成数量">
           <el-input-number
             v-model="completeProcessForm.quantity_completed"
             :min="0"
             :max="currentProcess?.production_quantity || 999999"
             :step="1"
-          ></el-input-number>
+          />
           <span style="margin-left: 10px;">{{ currentProcess?.production_quantity || 0 }}</span>
         </el-form-item>
         <el-form-item label="不良品数量">
@@ -181,17 +188,17 @@
             :min="0"
             :max="completeProcessForm.quantity_completed"
             :step="1"
-          ></el-input-number>
+          />
         </el-form-item>
         <el-form-item label="强制完成">
-          <el-switch v-model="completeProcessForm.force_complete"></el-switch>
+          <el-switch v-model="completeProcessForm.force_complete" />
           <span style="margin-left: 10px; color: #909399; font-size: 12px;">
             开启后可忽略未完成任务
           </span>
         </el-form-item>
         <el-form-item
-          label="强制完成原因"
           v-if="completeProcessForm.force_complete"
+          label="强制完成原因"
           prop="force_reason"
         >
           <el-input
@@ -199,12 +206,14 @@
             type="textarea"
             :rows="3"
             placeholder="请说明强制完成原因"
-          ></el-input>
+          />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="completeProcessDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleConfirmCompleteProcess" :loading="completingProcess">
+        <el-button @click="completeProcessDialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="completingProcess" @click="handleConfirmCompleteProcess">
           确定
         </el-button>
       </div>

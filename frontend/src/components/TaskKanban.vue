@@ -8,7 +8,7 @@
       >
         <div class="column-header">
           <span class="column-title">{{ column.title }}</span>
-          <el-badge :value="column.tasks.length" class="column-badge"></el-badge>
+          <el-badge :value="column.tasks.length" class="column-badge" />
         </div>
         <div
           class="column-content"
@@ -21,7 +21,9 @@
             @click="handleTaskClick(task)"
           >
             <div class="card-header">
-              <div class="card-title">{{ task.work_content }}</div>
+              <div class="card-title">
+                {{ task.work_content }}
+              </div>
               <el-tag
                 :type="getTaskTypeTagType(task.task_type)"
                 size="mini"
@@ -35,16 +37,16 @@
                   <i class="el-icon-document"></i>
                   <span>{{ task.work_order_number || '-' }}</span>
                 </div>
-                <div class="info-item" v-if="task.assigned_department_name">
+                <div v-if="task.assigned_department_name" class="info-item">
                   <i class="el-icon-office-building"></i>
                   <span>{{ task.assigned_department_name }}</span>
                 </div>
-                <div class="info-item" v-if="task.assigned_operator_name">
+                <div v-if="task.assigned_operator_name" class="info-item">
                   <i class="el-icon-user"></i>
                   <span>{{ task.assigned_operator_name }}</span>
                 </div>
               </div>
-              <div class="card-progress" v-if="task.production_quantity > 0">
+              <div v-if="task.production_quantity > 0" class="card-progress">
                 <div class="progress-info">
                   <span>{{ task.quantity_completed || 0 }} / {{ task.production_quantity }}</span>
                   <span class="progress-percentage">
@@ -55,7 +57,7 @@
                   :percentage="getProgressPercentage(task)"
                   :stroke-width="6"
                   :color="getProgressColor(task)"
-                ></el-progress>
+                />
               </div>
             </div>
             <div class="card-footer">
@@ -68,7 +70,7 @@
             </div>
           </div>
           <div v-if="column.tasks.length === 0" class="empty-column">
-            <el-empty description="暂无任务" :image-size="80"></el-empty>
+            <el-empty description="暂无任务" :image-size="80" />
           </div>
         </div>
       </div>
@@ -94,12 +96,10 @@ export default {
         cancelled: { title: '已取消', status: 'cancelled' }
       }
 
-      return Object.keys(statusMap).map(status => {
-        return {
-          ...statusMap[status],
-          tasks: this.tasks.filter(task => task.status === status)
-        }
-      })
+      return Object.keys(statusMap).map(status => ({
+        ...statusMap[status],
+        tasks: this.tasks.filter(task => task.status === status)
+      }))
     }
   },
   methods: {

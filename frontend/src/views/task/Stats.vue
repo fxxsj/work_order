@@ -13,7 +13,7 @@
               value-format="yyyy-MM-dd"
               style="width: 100%;"
               @change="handleSearch"
-            ></el-date-picker>
+            />
           </el-col>
           <el-col :span="6">
             <el-date-picker
@@ -24,7 +24,7 @@
               value-format="yyyy-MM-dd"
               style="width: 100%;"
               @change="handleSearch"
-            ></el-date-picker>
+            />
           </el-col>
           <el-col :span="6">
             <el-select
@@ -40,12 +40,21 @@
                 :key="dept.id"
                 :label="dept.name"
                 :value="dept.id"
-              ></el-option>
+              />
             </el-select>
           </el-col>
           <el-col :span="6" style="text-align: right;">
-            <el-button icon="el-icon-refresh-left" @click="handleReset">重置</el-button>
-            <el-button type="primary" icon="el-icon-refresh" @click="loadData" style="margin-left: 10px;">刷新</el-button>
+            <el-button icon="el-icon-refresh-left" @click="handleReset">
+              重置
+            </el-button>
+            <el-button
+              type="primary"
+              icon="el-icon-refresh"
+              style="margin-left: 10px;"
+              @click="loadData"
+            >
+              刷新
+            </el-button>
           </el-col>
         </el-row>
       </div>
@@ -56,32 +65,48 @@
           <el-col :span="6">
             <el-card shadow="hover">
               <div class="summary-item">
-                <div class="summary-label">操作员总数</div>
-                <div class="summary-value">{{ summary.total_operators }}</div>
+                <div class="summary-label">
+                  操作员总数
+                </div>
+                <div class="summary-value">
+                  {{ summary.total_operators }}
+                </div>
               </div>
             </el-card>
           </el-col>
           <el-col :span="6">
             <el-card shadow="hover">
               <div class="summary-item">
-                <div class="summary-label">任务总数</div>
-                <div class="summary-value">{{ summary.total_tasks }}</div>
+                <div class="summary-label">
+                  任务总数
+                </div>
+                <div class="summary-value">
+                  {{ summary.total_tasks }}
+                </div>
               </div>
             </el-card>
           </el-col>
           <el-col :span="6">
             <el-card shadow="hover">
               <div class="summary-item">
-                <div class="summary-label">已完成任务</div>
-                <div class="summary-value">{{ summary.total_completed_tasks }}</div>
+                <div class="summary-label">
+                  已完成任务
+                </div>
+                <div class="summary-value">
+                  {{ summary.total_completed_tasks }}
+                </div>
               </div>
             </el-card>
           </el-col>
           <el-col :span="6">
             <el-card shadow="hover">
               <div class="summary-item">
-                <div class="summary-label">完成总数</div>
-                <div class="summary-value">{{ summary.total_completed_quantity }}</div>
+                <div class="summary-label">
+                  完成总数
+                </div>
+                <div class="summary-value">
+                  {{ summary.total_completed_quantity }}
+                </div>
               </div>
             </el-card>
           </el-col>
@@ -90,15 +115,21 @@
           <el-col :span="6">
             <el-card shadow="hover">
               <div class="summary-item">
-                <div class="summary-label">不良品总数</div>
-                <div class="summary-value" style="color: #F56C6C;">{{ summary.total_defective_quantity }}</div>
+                <div class="summary-label">
+                  不良品总数
+                </div>
+                <div class="summary-value" style="color: #F56C6C;">
+                  {{ summary.total_defective_quantity }}
+                </div>
               </div>
             </el-card>
           </el-col>
           <el-col :span="6">
             <el-card shadow="hover">
               <div class="summary-item">
-                <div class="summary-label">总体不良品率</div>
+                <div class="summary-label">
+                  总体不良品率
+                </div>
                 <div class="summary-value" :style="{ color: summary.overall_defective_rate > 5 ? '#F56C6C' : '#67C23A' }">
                   {{ summary.overall_defective_rate }}%
                 </div>
@@ -116,11 +147,20 @@
         style="width: 100%; margin-top: 20px;"
         :default-sort="{prop: 'total_completed_quantity', order: 'descending'}"
       >
-        <el-table-column prop="operator_name" label="操作员" width="150" fixed="left">
+        <el-table-column
+          prop="operator_name"
+          label="操作员"
+          width="150"
+          fixed="left"
+        >
           <template slot-scope="scope">
             <div>
-              <div style="font-weight: bold;">{{ scope.row.operator_name }}</div>
-              <div style="font-size: 12px; color: #909399;">{{ scope.row.operator_username }}</div>
+              <div style="font-weight: bold;">
+                {{ scope.row.operator_name }}
+              </div>
+              <div style="font-size: 12px; color: #909399;">
+                {{ scope.row.operator_username }}
+              </div>
             </div>
           </template>
         </el-table-column>
@@ -131,55 +171,97 @@
               :key="dept"
               size="small"
               style="margin-right: 5px;"
-            >{{ dept }}</el-tag>
+            >
+              {{ dept }}
+            </el-tag>
             <span v-if="scope.row.departments.length === 0" style="color: #909399;">未分配</span>
           </template>
         </el-table-column>
-        <el-table-column prop="total_tasks" label="任务总数" width="100" sortable>
+        <el-table-column
+          prop="total_tasks"
+          label="任务总数"
+          width="100"
+          sortable
+        >
           <template slot-scope="scope">
-            <el-tag size="small">{{ scope.row.total_tasks }}</el-tag>
+            <el-tag size="small">
+              {{ scope.row.total_tasks }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="任务状态" width="220">
           <template slot-scope="scope">
             <div style="display: flex; flex-direction: column; gap: 5px;">
               <div>
-                <el-tag type="success" size="small">已完成: {{ scope.row.completed_tasks }}</el-tag>
+                <el-tag type="success" size="small">
+                  已完成: {{ scope.row.completed_tasks }}
+                </el-tag>
               </div>
               <div>
-                <el-tag type="warning" size="small">进行中: {{ scope.row.in_progress_tasks }}</el-tag>
-                <el-tag type="info" size="small" style="margin-left: 5px;">待开始: {{ scope.row.pending_tasks }}</el-tag>
+                <el-tag type="warning" size="small">
+                  进行中: {{ scope.row.in_progress_tasks }}
+                </el-tag>
+                <el-tag type="info" size="small" style="margin-left: 5px;">
+                  待开始: {{ scope.row.pending_tasks }}
+                </el-tag>
               </div>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="completion_rate" label="完成率" width="100" sortable>
+        <el-table-column
+          prop="completion_rate"
+          label="完成率"
+          width="100"
+          sortable
+        >
           <template slot-scope="scope">
             <el-progress
               :percentage="scope.row.completion_rate"
               :color="getProgressColor(scope.row.completion_rate)"
-            ></el-progress>
+            />
           </template>
         </el-table-column>
-        <el-table-column prop="total_completed_quantity" label="完成总数" width="120" sortable>
+        <el-table-column
+          prop="total_completed_quantity"
+          label="完成总数"
+          width="120"
+          sortable
+        >
           <template slot-scope="scope">
             <span style="font-weight: bold; color: #409EFF;">{{ scope.row.total_completed_quantity }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="total_defective_quantity" label="不良品数" width="120" sortable>
+        <el-table-column
+          prop="total_defective_quantity"
+          label="不良品数"
+          width="120"
+          sortable
+        >
           <template slot-scope="scope">
             <span style="color: #F56C6C;">{{ scope.row.total_defective_quantity }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="defective_rate" label="不良品率" width="120" sortable>
+        <el-table-column
+          prop="defective_rate"
+          label="不良品率"
+          width="120"
+          sortable
+        >
           <template slot-scope="scope">
             <el-tag
               :type="getDefectiveRateType(scope.row.defective_rate)"
               size="small"
-            >{{ scope.row.defective_rate }}%</el-tag>
+            >
+              {{ scope.row.defective_rate }}%
+            </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="avg_completion_hours" label="平均完成时间(小时)" width="150" sortable>
+        <el-table-column
+          prop="avg_completion_hours"
+          label="平均完成时间(小时)"
+          width="150"
+          sortable
+        >
           <template slot-scope="scope">
             <span v-if="scope.row.avg_completion_hours !== null">
               {{ scope.row.avg_completion_hours }} 小时

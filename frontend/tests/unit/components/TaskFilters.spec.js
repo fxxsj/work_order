@@ -16,23 +16,21 @@ describe('TaskFilters.vue', () => {
     { id: 3, name: '制版部' }
   ]
 
-  const factory = (propsData = {}) => {
-    return shallowMount(TaskFilters, {
-      localVue,
-      propsData: {
-        departments,
-        ...propsData
-      },
-      stubs: {
-        'el-select': true,
-        'el-option': true,
-        'el-input': true,
-        'el-button': true,
-        'el-row': true,
-        'el-col': true
-      }
-    })
-  }
+  const factory = (propsData = {}) => shallowMount(TaskFilters, {
+    localVue,
+    propsData: {
+      departments,
+      ...propsData
+    },
+    stubs: {
+      'el-select': true,
+      'el-option': true,
+      'el-input': true,
+      'el-button': true,
+      'el-row': true,
+      'el-col': true
+    }
+  })
 
   afterEach(() => {
     if (wrapper) {

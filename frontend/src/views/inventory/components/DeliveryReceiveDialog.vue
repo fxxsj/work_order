@@ -9,11 +9,15 @@
     <el-form :model="form" label-width="100px">
       <el-form-item label="签收状态">
         <el-radio-group v-model="form.received">
-          <el-radio label="received">正常签收</el-radio>
-          <el-radio label="rejected">拒收</el-radio>
+          <el-radio label="received">
+            正常签收
+          </el-radio>
+          <el-radio label="rejected">
+            拒收
+          </el-radio>
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="签收备注" v-if="form.received === 'rejected'">
+      <el-form-item v-if="form.received === 'rejected'" label="签收备注">
         <el-input
           v-model="form.received_notes"
           type="textarea"
@@ -30,16 +34,24 @@
           :limit="1"
           list-type="picture"
         >
-          <el-button size="small">上传签收照片</el-button>
+          <el-button size="small">
+            上传签收照片
+          </el-button>
           <template #tip>
-            <div class="el-upload__tip">支持 jpg/png 图片，且不超过 2MB</div>
+            <div class="el-upload__tip">
+              支持 jpg/png 图片，且不超过 2MB
+            </div>
           </template>
         </el-upload>
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" @click="$emit('confirm', form)">确认</el-button>
+      <el-button @click="handleClose">
+        取消
+      </el-button>
+      <el-button type="primary" @click="$emit('confirm', form)">
+        确认
+      </el-button>
     </template>
   </el-dialog>
 </template>

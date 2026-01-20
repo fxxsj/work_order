@@ -11,7 +11,7 @@
               clearable
               @clear="handleSearch"
             >
-              <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
+              <el-button slot="append" icon="el-icon-search" @click="handleSearch" />
             </el-input>
           </el-col>
           <el-col :span="6">
@@ -23,7 +23,7 @@
               value-format="yyyy-MM-dd"
               style="width: 100%;"
               @change="handleSearch"
-            ></el-date-picker>
+            />
           </el-col>
           <el-col :span="6">
             <el-date-picker
@@ -34,7 +34,7 @@
               value-format="yyyy-MM-dd"
               style="width: 100%;"
               @change="handleSearch"
-            ></el-date-picker>
+            />
           </el-col>
           <el-col :span="6">
             <el-select
@@ -50,7 +50,7 @@
                 :key="dept.id"
                 :label="dept.name"
                 :value="dept.id"
-              ></el-option>
+              />
             </el-select>
           </el-col>
         </el-row>
@@ -69,12 +69,21 @@
                 :key="user.id"
                 :label="user.username"
                 :value="user.id"
-              ></el-option>
+              />
             </el-select>
           </el-col>
           <el-col :span="18" style="text-align: right;">
-            <el-button icon="el-icon-refresh-left" @click="handleReset">重置</el-button>
-            <el-button type="primary" icon="el-icon-refresh" @click="loadData" style="margin-left: 10px;">刷新</el-button>
+            <el-button icon="el-icon-refresh-left" @click="handleReset">
+              重置
+            </el-button>
+            <el-button
+              type="primary"
+              icon="el-icon-refresh"
+              style="margin-left: 10px;"
+              @click="loadData"
+            >
+              刷新
+            </el-button>
           </el-col>
         </el-row>
       </div>
@@ -85,32 +94,48 @@
           <el-col :span="6">
             <el-card shadow="hover">
               <div class="summary-item">
-                <div class="summary-label">总记录数</div>
-                <div class="summary-value">{{ summary.total }}</div>
+                <div class="summary-label">
+                  总记录数
+                </div>
+                <div class="summary-value">
+                  {{ summary.total }}
+                </div>
               </div>
             </el-card>
           </el-col>
           <el-col :span="6">
             <el-card shadow="hover">
               <div class="summary-item">
-                <div class="summary-label">涉及任务数</div>
-                <div class="summary-value">{{ summary.unique_tasks }}</div>
+                <div class="summary-label">
+                  涉及任务数
+                </div>
+                <div class="summary-value">
+                  {{ summary.unique_tasks }}
+                </div>
               </div>
             </el-card>
           </el-col>
           <el-col :span="6">
             <el-card shadow="hover">
               <div class="summary-item">
-                <div class="summary-label">涉及部门数</div>
-                <div class="summary-value">{{ summary.unique_departments }}</div>
+                <div class="summary-label">
+                  涉及部门数
+                </div>
+                <div class="summary-value">
+                  {{ summary.unique_departments }}
+                </div>
               </div>
             </el-card>
           </el-col>
           <el-col :span="6">
             <el-card shadow="hover">
               <div class="summary-item">
-                <div class="summary-label">涉及操作员数</div>
-                <div class="summary-value">{{ summary.unique_operators }}</div>
+                <div class="summary-label">
+                  涉及操作员数
+                </div>
+                <div class="summary-value">
+                  {{ summary.unique_operators }}
+                </div>
               </div>
             </el-card>
           </el-col>
@@ -125,7 +150,12 @@
         style="width: 100%; margin-top: 20px;"
         :default-sort="{prop: 'created_at', order: 'descending'}"
       >
-        <el-table-column prop="created_at" label="调整时间" width="180" sortable>
+        <el-table-column
+          prop="created_at"
+          label="调整时间"
+          width="180"
+          sortable
+        >
           <template slot-scope="scope">
             {{ formatDateTime(scope.row.created_at) }}
           </template>
@@ -145,28 +175,34 @@
         <el-table-column prop="task_info" label="任务" width="200">
           <template slot-scope="scope">
             <div v-if="scope.row.task_info">
-              <div style="font-weight: bold;">{{ scope.row.task_info.work_content }}</div>
-              <div style="font-size: 12px; color: #909399;">任务ID: {{ scope.row.task_info.id }}</div>
+              <div style="font-weight: bold;">
+                {{ scope.row.task_info.work_content }}
+              </div>
+              <div style="font-size: 12px; color: #909399;">
+                任务ID: {{ scope.row.task_info.id }}
+              </div>
             </div>
             <span v-else>-</span>
           </template>
         </el-table-column>
         <el-table-column prop="content" label="调整内容" min-width="300">
           <template slot-scope="scope">
-            <div style="white-space: pre-wrap;">{{ scope.row.content }}</div>
+            <div style="white-space: pre-wrap;">
+              {{ scope.row.content }}
+            </div>
           </template>
         </el-table-column>
         <el-table-column prop="task_info" label="当前分派" width="200">
           <template slot-scope="scope">
             <div v-if="scope.row.task_info">
               <div>
-                <el-tag size="small" v-if="scope.row.task_info.assigned_department">
+                <el-tag v-if="scope.row.task_info.assigned_department" size="small">
                   {{ scope.row.task_info.assigned_department }}
                 </el-tag>
                 <span v-else style="color: #909399;">未分配部门</span>
               </div>
               <div style="margin-top: 5px;">
-                <el-tag size="small" type="info" v-if="scope.row.task_info.assigned_operator">
+                <el-tag v-if="scope.row.task_info.assigned_operator" size="small" type="info">
                   {{ scope.row.task_info.assigned_operator }}
                 </el-tag>
                 <span v-else style="color: #909399;">未分配操作员</span>
@@ -185,14 +221,14 @@
       <!-- 分页 -->
       <div class="pagination-section" style="margin-top: 20px; text-align: right;">
         <el-pagination
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
           :current-page="pagination.page"
           :page-sizes="[10, 20, 50, 100]"
           :page-size="pagination.page_size"
           :total="pagination.total"
           layout="total, sizes, prev, pager, next, jumper"
-        ></el-pagination>
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
       </div>
     </el-card>
   </div>
@@ -256,7 +292,7 @@ export default {
           page: this.pagination.page,
           page_size: this.pagination.page_size
         }
-        
+
         if (this.filters.task_id) {
           params.task_id = this.filters.task_id
         }
@@ -276,7 +312,7 @@ export default {
         const res = await workOrderTaskAPI.getAssignmentHistory(params)
         this.historyList = res.results || []
         this.pagination.total = res.total || 0
-        
+
         // 计算统计摘要
         this.calculateSummary()
       } catch (error) {
@@ -296,11 +332,11 @@ export default {
         }
         return
       }
-      
+
       const uniqueTasks = new Set()
       const uniqueDepartments = new Set()
       const uniqueOperators = new Set()
-      
+
       this.historyList.forEach(item => {
         if (item.task_info && item.task_info.id) {
           uniqueTasks.add(item.task_info.id)
@@ -315,7 +351,7 @@ export default {
           uniqueOperators.add(item.operator_name)
         }
       })
-      
+
       this.summary = {
         total: this.pagination.total,
         unique_tasks: uniqueTasks.size,

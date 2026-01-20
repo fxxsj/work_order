@@ -2,9 +2,9 @@
   <div class="task-column">
     <div class="column-header" :class="headerClass">
       <span class="column-title">{{ title }}</span>
-      <el-badge :value="taskCount" class="column-badge"></el-badge>
+      <el-badge :value="taskCount" class="column-badge" />
     </div>
-    <div class="column-content" v-loading="loading">
+    <div v-loading="loading" class="column-content">
       <task-card
         v-for="task in tasks"
         :key="task.id"

@@ -10,17 +10,15 @@ const localVue = createLocalVue()
 describe('TaskStats.vue', () => {
   let wrapper
 
-  const factory = (propsData = {}) => {
-    return shallowMount(TaskStats, {
-      localVue,
-      propsData,
-      stubs: {
-        'el-card': true,
-        'el-row': true,
-        'el-col': true
-      }
-    })
-  }
+  const factory = (propsData = {}) => shallowMount(TaskStats, {
+    localVue,
+    propsData,
+    stubs: {
+      'el-card': true,
+      'el-row': true,
+      'el-col': true
+    }
+  })
 
   afterEach(() => {
     if (wrapper) {

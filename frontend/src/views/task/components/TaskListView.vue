@@ -1,13 +1,18 @@
 <template>
   <div class="task-list-view">
     <el-table
-      :data="tasks"
       v-loading="loading"
+      :data="tasks"
       border
       style="width: 100%"
       @row-click="handleRowClick"
     >
-      <el-table-column prop="id" label="任务ID" width="80" align="center"></el-table-column>
+      <el-table-column
+        prop="id"
+        label="任务ID"
+        width="80"
+        align="center"
+      />
 
       <el-table-column label="施工单号" width="150">
         <template slot-scope="scope">
@@ -15,7 +20,12 @@
         </template>
       </el-table-column>
 
-      <el-table-column prop="work_content" label="任务内容" min-width="200" show-overflow-tooltip></el-table-column>
+      <el-table-column
+        prop="work_content"
+        label="任务内容"
+        min-width="200"
+        show-overflow-tooltip
+      />
 
       <el-table-column label="任务类型" width="120">
         <template slot-scope="scope">
@@ -44,7 +54,7 @@
           <el-progress
             :percentage="calculateProgress(scope.row)"
             :color="getProgressColor(scope.row)"
-          ></el-progress>
+          />
         </template>
       </el-table-column>
 
@@ -99,7 +109,7 @@
         layout="total, sizes, prev, pager, next, jumper"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
-      ></el-pagination>
+      />
     </div>
   </div>
 </template>

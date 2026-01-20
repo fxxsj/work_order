@@ -10,13 +10,14 @@
           @input="handleSearchDebounced"
           @clear="handleSearch"
         >
-          <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
+          <el-button slot="append" icon="el-icon-search" @click="handleSearch" />
         </el-input>
         <el-button
           v-if="canCreate()"
           type="primary"
           icon="el-icon-plus"
-          @click="showDialog()">
+          @click="showDialog()"
+        >
           新建刀模
         </el-button>
       </div>
@@ -26,11 +27,11 @@
         :data="tableData"
         style="width: 100%; margin-top: 20px;"
       >
-        <el-table-column prop="code" label="刀模编码" width="150"></el-table-column>
-        <el-table-column prop="name" label="刀模名称" width="200"></el-table-column>
-        <el-table-column prop="size" label="尺寸" width="180"></el-table-column>
-        <el-table-column prop="material" label="材质" width="120"></el-table-column>
-        <el-table-column prop="thickness" label="厚度" width="100"></el-table-column>
+        <el-table-column prop="code" label="刀模编码" width="150" />
+        <el-table-column prop="name" label="刀模名称" width="200" />
+        <el-table-column prop="size" label="尺寸" width="180" />
+        <el-table-column prop="material" label="材质" width="120" />
+        <el-table-column prop="thickness" label="厚度" width="100" />
         <el-table-column label="包含产品" min-width="200">
           <template slot-scope="scope">
             <el-tag
@@ -43,7 +44,12 @@
             <span v-if="!scope.row.products || scope.row.products.length === 0" style="color: #909399;">-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="notes" label="备注" min-width="150" show-overflow-tooltip></el-table-column>
+        <el-table-column
+          prop="notes"
+          label="备注"
+          min-width="150"
+          show-overflow-tooltip
+        />
         <el-table-column prop="created_at" label="创建时间" width="180">
           <template slot-scope="scope">
             {{ formatDate(scope.row.created_at) }}
@@ -55,7 +61,8 @@
               v-if="canEdit()"
               type="text"
               size="small"
-              @click="showDialog(scope.row)">
+              @click="showDialog(scope.row)"
+            >
               编辑
             </el-button>
             <el-button
@@ -63,7 +70,8 @@
               type="text"
               size="small"
               style="color: #F56C6C;"
-              @click="handleDelete(scope.row)">
+              @click="handleDelete(scope.row)"
+            >
               删除
             </el-button>
           </template>
@@ -78,8 +86,7 @@
         layout="total, prev, pager, next"
         style="margin-top: 20px; text-align: right;"
         @current-change="handlePageChange"
-      >
-      </el-pagination>
+      />
     </el-card>
 
     <!-- 刀模表单对话框 -->
@@ -98,34 +105,41 @@
           <el-input
             v-model="form.code"
             placeholder="留空则系统自动生成（格式：DIE + yyyymm + 序号）"
-          ></el-input>
+          />
           <div style="font-size: 12px; color: #909399; margin-top: 5px;">
             留空则自动生成，格式：DIE202412001
           </div>
         </el-form-item>
         <el-form-item label="刀模名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入刀模名称"></el-input>
+          <el-input v-model="form.name" placeholder="请输入刀模名称" />
         </el-form-item>
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="尺寸">
-              <el-input v-model="form.size" placeholder="如：420x594mm"></el-input>
+              <el-input v-model="form.size" placeholder="如：420x594mm" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="材质">
-              <el-input v-model="form.material" placeholder="如：木板、胶板"></el-input>
+              <el-input v-model="form.material" placeholder="如：木板、胶板" />
             </el-form-item>
           </el-col>
         </el-row>
         <el-form-item label="厚度">
-          <el-input v-model="form.thickness" placeholder="如：3mm、5mm"></el-input>
+          <el-input v-model="form.thickness" placeholder="如：3mm、5mm" />
         </el-form-item>
 
-        <el-divider content-position="left">包含产品及数量</el-divider>
+        <el-divider content-position="left">
+          包含产品及数量
+        </el-divider>
 
         <el-form-item label="产品列表">
-          <el-button type="primary" size="small" icon="el-icon-plus" @click="addProductItem">
+          <el-button
+            type="primary"
+            size="small"
+            icon="el-icon-plus"
+            @click="addProductItem"
+          >
             添加产品
           </el-button>
           <div style="margin-top: 15px;">
@@ -147,7 +161,7 @@
                       :key="product.id"
                       :label="`${product.name} (${product.code})`"
                       :value="product.id"
-                    ></el-option>
+                    />
                   </el-select>
                 </template>
               </el-table-column>
@@ -158,7 +172,7 @@
                     :min="1"
                     style="width: 100%;"
                     size="small"
-                  ></el-input-number>
+                  />
                 </template>
               </el-table-column>
               <el-table-column label="操作" width="100" align="center">
@@ -168,7 +182,7 @@
                     size="mini"
                     icon="el-icon-delete"
                     @click="removeProductItem(scope.$index)"
-                  ></el-button>
+                  />
                 </template>
               </el-table-column>
             </el-table>
@@ -181,12 +195,16 @@
             type="textarea"
             :rows="3"
             placeholder="请输入备注信息"
-          ></el-input>
+          />
         </el-form-item>
       </el-form>
       <div slot="footer">
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="formLoading" @click="handleSubmit">确定</el-button>
+        <el-button @click="dialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="formLoading" @click="handleSubmit">
+          确定
+        </el-button>
       </div>
     </el-dialog>
   </div>
@@ -228,6 +246,18 @@ export default {
   computed: {
     dialogTitle() {
       return this.isEdit ? '编辑刀模' : '新建刀模'
+    }
+  },
+  watch: {
+    // 监听对话框显示状态，编辑时填充表单
+    dialogVisible(val) {
+      if (!val) {
+        this.$nextTick(() => {
+          if (this.$refs.form) {
+            this.$refs.form.clearValidate()
+          }
+        })
+      }
     }
   },
   created() {
@@ -368,18 +398,6 @@ export default {
           this.formLoading = false
         }
       })
-    }
-  },
-  watch: {
-    // 监听对话框显示状态，编辑时填充表单
-    dialogVisible(val) {
-      if (!val) {
-        this.$nextTick(() => {
-          if (this.$refs.form) {
-            this.$refs.form.clearValidate()
-          }
-        })
-      }
     }
   }
 }

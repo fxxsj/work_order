@@ -1,15 +1,26 @@
 <template>
   <div class="sales-order-form">
-    <el-form :model="form" :rules="rules" ref="form" label-width="100px">
+    <el-form
+      ref="form"
+      :model="form"
+      :rules="rules"
+      label-width="100px"
+    >
       <el-row :gutter="20">
         <el-col :span="12">
           <el-form-item label="客户" prop="customer">
-            <el-select v-model="form.customer" placeholder="请选择客户" filterable style="width: 100%">
+            <el-select
+              v-model="form.customer"
+              placeholder="请选择客户"
+              filterable
+              style="width: 100%"
+            >
               <el-option
                 v-for="item in customerOptions"
                 :key="item.id"
                 :label="item.name"
-                :value="item.id" />
+                :value="item.id"
+              />
             </el-select>
           </el-form-item>
         </el-col>
@@ -20,7 +31,8 @@
               type="date"
               placeholder="请选择订单日期"
               value-format="yyyy-MM-dd"
-              style="width: 100%" />
+              style="width: 100%"
+            />
           </el-form-item>
         </el-col>
       </el-row>
@@ -32,7 +44,8 @@
               type="date"
               placeholder="请选择交货日期"
               value-format="yyyy-MM-dd"
-              style="width: 100%" />
+              style="width: 100%"
+            />
           </el-form-item>
         </el-col>
         <el-col :span="12">
@@ -49,12 +62,24 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="送货地址" prop="shipping_address">
-            <el-input v-model="form.shipping_address" type="textarea" :rows="1" placeholder="请输入送货地址" />
+            <el-input
+              v-model="form.shipping_address"
+              type="textarea"
+              :rows="1"
+              placeholder="请输入送货地址"
+            />
           </el-form-item>
         </el-col>
       </el-row>
       <el-divider>订单明细</el-divider>
-      <el-button size="small" type="primary" icon="el-icon-plus" @click="handleAddItem">添加明细</el-button>
+      <el-button
+        size="small"
+        type="primary"
+        icon="el-icon-plus"
+        @click="handleAddItem"
+      >
+        添加明细
+      </el-button>
       <el-table :data="form.items" border style="margin-top: 10px">
         <el-table-column label="产品" width="250">
           <template slot-scope="scope">
@@ -62,12 +87,14 @@
               v-model="scope.row.product"
               placeholder="请选择产品"
               filterable
-              @change="handleProductChange(scope.row)">
+              @change="handleProductChange(scope.row)"
+            >
               <el-option
                 v-for="item in productOptions"
                 :key="item.id"
                 :label="`${item.code} - ${item.name}`"
-                :value="item.id" />
+                :value="item.id"
+              />
             </el-select>
           </template>
         </el-table-column>
@@ -88,7 +115,12 @@
         </el-table-column>
         <el-table-column label="税率(%)" width="120">
           <template slot-scope="scope">
-            <el-input-number v-model="scope.row.tax_rate" :min="0" :max="100" :precision="2" />
+            <el-input-number
+              v-model="scope.row.tax_rate"
+              :min="0"
+              :max="100"
+              :precision="2"
+            />
           </template>
         </el-table-column>
         <el-table-column label="折扣金额" width="120">
@@ -108,7 +140,12 @@
         </el-table-column>
         <el-table-column label="操作" width="100" fixed="right">
           <template slot-scope="scope">
-            <el-button size="mini" type="danger" icon="el-icon-delete" @click="handleDeleteItem(scope.$index)" />
+            <el-button
+              size="mini"
+              type="danger"
+              icon="el-icon-delete"
+              @click="handleDeleteItem(scope.$index)"
+            />
           </template>
         </el-table-column>
       </el-table>
@@ -117,19 +154,30 @@
         <el-col :span="8">
           <el-form-item label="小计">
             <el-input v-model="subtotal" disabled>
-              <template slot="prepend">¥</template>
+              <template slot="prepend">
+                ¥
+              </template>
             </el-input>
           </el-form-item>
         </el-col>
         <el-col :span="8">
           <el-form-item label="税率(%)">
-            <el-input-number v-model="form.tax_rate" :min="0" :max="100" :precision="2" @change="calculateTotals" style="width: 100%" />
+            <el-input-number
+              v-model="form.tax_rate"
+              :min="0"
+              :max="100"
+              :precision="2"
+              style="width: 100%"
+              @change="calculateTotals"
+            />
           </el-form-item>
         </el-col>
         <el-col :span="8">
           <el-form-item label="税额">
             <el-input v-model="taxAmount" disabled>
-              <template slot="prepend">¥</template>
+              <template slot="prepend">
+                ¥
+              </template>
             </el-input>
           </el-form-item>
         </el-col>
@@ -137,25 +185,42 @@
       <el-row :gutter="20">
         <el-col :span="8">
           <el-form-item label="折扣金额">
-            <el-input-number v-model="form.discount_amount" :min="0" :precision="2" @change="calculateTotals" style="width: 100%" />
+            <el-input-number
+              v-model="form.discount_amount"
+              :min="0"
+              :precision="2"
+              style="width: 100%"
+              @change="calculateTotals"
+            />
           </el-form-item>
         </el-col>
         <el-col :span="16">
           <el-form-item label="订单总金额">
             <el-input :value="totalAmount" disabled>
-              <template slot="prepend">¥</template>
+              <template slot="prepend">
+                ¥
+              </template>
             </el-input>
           </el-form-item>
         </el-col>
       </el-row>
       <el-divider>其他信息</el-divider>
       <el-form-item label="备注" prop="notes">
-        <el-input v-model="form.notes" type="textarea" :rows="3" placeholder="请输入备注" />
+        <el-input
+          v-model="form.notes"
+          type="textarea"
+          :rows="3"
+          placeholder="请输入备注"
+        />
       </el-form-item>
     </el-form>
     <div slot="footer" class="dialog-footer">
-      <el-button @click="$emit('cancel')">取消</el-button>
-      <el-button type="primary" @click="handleSubmit" :loading="submitting">确定</el-button>
+      <el-button @click="$emit('cancel')">
+        取消
+      </el-button>
+      <el-button type="primary" :loading="submitting" @click="handleSubmit">
+        确定
+      </el-button>
     </div>
   </div>
 </template>
@@ -209,9 +274,7 @@ export default {
   },
   computed: {
     subtotal() {
-      return this.form.items.reduce((sum, item) => {
-        return sum + this.calculateItemSubtotal(item)
-      }, 0).toFixed(2)
+      return this.form.items.reduce((sum, item) => sum + this.calculateItemSubtotal(item), 0).toFixed(2)
     },
     taxAmount() {
       const subtotal = parseFloat(this.subtotal)

@@ -7,7 +7,9 @@
         <el-button type="primary" icon="el-icon-plus" @click="handleCreate">
           新增收款
         </el-button>
-        <el-button icon="el-icon-refresh" @click="fetchPaymentList">刷新</el-button>
+        <el-button icon="el-icon-refresh" @click="fetchPaymentList">
+          刷新
+        </el-button>
       </div>
     </div>
 
@@ -17,32 +19,48 @@
         <el-col :span="6">
           <el-card class="stat-card">
             <div class="stat-item">
-              <div class="stat-label">总收款金额</div>
-              <div class="stat-value">¥{{ (stats.total_amount || 0).toLocaleString() }}</div>
+              <div class="stat-label">
+                总收款金额
+              </div>
+              <div class="stat-value">
+                ¥{{ (stats.total_amount || 0).toLocaleString() }}
+              </div>
             </div>
           </el-card>
         </el-col>
         <el-col :span="6">
           <el-card class="stat-card success">
             <div class="stat-item">
-              <div class="stat-label">已核销金额</div>
-              <div class="stat-value">¥{{ (stats.applied_amount || 0).toLocaleString() }}</div>
+              <div class="stat-label">
+                已核销金额
+              </div>
+              <div class="stat-value">
+                ¥{{ (stats.applied_amount || 0).toLocaleString() }}
+              </div>
             </div>
           </el-card>
         </el-col>
         <el-col :span="6">
           <el-card class="stat-card warning">
             <div class="stat-item">
-              <div class="stat-label">未核销金额</div>
-              <div class="stat-value">¥{{ (stats.unapplied_amount || 0).toLocaleString() }}</div>
+              <div class="stat-label">
+                未核销金额
+              </div>
+              <div class="stat-value">
+                ¥{{ (stats.unapplied_amount || 0).toLocaleString() }}
+              </div>
             </div>
           </el-card>
         </el-col>
         <el-col :span="6">
           <el-card class="stat-card info">
             <div class="stat-item">
-              <div class="stat-label">收款笔数</div>
-              <div class="stat-value">{{ stats.total_count || 0 }}</div>
+              <div class="stat-label">
+                收款笔数
+              </div>
+              <div class="stat-value">
+                {{ stats.total_count || 0 }}
+              </div>
             </div>
           </el-card>
         </el-col>
@@ -53,7 +71,12 @@
     <div class="filter-section">
       <el-form :inline="true" :model="filters" class="filter-form">
         <el-form-item label="客户">
-          <el-select v-model="filters.customer" placeholder="全部客户" clearable filterable>
+          <el-select
+            v-model="filters.customer"
+            placeholder="全部客户"
+            clearable
+            filterable
+          >
             <el-option
               v-for="customer in customerList"
               :key="customer.id"
@@ -63,11 +86,16 @@
           </el-select>
         </el-form-item>
         <el-form-item label="付款方式">
-          <el-select v-model="filters.payment_method" placeholder="全部方式" clearable @change="handleSearch">
-            <el-option label="现金" value="cash"></el-option>
-            <el-option label="银行转账" value="bank_transfer"></el-option>
-            <el-option label="支票" value="check"></el-option>
-            <el-option label="其他" value="other"></el-option>
+          <el-select
+            v-model="filters.payment_method"
+            placeholder="全部方式"
+            clearable
+            @change="handleSearch"
+          >
+            <el-option label="现金" value="cash" />
+            <el-option label="银行转账" value="bank_transfer" />
+            <el-option label="支票" value="check" />
+            <el-option label="其他" value="other" />
           </el-select>
         </el-form-item>
         <el-form-item label="收款日期">
@@ -82,8 +110,12 @@
           />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
+          <el-button type="primary" @click="handleSearch">
+            查询
+          </el-button>
+          <el-button @click="handleReset">
+            重置
+          </el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -100,34 +132,66 @@
         <el-table-column prop="customer_name" label="客户名称" width="150" />
         <el-table-column prop="payment_date" label="收款日期" width="120" />
         <el-table-column prop="payment_method_display" label="付款方式" width="100" />
-        <el-table-column prop="amount" label="收款金额" width="120" align="right">
+        <el-table-column
+          prop="amount"
+          label="收款金额"
+          width="120"
+          align="right"
+        >
           <template #default="{ row }">
             ¥{{ row.amount ? row.amount.toLocaleString() : '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="applied_amount" label="已核销金额" width="120" align="right">
+        <el-table-column
+          prop="applied_amount"
+          label="已核销金额"
+          width="120"
+          align="right"
+        >
           <template #default="{ row }">
             ¥{{ row.applied_amount ? row.applied_amount.toLocaleString() : '0' }}
           </template>
         </el-table-column>
-        <el-table-column prop="remaining_amount" label="未核销金额" width="120" align="right">
+        <el-table-column
+          prop="remaining_amount"
+          label="未核销金额"
+          width="120"
+          align="right"
+        >
           <template #default="{ row }">
             <span :class="getRemainingClass(row)">¥{{ row.remaining_amount ? row.remaining_amount.toLocaleString() : row.amount.toLocaleString() }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="bank_account" label="银行账户" width="150" show-overflow-tooltip />
+        <el-table-column
+          prop="bank_account"
+          label="银行账户"
+          width="150"
+          show-overflow-tooltip
+        />
         <el-table-column prop="notes" label="备注" show-overflow-tooltip />
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" @click="handleView(row)">查看</el-button>
-            <el-button size="small" type="primary" @click="handleEdit(row)">编辑</el-button>
-            <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button size="small" @click="handleView(row)">
+              查看
+            </el-button>
+            <el-button size="small" type="primary" @click="handleEdit(row)">
+              编辑
+            </el-button>
+            <el-button size="small" type="danger" @click="handleDelete(row)">
+              删除
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
 
       <!-- 分页 -->
-      <Pagination :current-page="pagination.page" :page-size="pagination.pageSize" :total="pagination.total" @current-change="handlePageChange" @size-change="handleSizeChange" />
+      <Pagination
+        :current-page="pagination.page"
+        :page-size="pagination.pageSize"
+        :total="pagination.total"
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"
+      />
     </div>
 
     <!-- 收款详情对话框 -->
@@ -138,18 +202,42 @@
       :close-on-click-modal="false"
     >
       <el-descriptions v-if="currentPayment" :column="2" border>
-        <el-descriptions-item label="收款单号">{{ currentPayment.payment_number }}</el-descriptions-item>
-        <el-descriptions-item label="客户名称">{{ currentPayment.customer_name }}</el-descriptions-item>
-        <el-descriptions-item label="收款日期">{{ currentPayment.payment_date }}</el-descriptions-item>
-        <el-descriptions-item label="付款方式">{{ currentPayment.payment_method_display }}</el-descriptions-item>
-        <el-descriptions-item label="收款金额">¥{{ currentPayment.amount ? currentPayment.amount.toLocaleString() : '-' }}</el-descriptions-item>
-        <el-descriptions-item label="已核销金额">¥{{ currentPayment.applied_amount ? currentPayment.applied_amount.toLocaleString() : '0' }}</el-descriptions-item>
-        <el-descriptions-item label="未核销金额">¥{{ currentPayment.remaining_amount ? currentPayment.remaining_amount.toLocaleString() : currentPayment.amount.toLocaleString() }}</el-descriptions-item>
-        <el-descriptions-item label="银行账户">{{ currentPayment.bank_account || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="交易流水号" :span="2">{{ currentPayment.transaction_number || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="备注" :span="2">{{ currentPayment.notes || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="创建时间">{{ currentPayment.created_at }}</el-descriptions-item>
-        <el-descriptions-item label="创建人">{{ currentPayment.created_by_name || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="收款单号">
+          {{ currentPayment.payment_number }}
+        </el-descriptions-item>
+        <el-descriptions-item label="客户名称">
+          {{ currentPayment.customer_name }}
+        </el-descriptions-item>
+        <el-descriptions-item label="收款日期">
+          {{ currentPayment.payment_date }}
+        </el-descriptions-item>
+        <el-descriptions-item label="付款方式">
+          {{ currentPayment.payment_method_display }}
+        </el-descriptions-item>
+        <el-descriptions-item label="收款金额">
+          ¥{{ currentPayment.amount ? currentPayment.amount.toLocaleString() : '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="已核销金额">
+          ¥{{ currentPayment.applied_amount ? currentPayment.applied_amount.toLocaleString() : '0' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="未核销金额">
+          ¥{{ currentPayment.remaining_amount ? currentPayment.remaining_amount.toLocaleString() : currentPayment.amount.toLocaleString() }}
+        </el-descriptions-item>
+        <el-descriptions-item label="银行账户">
+          {{ currentPayment.bank_account || '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="交易流水号" :span="2">
+          {{ currentPayment.transaction_number || '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="备注" :span="2">
+          {{ currentPayment.notes || '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="创建时间">
+          {{ currentPayment.created_at }}
+        </el-descriptions-item>
+        <el-descriptions-item label="创建人">
+          {{ currentPayment.created_by_name || '-' }}
+        </el-descriptions-item>
       </el-descriptions>
 
       <!-- 关联发票 -->
@@ -173,7 +261,9 @@
       </div>
 
       <template #footer>
-        <el-button @click="detailDialogVisible = false">关闭</el-button>
+        <el-button @click="detailDialogVisible = false">
+          关闭
+        </el-button>
       </template>
     </el-dialog>
 
@@ -184,9 +274,19 @@
       width="600px"
       :close-on-click-modal="false"
     >
-      <el-form :model="paymentForm" :rules="paymentRules" ref="paymentFormRef" label-width="100px">
+      <el-form
+        ref="paymentFormRef"
+        :model="paymentForm"
+        :rules="paymentRules"
+        label-width="100px"
+      >
         <el-form-item label="客户" prop="customer">
-          <el-select v-model="paymentForm.customer" placeholder="请选择客户" filterable style="width: 100%;">
+          <el-select
+            v-model="paymentForm.customer"
+            placeholder="请选择客户"
+            filterable
+            style="width: 100%;"
+          >
             <el-option
               v-for="customer in customerList"
               :key="customer.id"
@@ -205,14 +305,19 @@
         </el-form-item>
         <el-form-item label="付款方式" prop="payment_method">
           <el-select v-model="paymentForm.payment_method" placeholder="请选择付款方式" style="width: 100%;">
-            <el-option label="现金" value="cash"></el-option>
-            <el-option label="银行转账" value="bank_transfer"></el-option>
-            <el-option label="支票" value="check"></el-option>
-            <el-option label="其他" value="other"></el-option>
+            <el-option label="现金" value="cash" />
+            <el-option label="银行转账" value="bank_transfer" />
+            <el-option label="支票" value="check" />
+            <el-option label="其他" value="other" />
           </el-select>
         </el-form-item>
         <el-form-item label="收款金额" prop="amount">
-          <el-input-number v-model="paymentForm.amount" :min="0" :precision="2" style="width: 100%;" />
+          <el-input-number
+            v-model="paymentForm.amount"
+            :min="0"
+            :precision="2"
+            style="width: 100%;"
+          />
         </el-form-item>
         <el-form-item label="银行账户" prop="bank_account">
           <el-input v-model="paymentForm.bank_account" placeholder="请输入银行账户" />
@@ -230,8 +335,12 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="formDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSave">保存</el-button>
+        <el-button @click="formDialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" @click="handleSave">
+          保存
+        </el-button>
       </template>
     </el-dialog>
   </div>

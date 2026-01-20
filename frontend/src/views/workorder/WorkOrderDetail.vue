@@ -1,12 +1,16 @@
 <template>
-  <div class="workorder-detail-refactored" v-loading="loading">
+  <div v-loading="loading" class="workorder-detail-refactored">
     <div v-if="workOrder">
       <!-- 顶部操作栏 -->
       <el-card class="header-actions">
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-button icon="el-icon-back" @click="$router.back()">返回</el-button>
-            <el-button icon="el-icon-printer" @click="handlePrint">打印</el-button>
+            <el-button icon="el-icon-back" @click="$router.back()">
+              返回
+            </el-button>
+            <el-button icon="el-icon-printer" @click="handlePrint">
+              打印
+            </el-button>
           </el-col>
           <el-col :span="12" style="text-align: right;">
             <el-button
@@ -17,7 +21,7 @@
             >
               编辑
             </el-button>
-            <el-dropdown @command="handleStatusChange" v-if="canChangeStatus">
+            <el-dropdown v-if="canChangeStatus" @command="handleStatusChange">
               <el-button type="success">
                 更改状态<i class="el-icon-arrow-down el-icon--right"></i>
               </el-button>

@@ -12,10 +12,10 @@
     <el-descriptions-item label="制表人">
       {{ workOrder.manager_name || '-' }}
     </el-descriptions-item>
-    <el-descriptions-item label="产品名称" v-if="workOrder.product_name">
+    <el-descriptions-item v-if="workOrder.product_name" label="产品名称">
       {{ workOrder.product_name }}
     </el-descriptions-item>
-    <el-descriptions-item label="生产数量" v-if="displayQuantity">
+    <el-descriptions-item v-if="displayQuantity" label="生产数量">
       {{ displayQuantity }} 车
     </el-descriptions-item>
     <el-descriptions-item label="总金额">
@@ -40,7 +40,7 @@
       <el-progress
         :percentage="progress"
         :color="progressColor"
-      ></el-progress>
+      />
     </el-descriptions-item>
     <el-descriptions-item label="下单日期">
       {{ formatDate(workOrder.order_date) }}
@@ -51,16 +51,16 @@
     <el-descriptions-item label="实际交货日期">
       {{ formatDate(workOrder.actual_delivery_date) }}
     </el-descriptions-item>
-    <el-descriptions-item label="审核人" v-if="workOrder.approved_by_name">
+    <el-descriptions-item v-if="workOrder.approved_by_name" label="审核人">
       {{ workOrder.approved_by_name }}
     </el-descriptions-item>
-    <el-descriptions-item label="审核时间" v-if="workOrder.approved_at">
+    <el-descriptions-item v-if="workOrder.approved_at" label="审核时间">
       {{ formatDateTime(workOrder.approved_at) }}
     </el-descriptions-item>
-    <el-descriptions-item label="审核意见" :span="3" v-if="workOrder.approval_comment">
+    <el-descriptions-item v-if="workOrder.approval_comment" label="审核意见" :span="3">
       {{ workOrder.approval_comment }}
     </el-descriptions-item>
-    <el-descriptions-item label="产品规格" :span="3" v-if="workOrder.specification">
+    <el-descriptions-item v-if="workOrder.specification" label="产品规格" :span="3">
       {{ workOrder.specification }}
     </el-descriptions-item>
   </el-descriptions>

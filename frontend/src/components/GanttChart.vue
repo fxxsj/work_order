@@ -3,37 +3,43 @@
     <div class="gantt-header">
       <div class="gantt-controls">
         <el-button-group>
-          <el-button size="mini" @click="zoomOut" :disabled="scale <= 0.5">
+          <el-button size="mini" :disabled="scale <= 0.5" @click="zoomOut">
             <i class="el-icon-zoom-out"></i> 缩小
           </el-button>
           <el-button size="mini" @click="resetZoom">
             <i class="el-icon-refresh"></i> 重置
           </el-button>
-          <el-button size="mini" @click="zoomIn" :disabled="scale >= 2">
+          <el-button size="mini" :disabled="scale >= 2" @click="zoomIn">
             <i class="el-icon-zoom-in"></i> 放大
           </el-button>
         </el-button-group>
         <el-button-group style="margin-left: 10px;">
-          <el-button size="mini" @click="viewMode = 'day'" :type="viewMode === 'day' ? 'primary' : ''">
+          <el-button size="mini" :type="viewMode === 'day' ? 'primary' : ''" @click="viewMode = 'day'">
             日视图
           </el-button>
-          <el-button size="mini" @click="viewMode = 'week'" :type="viewMode === 'week' ? 'primary' : ''">
+          <el-button size="mini" :type="viewMode === 'week' ? 'primary' : ''" @click="viewMode = 'week'">
             周视图
           </el-button>
-          <el-button size="mini" @click="viewMode = 'month'" :type="viewMode === 'month' ? 'primary' : ''">
+          <el-button size="mini" :type="viewMode === 'month' ? 'primary' : ''" @click="viewMode = 'month'">
             月视图
           </el-button>
         </el-button-group>
       </div>
     </div>
 
-    <div class="gantt-container" ref="ganttContainer">
+    <div ref="ganttContainer" class="gantt-container">
       <!-- 左侧工序列表 -->
       <div class="gantt-sidebar">
         <div class="sidebar-header">
-          <div class="header-cell">工序</div>
-          <div class="header-cell">状态</div>
-          <div class="header-cell">部门</div>
+          <div class="header-cell">
+            工序
+          </div>
+          <div class="header-cell">
+            状态
+          </div>
+          <div class="header-cell">
+            部门
+          </div>
         </div>
         <div
           v-for="process in sortedProcesses"
@@ -57,7 +63,7 @@
       </div>
 
       <!-- 右侧时间轴和任务条 -->
-      <div class="gantt-content" ref="ganttContent" @scroll="handleScroll">
+      <div ref="ganttContent" class="gantt-content" @scroll="handleScroll">
         <!-- 时间轴头部 -->
         <div class="gantt-timeline-header" :style="{ width: timelineWidth + 'px' }">
           <div
@@ -66,8 +72,12 @@
             class="timeline-header-cell"
             :style="{ width: dateWidth + 'px' }"
           >
-            <div class="header-date">{{ date.label }}</div>
-            <div class="header-day" v-if="viewMode === 'day'">{{ date.day }}</div>
+            <div class="header-date">
+              {{ date.label }}
+            </div>
+            <div v-if="viewMode === 'day'" class="header-day">
+              {{ date.day }}
+            </div>
           </div>
         </div>
 
@@ -127,7 +137,9 @@
             :style="{ left: currentTimePosition + 'px' }"
           >
             <div class="time-line-marker"></div>
-            <div class="time-line-label">现在</div>
+            <div class="time-line-label">
+              现在
+            </div>
           </div>
         </div>
       </div>
@@ -187,9 +199,7 @@ export default {
       if (!this.processes || this.processes.length === 0) {
         return []
       }
-      return [...this.processes].sort((a, b) => {
-        return (a.sequence || 0) - (b.sequence || 0)
-      })
+      return [...this.processes].sort((a, b) => (a.sequence || 0) - (b.sequence || 0))
     },
     // 计算时间轴日期范围
     dateRange() {

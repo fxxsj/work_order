@@ -10,13 +10,14 @@
           @input="handleSearchDebounced"
           @clear="handleSearch"
         >
-          <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
+          <el-button slot="append" icon="el-icon-search" @click="handleSearch" />
         </el-input>
         <el-button
           v-if="canCreate()"
           type="primary"
           icon="el-icon-plus"
-          @click="showCreateDialog()">
+          @click="showCreateDialog()"
+        >
           新建客户
         </el-button>
       </div>
@@ -26,16 +27,16 @@
         :data="tableData"
         style="width: 100%; margin-top: 20px;"
       >
-        <el-table-column prop="name" label="客户名称" width="200"></el-table-column>
-        <el-table-column prop="contact_person" label="联系人" width="120"></el-table-column>
-        <el-table-column prop="phone" label="联系电话" width="150"></el-table-column>
-        <el-table-column prop="email" label="邮箱" width="200"></el-table-column>
+        <el-table-column prop="name" label="客户名称" width="200" />
+        <el-table-column prop="contact_person" label="联系人" width="120" />
+        <el-table-column prop="phone" label="联系电话" width="150" />
+        <el-table-column prop="email" label="邮箱" width="200" />
         <el-table-column prop="salesperson_name" label="业务员" width="120">
           <template slot-scope="scope">
             {{ scope.row.salesperson_name || '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="address" label="地址" min-width="200"></el-table-column>
+        <el-table-column prop="address" label="地址" min-width="200" />
         <el-table-column prop="created_at" label="创建时间" width="180">
           <template slot-scope="scope">
             {{ scope.row.created_at | formatDateTime }}
@@ -47,7 +48,8 @@
               v-if="canEdit()"
               type="text"
               size="small"
-              @click="handleEdit(scope.row)">
+              @click="handleEdit(scope.row)"
+            >
               编辑
             </el-button>
             <el-button
@@ -55,7 +57,8 @@
               type="text"
               size="small"
               style="color: #F56C6C;"
-              @click="handleDelete(scope.row)">
+              @click="handleDelete(scope.row)"
+            >
               删除
             </el-button>
           </template>
@@ -70,8 +73,7 @@
         layout="total, prev, pager, next"
         style="margin-top: 20px; text-align: right;"
         @current-change="handlePageChange"
-      >
-      </el-pagination>
+      />
     </el-card>
 
     <!-- 客户表单对话框 -->
@@ -87,16 +89,16 @@
         label-width="100px"
       >
         <el-form-item label="客户名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入客户名称"></el-input>
+          <el-input v-model="form.name" placeholder="请输入客户名称" />
         </el-form-item>
         <el-form-item label="联系人">
-          <el-input v-model="form.contact_person" placeholder="请输入联系人"></el-input>
+          <el-input v-model="form.contact_person" placeholder="请输入联系人" />
         </el-form-item>
         <el-form-item label="联系电话">
-          <el-input v-model="form.phone" placeholder="请输入联系电话"></el-input>
+          <el-input v-model="form.phone" placeholder="请输入联系电话" />
         </el-form-item>
         <el-form-item label="邮箱">
-          <el-input v-model="form.email" placeholder="请输入邮箱"></el-input>
+          <el-input v-model="form.email" placeholder="请输入邮箱" />
         </el-form-item>
         <el-form-item label="业务员">
           <el-select
@@ -111,19 +113,33 @@
               :key="user.id"
               :label="user.username"
               :value="user.id"
-            ></el-option>
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="地址">
-          <el-input v-model="form.address" type="textarea" :rows="2" placeholder="请输入地址"></el-input>
+          <el-input
+            v-model="form.address"
+            type="textarea"
+            :rows="2"
+            placeholder="请输入地址"
+          />
         </el-form-item>
         <el-form-item label="备注">
-          <el-input v-model="form.notes" type="textarea" :rows="3" placeholder="请输入备注"></el-input>
+          <el-input
+            v-model="form.notes"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入备注"
+          />
         </el-form-item>
       </el-form>
       <div slot="footer">
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <el-button @click="dialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" @click="handleSubmit">
+          确定
+        </el-button>
       </div>
     </el-dialog>
   </div>
@@ -160,6 +176,31 @@ export default {
         name: [
           { required: true, message: '请输入客户名称', trigger: 'blur' }
         ]
+      }
+    }
+  },
+  computed: {
+    formTitle() {
+      return this.dialogType === 'edit' ? '编辑客户' : '新建客户'
+    }
+  },
+  watch: {
+    // 监听对话框显示状态，编辑时填充表单
+    dialogVisible(val) {
+      if (val && this.dialogType === 'edit' && this.currentRow) {
+        this.form = {
+          name: this.currentRow.name,
+          contact_person: this.currentRow.contact_person || '',
+          phone: this.currentRow.phone || '',
+          email: this.currentRow.email || '',
+          address: this.currentRow.address || '',
+          salesperson: this.currentRow.salesperson || null,
+          notes: this.currentRow.notes || ''
+        }
+        // 清除验证
+        this.$nextTick(() => {
+          this.$refs.form?.clearValidate()
+        })
       }
     }
   },
@@ -232,31 +273,6 @@ export default {
           this.formLoading = false
         }
       })
-    }
-  },
-  watch: {
-    // 监听对话框显示状态，编辑时填充表单
-    dialogVisible(val) {
-      if (val && this.dialogType === 'edit' && this.currentRow) {
-        this.form = {
-          name: this.currentRow.name,
-          contact_person: this.currentRow.contact_person || '',
-          phone: this.currentRow.phone || '',
-          email: this.currentRow.email || '',
-          address: this.currentRow.address || '',
-          salesperson: this.currentRow.salesperson || null,
-          notes: this.currentRow.notes || ''
-        }
-        // 清除验证
-        this.$nextTick(() => {
-          this.$refs.form?.clearValidate()
-        })
-      }
-    }
-  },
-  computed: {
-    formTitle() {
-      return this.dialogType === 'edit' ? '编辑客户' : '新建客户'
     }
   }
 }

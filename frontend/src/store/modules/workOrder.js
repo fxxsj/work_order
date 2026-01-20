@@ -32,9 +32,7 @@ const getters = {
   selectedWorkOrders: (state) => state.selectedWorkOrders,
 
   // 是否有选中项
-  hasSelection: (state) => {
-    return state.selectedWorkOrder !== null || state.selectedWorkOrders.length > 0
-  },
+  hasSelection: (state) => state.selectedWorkOrder !== null || state.selectedWorkOrders.length > 0,
 
   // 获取筛选条件
   filters: (state) => state.filters,

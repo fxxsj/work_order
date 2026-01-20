@@ -55,14 +55,19 @@
       :visible.sync="updateDialogVisible"
       width="600px"
     >
-      <el-form :model="updateForm" label-width="120px" :rules="updateRules" ref="updateFormRef">
+      <el-form
+        ref="updateFormRef"
+        :model="updateForm"
+        label-width="120px"
+        :rules="updateRules"
+      >
         <el-form-item label="完成数量" prop="quantity_completed">
           <el-input-number
             v-model="updateForm.quantity_completed"
             :min="0"
             :max="currentTask?.production_quantity || 999999"
             :step="1"
-          ></el-input-number>
+          />
         </el-form-item>
         <el-form-item label="更新说明">
           <el-input
@@ -70,12 +75,14 @@
             type="textarea"
             :rows="3"
             placeholder="请输入更新说明（可选）"
-          ></el-input>
+          />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="updateDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleConfirmUpdate" :loading="updating">
+        <el-button @click="updateDialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="updating" @click="handleConfirmUpdate">
           确定
         </el-button>
       </div>
@@ -87,9 +94,14 @@
       :visible.sync="assignDialogVisible"
       width="500px"
     >
-      <el-form :model="assignForm" label-width="120px" :rules="assignRules" ref="assignFormRef">
+      <el-form
+        ref="assignFormRef"
+        :model="assignForm"
+        label-width="120px"
+        :rules="assignRules"
+      >
         <el-form-item label="任务内容">
-          <el-input v-model="currentTask.work_content" disabled></el-input>
+          <el-input v-model="currentTask.work_content" disabled />
         </el-form-item>
         <el-form-item label="操作员" prop="operator_id">
           <el-select
@@ -103,7 +115,7 @@
               :key="user.id"
               :label="user.username"
               :value="user.id"
-            ></el-option>
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="分派说明">
@@ -112,12 +124,14 @@
             type="textarea"
             :rows="3"
             placeholder="请输入分派说明（可选）"
-          ></el-input>
+          />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="assignDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleConfirmAssign" :loading="assigning">
+        <el-button @click="assignDialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="assigning" @click="handleConfirmAssign">
           确定
         </el-button>
       </div>
@@ -129,14 +143,19 @@
       :visible.sync="completeDialogVisible"
       width="600px"
     >
-      <el-form :model="completeForm" label-width="120px" :rules="completeRules" ref="completeFormRef">
+      <el-form
+        ref="completeFormRef"
+        :model="completeForm"
+        label-width="120px"
+        :rules="completeRules"
+      >
         <el-form-item label="完成数量" prop="quantity_completed">
           <el-input-number
             v-model="completeForm.quantity_completed"
             :min="0"
             :max="currentTask?.production_quantity || 999999"
             :step="1"
-          ></el-input-number>
+          />
         </el-form-item>
         <el-form-item label="不良品数量" prop="quantity_defective">
           <el-input-number
@@ -144,7 +163,7 @@
             :min="0"
             :max="completeForm.quantity_completed"
             :step="1"
-          ></el-input-number>
+          />
         </el-form-item>
         <el-form-item label="完成说明">
           <el-input
@@ -152,12 +171,14 @@
             type="textarea"
             :rows="3"
             placeholder="请输入完成说明（可选）"
-          ></el-input>
+          />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="completeDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleConfirmComplete" :loading="completing">
+        <el-button @click="completeDialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="completing" @click="handleConfirmComplete">
           确定
         </el-button>
       </div>

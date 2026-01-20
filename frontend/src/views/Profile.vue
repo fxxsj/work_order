@@ -40,7 +40,9 @@
               >
                 {{ role }}
               </el-tag>
-              <el-tag v-if="currentUser.is_superuser" type="danger">超级管理员</el-tag>
+              <el-tag v-if="currentUser.is_superuser" type="danger">
+                超级管理员
+              </el-tag>
             </el-form-item>
 
             <el-form-item>
@@ -51,7 +53,9 @@
               >
                 保存修改
               </el-button>
-              <el-button @click="resetProfileForm">重置</el-button>
+              <el-button @click="resetProfileForm">
+                重置
+              </el-button>
             </el-form-item>
           </el-form>
         </el-tab-pane>
@@ -113,7 +117,9 @@
               >
                 修改密码
               </el-button>
-              <el-button @click="resetPasswordForm">重置</el-button>
+              <el-button @click="resetPasswordForm">
+                重置
+              </el-button>
             </el-form-item>
           </el-form>
         </el-tab-pane>

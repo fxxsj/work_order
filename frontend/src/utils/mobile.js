@@ -69,7 +69,7 @@ export const ResponsiveUtils = {
     }
 
     window.addEventListener('resize', handleResize)
-    
+
     // 返回清理函数
     return () => {
       window.removeEventListener('resize', handleResize)
@@ -92,7 +92,7 @@ export const MobileMixin = {
 
   mounted() {
     this.updateDeviceStatus()
-    
+
     // 监听窗口大小变化
     this.resizeCleanup = ResponsiveUtils.onResize((data) => {
       this.windowWidth = data.width
@@ -343,7 +343,7 @@ export const NetworkUtils = {
   isSlowConnection() {
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
     if (!connection) return false
-    
+
     const slowTypes = ['slow-2g', '2g', '3g']
     return slowTypes.includes(connection.effectiveType)
   }

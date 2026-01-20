@@ -9,8 +9,12 @@
               <i class="el-icon-tickets"></i>
             </div>
             <div class="stat-info">
-              <div class="stat-value">{{ taskStatistics.total_count || 0 }}</div>
-              <div class="stat-label">任务总数</div>
+              <div class="stat-value">
+                {{ taskStatistics.total_count || 0 }}
+              </div>
+              <div class="stat-label">
+                任务总数
+              </div>
             </div>
           </div>
         </el-card>
@@ -22,8 +26,12 @@
               <i class="el-icon-time"></i>
             </div>
             <div class="stat-info">
-              <div class="stat-value">{{ taskStatusCount.pending || 0 }}</div>
-              <div class="stat-label">待开始任务</div>
+              <div class="stat-value">
+                {{ taskStatusCount.pending || 0 }}
+              </div>
+              <div class="stat-label">
+                待开始任务
+              </div>
             </div>
           </div>
         </el-card>
@@ -35,8 +43,12 @@
               <i class="el-icon-loading"></i>
             </div>
             <div class="stat-info">
-              <div class="stat-value">{{ taskStatusCount.in_progress || 0 }}</div>
-              <div class="stat-label">进行中任务</div>
+              <div class="stat-value">
+                {{ taskStatusCount.in_progress || 0 }}
+              </div>
+              <div class="stat-label">
+                进行中任务
+              </div>
             </div>
           </div>
         </el-card>
@@ -48,8 +60,12 @@
               <i class="el-icon-circle-check"></i>
             </div>
             <div class="stat-info">
-              <div class="stat-value">{{ taskStatusCount.completed || 0 }}</div>
-              <div class="stat-label">已完成任务</div>
+              <div class="stat-value">
+                {{ taskStatusCount.completed || 0 }}
+              </div>
+              <div class="stat-label">
+                已完成任务
+              </div>
             </div>
           </div>
         </el-card>
@@ -67,8 +83,8 @@
           <el-table
             :data="taskStatusStatistics"
             style="width: 100%"
-            @row-click="(row) => $emit('navigate', { status: row.status })"
             :row-style="{ cursor: 'pointer' }"
+            @row-click="(row) => $emit('navigate', { status: row.status })"
           >
             <el-table-column prop="status_display" label="状态" width="120">
               <template slot-scope="scope">
@@ -77,7 +93,7 @@
                 </span>
               </template>
             </el-table-column>
-            <el-table-column prop="count" label="数量" align="right"></el-table-column>
+            <el-table-column prop="count" label="数量" align="right" />
             <el-table-column label="占比" align="right">
               <template slot-scope="scope">
                 {{ getPercentage(scope.row.count) }}%
@@ -88,7 +104,12 @@
       </el-col>
 
       <!-- 生产效率分析 -->
-      <el-col v-if="showEfficiency" :xs="24" :sm="12" :md="12">
+      <el-col
+        v-if="showEfficiency"
+        :xs="24"
+        :sm="12"
+        :md="12"
+      >
         <el-card>
           <div slot="header">
             <span>生产效率分析</span>
@@ -102,7 +123,7 @@
               <el-progress
                 :percentage="efficiencyAnalysis.process_completion_rate || 0"
                 :color="getProgressColor(efficiencyAnalysis.process_completion_rate)"
-              ></el-progress>
+              />
             </div>
             <div class="efficiency-item">
               <div class="efficiency-header">
@@ -112,7 +133,7 @@
               <el-progress
                 :percentage="taskStatistics.completion_rate || 0"
                 :color="getProgressColor(taskStatistics.completion_rate)"
-              ></el-progress>
+              />
             </div>
             <div v-if="efficiencyAnalysis.avg_completion_time_hours" class="efficiency-item">
               <div class="efficiency-header">

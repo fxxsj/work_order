@@ -7,15 +7,15 @@
           placeholder="选择部门查看任务"
           clearable
           filterable
-          @change="handleDepartmentChange"
           style="width: 100%;"
+          @change="handleDepartmentChange"
         >
           <el-option
             v-for="dept in departments"
             :key="dept.id"
             :label="dept.name"
             :value="dept.id"
-          ></el-option>
+          />
         </el-select>
       </el-col>
       <el-col :span="6">
@@ -30,7 +30,7 @@
             slot="append"
             icon="el-icon-search"
             @click="handleSearch"
-          ></el-button>
+          />
         </el-input>
       </el-col>
       <el-col :span="12" style="text-align: right;">

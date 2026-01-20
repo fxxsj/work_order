@@ -2,13 +2,13 @@
   <el-form-item label="工序" prop="processes">
     <el-select
       :value="value"
-      @input="handleInput"
       placeholder="请选择工序"
       multiple
       filterable
       :loading="loading"
       :disabled="disabled"
       style="width: 100%;"
+      @input="handleInput"
     >
       <el-option
         v-for="process in processList"
@@ -18,7 +18,12 @@
       >
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <span>{{ process.name }}</span>
-          <el-tag v-if="process.code" size="mini" type="info" style="margin-left: 10px;">
+          <el-tag
+            v-if="process.code"
+            size="mini"
+            type="info"
+            style="margin-left: 10px;"
+          >
             {{ process.code }}
           </el-tag>
         </div>

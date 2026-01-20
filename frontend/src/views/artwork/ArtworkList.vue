@@ -10,13 +10,14 @@
           @input="handleSearchDebounced"
           @clear="handleSearch"
         >
-          <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
+          <el-button slot="append" icon="el-icon-search" @click="handleSearch" />
         </el-input>
         <el-button
           v-if="canCreate()"
           type="primary"
           icon="el-icon-plus"
-          @click="showDialog()">
+          @click="showDialog()"
+        >
           新建图稿
         </el-button>
       </div>
@@ -31,8 +32,13 @@
             {{ scope.row.code || (scope.row.base_code + (scope.row.version > 1 ? '-v' + scope.row.version : '')) }}
           </template>
         </el-table-column>
-        <el-table-column prop="name" label="图稿名称" width="200"></el-table-column>
-        <el-table-column prop="color_display" label="色数" width="200" align="center">
+        <el-table-column prop="name" label="图稿名称" width="200" />
+        <el-table-column
+          prop="color_display"
+          label="色数"
+          width="200"
+          align="center"
+        >
           <template slot-scope="scope">
             <el-tag v-if="scope.row.color_display && scope.row.color_display !== '-'">
               {{ scope.row.color_display }}
@@ -40,7 +46,7 @@
             <span v-else style="color: #909399;">-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="imposition_size" label="拼版尺寸" width="180"></el-table-column>
+        <el-table-column prop="imposition_size" label="拼版尺寸" width="180" />
         <el-table-column label="确认状态" width="120" align="center">
           <template slot-scope="scope">
             <el-tag
@@ -107,7 +113,12 @@
             <span v-if="!scope.row.products || scope.row.products.length === 0" style="color: #909399;">-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="notes" label="备注" min-width="150" show-overflow-tooltip></el-table-column>
+        <el-table-column
+          prop="notes"
+          label="备注"
+          min-width="150"
+          show-overflow-tooltip
+        />
         <el-table-column prop="created_at" label="创建时间" width="180">
           <template slot-scope="scope">
             {{ formatDate(scope.row.created_at) }}
@@ -119,14 +130,16 @@
               v-if="canEdit()"
               type="text"
               size="small"
-              @click="showDialog(scope.row)">
+              @click="showDialog(scope.row)"
+            >
               编辑
             </el-button>
             <el-button
               v-if="canEdit()"
               type="text"
               size="small"
-              @click="createNewVersion(scope.row)">
+              @click="createNewVersion(scope.row)"
+            >
               创建新版本
             </el-button>
             <el-button
@@ -134,7 +147,8 @@
               type="text"
               size="small"
               style="color: #67C23A;"
-              @click="handleConfirm(scope.row)">
+              @click="handleConfirm(scope.row)"
+            >
               确认
             </el-button>
             <el-button
@@ -142,7 +156,8 @@
               type="text"
               size="small"
               style="color: #F56C6C;"
-              @click="handleDelete(scope.row)">
+              @click="handleDelete(scope.row)"
+            >
               删除
             </el-button>
           </template>
@@ -157,8 +172,7 @@
         layout="total, prev, pager, next"
         style="margin-top: 20px; text-align: right;"
         @current-change="handlePageChange"
-      >
-      </el-pagination>
+      />
     </el-card>
 
     <!-- 图稿表单对话框 -->
@@ -178,31 +192,39 @@
             v-model="form.base_code"
             placeholder="留空则系统自动生成（格式：ART + yyyymm + 序号）"
             :disabled="isEdit"
-          ></el-input>
+          />
           <div style="font-size: 12px; color: #909399; margin-top: 5px;">
             {{ isEdit ? '主编码不可修改' : '留空则自动生成，格式：ART202412001' }}
           </div>
         </el-form-item>
-        <el-form-item label="版本号" prop="version" v-if="isEdit">
+        <el-form-item v-if="isEdit" label="版本号" prop="version">
           <el-input-number
             v-model="form.version"
             :min="1"
             :disabled="true"
             style="width: 100%;"
-          ></el-input-number>
+          />
           <div style="font-size: 12px; color: #909399; margin-top: 5px;">
             完整编码：{{ form.base_code }}{{ form.version > 1 ? '-v' + form.version : '' }}
           </div>
         </el-form-item>
         <el-form-item label="图稿名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入图稿名称"></el-input>
+          <el-input v-model="form.name" placeholder="请输入图稿名称" />
         </el-form-item>
         <el-form-item label="CMYK颜色">
           <el-checkbox-group v-model="form.cmyk_colors">
-            <el-checkbox label="C">C</el-checkbox>
-            <el-checkbox label="M">M</el-checkbox>
-            <el-checkbox label="Y">Y</el-checkbox>
-            <el-checkbox label="K">K</el-checkbox>
+            <el-checkbox label="C">
+              C
+            </el-checkbox>
+            <el-checkbox label="M">
+              M
+            </el-checkbox>
+            <el-checkbox label="Y">
+              Y
+            </el-checkbox>
+            <el-checkbox label="K">
+              K
+            </el-checkbox>
           </el-checkbox-group>
         </el-form-item>
         <el-form-item label="其他颜色">
@@ -211,14 +233,14 @@
               v-model="form.other_colors[index]"
               placeholder="请输入颜色名称，如：528C、金色"
               style="flex: 1; margin-right: 10px;"
-            ></el-input>
+            />
             <el-button
               type="danger"
               size="small"
               icon="el-icon-delete"
-              @click="removeOtherColor(index)"
               circle
-            ></el-button>
+              @click="removeOtherColor(index)"
+            />
           </div>
           <el-button
             type="primary"
@@ -230,7 +252,7 @@
           </el-button>
         </el-form-item>
         <el-form-item label="拼版尺寸">
-          <el-input v-model="form.imposition_size" placeholder="如：420x594mm"></el-input>
+          <el-input v-model="form.imposition_size" placeholder="如：420x594mm" />
         </el-form-item>
         <el-form-item label="关联刀模">
           <el-select
@@ -246,7 +268,7 @@
               :key="die.id"
               :label="`${die.name} (${die.code})`"
               :value="die.id"
-            ></el-option>
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="关联烫金版">
@@ -263,7 +285,7 @@
               :key="plate.id"
               :label="`${plate.name} (${plate.code})`"
               :value="plate.id"
-            ></el-option>
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="关联压凸版">
@@ -280,14 +302,21 @@
               :key="plate.id"
               :label="`${plate.name} (${plate.code})`"
               :value="plate.id"
-            ></el-option>
+            />
           </el-select>
         </el-form-item>
 
-        <el-divider content-position="left">包含产品及拼版数量</el-divider>
+        <el-divider content-position="left">
+          包含产品及拼版数量
+        </el-divider>
 
         <el-form-item label="产品列表">
-          <el-button type="primary" size="small" icon="el-icon-plus" @click="addProductItem">
+          <el-button
+            type="primary"
+            size="small"
+            icon="el-icon-plus"
+            @click="addProductItem"
+          >
             添加产品
           </el-button>
           <div style="margin-top: 15px;">
@@ -309,7 +338,7 @@
                       :key="product.id"
                       :label="`${product.name} (${product.code})`"
                       :value="product.id"
-                    ></el-option>
+                    />
                   </el-select>
                 </template>
               </el-table-column>
@@ -320,7 +349,7 @@
                     :min="1"
                     style="width: 100%;"
                     size="small"
-                  ></el-input-number>
+                  />
                 </template>
               </el-table-column>
               <el-table-column label="操作" width="100" align="center">
@@ -330,7 +359,7 @@
                     size="mini"
                     icon="el-icon-delete"
                     @click="removeProductItem(scope.$index)"
-                  ></el-button>
+                  />
                 </template>
               </el-table-column>
             </el-table>
@@ -343,12 +372,16 @@
             type="textarea"
             :rows="3"
             placeholder="请输入备注信息"
-          ></el-input>
+          />
         </el-form-item>
       </el-form>
       <div slot="footer">
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="formLoading" @click="handleSubmit">确定</el-button>
+        <el-button @click="dialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="formLoading" @click="handleSubmit">
+          确定
+        </el-button>
       </div>
     </el-dialog>
   </div>
@@ -397,6 +430,18 @@ export default {
   computed: {
     dialogTitle() {
       return this.isEdit ? '编辑图稿' : '新建图稿'
+    }
+  },
+  watch: {
+    // 监听对话框显示状态，编辑时填充表单
+    dialogVisible(val) {
+      if (!val) {
+        this.$nextTick(() => {
+          if (this.$refs.form) {
+            this.$refs.form.clearValidate()
+          }
+        })
+      }
     }
   },
   created() {
@@ -631,18 +676,6 @@ export default {
           this.formLoading = false
         }
       })
-    }
-  },
-  watch: {
-    // 监听对话框显示状态，编辑时填充表单
-    dialogVisible(val) {
-      if (!val) {
-        this.$nextTick(() => {
-          if (this.$refs.form) {
-            this.$refs.form.clearValidate()
-          }
-        })
-      }
     }
   }
 }

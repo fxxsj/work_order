@@ -4,9 +4,15 @@
     <div class="header">
       <h2>成品库存</h2>
       <div class="actions">
-        <el-button icon="el-icon-warning" type="warning" @click="handleLowStock">库存预警</el-button>
-        <el-button icon="el-icon-time" type="danger" @click="handleExpired">过期库存</el-button>
-        <el-button icon="el-icon-refresh" @click="fetchStockList">刷新</el-button>
+        <el-button icon="el-icon-warning" type="warning" @click="handleLowStock">
+          库存预警
+        </el-button>
+        <el-button icon="el-icon-time" type="danger" @click="handleExpired">
+          过期库存
+        </el-button>
+        <el-button icon="el-icon-refresh" @click="fetchStockList">
+          刷新
+        </el-button>
       </div>
     </div>
 
@@ -16,32 +22,48 @@
         <el-col :span="6">
           <el-card class="stat-card">
             <div class="stat-item">
-              <div class="stat-label">总库存数</div>
-              <div class="stat-value">{{ stats.total_quantity || 0 }}</div>
+              <div class="stat-label">
+                总库存数
+              </div>
+              <div class="stat-value">
+                {{ stats.total_quantity || 0 }}
+              </div>
             </div>
           </el-card>
         </el-col>
         <el-col :span="6">
           <el-card class="stat-card">
             <div class="stat-item">
-              <div class="stat-label">产品种类</div>
-              <div class="stat-value">{{ stats.total_products || 0 }}</div>
+              <div class="stat-label">
+                产品种类
+              </div>
+              <div class="stat-value">
+                {{ stats.total_products || 0 }}
+              </div>
             </div>
           </el-card>
         </el-col>
         <el-col :span="6">
           <el-card class="stat-card warning">
             <div class="stat-item">
-              <div class="stat-label">低库存</div>
-              <div class="stat-value">{{ stats.low_stock_count || 0 }}</div>
+              <div class="stat-label">
+                低库存
+              </div>
+              <div class="stat-value">
+                {{ stats.low_stock_count || 0 }}
+              </div>
             </div>
           </el-card>
         </el-col>
         <el-col :span="6">
           <el-card class="stat-card danger">
             <div class="stat-item">
-              <div class="stat-label">过期批次</div>
-              <div class="stat-value">{{ stats.expired_count || 0 }}</div>
+              <div class="stat-label">
+                过期批次
+              </div>
+              <div class="stat-value">
+                {{ stats.expired_count || 0 }}
+              </div>
             </div>
           </el-card>
         </el-col>
@@ -52,40 +74,79 @@
     <div class="filter-section">
       <el-form :inline="true" :model="filters" class="filter-form">
         <el-form-item label="产品">
-          <el-select v-model="filters.product" placeholder="全部产品" clearable filterable>
-            <el-option v-for="product in productList" :key="product.id" :label="product.name" :value="product.id" />
+          <el-select
+            v-model="filters.product"
+            placeholder="全部产品"
+            clearable
+            filterable
+          >
+            <el-option
+              v-for="product in productList"
+              :key="product.id"
+              :label="product.name"
+              :value="product.id"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="filters.status" placeholder="全部状态" clearable @change="handleSearch">
-            <el-option label="在库" value="in_stock"></el-option>
-            <el-option label="已预留" value="reserved"></el-option>
-            <el-option label="质检中" value="quality_check"></el-option>
-            <el-option label="已损坏" value="defective"></el-option>
+          <el-select
+            v-model="filters.status"
+            placeholder="全部状态"
+            clearable
+            @change="handleSearch"
+          >
+            <el-option label="在库" value="in_stock" />
+            <el-option label="已预留" value="reserved" />
+            <el-option label="质检中" value="quality_check" />
+            <el-option label="已损坏" value="defective" />
           </el-select>
         </el-form-item>
         <el-form-item label="批次号">
           <el-input v-model="filters.batch_number" placeholder="批次号" clearable />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
+          <el-button type="primary" @click="handleSearch">
+            查询
+          </el-button>
+          <el-button @click="handleReset">
+            重置
+          </el-button>
         </el-form-item>
       </el-form>
     </div>
 
     <!-- 数据表格 -->
     <div class="table-section">
-      <el-table v-loading="loading" :data="stockList" border style="width: 100%">
+      <el-table
+        v-loading="loading"
+        :data="stockList"
+        border
+        style="width: 100%"
+      >
         <el-table-column prop="product_name" label="产品名称" width="200" />
         <el-table-column prop="batch_number" label="批次号" width="150" />
-        <el-table-column prop="quantity" label="库存数量" width="100" align="right">
+        <el-table-column
+          prop="quantity"
+          label="库存数量"
+          width="100"
+          align="right"
+        >
           <template #default="{ row }">
             <span :class="getQuantityClass(row)">{{ row.quantity }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="reserved_quantity" label="预留数量" width="100" align="right" />
-        <el-table-column prop="available_quantity" label="可用数量" width="100" align="right">
+        <el-table-column
+          prop="reserved_quantity"
+          label="预留数量"
+          width="100"
+          align="right"
+        />
+        <el-table-column
+          prop="available_quantity"
+          label="可用数量"
+          width="100"
+          align="right"
+        >
           <template #default="{ row }">
             {{ row.quantity - row.reserved_quantity }}
           </template>
@@ -97,7 +158,12 @@
             <span :class="getExpiryClass(row)">{{ row.expiry_date || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="days_until_expiry" label="过期天数" width="100" align="right">
+        <el-table-column
+          prop="days_until_expiry"
+          label="过期天数"
+          width="100"
+          align="right"
+        >
           <template #default="{ row }">
             <el-tag v-if="row.days_until_expiry !== null" :type="getExpiryTagType(row.days_until_expiry)">
               {{ row.days_until_expiry > 0 ? `${row.days_until_expiry}天` : `已过期${Math.abs(row.days_until_expiry)}天` }}
@@ -107,13 +173,19 @@
         </el-table-column>
         <el-table-column prop="status_display" label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">{{ row.status_display }}</el-tag>
+            <el-tag :type="getStatusType(row.status)">
+              {{ row.status_display }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" @click="handleView(row)">查看</el-button>
-            <el-button size="small" type="primary" @click="handleAdjust(row)">调整</el-button>
+            <el-button size="small" @click="handleView(row)">
+              查看
+            </el-button>
+            <el-button size="small" type="primary" @click="handleAdjust(row)">
+              调整
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -129,34 +201,85 @@
     </div>
 
     <!-- 库存详情对话框 -->
-    <el-dialog :visible.sync="detailDialogVisible" title="库存详情" width="800px" :close-on-click-modal="false">
+    <el-dialog
+      :visible.sync="detailDialogVisible"
+      title="库存详情"
+      width="800px"
+      :close-on-click-modal="false"
+    >
       <el-descriptions v-if="currentStock" :column="2" border>
-        <el-descriptions-item label="产品名称">{{ currentStock.product_name }}</el-descriptions-item>
-        <el-descriptions-item label="批次号">{{ currentStock.batch_number }}</el-descriptions-item>
-        <el-descriptions-item label="库存数量">{{ currentStock.quantity }}</el-descriptions-item>
-        <el-descriptions-item label="预留数量">{{ currentStock.reserved_quantity }}</el-descriptions-item>
-        <el-descriptions-item label="可用数量">{{ currentStock.quantity - currentStock.reserved_quantity }}</el-descriptions-item>
-        <el-descriptions-item label="库位">{{ currentStock.location || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="生产日期">{{ currentStock.production_date || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="过期日期">{{ currentStock.expiry_date || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{ currentStock.status_display }}</el-descriptions-item>
-        <el-descriptions-item label="单位成本">¥{{ currentStock.unit_cost ? currentStock.unit_cost.toLocaleString() : '-' }}</el-descriptions-item>
-        <el-descriptions-item label="总价值" :span="2">¥{{ currentStock.total_value ? currentStock.total_value.toLocaleString() : '-' }}</el-descriptions-item>
-        <el-descriptions-item label="创建时间" :span="2">{{ currentStock.created_at }}</el-descriptions-item>
+        <el-descriptions-item label="产品名称">
+          {{ currentStock.product_name }}
+        </el-descriptions-item>
+        <el-descriptions-item label="批次号">
+          {{ currentStock.batch_number }}
+        </el-descriptions-item>
+        <el-descriptions-item label="库存数量">
+          {{ currentStock.quantity }}
+        </el-descriptions-item>
+        <el-descriptions-item label="预留数量">
+          {{ currentStock.reserved_quantity }}
+        </el-descriptions-item>
+        <el-descriptions-item label="可用数量">
+          {{ currentStock.quantity - currentStock.reserved_quantity }}
+        </el-descriptions-item>
+        <el-descriptions-item label="库位">
+          {{ currentStock.location || '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="生产日期">
+          {{ currentStock.production_date || '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="过期日期">
+          {{ currentStock.expiry_date || '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="状态">
+          {{ currentStock.status_display }}
+        </el-descriptions-item>
+        <el-descriptions-item label="单位成本">
+          ¥{{ currentStock.unit_cost ? currentStock.unit_cost.toLocaleString() : '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="总价值" :span="2">
+          ¥{{ currentStock.total_value ? currentStock.total_value.toLocaleString() : '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="创建时间" :span="2">
+          {{ currentStock.created_at }}
+        </el-descriptions-item>
       </el-descriptions>
       <template #footer>
-        <el-button @click="detailDialogVisible = false">关闭</el-button>
+        <el-button @click="detailDialogVisible = false">
+          关闭
+        </el-button>
       </template>
     </el-dialog>
 
     <!-- 库存预警对话框 -->
     <el-dialog :visible.sync="lowStockDialogVisible" title="库存预警" width="900px">
-      <el-table v-loading="loadingLowStock" :data="lowStockList" border max-height="400">
+      <el-table
+        v-loading="loadingLowStock"
+        :data="lowStockList"
+        border
+        max-height="400"
+      >
         <el-table-column prop="product_name" label="产品名称" width="200" />
         <el-table-column prop="batch_number" label="批次号" width="150" />
-        <el-table-column prop="quantity" label="当前库存" width="100" align="right" />
-        <el-table-column prop="min_stock_level" label="最小库存" width="100" align="right" />
-        <el-table-column prop="available_quantity" label="可用数量" width="100" align="right">
+        <el-table-column
+          prop="quantity"
+          label="当前库存"
+          width="100"
+          align="right"
+        />
+        <el-table-column
+          prop="min_stock_level"
+          label="最小库存"
+          width="100"
+          align="right"
+        />
+        <el-table-column
+          prop="available_quantity"
+          label="可用数量"
+          width="100"
+          align="right"
+        >
           <template #default="{ row }">
             <span style="color: #f56c6c; font-weight: bold;">{{ row.quantity - row.reserved_quantity }}</span>
           </template>
@@ -167,14 +290,31 @@
 
     <!-- 过期库存对话框 -->
     <el-dialog :visible.sync="expiredDialogVisible" title="过期库存" width="900px">
-      <el-table v-loading="loadingExpired" :data="expiredList" border max-height="400">
+      <el-table
+        v-loading="loadingExpired"
+        :data="expiredList"
+        border
+        max-height="400"
+      >
         <el-table-column prop="product_name" label="产品名称" width="200" />
         <el-table-column prop="batch_number" label="批次号" width="150" />
-        <el-table-column prop="quantity" label="库存数量" width="100" align="right" />
+        <el-table-column
+          prop="quantity"
+          label="库存数量"
+          width="100"
+          align="right"
+        />
         <el-table-column prop="expiry_date" label="过期日期" width="120" />
-        <el-table-column prop="days_until_expiry" label="过期天数" width="100" align="right">
+        <el-table-column
+          prop="days_until_expiry"
+          label="过期天数"
+          width="100"
+          align="right"
+        >
           <template #default="{ row }">
-            <el-tag type="danger">已过期{{ Math.abs(row.days_until_expiry) }}天</el-tag>
+            <el-tag type="danger">
+              已过期{{ Math.abs(row.days_until_expiry) }}天
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="location" label="库位" width="120" />

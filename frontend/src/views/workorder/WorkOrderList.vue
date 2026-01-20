@@ -12,55 +12,86 @@
               @input="handleSearchDebounced"
               @clear="handleSearchDebounced"
             >
-              <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
+              <el-button slot="append" icon="el-icon-search" @click="handleSearch" />
             </el-input>
           </el-col>
           <el-col :span="3">
-            <el-select v-model="filters.status" placeholder="状态" clearable @change="handleSearchDebounced">
-              <el-option label="待开始" value="pending"></el-option>
-              <el-option label="进行中" value="in_progress"></el-option>
-              <el-option label="已暂停" value="paused"></el-option>
-              <el-option label="已完成" value="completed"></el-option>
-              <el-option label="已取消" value="cancelled"></el-option>
+            <el-select
+              v-model="filters.status"
+              placeholder="状态"
+              clearable
+              @change="handleSearchDebounced"
+            >
+              <el-option label="待开始" value="pending" />
+              <el-option label="进行中" value="in_progress" />
+              <el-option label="已暂停" value="paused" />
+              <el-option label="已完成" value="completed" />
+              <el-option label="已取消" value="cancelled" />
             </el-select>
           </el-col>
           <el-col :span="3">
-            <el-select v-model="filters.priority" placeholder="优先级" clearable @change="handleSearchDebounced">
-              <el-option label="低" value="low"></el-option>
-              <el-option label="普通" value="normal"></el-option>
-              <el-option label="高" value="high"></el-option>
-              <el-option label="紧急" value="urgent"></el-option>
+            <el-select
+              v-model="filters.priority"
+              placeholder="优先级"
+              clearable
+              @change="handleSearchDebounced"
+            >
+              <el-option label="低" value="low" />
+              <el-option label="普通" value="normal" />
+              <el-option label="高" value="high" />
+              <el-option label="紧急" value="urgent" />
             </el-select>
           </el-col>
-          <el-col :span="3" v-if="isSalesperson">
-            <el-select v-model="filters.approval_status" placeholder="审核状态" clearable @change="handleSearchDebounced">
-              <el-option label="待审核" value="pending"></el-option>
-              <el-option label="已通过" value="approved"></el-option>
-              <el-option label="已拒绝" value="rejected"></el-option>
+          <el-col v-if="isSalesperson" :span="3">
+            <el-select
+              v-model="filters.approval_status"
+              placeholder="审核状态"
+              clearable
+              @change="handleSearchDebounced"
+            >
+              <el-option label="待审核" value="pending" />
+              <el-option label="已通过" value="approved" />
+              <el-option label="已拒绝" value="rejected" />
             </el-select>
           </el-col>
           <el-col :span="3">
-            <el-select v-model="filters.customer__salesperson" placeholder="业务员" clearable @change="handleSearchDebounced">
+            <el-select
+              v-model="filters.customer__salesperson"
+              placeholder="业务员"
+              clearable
+              @change="handleSearchDebounced"
+            >
               <el-option
                 v-for="salesperson in salespersons"
                 :key="salesperson.id"
                 :label="salesperson.username"
                 :value="salesperson.id"
-              ></el-option>
+              />
             </el-select>
           </el-col>
           <el-col :span="isSalesperson ? 7 : 10" style="text-align: right;">
-            <el-button icon="el-icon-refresh" circle @click="handleReset" title="重置筛选"></el-button>
-            <el-button 
-              type="success" 
-              icon="el-icon-download" 
-              @click="handleExport" 
+            <el-button
+              icon="el-icon-refresh"
+              circle
+              title="重置筛选"
+              @click="handleReset"
+            />
+            <el-button
+              v-if="canExport"
+              type="success"
+              icon="el-icon-download"
               :loading="exporting"
               style="margin-left: 10px;"
-              v-if="canExport">
+              @click="handleExport"
+            >
               导出Excel
             </el-button>
-            <el-button type="primary" icon="el-icon-plus" @click="handleCreate" style="margin-left: 10px;">
+            <el-button
+              type="primary"
+              icon="el-icon-plus"
+              style="margin-left: 10px;"
+              @click="handleCreate"
+            >
               新建施工单
             </el-button>
           </el-col>
@@ -85,15 +116,25 @@
         style="width: 100%; margin-top: 20px;"
         @row-click="handleRowClick"
       >
-        <el-table-column prop="order_number" label="施工单号" width="150" fixed></el-table-column>
-        <el-table-column prop="customer_name" label="客户" width="150"></el-table-column>
+        <el-table-column
+          prop="order_number"
+          label="施工单号"
+          width="150"
+          fixed
+        />
+        <el-table-column prop="customer_name" label="客户" width="150" />
         <el-table-column prop="salesperson_name" label="业务员" width="100">
           <template slot-scope="scope">
             {{ scope.row.salesperson_name || '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="product_name" label="产品名称" min-width="200"></el-table-column>
-        <el-table-column prop="quantity" label="生产数量" width="120" align="right">
+        <el-table-column prop="product_name" label="产品名称" min-width="200" />
+        <el-table-column
+          prop="quantity"
+          label="生产数量"
+          width="120"
+          align="right"
+        >
           <template slot-scope="scope">
             {{ (scope.row.production_quantity || 0) + (scope.row.defective_quantity || 0) }} 车
           </template>
@@ -117,7 +158,7 @@
             <el-progress
               :percentage="scope.row.progress_percentage"
               :color="scope.row.progress_percentage === 100 ? '#67C23A' : '#409EFF'"
-            ></el-progress>
+            />
           </template>
         </el-table-column>
         <el-table-column prop="order_date" label="下单日期" width="120">
@@ -132,25 +173,27 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="manager_name" label="制表人" width="100"></el-table-column>
+        <el-table-column prop="manager_name" label="制表人" width="100" />
         <el-table-column label="操作" width="180" fixed="right">
           <template slot-scope="scope">
             <el-button type="text" size="small" @click.stop="handleView(scope.row)">
               查看
             </el-button>
-            <el-button 
-              v-if="canEdit" 
-              type="text" 
-              size="small" 
-              @click.stop="handleEdit(scope.row)">
+            <el-button
+              v-if="canEdit"
+              type="text"
+              size="small"
+              @click.stop="handleEdit(scope.row)"
+            >
               编辑
             </el-button>
-            <el-button 
-              v-if="canDelete" 
-              type="text" 
-              size="small" 
-              style="color: #F56C6C;" 
-              @click.stop="handleDelete(scope.row)">
+            <el-button
+              v-if="canDelete"
+              type="text"
+              size="small"
+              style="color: #F56C6C;"
+              @click.stop="handleDelete(scope.row)"
+            >
               删除
             </el-button>
           </template>
@@ -158,7 +201,14 @@
       </el-table>
 
       <!-- 分页 -->
-      <Pagination v-if="total > 0" :current-page="currentPage" :page-size="pageSize" :total="total" @current-change="handlePageChange" @size-change="handleSizeChange" />
+      <Pagination
+        v-if="total > 0"
+        :current-page="currentPage"
+        :page-size="pageSize"
+        :total="total"
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"
+      />
     </el-card>
   </div>
 </template>
@@ -207,7 +257,7 @@ export default {
   async created() {
     // 加载业务员列表
     await this.loadSalespersons()
-    
+
     // 检查URL参数中是否有筛选条件
     if (this.$route.query.approval_status) {
       this.filters.approval_status = this.$route.query.approval_status
@@ -257,7 +307,7 @@ export default {
     },
     async loadSalespersons() { try { this.salespersons = await getSalespersons() || [] } catch (error) { console.error('加载业务员列表失败:', error); this.salespersons = [] } },
     handleSearch() { this.currentPage = 1; this.loadData() },
-    handleSearchDebounced: debounce(function() { this.currentPage = 1; this.loadData() }, 300),
+    handleSearchDebounced: debounce(function () { this.currentPage = 1; this.loadData() }, 300),
     handleReset() {
       this.filters = { search: '', status: '', priority: '', approval_status: '', customer__salesperson: '', delivery_date__gte: '', delivery_date__lte: '' }
       this.currentPage = 1

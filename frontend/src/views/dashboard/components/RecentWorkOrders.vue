@@ -8,9 +8,14 @@
         </el-button>
       </div>
       <el-table :data="recentOrders" style="width: 100%">
-        <el-table-column prop="order_number" label="施工单号" width="150"></el-table-column>
-        <el-table-column prop="customer_name" label="客户" min-width="120"></el-table-column>
-        <el-table-column prop="product_name" label="产品名称" min-width="150" show-overflow-tooltip></el-table-column>
+        <el-table-column prop="order_number" label="施工单号" width="150" />
+        <el-table-column prop="customer_name" label="客户" min-width="120" />
+        <el-table-column
+          prop="product_name"
+          label="产品名称"
+          min-width="150"
+          show-overflow-tooltip
+        />
         <el-table-column label="状态" width="100">
           <template slot-scope="scope">
             <span :class="'status-badge status-' + scope.row.status">
@@ -23,7 +28,7 @@
             <el-progress
               :percentage="scope.row.progress_percentage"
               :color="scope.row.progress_percentage === 100 ? '#67C23A' : '#409EFF'"
-            ></el-progress>
+            />
           </template>
         </el-table-column>
         <el-table-column prop="delivery_date" label="交货日期" width="120">
@@ -50,17 +55,17 @@
 <script>
 export default {
   name: 'RecentWorkOrders',
-  props: {
-    recentOrders: {
-      type: Array,
-      default: () => []
-    }
-  },
   filters: {
     formatDate(date) {
       if (!date) return '-'
       const d = new Date(date)
       return d.toLocaleDateString('zh-CN')
+    }
+  },
+  props: {
+    recentOrders: {
+      type: Array,
+      default: () => []
     }
   }
 }

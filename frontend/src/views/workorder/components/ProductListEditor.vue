@@ -15,7 +15,7 @@
             placeholder="选择产品后自动填充"
             disabled
             style="color: #909399;"
-          ></el-input>
+          />
         </el-col>
         <el-col :span="4">
           <el-input
@@ -23,15 +23,15 @@
             placeholder="选择产品后自动填充"
             disabled
             style="color: #909399;"
-          ></el-input>
+          />
         </el-col>
         <el-col :span="4">
           <el-input
             :value="item.quantity"
-            @input="handleQuantityChange(index, $event)"
             type="number"
             placeholder="数量"
             :disabled="disabled"
+            @input="handleQuantityChange(index, $event)"
           >
             <template slot="suffix">
               <span style="color: #909399; padding-right: 8px;">{{ item.unit || '件' }}</span>
@@ -44,18 +44,18 @@
             type="danger"
             size="mini"
             icon="el-icon-delete"
-            @click="removeItem(index)"
             circle
             style="margin-right: 5px;"
-          ></el-button>
+            @click="removeItem(index)"
+          />
           <el-button
             v-if="index === items.length - 1"
             type="primary"
             size="mini"
             icon="el-icon-plus"
-            @click="addItem"
             circle
-          ></el-button>
+            @click="addItem"
+          />
         </el-col>
       </el-row>
     </div>

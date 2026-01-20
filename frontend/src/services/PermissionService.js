@@ -111,13 +111,9 @@ class PermissionService {
     const userDepartments = this.currentUser.profile.departments || []
 
     // 检查施工单是否有任务分派到用户的部门
-    return workOrder.order_processes?.some(process => {
-      return process.tasks?.some(task => {
-        return userDepartments.some(dept =>
-          dept.id === task.assigned_department?.id
-        )
-      })
-    })
+    return workOrder.order_processes?.some(process => process.tasks?.some(task => userDepartments.some(dept =>
+      dept.id === task.assigned_department?.id
+    )))
   }
 
   /**

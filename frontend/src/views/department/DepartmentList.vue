@@ -9,13 +9,14 @@
           clearable
           @clear="handleSearch"
         >
-          <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
+          <el-button slot="append" icon="el-icon-search" @click="handleSearch" />
         </el-input>
         <el-button
           v-if="canCreate()"
           type="primary"
           icon="el-icon-plus"
-          @click="showCreateDialog()">
+          @click="showCreateDialog()"
+        >
           新建部门
         </el-button>
       </div>
@@ -76,7 +77,12 @@
             </template>
           </template>
         </el-table-column>
-        <el-table-column prop="sort_order" label="排序" width="100" align="center"></el-table-column>
+        <el-table-column
+          prop="sort_order"
+          label="排序"
+          width="100"
+          align="center"
+        />
         <el-table-column label="状态" width="100">
           <template slot-scope="scope">
             <el-tag :type="scope.row.is_active ? 'success' : 'info'">
@@ -95,7 +101,8 @@
               v-if="canEdit()"
               type="text"
               size="small"
-              @click="handleEdit(scope.row)">
+              @click="handleEdit(scope.row)"
+            >
               编辑
             </el-button>
             <el-button
@@ -103,7 +110,8 @@
               type="text"
               size="small"
               style="color: #F56C6C;"
-              @click="handleDelete(scope.row)">
+              @click="handleDelete(scope.row)"
+            >
               删除
             </el-button>
           </template>
@@ -118,8 +126,7 @@
         layout="total, prev, pager, next"
         style="margin-top: 20px; text-align: right;"
         @current-change="handlePageChange"
-      >
-      </el-pagination>
+      />
     </el-card>
 
     <!-- 部门表单对话框 -->
@@ -135,13 +142,13 @@
         label-width="120px"
       >
         <el-form-item label="部门编码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入部门编码（英文，如：prepress）" :disabled="isEdit"></el-input>
+          <el-input v-model="form.code" placeholder="请输入部门编码（英文，如：prepress）" :disabled="isEdit" />
           <div style="font-size: 12px; color: #909399; margin-top: 5px;">
             建议使用英文小写，如：prepress、printing、surface等
           </div>
         </el-form-item>
         <el-form-item label="部门名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入部门名称（中文）"></el-input>
+          <el-input v-model="form.name" placeholder="请输入部门名称（中文）" />
         </el-form-item>
         <el-form-item label="上级部门">
           <el-select
@@ -157,8 +164,7 @@
               :key="dept.id"
               :label="dept.name"
               :value="dept.id"
-            >
-            </el-option>
+            />
           </el-select>
           <div style="font-size: 12px; color: #909399; margin-top: 5px;">
             选择上级部门可建立部门层级关系（如：生产部 > 裁切车间）
@@ -169,7 +175,7 @@
             v-model="form.sort_order"
             :min="0"
             style="width: 100%;"
-          ></el-input-number>
+          />
           <div style="font-size: 12px; color: #909399; margin-top: 5px;">
             数字越小越靠前显示
           </div>
@@ -187,12 +193,16 @@
           </el-checkbox-group>
         </el-form-item>
         <el-form-item label="是否启用">
-          <el-switch v-model="form.is_active"></el-switch>
+          <el-switch v-model="form.is_active" />
         </el-form-item>
       </el-form>
       <div slot="footer">
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit">确定</el-button>
+        <el-button @click="dialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" @click="handleSubmit">
+          确定
+        </el-button>
       </div>
     </el-dialog>
   </div>
@@ -251,6 +261,27 @@ export default {
         })
       }
       return this.allDepartments
+    }
+  },
+  watch: {
+    // 监听对话框显示状态，编辑时填充表单
+    dialogVisible(val) {
+      if (val && this.dialogType === 'edit' && this.currentRow) {
+        this.form = {
+          code: this.currentRow.code,
+          name: this.currentRow.name,
+          parent: this.currentRow.parent || null,
+          sort_order: this.currentRow.sort_order,
+          is_active: this.currentRow.is_active,
+          processes: this.currentRow.processes || [],
+          children_count: this.currentRow.children_count || 0
+        }
+        this.$nextTick(() => {
+          if (this.$refs.form) {
+            this.$refs.form.clearValidate()
+          }
+        })
+      }
     }
   },
   created() {
@@ -441,27 +472,6 @@ export default {
     toggleProcessExpansion(row) {
       const rowId = row.id
       this.$set(this.expandedProcesses, rowId, !this.expandedProcesses[rowId])
-    }
-  },
-  watch: {
-    // 监听对话框显示状态，编辑时填充表单
-    dialogVisible(val) {
-      if (val && this.dialogType === 'edit' && this.currentRow) {
-        this.form = {
-          code: this.currentRow.code,
-          name: this.currentRow.name,
-          parent: this.currentRow.parent || null,
-          sort_order: this.currentRow.sort_order,
-          is_active: this.currentRow.is_active,
-          processes: this.currentRow.processes || [],
-          children_count: this.currentRow.children_count || 0
-        }
-        this.$nextTick(() => {
-          if (this.$refs.form) {
-            this.$refs.form.clearValidate()
-          }
-        })
-      }
     }
   }
 }

@@ -1,12 +1,12 @@
 <template>
   <el-select
     :value="value"
-    @input="handleInput"
     placeholder="请选择产品"
     filterable
     :loading="loading"
     :disabled="disabled"
     style="width: 100%;"
+    @input="handleInput"
   >
     <el-option
       v-for="product in productList"

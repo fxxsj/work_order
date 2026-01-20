@@ -7,23 +7,45 @@
     @close="handleClose"
   >
     <el-descriptions v-if="data" :column="2" border>
-      <el-descriptions-item label="发货单号">{{ data.order_number }}</el-descriptions-item>
-      <el-descriptions-item label="销售订单">{{ data.sales_order_number || '-' }}</el-descriptions-item>
-      <el-descriptions-item label="客户名称">{{ data.customer_name }}</el-descriptions-item>
-      <el-descriptions-item label="收货人">{{ data.receiver_name }}</el-descriptions-item>
-      <el-descriptions-item label="联系电话">{{ data.receiver_phone }}</el-descriptions-item>
-      <el-descriptions-item label="发货日期">{{ data.delivery_date || '-' }}</el-descriptions-item>
-      <el-descriptions-item label="物流公司" :span="2">{{ data.logistics_company || '-' }}</el-descriptions-item>
+      <el-descriptions-item label="发货单号">
+        {{ data.order_number }}
+      </el-descriptions-item>
+      <el-descriptions-item label="销售订单">
+        {{ data.sales_order_number || '-' }}
+      </el-descriptions-item>
+      <el-descriptions-item label="客户名称">
+        {{ data.customer_name }}
+      </el-descriptions-item>
+      <el-descriptions-item label="收货人">
+        {{ data.receiver_name }}
+      </el-descriptions-item>
+      <el-descriptions-item label="联系电话">
+        {{ data.receiver_phone }}
+      </el-descriptions-item>
+      <el-descriptions-item label="发货日期">
+        {{ data.delivery_date || '-' }}
+      </el-descriptions-item>
+      <el-descriptions-item label="物流公司" :span="2">
+        {{ data.logistics_company || '-' }}
+      </el-descriptions-item>
       <el-descriptions-item label="物流单号" :span="2">
         <el-link v-if="data.tracking_number" :href="getTrackingUrl(data)" target="_blank">
           {{ data.tracking_number }}
         </el-link>
         <span v-else>-</span>
       </el-descriptions-item>
-      <el-descriptions-item label="运费">¥{{ data.freight ? data.freight.toLocaleString() : '-' }}</el-descriptions-item>
-      <el-descriptions-item label="包裹数量">{{ data.package_count }}</el-descriptions-item>
-      <el-descriptions-item label="状态">{{ data.status_display }}</el-descriptions-item>
-      <el-descriptions-item label="送货地址" :span="2">{{ data.delivery_address }}</el-descriptions-item>
+      <el-descriptions-item label="运费">
+        ¥{{ data.freight ? data.freight.toLocaleString() : '-' }}
+      </el-descriptions-item>
+      <el-descriptions-item label="包裹数量">
+        {{ data.package_count }}
+      </el-descriptions-item>
+      <el-descriptions-item label="状态">
+        {{ data.status_display }}
+      </el-descriptions-item>
+      <el-descriptions-item label="送货地址" :span="2">
+        {{ data.delivery_address }}
+      </el-descriptions-item>
     </el-descriptions>
 
     <div v-if="data && data.items && data.items.length > 0" class="items-section">
@@ -46,7 +68,9 @@
     </div>
 
     <template #footer>
-      <el-button @click="handleClose">关闭</el-button>
+      <el-button @click="handleClose">
+        关闭
+      </el-button>
     </template>
   </el-dialog>
 </template>

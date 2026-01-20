@@ -87,37 +87,61 @@
               <!-- 图稿统计 -->
               <el-col :xs="12" :sm="6" :md="6">
                 <div class="stat-item">
-                  <div class="stat-count">{{ totalPendingPlatesCount.artwork }}</div>
-                  <div class="stat-label">待确认图稿</div>
-                  <div class="stat-total">总计: {{ totalPlatesCount.artwork }}</div>
+                  <div class="stat-count">
+                    {{ totalPendingPlatesCount.artwork }}
+                  </div>
+                  <div class="stat-label">
+                    待确认图稿
+                  </div>
+                  <div class="stat-total">
+                    总计: {{ totalPlatesCount.artwork }}
+                  </div>
                 </div>
               </el-col>
               <!-- 刀模统计 -->
               <el-col :xs="12" :sm="6" :md="6">
                 <div class="stat-item">
-                  <div class="stat-count">{{ totalPendingPlatesCount.die }}</div>
-                  <div class="stat-label">待确认刀模</div>
-                  <div class="stat-total">总计: {{ totalPlatesCount.die }}</div>
+                  <div class="stat-count">
+                    {{ totalPendingPlatesCount.die }}
+                  </div>
+                  <div class="stat-label">
+                    待确认刀模
+                  </div>
+                  <div class="stat-total">
+                    总计: {{ totalPlatesCount.die }}
+                  </div>
                 </div>
               </el-col>
               <!-- 烫金版统计 -->
               <el-col :xs="12" :sm="6" :md="6">
                 <div class="stat-item">
-                  <div class="stat-count">{{ totalPendingPlatesCount.foiling_plate }}</div>
-                  <div class="stat-label">待确认烫金版</div>
-                  <div class="stat-total">总计: {{ totalPlatesCount.foiling_plate }}</div>
+                  <div class="stat-count">
+                    {{ totalPendingPlatesCount.foiling_plate }}
+                  </div>
+                  <div class="stat-label">
+                    待确认烫金版
+                  </div>
+                  <div class="stat-total">
+                    总计: {{ totalPlatesCount.foiling_plate }}
+                  </div>
                 </div>
               </el-col>
               <!-- 压凸版统计 -->
               <el-col :xs="12" :sm="6" :md="6">
                 <div class="stat-item">
-                  <div class="stat-count">{{ totalPendingPlatesCount.embossing_plate }}</div>
-                  <div class="stat-label">待确认压凸版</div>
-                  <div class="stat-total">总计: {{ totalPlatesCount.embossing_plate }}</div>
+                  <div class="stat-count">
+                    {{ totalPendingPlatesCount.embossing_plate }}
+                  </div>
+                  <div class="stat-label">
+                    待确认压凸版
+                  </div>
+                  <div class="stat-total">
+                    总计: {{ totalPlatesCount.embossing_plate }}
+                  </div>
                 </div>
               </el-col>
             </el-row>
-            <el-divider></el-divider>
+            <el-divider />
             <!-- 总体确认率 -->
             <div class="overall-rate">
               <div class="rate-header">
@@ -127,7 +151,7 @@
               <el-progress
                 :percentage="overallConfirmationRate"
                 :color="getProgressColor(overallConfirmationRate)"
-              ></el-progress>
+              />
             </div>
           </div>
         </el-card>

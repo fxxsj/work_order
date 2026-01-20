@@ -10,13 +10,14 @@
           @input="handleSearchDebounced"
           @clear="handleSearch"
         >
-          <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
+          <el-button slot="append" icon="el-icon-search" @click="handleSearch" />
         </el-input>
         <el-button
           v-if="canCreate()"
           type="primary"
           icon="el-icon-plus"
-          @click="showCreateDialog()">
+          @click="showCreateDialog()"
+        >
           新建产品
         </el-button>
       </div>
@@ -26,17 +27,37 @@
         :data="tableData"
         style="width: 100%; margin-top: 20px;"
       >
-        <el-table-column prop="code" label="产品编码" width="120"></el-table-column>
-        <el-table-column prop="name" label="产品名称" width="200"></el-table-column>
-        <el-table-column prop="specification" label="规格" min-width="150"></el-table-column>
-        <el-table-column prop="unit" label="单位" width="80" align="center"></el-table-column>
-        <el-table-column prop="unit_price" label="单价" width="120" align="right">
+        <el-table-column prop="code" label="产品编码" width="120" />
+        <el-table-column prop="name" label="产品名称" width="200" />
+        <el-table-column prop="specification" label="规格" min-width="150" />
+        <el-table-column
+          prop="unit"
+          label="单位"
+          width="80"
+          align="center"
+        />
+        <el-table-column
+          prop="unit_price"
+          label="单价"
+          width="120"
+          align="right"
+        >
           <template slot-scope="scope">
             ¥{{ scope.row.unit_price }}
           </template>
         </el-table-column>
-        <el-table-column prop="stock_quantity" label="库存数量" width="100" align="right"></el-table-column>
-        <el-table-column prop="min_stock_quantity" label="最小库存" width="100" align="right"></el-table-column>
+        <el-table-column
+          prop="stock_quantity"
+          label="库存数量"
+          width="100"
+          align="right"
+        />
+        <el-table-column
+          prop="min_stock_quantity"
+          label="最小库存"
+          width="100"
+          align="right"
+        />
         <el-table-column label="状态" width="100">
           <template slot-scope="scope">
             <el-tag :type="scope.row.is_active ? 'success' : 'info'">
@@ -44,14 +65,20 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip></el-table-column>
+        <el-table-column
+          prop="description"
+          label="描述"
+          min-width="150"
+          show-overflow-tooltip
+        />
         <el-table-column label="操作" width="150" fixed="right">
           <template slot-scope="scope">
             <el-button
               v-if="canEdit()"
               type="text"
               size="small"
-              @click="handleEdit(scope.row)">
+              @click="handleEdit(scope.row)"
+            >
               编辑
             </el-button>
             <el-button
@@ -59,7 +86,8 @@
               type="text"
               size="small"
               style="color: #F56C6C;"
-              @click="handleDelete(scope.row)">
+              @click="handleDelete(scope.row)"
+            >
               删除
             </el-button>
           </template>
@@ -74,8 +102,7 @@
         layout="total, prev, pager, next"
         style="margin-top: 20px; text-align: right;"
         @current-change="handlePageChange"
-      >
-      </el-pagination>
+      />
     </el-card>
 
     <!-- 产品表单对话框 -->
@@ -91,16 +118,16 @@
         label-width="100px"
       >
         <el-form-item label="产品编码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入产品编码" :disabled="dialogType === 'edit'"></el-input>
+          <el-input v-model="form.code" placeholder="请输入产品编码" :disabled="dialogType === 'edit'" />
         </el-form-item>
         <el-form-item label="产品名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入产品名称"></el-input>
+          <el-input v-model="form.name" placeholder="请输入产品名称" />
         </el-form-item>
         <el-form-item label="规格" prop="specification">
-          <el-input v-model="form.specification" placeholder="请输入产品规格"></el-input>
+          <el-input v-model="form.specification" placeholder="请输入产品规格" />
         </el-form-item>
         <el-form-item label="单位" prop="unit">
-          <el-input v-model="form.unit" placeholder="如：件、张、本"></el-input>
+          <el-input v-model="form.unit" placeholder="如：件、张、本" />
         </el-form-item>
         <el-form-item label="单价" prop="unit_price">
           <el-input-number
@@ -108,7 +135,7 @@
             :min="0"
             :precision="2"
             style="width: 100%;"
-          ></el-input-number>
+          />
         </el-form-item>
         <el-form-item label="库存数量" prop="stock_quantity">
           <el-input-number
@@ -116,7 +143,7 @@
             :min="0"
             :precision="0"
             style="width: 100%;"
-          ></el-input-number>
+          />
         </el-form-item>
         <el-form-item label="最小库存" prop="min_stock_quantity">
           <el-input-number
@@ -124,16 +151,28 @@
             :min="0"
             :precision="0"
             style="width: 100%;"
-          ></el-input-number>
+          />
         </el-form-item>
         <el-form-item label="产品描述">
-          <el-input v-model="form.description" type="textarea" :rows="2" placeholder="请输入产品描述"></el-input>
+          <el-input
+            v-model="form.description"
+            type="textarea"
+            :rows="2"
+            placeholder="请输入产品描述"
+          />
         </el-form-item>
 
-        <el-divider content-position="left">默认物料配置</el-divider>
+        <el-divider content-position="left">
+          默认物料配置
+        </el-divider>
 
         <el-form-item label="物料列表">
-          <el-button type="primary" size="small" icon="el-icon-plus" @click="addProductMaterialItem">
+          <el-button
+            type="primary"
+            size="small"
+            icon="el-icon-plus"
+            @click="addProductMaterialItem"
+          >
             添加物料
           </el-button>
           <div style="margin-top: 15px;">
@@ -155,7 +194,7 @@
                       :key="material.id"
                       :label="`${material.name} (${material.code})`"
                       :value="material.id"
-                    ></el-option>
+                    />
                   </el-select>
                 </template>
               </el-table-column>
@@ -165,7 +204,7 @@
                     v-model="scope.row.material_size"
                     placeholder="如：A4、210x297mm"
                     size="small"
-                  ></el-input>
+                  />
                 </template>
               </el-table-column>
               <el-table-column label="用量" width="180">
@@ -174,7 +213,7 @@
                     v-model="scope.row.material_usage"
                     placeholder="如：1000张、50平方米"
                     size="small"
-                  ></el-input>
+                  />
                 </template>
               </el-table-column>
               <el-table-column label="需要开料" width="100" align="center">
@@ -182,7 +221,7 @@
                   <el-switch
                     v-model="scope.row.need_cutting"
                     size="small"
-                  ></el-switch>
+                  />
                 </template>
               </el-table-column>
               <el-table-column label="备注" min-width="200">
@@ -191,7 +230,7 @@
                     v-model="scope.row.notes"
                     placeholder="请输入备注"
                     size="small"
-                  ></el-input>
+                  />
                 </template>
               </el-table-column>
               <el-table-column label="操作" width="100" align="center">
@@ -201,14 +240,16 @@
                     size="mini"
                     icon="el-icon-delete"
                     @click="removeProductMaterialItem(scope.$index)"
-                  ></el-button>
+                  />
                 </template>
               </el-table-column>
             </el-table>
           </div>
         </el-form-item>
 
-        <el-divider content-position="left">默认工序配置</el-divider>
+        <el-divider content-position="left">
+          默认工序配置
+        </el-divider>
 
         <el-form-item label="默认工序">
           <el-checkbox-group v-model="form.default_processes" style="width: 100%;">
@@ -224,12 +265,16 @@
         </el-form-item>
 
         <el-form-item label="是否启用">
-          <el-switch v-model="form.is_active"></el-switch>
+          <el-switch v-model="form.is_active" />
         </el-form-item>
       </el-form>
       <div slot="footer">
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="formLoading" @click="handleSubmit">确定</el-button>
+        <el-button @click="dialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="formLoading" @click="handleSubmit">
+          确定
+        </el-button>
       </div>
     </el-dialog>
   </div>
@@ -287,6 +332,14 @@ export default {
   computed: {
     formTitle() {
       return this.dialogType === 'edit' ? '编辑产品' : '新建产品'
+    }
+  },
+  watch: {
+    // 监听对话框显示状态，编辑时填充表单
+    dialogVisible(val) {
+      if (val && this.dialogType === 'edit' && this.currentRow) {
+        this.loadProductDetail(this.currentRow)
+      }
     }
   },
   created() {
@@ -478,14 +531,6 @@ export default {
         }
       } catch (error) {
         console.error('加载产品详情失败:', error)
-      }
-    }
-  },
-  watch: {
-    // 监听对话框显示状态，编辑时填充表单
-    dialogVisible(val) {
-      if (val && this.dialogType === 'edit' && this.currentRow) {
-        this.loadProductDetail(this.currentRow)
       }
     }
   }

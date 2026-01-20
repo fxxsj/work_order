@@ -2,7 +2,12 @@
   <div class="purchase-order-list">
     <el-card>
       <!-- 搜索和筛选 -->
-      <el-form :inline="true" :model="filters" class="search-form" @keyup.enter.native="handleSearch">
+      <el-form
+        :inline="true"
+        :model="filters"
+        class="search-form"
+        @keyup.enter.native="handleSearch"
+      >
         <el-form-item label="采购单号">
           <el-input v-model="searchText" placeholder="请输入采购单号" clearable />
         </el-form-item>
@@ -20,15 +25,28 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="resetFilters">重置</el-button>
-          <el-button v-if="canCreate()" type="success" @click="showCreateDialog">新增采购单</el-button>
-          <el-button type="warning" @click="handleLowStock">库存预警</el-button>
+          <el-button type="primary" @click="handleSearch">
+            搜索
+          </el-button>
+          <el-button @click="resetFilters">
+            重置
+          </el-button>
+          <el-button v-if="canCreate()" type="success" @click="showCreateDialog">
+            新增采购单
+          </el-button>
+          <el-button type="warning" @click="handleLowStock">
+            库存预警
+          </el-button>
         </el-form-item>
       </el-form>
 
       <!-- 数据表格 -->
-      <el-table :data="tableData" v-loading="loading" border stripe>
+      <el-table
+        v-loading="loading"
+        :data="tableData"
+        border
+        stripe
+      >
         <el-table-column prop="order_number" label="采购单号" width="150" />
         <el-table-column prop="supplier_name" label="供应商" width="180" />
         <el-table-column prop="status" label="状态" width="100">
@@ -38,8 +56,18 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="items_count" label="明细数量" width="100" align="center" />
-        <el-table-column prop="total_amount" label="总金额" width="120" align="right">
+        <el-table-column
+          prop="items_count"
+          label="明细数量"
+          width="100"
+          align="center"
+        />
+        <el-table-column
+          prop="total_amount"
+          label="总金额"
+          width="120"
+          align="right"
+        >
           <template slot-scope="scope">
             ¥{{ (scope.row.total_amount || 0).toFixed(2) }}
           </template>
@@ -53,14 +81,65 @@
         <el-table-column prop="created_at" label="创建时间" width="160" />
         <el-table-column label="操作" width="300" fixed="right">
           <template slot-scope="scope">
-            <el-button size="mini" type="primary" @click="handleView(scope.row)">查看</el-button>
-            <el-button v-if="scope.row.status === 'draft' && canEdit()" size="mini" type="success" @click="showEditDialog(scope.row)">编辑</el-button>
-            <el-button v-if="scope.row.status === 'draft'" size="mini" type="warning" @click="handleSubmit(scope.row)">提交</el-button>
-            <el-button v-if="scope.row.status === 'submitted'" size="mini" type="success" @click="handleApprove(scope.row)">批准</el-button>
-            <el-button v-if="scope.row.status === 'submitted'" size="mini" type="danger" @click="handleReject(scope.row)">拒绝</el-button>
-            <el-button v-if="scope.row.status === 'approved'" size="mini" type="warning" @click="handlePlaceOrder(scope.row)">下单</el-button>
-            <el-button v-if="scope.row.status === 'ordered'" size="mini" type="success" @click="handleReceive(scope.row)">收货</el-button>
-            <el-button v-if="['draft', 'submitted', 'approved'].includes(scope.row.status)" size="mini" type="danger" @click="handleCancel(scope.row)">取消</el-button>
+            <el-button size="mini" type="primary" @click="handleView(scope.row)">
+              查看
+            </el-button>
+            <el-button
+              v-if="scope.row.status === 'draft' && canEdit()"
+              size="mini"
+              type="success"
+              @click="showEditDialog(scope.row)"
+            >
+              编辑
+            </el-button>
+            <el-button
+              v-if="scope.row.status === 'draft'"
+              size="mini"
+              type="warning"
+              @click="handleSubmit(scope.row)"
+            >
+              提交
+            </el-button>
+            <el-button
+              v-if="scope.row.status === 'submitted'"
+              size="mini"
+              type="success"
+              @click="handleApprove(scope.row)"
+            >
+              批准
+            </el-button>
+            <el-button
+              v-if="scope.row.status === 'submitted'"
+              size="mini"
+              type="danger"
+              @click="handleReject(scope.row)"
+            >
+              拒绝
+            </el-button>
+            <el-button
+              v-if="scope.row.status === 'approved'"
+              size="mini"
+              type="warning"
+              @click="handlePlaceOrder(scope.row)"
+            >
+              下单
+            </el-button>
+            <el-button
+              v-if="scope.row.status === 'ordered'"
+              size="mini"
+              type="success"
+              @click="handleReceive(scope.row)"
+            >
+              收货
+            </el-button>
+            <el-button
+              v-if="['draft', 'submitted', 'approved'].includes(scope.row.status)"
+              size="mini"
+              type="danger"
+              @click="handleCancel(scope.row)"
+            >
+              取消
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -76,17 +155,33 @@
     </el-card>
 
     <!-- 新增/编辑对话框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="900px" @close="resetForm">
-      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
+    <el-dialog
+      :title="dialogTitle"
+      :visible.sync="dialogVisible"
+      width="900px"
+      @close="resetForm"
+    >
+      <el-form
+        ref="form"
+        :model="form"
+        :rules="rules"
+        label-width="100px"
+      >
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="供应商" prop="supplier">
-              <el-select v-model="form.supplier" placeholder="请选择供应商" filterable style="width: 100%">
+              <el-select
+                v-model="form.supplier"
+                placeholder="请选择供应商"
+                filterable
+                style="width: 100%"
+              >
                 <el-option
                   v-for="item in supplierOptions"
                   :key="item.id"
                   :label="item.name"
-                  :value="item.id" />
+                  :value="item.id"
+                />
               </el-select>
             </el-form-item>
           </el-col>
@@ -97,10 +192,17 @@
           </el-col>
         </el-row>
         <el-form-item label="备注">
-          <el-input v-model="form.notes" type="textarea" :rows="2" placeholder="请输入备注" />
+          <el-input
+            v-model="form.notes"
+            type="textarea"
+            :rows="2"
+            placeholder="请输入备注"
+          />
         </el-form-item>
         <el-divider>采购明细</el-divider>
-        <el-button size="small" type="primary" @click="handleAddItem">添加明细</el-button>
+        <el-button size="small" type="primary" @click="handleAddItem">
+          添加明细
+        </el-button>
         <el-table :data="form.items" border style="margin-top: 10px">
           <el-table-column label="物料" width="250">
             <template slot-scope="scope">
@@ -108,12 +210,14 @@
                 v-model="scope.row.material"
                 placeholder="请选择物料"
                 filterable
-                @change="handleMaterialChange(scope.row)">
+                @change="handleMaterialChange(scope.row)"
+              >
                 <el-option
                   v-for="item in materialOptions"
                   :key="item.id"
                   :label="`${item.code} - ${item.name}`"
-                  :value="item.id" />
+                  :value="item.id"
+                />
               </el-select>
             </template>
           </el-table-column>
@@ -134,7 +238,9 @@
           </el-table-column>
           <el-table-column label="操作" width="100">
             <template slot-scope="scope">
-              <el-button size="mini" type="danger" @click="handleDeleteItem(scope.$index)">删除</el-button>
+              <el-button size="mini" type="danger" @click="handleDeleteItem(scope.$index)">
+                删除
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -148,38 +254,91 @@
     <!-- 查看详情对话框 -->
     <el-dialog title="采购单详情" :visible.sync="detailDialogVisible" width="900px">
       <el-descriptions :column="2" border>
-        <el-descriptions-item label="采购单号">{{ detailData.order_number }}</el-descriptions-item>
-        <el-descriptions-item label="供应商">{{ detailData.supplier_name }}</el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <el-tag :type="getStatusType(detailData.status)">{{ detailData.status_display }}</el-tag>
+        <el-descriptions-item label="采购单号">
+          {{ detailData.order_number }}
         </el-descriptions-item>
-        <el-descriptions-item label="总金额">¥{{ (detailData.total_amount || 0).toFixed(2) }}</el-descriptions-item>
-        <el-descriptions-item label="提交人">{{ detailData.submitted_by_name }}</el-descriptions-item>
-        <el-descriptions-item label="提交时间">{{ detailData.submitted_at }}</el-descriptions-item>
-        <el-descriptions-item label="审核人">{{ detailData.approved_by_name }}</el-descriptions-item>
-        <el-descriptions-item label="审核时间">{{ detailData.approved_at }}</el-descriptions-item>
-        <el-descriptions-item label="下单日期">{{ detailData.ordered_date }}</el-descriptions-item>
-        <el-descriptions-item label="预计到货日期">{{ detailData.expected_date }}</el-descriptions-item>
-        <el-descriptions-item label="备注" :span="2">{{ detailData.notes }}</el-descriptions-item>
+        <el-descriptions-item label="供应商">
+          {{ detailData.supplier_name }}
+        </el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="getStatusType(detailData.status)">
+            {{ detailData.status_display }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="总金额">
+          ¥{{ (detailData.total_amount || 0).toFixed(2) }}
+        </el-descriptions-item>
+        <el-descriptions-item label="提交人">
+          {{ detailData.submitted_by_name }}
+        </el-descriptions-item>
+        <el-descriptions-item label="提交时间">
+          {{ detailData.submitted_at }}
+        </el-descriptions-item>
+        <el-descriptions-item label="审核人">
+          {{ detailData.approved_by_name }}
+        </el-descriptions-item>
+        <el-descriptions-item label="审核时间">
+          {{ detailData.approved_at }}
+        </el-descriptions-item>
+        <el-descriptions-item label="下单日期">
+          {{ detailData.ordered_date }}
+        </el-descriptions-item>
+        <el-descriptions-item label="预计到货日期">
+          {{ detailData.expected_date }}
+        </el-descriptions-item>
+        <el-descriptions-item label="备注" :span="2">
+          {{ detailData.notes }}
+        </el-descriptions-item>
       </el-descriptions>
       <el-divider>采购明细</el-divider>
       <el-table :data="detailData.items" border>
         <el-table-column prop="material_name" label="物料" width="200" />
         <el-table-column prop="material_code" label="物料编码" width="120" />
-        <el-table-column prop="quantity" label="采购数量" width="120" align="right" />
-        <el-table-column prop="received_quantity" label="已收货数量" width="120" align="right" />
-        <el-table-column prop="unit_price" label="单价" width="120" align="right">
-          <template slot-scope="scope">¥{{ (scope.row.unit_price || 0).toFixed(2) }}</template>
+        <el-table-column
+          prop="quantity"
+          label="采购数量"
+          width="120"
+          align="right"
+        />
+        <el-table-column
+          prop="received_quantity"
+          label="已收货数量"
+          width="120"
+          align="right"
+        />
+        <el-table-column
+          prop="unit_price"
+          label="单价"
+          width="120"
+          align="right"
+        >
+          <template slot-scope="scope">
+            ¥{{ (scope.row.unit_price || 0).toFixed(2) }}
+          </template>
         </el-table-column>
-        <el-table-column prop="subtotal" label="小计" width="120" align="right">
-          <template slot-scope="scope">¥{{ scope.row.subtotal.toFixed(2) }}</template>
+        <el-table-column
+          prop="subtotal"
+          label="小计"
+          width="120"
+          align="right"
+        >
+          <template slot-scope="scope">
+            ¥{{ scope.row.subtotal.toFixed(2) }}
+          </template>
         </el-table-column>
         <el-table-column prop="status_display" label="收货状态" width="120">
           <template slot-scope="scope">
-            <el-tag :type="getItemStatusType(scope.row.status)">{{ scope.row.status_display }}</el-tag>
+            <el-tag :type="getItemStatusType(scope.row.status)">
+              {{ scope.row.status_display }}
+            </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="notes" label="备注" min-width="150" show-overflow-tooltip />
+        <el-table-column
+          prop="notes"
+          label="备注"
+          min-width="150"
+          show-overflow-tooltip
+        />
       </el-table>
       <span slot="footer" class="dialog-footer">
         <el-button @click="detailDialogVisible = false">关闭</el-button>
@@ -191,9 +350,24 @@
       <el-table :data="lowStockMaterials" border>
         <el-table-column prop="code" label="物料编码" width="120" />
         <el-table-column prop="name" label="物料名称" width="200" />
-        <el-table-column prop="stock_quantity" label="当前库存" width="120" align="right" />
-        <el-table-column prop="min_stock_quantity" label="最小库存" width="120" align="right" />
-        <el-table-column prop="needed_quantity" label="需要采购" width="120" align="right">
+        <el-table-column
+          prop="stock_quantity"
+          label="当前库存"
+          width="120"
+          align="right"
+        />
+        <el-table-column
+          prop="min_stock_quantity"
+          label="最小库存"
+          width="120"
+          align="right"
+        />
+        <el-table-column
+          prop="needed_quantity"
+          label="需要采购"
+          width="120"
+          align="right"
+        >
           <template slot-scope="scope">
             <span style="color: #f56c6c;">{{ scope.row.needed_quantity }}</span>
           </template>

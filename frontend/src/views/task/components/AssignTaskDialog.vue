@@ -11,7 +11,7 @@
       label-width="120px"
     >
       <el-form-item label="任务内容">
-        <el-input :value="task?.work_content" disabled></el-input>
+        <el-input :value="task?.work_content" disabled />
       </el-form-item>
 
       <el-form-item label="分派部门" prop="assigned_department">
@@ -29,7 +29,7 @@
             :key="dept.id"
             :label="dept.name"
             :value="dept.id"
-          ></el-option>
+          />
         </el-select>
         <div style="color: #909399; font-size: 12px; margin-top: 4px;">
           选择任务分派到的部门，留空表示不清空现有分派
@@ -50,7 +50,7 @@
             :key="user.id"
             :label="user.username || `${(user.first_name || '')}${(user.last_name || '')}`.trim() || user.id"
             :value="user.id"
-          ></el-option>
+          />
         </el-select>
         <div style="color: #909399; font-size: 12px; margin-top: 4px;">
           选择任务分派到的操作员，留空表示不清空现有分派
@@ -63,7 +63,7 @@
           type="textarea"
           :rows="2"
           placeholder="请输入调整原因（可选，便于追溯）"
-        ></el-input>
+        />
       </el-form-item>
 
       <el-form-item label="备注">
@@ -72,12 +72,16 @@
           type="textarea"
           :rows="2"
           placeholder="请输入备注（可选）"
-        ></el-input>
+        />
       </el-form-item>
     </el-form>
     <div slot="footer">
-      <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" @click="handleConfirm" :loading="submitting">确定</el-button>
+      <el-button @click="handleClose">
+        取消
+      </el-button>
+      <el-button type="primary" :loading="submitting" @click="handleConfirm">
+        确定
+      </el-button>
     </div>
   </el-dialog>
 </template>

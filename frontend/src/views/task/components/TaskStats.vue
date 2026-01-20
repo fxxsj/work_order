@@ -7,8 +7,12 @@
             <i class="el-icon-s-order"></i>
           </div>
           <div class="stat-info">
-            <div class="stat-value">{{ totalTasks }}</div>
-            <div class="stat-label">总任务数</div>
+            <div class="stat-value">
+              {{ totalTasks }}
+            </div>
+            <div class="stat-label">
+              总任务数
+            </div>
           </div>
         </div>
       </el-card>
@@ -20,8 +24,12 @@
             <i class="el-icon-time"></i>
           </div>
           <div class="stat-info">
-            <div class="stat-value">{{ pendingCount }}</div>
-            <div class="stat-label">待开始</div>
+            <div class="stat-value">
+              {{ pendingCount }}
+            </div>
+            <div class="stat-label">
+              待开始
+            </div>
           </div>
         </div>
       </el-card>
@@ -33,8 +41,12 @@
             <i class="el-icon-loading"></i>
           </div>
           <div class="stat-info">
-            <div class="stat-value">{{ inProgressCount }}</div>
-            <div class="stat-label">进行中</div>
+            <div class="stat-value">
+              {{ inProgressCount }}
+            </div>
+            <div class="stat-label">
+              进行中
+            </div>
           </div>
         </div>
       </el-card>
@@ -46,8 +58,12 @@
             <i class="el-icon-circle-check"></i>
           </div>
           <div class="stat-info">
-            <div class="stat-value">{{ completedCount }}</div>
-            <div class="stat-label">已完成</div>
+            <div class="stat-value">
+              {{ completedCount }}
+            </div>
+            <div class="stat-label">
+              已完成
+            </div>
           </div>
         </div>
       </el-card>

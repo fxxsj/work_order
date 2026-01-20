@@ -12,16 +12,26 @@
             style="width: 100%"
             max-height="300"
           >
-            <el-table-column prop="customer" label="客户" min-width="150"></el-table-column>
-            <el-table-column prop="total" label="施工单数" width="100" align="right"></el-table-column>
-            <el-table-column prop="completed" label="已完成" width="100" align="right"></el-table-column>
+            <el-table-column prop="customer" label="客户" min-width="150" />
+            <el-table-column
+              prop="total"
+              label="施工单数"
+              width="100"
+              align="right"
+            />
+            <el-table-column
+              prop="completed"
+              label="已完成"
+              width="100"
+              align="right"
+            />
             <el-table-column label="完成率" width="120" align="right">
               <template slot-scope="scope">
                 <el-progress
                   :percentage="scope.row.completion_rate || 0"
                   :color="getProgressColor(scope.row.completion_rate)"
                   :stroke-width="8"
-                ></el-progress>
+                />
               </template>
             </el-table-column>
           </el-table>
@@ -39,10 +49,20 @@
             style="width: 100%"
             max-height="300"
           >
-            <el-table-column prop="product_name" label="产品名称" min-width="150"></el-table-column>
-            <el-table-column prop="product_code" label="产品编码" width="120"></el-table-column>
-            <el-table-column prop="order_count" label="施工单数" width="100" align="right"></el-table-column>
-            <el-table-column prop="total_quantity" label="总数量" width="100" align="right"></el-table-column>
+            <el-table-column prop="product_name" label="产品名称" min-width="150" />
+            <el-table-column prop="product_code" label="产品编码" width="120" />
+            <el-table-column
+              prop="order_count"
+              label="施工单数"
+              width="100"
+              align="right"
+            />
+            <el-table-column
+              prop="total_quantity"
+              label="总数量"
+              width="100"
+              align="right"
+            />
           </el-table>
         </el-card>
       </el-col>
@@ -58,12 +78,22 @@
           <el-table
             :data="departmentStatistics"
             style="width: 100%"
-            @row-click="(row) => $emit('navigate-tasks', { assigned_department__name: row.department })"
             :row-style="{ cursor: 'pointer' }"
+            @row-click="(row) => $emit('navigate-tasks', { assigned_department__name: row.department })"
           >
-            <el-table-column prop="department" label="部门" min-width="150"></el-table-column>
-            <el-table-column prop="total" label="任务总数" width="120" align="right"></el-table-column>
-            <el-table-column prop="completed" label="已完成" width="120" align="right"></el-table-column>
+            <el-table-column prop="department" label="部门" min-width="150" />
+            <el-table-column
+              prop="total"
+              label="任务总数"
+              width="120"
+              align="right"
+            />
+            <el-table-column
+              prop="completed"
+              label="已完成"
+              width="120"
+              align="right"
+            />
             <el-table-column label="完成率" width="200" align="right">
               <template slot-scope="scope">
                 <div class="progress-wrapper">
@@ -72,7 +102,7 @@
                     :color="getProgressColor(scope.row.completion_rate)"
                     :stroke-width="10"
                     class="progress-bar"
-                  ></el-progress>
+                  />
                   <span class="progress-text">{{ scope.row.completion_rate || 0 }}%</span>
                 </div>
               </template>

@@ -23,28 +23,26 @@ describe('ApprovalWorkflow.vue', () => {
     ]
   }
 
-  const factory = (propsData = {}) => {
-    return shallowMount(ApprovalWorkflow, {
-      localVue,
-      propsData: {
-        workOrder: mockWorkOrder,
-        canApprove: true,
-        canResubmit: true,
-        canRequestReapproval: true,
-        ...propsData
-      },
-      stubs: {
-        'el-card': true,
-        'el-form': true,
-        'el-form-item': true,
-        'el-input': true,
-        'el-button': true,
-        'el-alert': true,
-        'el-timeline': true,
-        'el-timeline-item': true
-      }
-    })
-  }
+  const factory = (propsData = {}) => shallowMount(ApprovalWorkflow, {
+    localVue,
+    propsData: {
+      workOrder: mockWorkOrder,
+      canApprove: true,
+      canResubmit: true,
+      canRequestReapproval: true,
+      ...propsData
+    },
+    stubs: {
+      'el-card': true,
+      'el-form': true,
+      'el-form-item': true,
+      'el-input': true,
+      'el-button': true,
+      'el-alert': true,
+      'el-timeline': true,
+      'el-timeline-item': true
+    }
+  })
 
   afterEach(() => {
     if (wrapper) {

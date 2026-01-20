@@ -38,7 +38,9 @@
           }"
         >
           <!-- ID -->
-          <div class="task-cell" style="width: 80px; padding: 0 8px;">#{{ item.id }}</div>
+          <div class="task-cell" style="width: 80px; padding: 0 8px;">
+            #{{ item.id }}
+          </div>
 
           <!-- 施工单号 -->
           <div class="task-cell" style="width: 150px; padding: 0 8px;">
@@ -61,7 +63,9 @@
 
           <!-- 任务内容 -->
           <div class="task-cell" style="flex: 1; min-width: 200px; padding: 0 8px;">
-            <div class="task-content">{{ item.work_content || '-' }}</div>
+            <div class="task-content">
+              {{ item.work_content || '-' }}
+            </div>
           </div>
 
           <!-- 分派部门 -->
@@ -105,8 +109,8 @@
               size="mini"
               type="success"
               icon="el-icon-check"
-              @click.stop="handleComplete(item)"
               :disabled="item.status === 'completed'"
+              @click.stop="handleComplete(item)"
             >
               完成
             </el-button>

@@ -10,9 +10,9 @@
     :disabled="disabled"
     :placeholder="placeholder"
     :collapse-tags="collapseTags"
+    value-key="valueKey"
     @change="handleChange"
     @focus="handleFocus"
-    value-key="valueKey"
   >
     <el-option
       v-for="item in options"

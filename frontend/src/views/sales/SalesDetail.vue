@@ -18,17 +18,35 @@
           </div>
         </div>
         <el-descriptions :column="3" border>
-          <el-descriptions-item label="订单号">{{ detailData.order_number }}</el-descriptions-item>
-          <el-descriptions-item label="客户">{{ detailData.customer_name }}</el-descriptions-item>
-          <el-descriptions-item label="状态">
-            <el-tag :type="getStatusType(detailData.status)">{{ detailData.status_display }}</el-tag>
+          <el-descriptions-item label="订单号">
+            {{ detailData.order_number }}
           </el-descriptions-item>
-          <el-descriptions-item label="订单日期">{{ formatDate(detailData.order_date) }}</el-descriptions-item>
-          <el-descriptions-item label="预计交货日期">{{ formatDate(detailData.delivery_date) }}</el-descriptions-item>
-          <el-descriptions-item label="实际交货日期">{{ formatDate(detailData.actual_delivery_date) || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="联系人">{{ detailData.contact_person || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="联系电话">{{ detailData.contact_phone || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="送货地址" :span="3">{{ detailData.shipping_address || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="客户">
+            {{ detailData.customer_name }}
+          </el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <el-tag :type="getStatusType(detailData.status)">
+              {{ detailData.status_display }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="订单日期">
+            {{ formatDate(detailData.order_date) }}
+          </el-descriptions-item>
+          <el-descriptions-item label="预计交货日期">
+            {{ formatDate(detailData.delivery_date) }}
+          </el-descriptions-item>
+          <el-descriptions-item label="实际交货日期">
+            {{ formatDate(detailData.actual_delivery_date) || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="联系人">
+            {{ detailData.contact_person || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="联系电话">
+            {{ detailData.contact_phone || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="送货地址" :span="3">
+            {{ detailData.shipping_address || '-' }}
+          </el-descriptions-item>
         </el-descriptions>
       </el-card>
 
@@ -40,53 +58,85 @@
         <el-row :gutter="20">
           <el-col :span="6">
             <div class="amount-item">
-              <div class="label">小计</div>
-              <div class="value">¥{{ formatAmount(detailData.subtotal) }}</div>
+              <div class="label">
+                小计
+              </div>
+              <div class="value">
+                ¥{{ formatAmount(detailData.subtotal) }}
+              </div>
             </div>
           </el-col>
           <el-col :span="6">
             <div class="amount-item">
-              <div class="label">税额 ({{ detailData.tax_rate }}%)</div>
-              <div class="value">¥{{ formatAmount(detailData.tax_amount) }}</div>
+              <div class="label">
+                税额 ({{ detailData.tax_rate }}%)
+              </div>
+              <div class="value">
+                ¥{{ formatAmount(detailData.tax_amount) }}
+              </div>
             </div>
           </el-col>
           <el-col :span="6">
             <div class="amount-item">
-              <div class="label">折扣金额</div>
-              <div class="value discount">-¥{{ formatAmount(detailData.discount_amount) }}</div>
+              <div class="label">
+                折扣金额
+              </div>
+              <div class="value discount">
+                -¥{{ formatAmount(detailData.discount_amount) }}
+              </div>
             </div>
           </el-col>
           <el-col :span="6">
             <div class="amount-item">
-              <div class="label">订单总金额</div>
-              <div class="value total">¥{{ formatAmount(detailData.total_amount) }}</div>
+              <div class="label">
+                订单总金额
+              </div>
+              <div class="value total">
+                ¥{{ formatAmount(detailData.total_amount) }}
+              </div>
             </div>
           </el-col>
         </el-row>
-        <el-divider></el-divider>
+        <el-divider />
         <el-row :gutter="20">
           <el-col :span="6">
             <div class="amount-item">
-              <div class="label">定金</div>
-              <div class="value">¥{{ formatAmount(detailData.deposit_amount) }}</div>
+              <div class="label">
+                定金
+              </div>
+              <div class="value">
+                ¥{{ formatAmount(detailData.deposit_amount) }}
+              </div>
             </div>
           </el-col>
           <el-col :span="6">
             <div class="amount-item">
-              <div class="label">已付金额</div>
-              <div class="value">¥{{ formatAmount(detailData.paid_amount) }}</div>
+              <div class="label">
+                已付金额
+              </div>
+              <div class="value">
+                ¥{{ formatAmount(detailData.paid_amount) }}
+              </div>
             </div>
           </el-col>
           <el-col :span="6">
             <div class="amount-item">
-              <div class="label">付款日期</div>
-              <div class="value">{{ formatDate(detailData.payment_date) || '-' }}</div>
+              <div class="label">
+                付款日期
+              </div>
+              <div class="value">
+                {{ formatDate(detailData.payment_date) || '-' }}
+              </div>
             </div>
           </el-col>
           <el-col :span="6">
             <div class="amount-item">
-              <div class="label">待付金额</div>
-              <div class="value pending">¥{{ formatAmount(parseFloat(detailData.total_amount || 0) - parseFloat(detailData.paid_amount || 0)) }}</div>
+              <div class="label">
+                待付金额
+              </div>
+              <div class="value pending">
+                ¥{{ formatAmount(parseFloat(detailData.total_amount || 0) - parseFloat(detailData.paid_amount || 0)) }}
+              </div>
             </div>
           </el-col>
         </el-row>
@@ -100,19 +150,55 @@
         <el-table :data="detailData.items" border>
           <el-table-column prop="product_code" label="产品编码" width="120" />
           <el-table-column prop="product_name" label="产品名称" min-width="150" />
-          <el-table-column prop="quantity" label="数量" width="100" align="right" />
+          <el-table-column
+            prop="quantity"
+            label="数量"
+            width="100"
+            align="right"
+          />
           <el-table-column prop="unit" label="单位" width="80" />
-          <el-table-column prop="unit_price" label="单价" width="120" align="right">
-            <template slot-scope="scope">¥{{ formatAmount(scope.row.unit_price) }}</template>
+          <el-table-column
+            prop="unit_price"
+            label="单价"
+            width="120"
+            align="right"
+          >
+            <template slot-scope="scope">
+              ¥{{ formatAmount(scope.row.unit_price) }}
+            </template>
           </el-table-column>
-          <el-table-column prop="tax_rate" label="税率(%)" width="100" align="right" />
-          <el-table-column prop="discount_amount" label="折扣金额" width="120" align="right">
-            <template slot-scope="scope">¥{{ formatAmount(scope.row.discount_amount) }}</template>
+          <el-table-column
+            prop="tax_rate"
+            label="税率(%)"
+            width="100"
+            align="right"
+          />
+          <el-table-column
+            prop="discount_amount"
+            label="折扣金额"
+            width="120"
+            align="right"
+          >
+            <template slot-scope="scope">
+              ¥{{ formatAmount(scope.row.discount_amount) }}
+            </template>
           </el-table-column>
-          <el-table-column prop="subtotal" label="小计" width="120" align="right">
-            <template slot-scope="scope">¥{{ formatAmount(scope.row.subtotal) }}</template>
+          <el-table-column
+            prop="subtotal"
+            label="小计"
+            width="120"
+            align="right"
+          >
+            <template slot-scope="scope">
+              ¥{{ formatAmount(scope.row.subtotal) }}
+            </template>
           </el-table-column>
-          <el-table-column prop="notes" label="备注" min-width="150" show-overflow-tooltip />
+          <el-table-column
+            prop="notes"
+            label="备注"
+            min-width="150"
+            show-overflow-tooltip
+          />
         </el-table>
       </el-card>
 
@@ -122,13 +208,25 @@
           <span class="title">审核信息</span>
         </div>
         <el-descriptions :column="2" border>
-          <el-descriptions-item label="提交人">{{ detailData.submitted_by_name || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="提交时间">{{ formatDateTime(detailData.submitted_at) || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="审核人">{{ detailData.approved_by_name || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="审核时间">{{ formatDateTime(detailData.approved_at) || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="审核意见" :span="2">{{ detailData.approval_comment || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="提交人">
+            {{ detailData.submitted_by_name || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="提交时间">
+            {{ formatDateTime(detailData.submitted_at) || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="审核人">
+            {{ detailData.approved_by_name || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="审核时间">
+            {{ formatDateTime(detailData.approved_at) || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="审核意见" :span="2">
+            {{ detailData.approval_comment || '-' }}
+          </el-descriptions-item>
           <el-descriptions-item label="拒绝原因" :span="2">
-            <el-tag v-if="detailData.rejection_reason" type="danger">{{ detailData.rejection_reason }}</el-tag>
+            <el-tag v-if="detailData.rejection_reason" type="danger">
+              {{ detailData.rejection_reason }}
+            </el-tag>
             <span v-else>-</span>
           </el-descriptions-item>
         </el-descriptions>
@@ -143,7 +241,9 @@
           <el-table-column prop="order_number" label="施工单号" width="150" />
           <el-table-column label="操作" width="150">
             <template slot-scope="scope">
-              <el-button size="mini" type="primary" @click="viewWorkOrder(scope.row)">查看</el-button>
+              <el-button size="mini" type="primary" @click="viewWorkOrder(scope.row)">
+                查看
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -166,23 +266,47 @@
           <span class="title">系统信息</span>
         </div>
         <el-descriptions :column="2" border>
-          <el-descriptions-item label="创建人">{{ detailData.created_by || detailData.submitted_by_name || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ formatDateTime(detailData.created_at) }}</el-descriptions-item>
-          <el-descriptions-item label="更新时间">{{ formatDateTime(detailData.updated_at) }}</el-descriptions-item>
+          <el-descriptions-item label="创建人">
+            {{ detailData.created_by || detailData.submitted_by_name || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="创建时间">
+            {{ formatDateTime(detailData.created_at) }}
+          </el-descriptions-item>
+          <el-descriptions-item label="更新时间">
+            {{ formatDateTime(detailData.updated_at) }}
+          </el-descriptions-item>
         </el-descriptions>
       </el-card>
 
       <!-- 操作按钮 -->
       <div class="action-buttons">
-        <el-button @click="handleClose">关闭</el-button>
-        <el-button v-if="canEdit" type="primary" @click="handleEdit">编辑</el-button>
-        <el-button v-if="canSubmit" type="warning" @click="handleSubmit">提交审核</el-button>
-        <el-button v-if="canApprove" type="success" @click="handleApprove">审核通过</el-button>
-        <el-button v-if="canApprove" type="danger" @click="handleReject">拒绝</el-button>
-        <el-button v-if="canStartProduction" type="primary" @click="handleStartProduction">开始生产</el-button>
-        <el-button v-if="canComplete" type="success" @click="handleComplete">完成订单</el-button>
-        <el-button v-if="canCancel" type="danger" @click="handleCancel">取消订单</el-button>
-        <el-button @click="handleRefresh">刷新</el-button>
+        <el-button @click="handleClose">
+          关闭
+        </el-button>
+        <el-button v-if="canEdit" type="primary" @click="handleEdit">
+          编辑
+        </el-button>
+        <el-button v-if="canSubmit" type="warning" @click="handleSubmit">
+          提交审核
+        </el-button>
+        <el-button v-if="canApprove" type="success" @click="handleApprove">
+          审核通过
+        </el-button>
+        <el-button v-if="canApprove" type="danger" @click="handleReject">
+          拒绝
+        </el-button>
+        <el-button v-if="canStartProduction" type="primary" @click="handleStartProduction">
+          开始生产
+        </el-button>
+        <el-button v-if="canComplete" type="success" @click="handleComplete">
+          完成订单
+        </el-button>
+        <el-button v-if="canCancel" type="danger" @click="handleCancel">
+          取消订单
+        </el-button>
+        <el-button @click="handleRefresh">
+          刷新
+        </el-button>
       </div>
     </div>
   </div>

@@ -11,7 +11,7 @@
         ></div>
       </div>
     </div>
-    
+
     <!-- 卡片骨架屏 -->
     <div v-else-if="type === 'card'" class="skeleton-card">
       <div v-for="i in rows" :key="i" class="skeleton-card-item">
@@ -23,7 +23,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 列表骨架屏 -->
     <div v-else class="skeleton-list">
       <div v-for="i in rows" :key="i" class="skeleton-list-item">

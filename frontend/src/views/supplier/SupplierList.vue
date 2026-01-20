@@ -2,7 +2,12 @@
   <div class="supplier-list">
     <el-card>
       <!-- 搜索和筛选 -->
-      <el-form :inline="true" :model="filters" class="search-form" @keyup.enter.native="handleSearch">
+      <el-form
+        :inline="true"
+        :model="filters"
+        class="search-form"
+        @keyup.enter.native="handleSearch"
+      >
         <el-form-item label="供应商名称/编码">
           <el-input v-model="searchText" placeholder="请输入" clearable />
         </el-form-item>
@@ -13,14 +18,25 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="resetFilters">重置</el-button>
-          <el-button v-if="canCreate()" type="success" @click="showCreateDialog">新增供应商</el-button>
+          <el-button type="primary" @click="handleSearch">
+            搜索
+          </el-button>
+          <el-button @click="resetFilters">
+            重置
+          </el-button>
+          <el-button v-if="canCreate()" type="success" @click="showCreateDialog">
+            新增供应商
+          </el-button>
         </el-form-item>
       </el-form>
 
       <!-- 数据表格 -->
-      <el-table :data="tableData" v-loading="loading" border stripe>
+      <el-table
+        v-loading="loading"
+        :data="tableData"
+        border
+        stripe
+      >
         <el-table-column prop="code" label="供应商编码" width="150" />
         <el-table-column prop="name" label="供应商名称" width="200" />
         <el-table-column prop="contact_person" label="联系人" width="120" />
@@ -34,11 +50,30 @@
           </template>
         </el-table-column>
         <el-table-column prop="material_count" label="供应物料数" width="120" />
-        <el-table-column prop="notes" label="备注" min-width="200" show-overflow-tooltip />
+        <el-table-column
+          prop="notes"
+          label="备注"
+          min-width="200"
+          show-overflow-tooltip
+        />
         <el-table-column label="操作" width="200" fixed="right">
           <template slot-scope="scope">
-            <el-button v-if="canEdit()" size="mini" type="primary" @click="showEditDialog(scope.row)">编辑</el-button>
-            <el-button v-if="canDelete()" size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+            <el-button
+              v-if="canEdit()"
+              size="mini"
+              type="primary"
+              @click="showEditDialog(scope.row)"
+            >
+              编辑
+            </el-button>
+            <el-button
+              v-if="canDelete()"
+              size="mini"
+              type="danger"
+              @click="handleDelete(scope.row)"
+            >
+              删除
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -54,8 +89,18 @@
     </el-card>
 
     <!-- 新增/编辑对话框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="600px" @close="resetForm">
-      <el-form :model="form" :rules="rules" ref="form" label-width="100px">
+    <el-dialog
+      :title="dialogTitle"
+      :visible.sync="dialogVisible"
+      width="600px"
+      @close="resetForm"
+    >
+      <el-form
+        ref="form"
+        :model="form"
+        :rules="rules"
+        label-width="100px"
+      >
         <el-form-item label="供应商编码" prop="code">
           <el-input v-model="form.code" placeholder="请输入供应商编码" :disabled="isEditMode" />
         </el-form-item>
@@ -72,16 +117,30 @@
           <el-input v-model="form.email" placeholder="请输入邮箱" />
         </el-form-item>
         <el-form-item label="地址" prop="address">
-          <el-input v-model="form.address" type="textarea" :rows="3" placeholder="请输入地址" />
+          <el-input
+            v-model="form.address"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入地址"
+          />
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
-            <el-radio label="active">启用</el-radio>
-            <el-radio label="inactive">停用</el-radio>
+            <el-radio label="active">
+              启用
+            </el-radio>
+            <el-radio label="inactive">
+              停用
+            </el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="备注" prop="notes">
-          <el-input v-model="form.notes" type="textarea" :rows="3" placeholder="请输入备注" />
+          <el-input
+            v-model="form.notes"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入备注"
+          />
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">

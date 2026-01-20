@@ -3,116 +3,348 @@
     <div class="header">
       <h2>对账管理</h2>
       <div class="actions">
-        <el-button type="primary" icon="el-icon-plus" @click="handleCreate">生成对账单</el-button>
-        <el-button icon="el-icon-refresh" @click="fetchStatementList">刷新</el-button>
+        <el-button type="primary" icon="el-icon-plus" @click="handleCreate">
+          生成对账单
+        </el-button>
+        <el-button icon="el-icon-refresh" @click="fetchStatementList">
+          刷新
+        </el-button>
       </div>
     </div>
 
     <div class="filter-section">
       <el-form :inline="true" :model="filters" class="filter-form">
         <el-form-item label="对账类型">
-          <el-select v-model="filters.statement_type" placeholder="全部类型" clearable @change="handleSearch">
-            <el-option label="客户对账" value="customer"></el-option>
-            <el-option label="供应商对账" value="supplier"></el-option>
+          <el-select
+            v-model="filters.statement_type"
+            placeholder="全部类型"
+            clearable
+            @change="handleSearch"
+          >
+            <el-option label="客户对账" value="customer" />
+            <el-option label="供应商对账" value="supplier" />
           </el-select>
         </el-form-item>
         <el-form-item label="对方单位">
-          <el-select v-model="filters.partner" placeholder="全部单位" clearable filterable>
-            <el-option v-for="partner in partnerList" :key="partner.id" :label="partner.name" :value="partner.id" />
+          <el-select
+            v-model="filters.partner"
+            placeholder="全部单位"
+            clearable
+            filterable
+          >
+            <el-option
+              v-for="partner in partnerList"
+              :key="partner.id"
+              :label="partner.name"
+              :value="partner.id"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="对账期间">
-          <el-date-picker v-model="filters.period_range" type="monthrange" range-separator="至" start-placeholder="开始月份" end-placeholder="结束月份" clearable @change="handleSearch" />
+          <el-date-picker
+            v-model="filters.period_range"
+            type="monthrange"
+            range-separator="至"
+            start-placeholder="开始月份"
+            end-placeholder="结束月份"
+            clearable
+            @change="handleSearch"
+          />
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="filters.status" placeholder="全部状态" clearable @change="handleSearch">
-            <el-option label="草稿" value="draft"></el-option>
-            <el-option label="已确认" value="confirmed"></el-option>
-            <el-option label="已作废" value="cancelled"></el-option>
+          <el-select
+            v-model="filters.status"
+            placeholder="全部状态"
+            clearable
+            @change="handleSearch"
+          >
+            <el-option label="草稿" value="draft" />
+            <el-option label="已确认" value="confirmed" />
+            <el-option label="已作废" value="cancelled" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
+          <el-button type="primary" @click="handleSearch">
+            查询
+          </el-button>
+          <el-button @click="handleReset">
+            重置
+          </el-button>
         </el-form-item>
       </el-form>
     </div>
 
     <div class="table-section">
-      <el-table v-loading="loading" :data="statementList" border style="width: 100%">
+      <el-table
+        v-loading="loading"
+        :data="statementList"
+        border
+        style="width: 100%"
+      >
         <el-table-column prop="statement_number" label="对账单号" width="150" />
         <el-table-column prop="statement_type_display" label="对账类型" width="100" />
         <el-table-column prop="partner_name" label="对方单位" width="200" />
         <el-table-column prop="period_start" label="期间开始" width="120" />
         <el-table-column prop="period_end" label="期间结束" width="120" />
-        <el-table-column prop="opening_balance" label="期初余额" width="120" align="right"><template #default="{ row }">¥{{ row.opening_balance ? row.opening_balance.toLocaleString() : '-' }}</template></el-table-column>
-        <el-table-column prop="debit_amount" label="借方发生额" width="120" align="right"><template #default="{ row }">¥{{ row.debit_amount ? row.debit_amount.toLocaleString() : '-' }}</template></el-table-column>
-        <el-table-column prop="credit_amount" label="贷方发生额" width="120" align="right"><template #default="{ row }">¥{{ row.credit_amount ? row.credit_amount.toLocaleString() : '-' }}</template></el-table-column>
-        <el-table-column prop="closing_balance" label="期末余额" width="120" align="right"><template #default="{ row }"><span style="font-weight: bold;">¥{{ row.closing_balance ? row.closing_balance.toLocaleString() : '-' }}</span></template></el-table-column>
-        <el-table-column prop="status_display" label="状态" width="100"><template #default="{ row }"><el-tag :type="getStatusType(row.status)">{{ row.status_display }}</el-tag></template></el-table-column>
-        <el-table-column label="操作" width="200" fixed="right"><template #default="{ row }"><el-button size="small" @click="handleView(row)">查看</el-button><el-button v-if="row.status === 'draft'" size="small" type="primary" @click="handleConfirm(row)">确认</el-button><el-button size="small" type="success" @click="handleExport(row)">导出</el-button></template></el-table-column>
+        <el-table-column
+          prop="opening_balance"
+          label="期初余额"
+          width="120"
+          align="right"
+        >
+          <template #default="{ row }">
+            ¥{{ row.opening_balance ? row.opening_balance.toLocaleString() : '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="debit_amount"
+          label="借方发生额"
+          width="120"
+          align="right"
+        >
+          <template #default="{ row }">
+            ¥{{ row.debit_amount ? row.debit_amount.toLocaleString() : '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="credit_amount"
+          label="贷方发生额"
+          width="120"
+          align="right"
+        >
+          <template #default="{ row }">
+            ¥{{ row.credit_amount ? row.credit_amount.toLocaleString() : '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="closing_balance"
+          label="期末余额"
+          width="120"
+          align="right"
+        >
+          <template #default="{ row }">
+            <span style="font-weight: bold;">¥{{ row.closing_balance ? row.closing_balance.toLocaleString() : '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="status_display" label="状态" width="100">
+          <template #default="{ row }">
+            <el-tag :type="getStatusType(row.status)">
+              {{ row.status_display }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="200" fixed="right">
+          <template #default="{ row }">
+            <el-button size="small" @click="handleView(row)">
+              查看
+            </el-button><el-button
+              v-if="row.status === 'draft'"
+              size="small"
+              type="primary"
+              @click="handleConfirm(row)"
+            >
+              确认
+            </el-button><el-button size="small" type="success" @click="handleExport(row)">
+              导出
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
 
-      <Pagination :current-page="pagination.page" :page-size="pagination.pageSize" :total="pagination.total" @current-change="handlePageChange" @size-change="handleSizeChange" />
+      <Pagination
+        :current-page="pagination.page"
+        :page-size="pagination.pageSize"
+        :total="pagination.total"
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"
+      />
     </div>
 
-    <el-dialog :visible.sync="detailDialogVisible" title="对账单详情" width="1200px" :close-on-click-modal="false">
+    <el-dialog
+      :visible.sync="detailDialogVisible"
+      title="对账单详情"
+      width="1200px"
+      :close-on-click-modal="false"
+    >
       <div v-if="currentStatement">
         <el-descriptions :column="3" border>
-          <el-descriptions-item label="对账单号">{{ currentStatement.statement_number }}</el-descriptions-item>
-          <el-descriptions-item label="对账类型">{{ currentStatement.statement_type_display }}</el-descriptions-item>
-          <el-descriptions-item label="状态"><el-tag :type="getStatusType(currentStatement.status)">{{ currentStatement.status_display }}</el-tag></el-descriptions-item>
-          <el-descriptions-item label="对方单位">{{ currentStatement.partner_name }}</el-descriptions-item>
-          <el-descriptions-item label="对账期间">{{ currentStatement.period_start }} ~ {{ currentStatement.period_end }}</el-descriptions-item>
-          <el-descriptions-item label="生成日期">{{ currentStatement.statement_date }}</el-descriptions-item>
+          <el-descriptions-item label="对账单号">
+            {{ currentStatement.statement_number }}
+          </el-descriptions-item>
+          <el-descriptions-item label="对账类型">
+            {{ currentStatement.statement_type_display }}
+          </el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <el-tag :type="getStatusType(currentStatement.status)">
+              {{ currentStatement.status_display }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="对方单位">
+            {{ currentStatement.partner_name }}
+          </el-descriptions-item>
+          <el-descriptions-item label="对账期间">
+            {{ currentStatement.period_start }} ~ {{ currentStatement.period_end }}
+          </el-descriptions-item>
+          <el-descriptions-item label="生成日期">
+            {{ currentStatement.statement_date }}
+          </el-descriptions-item>
         </el-descriptions>
 
         <div class="balance-summary">
           <h3>余额汇总</h3>
           <el-row :gutter="20" style="margin-top: 10px;">
-            <el-col :span="6"><el-card><div class="balance-item"><div class="balance-label">期初余额</div><div class="balance-value">¥{{ currentStatement.opening_balance ? currentStatement.opening_balance.toLocaleString() : '-' }}</div></div></el-card></el-col>
-            <el-col :span="6"><el-card><div class="balance-item"><div class="balance-label debit">借方发生额</div><div class="balance-value">¥{{ currentStatement.debit_amount ? currentStatement.debit_amount.toLocaleString() : '-' }}</div></div></el-card></el-col>
-            <el-col :span="6"><el-card><div class="balance-item"><div class="balance-label credit">贷方发生额</div><div class="balance-value">¥{{ currentStatement.credit_amount ? currentStatement.credit_amount.toLocaleString() : '-' }}</div></div></el-card></el-col>
-            <el-col :span="6"><el-card><div class="balance-item"><div class="balance-label closing">期末余额</div><div class="balance-value">¥{{ currentStatement.closing_balance ? currentStatement.closing_balance.toLocaleString() : '-' }}</div></div></el-card></el-col>
+            <el-col :span="6">
+              <el-card>
+                <div class="balance-item">
+                  <div class="balance-label">
+                    期初余额
+                  </div><div class="balance-value">
+                    ¥{{ currentStatement.opening_balance ? currentStatement.opening_balance.toLocaleString() : '-' }}
+                  </div>
+                </div>
+              </el-card>
+            </el-col>
+            <el-col :span="6">
+              <el-card>
+                <div class="balance-item">
+                  <div class="balance-label debit">
+                    借方发生额
+                  </div><div class="balance-value">
+                    ¥{{ currentStatement.debit_amount ? currentStatement.debit_amount.toLocaleString() : '-' }}
+                  </div>
+                </div>
+              </el-card>
+            </el-col>
+            <el-col :span="6">
+              <el-card>
+                <div class="balance-item">
+                  <div class="balance-label credit">
+                    贷方发生额
+                  </div><div class="balance-value">
+                    ¥{{ currentStatement.credit_amount ? currentStatement.credit_amount.toLocaleString() : '-' }}
+                  </div>
+                </div>
+              </el-card>
+            </el-col>
+            <el-col :span="6">
+              <el-card>
+                <div class="balance-item">
+                  <div class="balance-label closing">
+                    期末余额
+                  </div><div class="balance-value">
+                    ¥{{ currentStatement.closing_balance ? currentStatement.closing_balance.toLocaleString() : '-' }}
+                  </div>
+                </div>
+              </el-card>
+            </el-col>
           </el-row>
         </div>
       </div>
-      <template #footer><el-button @click="detailDialogVisible = false">关闭</el-button><el-button type="primary" @click="handlePrint">打印</el-button></template>
+      <template #footer>
+        <el-button @click="detailDialogVisible = false">
+          关闭
+        </el-button><el-button type="primary" @click="handlePrint">
+          打印
+        </el-button>
+      </template>
     </el-dialog>
 
-    <el-dialog :visible.sync="formDialogVisible" title="生成对账单" width="600px" :close-on-click-modal="false">
-      <el-form :model="statementForm" :rules="statementRules" ref="statementFormRef" label-width="100px">
+    <el-dialog
+      :visible.sync="formDialogVisible"
+      title="生成对账单"
+      width="600px"
+      :close-on-click-modal="false"
+    >
+      <el-form
+        ref="statementFormRef"
+        :model="statementForm"
+        :rules="statementRules"
+        label-width="100px"
+      >
         <el-form-item label="对账类型" prop="statement_type">
           <el-radio-group v-model="statementForm.statement_type">
-            <el-radio label="customer">客户对账</el-radio>
-            <el-radio label="supplier">供应商对账</el-radio>
+            <el-radio label="customer">
+              客户对账
+            </el-radio>
+            <el-radio label="supplier">
+              供应商对账
+            </el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="对方单位" prop="partner">
-          <el-select v-model="statementForm.partner" placeholder="请选择对方单位" filterable style="width: 100%;">
-            <el-option v-for="partner in filteredPartnerList" :key="partner.id" :label="partner.name" :value="partner.id" />
+          <el-select
+            v-model="statementForm.partner"
+            placeholder="请选择对方单位"
+            filterable
+            style="width: 100%;"
+          >
+            <el-option
+              v-for="partner in filteredPartnerList"
+              :key="partner.id"
+              :label="partner.name"
+              :value="partner.id"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="对账期间" prop="period">
-          <el-date-picker v-model="statementForm.period" type="monthrange" range-separator="至" start-placeholder="开始月份" end-placeholder="结束月份" style="width: 100%;" />
+          <el-date-picker
+            v-model="statementForm.period"
+            type="monthrange"
+            range-separator="至"
+            start-placeholder="开始月份"
+            end-placeholder="结束月份"
+            style="width: 100%;"
+          />
         </el-form-item>
         <el-form-item label="对账日期" prop="statement_date">
-          <el-date-picker v-model="statementForm.statement_date" type="date" placeholder="请选择日期" style="width: 100%;" />
+          <el-date-picker
+            v-model="statementForm.statement_date"
+            type="date"
+            placeholder="请选择日期"
+            style="width: 100%;"
+          />
         </el-form-item>
         <el-form-item label="备注">
-          <el-input v-model="statementForm.notes" type="textarea" :rows="3" placeholder="请输入备注" />
+          <el-input
+            v-model="statementForm.notes"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入备注"
+          />
         </el-form-item>
       </el-form>
-      <template #footer><el-button @click="formDialogVisible = false">取消</el-button><el-button type="primary" @click="handleGenerate">生成</el-button></template>
+      <template #footer>
+        <el-button @click="formDialogVisible = false">
+          取消
+        </el-button><el-button type="primary" @click="handleGenerate">
+          生成
+        </el-button>
+      </template>
     </el-dialog>
 
-    <el-dialog :visible.sync="confirmDialogVisible" title="确认对账单" width="500px" :close-on-click-modal="false">
+    <el-dialog
+      :visible.sync="confirmDialogVisible"
+      title="确认对账单"
+      width="500px"
+      :close-on-click-modal="false"
+    >
       <el-form :model="confirmForm" label-width="100px">
         <el-form-item label="确认备注">
-          <el-input v-model="confirmForm.confirm_notes" type="textarea" :rows="3" placeholder="请输入确认备注" />
+          <el-input
+            v-model="confirmForm.confirm_notes"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入确认备注"
+          />
         </el-form-item>
       </el-form>
-      <template #footer><el-button @click="confirmDialogVisible = false">取消</el-button><el-button type="primary" @click="handleSaveConfirm">确认</el-button></template>
+      <template #footer>
+        <el-button @click="confirmDialogVisible = false">
+          取消
+        </el-button><el-button type="primary" @click="handleSaveConfirm">
+          确认
+        </el-button>
+      </template>
     </el-dialog>
   </div>
 </template>

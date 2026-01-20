@@ -32,7 +32,7 @@
     <!-- 空状态 -->
     <div v-else class="virtual-table-empty">
       <slot name="empty">
-        <el-empty description="暂无数据"></el-empty>
+        <el-empty description="暂无数据" />
       </slot>
     </div>
 

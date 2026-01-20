@@ -8,8 +8,12 @@
               <i class="el-icon-document"></i>
             </div>
             <div class="stat-info">
-              <div class="stat-value">{{ statistics.total_count || 0 }}</div>
-              <div class="stat-label">施工单总数</div>
+              <div class="stat-value">
+                {{ statistics.total_count || 0 }}
+              </div>
+              <div class="stat-label">
+                施工单总数
+              </div>
             </div>
           </div>
         </el-card>
@@ -21,8 +25,12 @@
               <i class="el-icon-circle-check"></i>
             </div>
             <div class="stat-info">
-              <div class="stat-value">{{ getStatusCount('completed') }}</div>
-              <div class="stat-label">已完成</div>
+              <div class="stat-value">
+                {{ getStatusCount('completed') }}
+              </div>
+              <div class="stat-label">
+                已完成
+              </div>
             </div>
           </div>
         </el-card>
@@ -34,8 +42,12 @@
               <i class="el-icon-loading"></i>
             </div>
             <div class="stat-info">
-              <div class="stat-value">{{ getStatusCount('in_progress') }}</div>
-              <div class="stat-label">进行中</div>
+              <div class="stat-value">
+                {{ getStatusCount('in_progress') }}
+              </div>
+              <div class="stat-label">
+                进行中
+              </div>
             </div>
           </div>
         </el-card>
@@ -47,8 +59,12 @@
               <i class="el-icon-warning"></i>
             </div>
             <div class="stat-info">
-              <div class="stat-value">{{ statistics.upcoming_deadline_count || 0 }}</div>
-              <div class="stat-label">即将到期</div>
+              <div class="stat-value">
+                {{ statistics.upcoming_deadline_count || 0 }}
+              </div>
+              <div class="stat-label">
+                即将到期
+              </div>
             </div>
           </div>
         </el-card>
@@ -66,8 +82,8 @@
           <el-table
             :data="statusTableData"
             style="width: 100%"
-            @row-click="handleStatusRowClick"
             :row-style="{ cursor: 'pointer' }"
+            @row-click="handleStatusRowClick"
           >
             <el-table-column prop="status_display" label="状态" width="120">
               <template slot-scope="scope">
@@ -76,7 +92,7 @@
                 </span>
               </template>
             </el-table-column>
-            <el-table-column prop="count" label="数量" align="right"></el-table-column>
+            <el-table-column prop="count" label="数量" align="right" />
             <el-table-column label="占比" align="right">
               <template slot-scope="scope">
                 {{ getPercentage(scope.row.count) }}%
@@ -95,8 +111,8 @@
           <el-table
             :data="priorityTableData"
             style="width: 100%"
-            @row-click="handlePriorityRowClick"
             :row-style="{ cursor: 'pointer' }"
+            @row-click="handlePriorityRowClick"
           >
             <el-table-column prop="priority_display" label="优先级" width="120">
               <template slot-scope="scope">
@@ -105,7 +121,7 @@
                 </span>
               </template>
             </el-table-column>
-            <el-table-column prop="count" label="数量" align="right"></el-table-column>
+            <el-table-column prop="count" label="数量" align="right" />
             <el-table-column label="占比" align="right">
               <template slot-scope="scope">
                 {{ getPercentage(scope.row.count) }}%

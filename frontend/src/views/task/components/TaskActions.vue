@@ -15,16 +15,16 @@
       v-if="task.status !== 'completed' && !task.auto_calculate_quantity"
       type="primary"
       size="mini"
-      @click="handleUpdate"
       style="margin-left: 5px;"
+      @click="handleUpdate"
     >
       更新
     </el-button>
     <el-button
       type="warning"
       size="mini"
-      @click="handleAssign"
       style="margin-left: 5px;"
+      @click="handleAssign"
     >
       分派
     </el-button>
@@ -32,8 +32,8 @@
       v-if="task.status !== 'completed' && !task.is_subtask && !task.subtasks_count"
       type="info"
       size="mini"
-      @click="handleSplit"
       style="margin-left: 5px;"
+      @click="handleSplit"
     >
       拆分
     </el-button>

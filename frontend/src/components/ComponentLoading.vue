@@ -3,7 +3,9 @@
     <el-icon class="is-loading">
       <i class="el-icon-loading"></i>
     </el-icon>
-    <p class="loading-text">{{ text }}</p>
+    <p class="loading-text">
+      {{ text }}
+    </p>
   </div>
 </template>
 

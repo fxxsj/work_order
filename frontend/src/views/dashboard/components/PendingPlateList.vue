@@ -1,16 +1,31 @@
 <template>
   <div class="pending-plate-list">
     <div v-if="items.length > 0">
-      <el-table :data="items.slice(0, 5)" style="width: 100%" max-height="200" size="mini">
-        <el-table-column prop="code" label="编码" width="120" show-overflow-tooltip></el-table-column>
-        <el-table-column prop="name" label="名称" min-width="100" show-overflow-tooltip></el-table-column>
+      <el-table
+        :data="items.slice(0, 5)"
+        style="width: 100%"
+        max-height="200"
+        size="mini"
+      >
+        <el-table-column
+          prop="code"
+          label="编码"
+          width="120"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="name"
+          label="名称"
+          min-width="100"
+          show-overflow-tooltip
+        />
         <el-table-column label="操作" width="80" fixed="right">
           <template slot-scope="scope">
             <el-button
               type="text"
               size="mini"
-              @click="$emit('confirm', { type, item: scope.row })"
               :loading="confirmingItem === `${type}-${scope.row.id}`"
+              @click="$emit('confirm', { type, item: scope.row })"
             >
               确认
             </el-button>

@@ -387,9 +387,7 @@ class TaskService extends BaseService {
     }
 
     // 验证总数量
-    const totalQuantity = splits.reduce((sum, split) => {
-      return sum + (split.production_quantity || 0)
-    }, 0)
+    const totalQuantity = splits.reduce((sum, split) => sum + (split.production_quantity || 0), 0)
 
     if (totalQuantity !== task.production_quantity) {
       errors.push(`拆分后的总数量(${totalQuantity})必须等于原任务数量(${task.production_quantity})`)

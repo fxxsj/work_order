@@ -13,7 +13,9 @@
       >
         <el-card class="timeline-card" :class="`card-${item.type}`">
           <div class="card-header">
-            <h4 class="card-title">{{ item.title }}</h4>
+            <h4 class="card-title">
+              {{ item.title }}
+            </h4>
             <el-tag
               :type="getTagType(item.type)"
               size="small"
@@ -22,7 +24,9 @@
             </el-tag>
           </div>
           <div class="card-content">
-            <p v-if="item.content">{{ item.content }}</p>
+            <p v-if="item.content">
+              {{ item.content }}
+            </p>
             <div v-if="item.details" class="card-details">
               <div
                 v-for="(detail, key) in item.details"
@@ -41,7 +45,7 @@
         </el-card>
       </el-timeline-item>
     </el-timeline>
-    <el-empty v-if="timelineItems.length === 0" description="暂无时间线数据"></el-empty>
+    <el-empty v-if="timelineItems.length === 0" description="暂无时间线数据" />
   </div>
 </template>
 
@@ -191,9 +195,7 @@ export default {
       }
 
       // 按时间倒序排序（最新的在前）
-      return items.sort((a, b) => {
-        return new Date(b.timestamp) - new Date(a.timestamp)
-      })
+      return items.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
     }
   },
   methods: {

@@ -30,9 +30,7 @@ const getters = {
   selectedTasks: (state) => state.selectedTasks,
 
   // 是否有选中项
-  hasSelection: (state) => {
-    return state.selectedTask !== null || state.selectedTasks.length > 0
-  },
+  hasSelection: (state) => state.selectedTask !== null || state.selectedTasks.length > 0,
 
   // 获取筛选条件
   filters: (state) => state.filters,

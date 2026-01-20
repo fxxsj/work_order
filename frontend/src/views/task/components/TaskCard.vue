@@ -26,7 +26,9 @@
 
     <!-- 卡片内容 -->
     <div class="task-content">
-      <div class="task-title">{{ task.work_content }}</div>
+      <div class="task-title">
+        {{ task.work_content }}
+      </div>
 
       <!-- 任务信息 -->
       <div class="task-info">
@@ -59,7 +61,7 @@
           :color="progressColor"
           :show-text="false"
           :stroke-width="6"
-        ></el-progress>
+        />
       </div>
     </div>
 

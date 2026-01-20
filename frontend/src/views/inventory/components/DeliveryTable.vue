@@ -11,7 +11,12 @@
       <el-table-column prop="sales_order_number" label="销售订单" width="150" />
       <el-table-column prop="receiver_name" label="收货人" width="100" />
       <el-table-column prop="receiver_phone" label="联系电话" width="120" />
-      <el-table-column prop="delivery_address" label="送货地址" show-overflow-tooltip width="200" />
+      <el-table-column
+        prop="delivery_address"
+        label="送货地址"
+        show-overflow-tooltip
+        width="200"
+      />
       <el-table-column prop="logistics_company" label="物流公司" width="120" />
       <el-table-column prop="tracking_number" label="物流单号" width="150">
         <template slot-scope="scope">
@@ -24,12 +29,16 @@
       <el-table-column prop="delivery_date" label="发货日期" width="120" />
       <el-table-column prop="status_display" label="状态" width="100">
         <template slot-scope="scope">
-          <el-tag :type="getStatusType(scope.row.status)">{{ scope.row.status_display }}</el-tag>
+          <el-tag :type="getStatusType(scope.row.status)">
+            {{ scope.row.status_display }}
+          </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="操作" width="250" fixed="right">
         <template slot-scope="scope">
-          <el-button size="small" @click="$emit('view', scope.row)">查看</el-button>
+          <el-button size="small" @click="$emit('view', scope.row)">
+            查看
+          </el-button>
           <el-button
             v-if="scope.row.status === 'pending'"
             size="small"

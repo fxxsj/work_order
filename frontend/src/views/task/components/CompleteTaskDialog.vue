@@ -11,7 +11,9 @@
       label-width="120px"
     >
       <el-form-item label="状态">
-        <el-tag type="success">已完成</el-tag>
+        <el-tag type="success">
+          已完成
+        </el-tag>
         <div style="color: #909399; font-size: 12px; margin-top: 4px;">
           强制完成任务，状态将标记为已完成
         </div>
@@ -28,7 +30,7 @@
           :step="1"
           disabled
           style="width: 100%;"
-        ></el-input-number>
+        />
         <div style="color: #909399; font-size: 12px; margin-top: 4px;">
           制版任务完成数量固定为1
         </div>
@@ -42,7 +44,7 @@
           :value="task.quantity_completed || 0"
           disabled
           style="width: 100%;"
-        ></el-input-number>
+        />
         <div v-if="task && task.production_quantity" style="color: #909399; font-size: 12px; margin-top: 4px;">
           计划数量：{{ task.production_quantity }}
           <span v-if="(task.quantity_completed || 0) < task.production_quantity" style="color: #E6A23C; margin-left: 10px;">
@@ -57,7 +59,7 @@
           type="textarea"
           :rows="3"
           placeholder="请输入完成理由（可选，用于说明为什么在完成数量小于生产数量时强制完成）"
-        ></el-input>
+        />
       </el-form-item>
 
       <el-form-item
@@ -79,7 +81,7 @@
             :key="artwork.id"
             :label="`${artwork.code || artwork.base_code || ''} - ${artwork.name || ''}`"
             :value="artwork.id"
-          ></el-option>
+          />
         </el-select>
         <div style="color: #909399; font-size: 12px; margin-top: 5px;">
           选中的图稿将自动关联到施工单
@@ -105,7 +107,7 @@
             :key="die.id"
             :label="`${die.code} - ${die.name}`"
             :value="die.id"
-          ></el-option>
+          />
         </el-select>
         <div style="color: #909399; font-size: 12px; margin-top: 5px;">
           选中的刀模将自动关联到施工单
@@ -118,12 +120,16 @@
           type="textarea"
           :rows="3"
           placeholder="请输入任务备注（可选）"
-        ></el-input>
+        />
       </el-form-item>
     </el-form>
     <div slot="footer">
-      <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" @click="handleConfirm" :loading="submitting">确定</el-button>
+      <el-button @click="handleClose">
+        取消
+      </el-button>
+      <el-button type="primary" :loading="submitting" @click="handleConfirm">
+        确定
+      </el-button>
     </div>
   </el-dialog>
 </template>

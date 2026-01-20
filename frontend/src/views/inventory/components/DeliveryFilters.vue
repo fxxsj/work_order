@@ -2,17 +2,28 @@
   <div class="filter-section">
     <el-form :inline="true" :model="localValue" class="filter-form">
       <el-form-item label="发货状态">
-        <el-select v-model="localValue.status" placeholder="全部" clearable @change="handleChange">
-          <el-option label="待发货" value="pending"></el-option>
-          <el-option label="已发货" value="shipped"></el-option>
-          <el-option label="运输中" value="in_transit"></el-option>
-          <el-option label="已签收" value="received"></el-option>
-          <el-option label="拒收" value="rejected"></el-option>
-          <el-option label="已退货" value="returned"></el-option>
+        <el-select
+          v-model="localValue.status"
+          placeholder="全部"
+          clearable
+          @change="handleChange"
+        >
+          <el-option label="待发货" value="pending" />
+          <el-option label="已发货" value="shipped" />
+          <el-option label="运输中" value="in_transit" />
+          <el-option label="已签收" value="received" />
+          <el-option label="拒收" value="rejected" />
+          <el-option label="已退货" value="returned" />
         </el-select>
       </el-form-item>
       <el-form-item label="客户">
-        <el-select v-model="localValue.customer" placeholder="全部客户" clearable filterable @change="handleChange">
+        <el-select
+          v-model="localValue.customer"
+          placeholder="全部客户"
+          clearable
+          filterable
+          @change="handleChange"
+        >
           <el-option
             v-for="customer in customerList"
             :key="customer.id"
@@ -22,11 +33,20 @@
         </el-select>
       </el-form-item>
       <el-form-item label="物流单号">
-        <el-input v-model="localValue.tracking_number" placeholder="物流单号" clearable @input="handleChange" />
+        <el-input
+          v-model="localValue.tracking_number"
+          placeholder="物流单号"
+          clearable
+          @input="handleChange"
+        />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="$emit('search')">查询</el-button>
-        <el-button @click="$emit('reset')">重置</el-button>
+        <el-button type="primary" @click="$emit('search')">
+          查询
+        </el-button>
+        <el-button @click="$emit('reset')">
+          重置
+        </el-button>
       </el-form-item>
     </el-form>
   </div>

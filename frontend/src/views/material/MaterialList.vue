@@ -10,13 +10,14 @@
           @input="handleSearchDebounced"
           @clear="handleSearch"
         >
-          <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
+          <el-button slot="append" icon="el-icon-search" @click="handleSearch" />
         </el-input>
         <el-button
           v-if="canCreate()"
           type="primary"
           icon="el-icon-plus"
-          @click="showCreateDialog()">
+          @click="showCreateDialog()"
+        >
           新建物料
         </el-button>
       </div>
@@ -26,24 +27,40 @@
         :data="tableData"
         style="width: 100%; margin-top: 20px;"
       >
-        <el-table-column prop="code" label="物料编码" width="120"></el-table-column>
-        <el-table-column prop="name" label="物料名称" width="200"></el-table-column>
-        <el-table-column prop="specification" label="规格" min-width="150"></el-table-column>
-        <el-table-column prop="unit" label="单位" width="80" align="center"></el-table-column>
-        <el-table-column prop="unit_price" label="单价" width="120" align="right">
+        <el-table-column prop="code" label="物料编码" width="120" />
+        <el-table-column prop="name" label="物料名称" width="200" />
+        <el-table-column prop="specification" label="规格" min-width="150" />
+        <el-table-column
+          prop="unit"
+          label="单位"
+          width="80"
+          align="center"
+        />
+        <el-table-column
+          prop="unit_price"
+          label="单价"
+          width="120"
+          align="right"
+        >
           <template slot-scope="scope">
             ¥{{ scope.row.unit_price }}
           </template>
         </el-table-column>
-        <el-table-column prop="stock_quantity" label="库存数量" width="120" align="right"></el-table-column>
-        <el-table-column prop="notes" label="备注" min-width="150"></el-table-column>
+        <el-table-column
+          prop="stock_quantity"
+          label="库存数量"
+          width="120"
+          align="right"
+        />
+        <el-table-column prop="notes" label="备注" min-width="150" />
         <el-table-column label="操作" width="150" fixed="right">
           <template slot-scope="scope">
             <el-button
               v-if="canEdit()"
               type="text"
               size="small"
-              @click="handleEdit(scope.row)">
+              @click="handleEdit(scope.row)"
+            >
               编辑
             </el-button>
             <el-button
@@ -51,7 +68,8 @@
               type="text"
               size="small"
               style="color: #F56C6C;"
-              @click="handleDelete(scope.row)">
+              @click="handleDelete(scope.row)"
+            >
               删除
             </el-button>
           </template>
@@ -66,8 +84,7 @@
         layout="total, prev, pager, next"
         style="margin-top: 20px; text-align: right;"
         @current-change="handlePageChange"
-      >
-      </el-pagination>
+      />
     </el-card>
 
     <!-- 物料表单对话框 -->
@@ -83,16 +100,16 @@
         label-width="100px"
       >
         <el-form-item label="物料编码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入物料编码" :disabled="dialogType === 'edit'"></el-input>
+          <el-input v-model="form.code" placeholder="请输入物料编码" :disabled="dialogType === 'edit'" />
         </el-form-item>
         <el-form-item label="物料名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入物料名称"></el-input>
+          <el-input v-model="form.name" placeholder="请输入物料名称" />
         </el-form-item>
         <el-form-item label="规格">
-          <el-input v-model="form.specification" placeholder="请输入规格"></el-input>
+          <el-input v-model="form.specification" placeholder="请输入规格" />
         </el-form-item>
         <el-form-item label="单位" prop="unit">
-          <el-input v-model="form.unit" placeholder="如：个、张、本"></el-input>
+          <el-input v-model="form.unit" placeholder="如：个、张、本" />
         </el-form-item>
         <el-form-item label="单价">
           <el-input-number
@@ -100,7 +117,7 @@
             :min="0"
             :precision="2"
             style="width: 100%;"
-          ></el-input-number>
+          />
         </el-form-item>
         <el-form-item label="库存数量">
           <el-input-number
@@ -108,15 +125,24 @@
             :min="0"
             :precision="2"
             style="width: 100%;"
-          ></el-input-number>
+          />
         </el-form-item>
         <el-form-item label="备注">
-          <el-input v-model="form.notes" type="textarea" :rows="3" placeholder="请输入备注"></el-input>
+          <el-input
+            v-model="form.notes"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入备注"
+          />
         </el-form-item>
       </el-form>
       <div slot="footer">
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="formLoading" @click="handleSubmit">确定</el-button>
+        <el-button @click="dialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="formLoading" @click="handleSubmit">
+          确定
+        </el-button>
       </div>
     </el-dialog>
   </div>
@@ -162,6 +188,22 @@ export default {
   computed: {
     formTitle() {
       return this.dialogType === 'edit' ? '编辑物料' : '新建物料'
+    }
+  },
+  watch: {
+    // 监听对话框显示状态，编辑时填充表单
+    dialogVisible(val) {
+      if (val && this.dialogType === 'edit' && this.currentRow) {
+        this.form = {
+          code: this.currentRow.code,
+          name: this.currentRow.name,
+          specification: this.currentRow.specification || '',
+          unit: this.currentRow.unit,
+          unit_price: parseFloat(this.currentRow.unit_price),
+          stock_quantity: parseFloat(this.currentRow.stock_quantity),
+          notes: this.currentRow.notes || ''
+        }
+      }
     }
   },
   created() {
@@ -221,22 +263,6 @@ export default {
           this.formLoading = false
         }
       })
-    }
-  },
-  watch: {
-    // 监听对话框显示状态，编辑时填充表单
-    dialogVisible(val) {
-      if (val && this.dialogType === 'edit' && this.currentRow) {
-        this.form = {
-          code: this.currentRow.code,
-          name: this.currentRow.name,
-          specification: this.currentRow.specification || '',
-          unit: this.currentRow.unit,
-          unit_price: parseFloat(this.currentRow.unit_price),
-          stock_quantity: parseFloat(this.currentRow.stock_quantity),
-          notes: this.currentRow.notes || ''
-        }
-      }
     }
   }
 }

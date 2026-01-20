@@ -50,21 +50,19 @@ describe('WorkOrderBasicInfo.vue', () => {
     specification: '产品规格说明'
   }
 
-  const factory = (propsData = {}) => {
-    return shallowMount(WorkOrderBasicInfo, {
-      localVue,
-      propsData: {
-        workOrder: mockWorkOrder,
-        ...propsData
-      },
-      stubs: {
-        'el-descriptions': true,
-        'el-descriptions-item': true,
-        'el-tag': true,
-        'el-progress': true
-      }
-    })
-  }
+  const factory = (propsData = {}) => shallowMount(WorkOrderBasicInfo, {
+    localVue,
+    propsData: {
+      workOrder: mockWorkOrder,
+      ...propsData
+    },
+    stubs: {
+      'el-descriptions': true,
+      'el-descriptions-item': true,
+      'el-tag': true,
+      'el-progress': true
+    }
+  })
 
   beforeEach(() => {
     // 设置默认的 mock 返回值

@@ -104,9 +104,7 @@ const getters = {
   },
 
   // 获取临时数据
-  tempData: (state) => (key) => {
-    return state.tempData[key]
-  }
+  tempData: (state) => (key) => state.tempData[key]
 }
 
 // Mutations

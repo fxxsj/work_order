@@ -11,7 +11,7 @@
       label-width="120px"
     >
       <el-form-item label="任务内容">
-        <el-input :value="task?.work_content" disabled></el-input>
+        <el-input :value="task?.work_content" disabled />
       </el-form-item>
 
       <el-form-item label="生产数量">
@@ -19,15 +19,15 @@
           :value="task?.production_quantity"
           disabled
           style="width: 100%;"
-        ></el-input-number>
+        />
       </el-form-item>
 
-      <el-form-item label="当前完成数量" v-if="task">
+      <el-form-item v-if="task" label="当前完成数量">
         <el-input-number
           :value="task.quantity_completed || 0"
           disabled
           style="width: 100%;"
-        ></el-input-number>
+        />
       </el-form-item>
 
       <el-form-item label="本次完成数量" prop="quantity_completed" required>
@@ -36,7 +36,7 @@
           :min="0"
           :max="task?.production_quantity ? (task.production_quantity - (task.quantity_completed || 0)) : 999999"
           style="width: 100%;"
-        ></el-input-number>
+        />
         <div v-if="task?.production_quantity" style="color: #909399; font-size: 12px; margin-top: 4px;">
           计划数量：{{ task.production_quantity }}，
           当前完成：{{ task.quantity_completed || 0 }}，
@@ -55,7 +55,7 @@
           v-model="formData.quantity_defective"
           :min="0"
           style="width: 100%;"
-        ></el-input-number>
+        />
         <div style="color: #909399; font-size: 12px; margin-top: 4px;">
           当前不良品：{{ task?.quantity_defective || 0 }}，
           更新后：{{ (task?.quantity_defective || 0) + (formData.quantity_defective || 0) }}
@@ -81,7 +81,7 @@
             :key="artwork.id"
             :label="`${artwork.code || artwork.base_code || ''} - ${artwork.name || ''}`"
             :value="artwork.id"
-          ></el-option>
+          />
         </el-select>
         <div style="color: #909399; font-size: 12px; margin-top: 5px;">
           选中的图稿将自动关联到施工单
@@ -107,7 +107,7 @@
             :key="die.id"
             :label="`${die.code} - ${die.name}`"
             :value="die.id"
-          ></el-option>
+          />
         </el-select>
         <div style="color: #909399; font-size: 12px; margin-top: 5px;">
           选中的刀模将自动关联到施工单
@@ -120,12 +120,16 @@
           type="textarea"
           :rows="3"
           placeholder="请输入任务备注（可选）"
-        ></el-input>
+        />
       </el-form-item>
     </el-form>
     <div slot="footer">
-      <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" @click="handleConfirm" :loading="submitting">确定</el-button>
+      <el-button @click="handleClose">
+        取消
+      </el-button>
+      <el-button type="primary" :loading="submitting" @click="handleConfirm">
+        确定
+      </el-button>
     </div>
   </el-dialog>
 </template>

@@ -52,21 +52,19 @@ describe('TaskCard.vue', () => {
     }
   }
 
-  const factory = (propsData = {}) => {
-    return shallowMount(TaskCard, {
-      localVue,
-      propsData: {
-        task: mockTask,
-        editable: true,
-        ...propsData
-      },
-      stubs: {
-        'el-tag': true,
-        'el-button': true,
-        'el-progress': true
-      }
-    })
-  }
+  const factory = (propsData = {}) => shallowMount(TaskCard, {
+    localVue,
+    propsData: {
+      task: mockTask,
+      editable: true,
+      ...propsData
+    },
+    stubs: {
+      'el-tag': true,
+      'el-button': true,
+      'el-progress': true
+    }
+  })
 
   beforeEach(() => {
     // 设置默认的 mock 返回值

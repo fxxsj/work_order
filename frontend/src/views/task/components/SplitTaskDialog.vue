@@ -11,7 +11,7 @@
       label-width="120px"
     >
       <el-form-item label="父任务">
-        <el-input :value="task?.work_content" disabled></el-input>
+        <el-input :value="task?.work_content" disabled />
       </el-form-item>
 
       <el-form-item label="生产数量">
@@ -19,19 +19,23 @@
           :value="task?.production_quantity"
           disabled
           style="width: 100%;"
-        ></el-input-number>
+        />
       </el-form-item>
 
       <el-form-item label="子任务列表" prop="splits" required>
         <div style="margin-bottom: 10px;">
-          <el-button type="primary" size="small" @click="addSplitItem">添加子任务</el-button>
+          <el-button type="primary" size="small" @click="addSplitItem">
+            添加子任务
+          </el-button>
           <span style="color: #909399; font-size: 12px; margin-left: 10px;">
             至少需要2个子任务，子任务数量总和不能超过父任务数量
           </span>
         </div>
         <el-table :data="formData.splits" border style="width: 100%;">
           <el-table-column label="序号" width="60" align="center">
-            <template slot-scope="scope">{{ scope.$index + 1 }}</template>
+            <template slot-scope="scope">
+              {{ scope.$index + 1 }}
+            </template>
           </el-table-column>
           <el-table-column label="生产数量" width="150">
             <template slot-scope="scope">
@@ -40,7 +44,7 @@
                 :min="1"
                 :max="task?.production_quantity || 999999"
                 style="width: 100%;"
-              ></el-input-number>
+              />
             </template>
           </el-table-column>
           <el-table-column label="分派部门" width="180">
@@ -58,7 +62,7 @@
                   :key="dept.id"
                   :label="dept.name"
                   :value="dept.id"
-                ></el-option>
+                />
               </el-select>
             </template>
           </el-table-column>
@@ -77,7 +81,7 @@
                   :key="user.id"
                   :label="user.username || `${(user.first_name || '')}${(user.last_name || '')}`.trim() || user.id"
                   :value="user.id"
-                ></el-option>
+                />
               </el-select>
             </template>
           </el-table-column>
@@ -86,7 +90,7 @@
               <el-input
                 v-model="scope.row.work_content"
                 placeholder="可选，默认使用父任务内容"
-              ></el-input>
+              />
             </template>
           </el-table-column>
           <el-table-column label="操作" width="80" align="center">
@@ -95,9 +99,9 @@
                 type="danger"
                 size="mini"
                 icon="el-icon-delete"
-                @click="removeSplitItem(scope.$index)"
                 :disabled="formData.splits.length <= 2"
-              ></el-button>
+                @click="removeSplitItem(scope.$index)"
+              />
             </template>
           </el-table-column>
         </el-table>
@@ -110,8 +114,12 @@
       </el-form-item>
     </el-form>
     <div slot="footer">
-      <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" @click="handleConfirm" :loading="submitting">确定拆分</el-button>
+      <el-button @click="handleClose">
+        取消
+      </el-button>
+      <el-button type="primary" :loading="submitting" @click="handleConfirm">
+        确定拆分
+      </el-button>
     </div>
   </el-dialog>
 </template>

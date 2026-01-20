@@ -10,11 +10,11 @@
       <!-- 工具栏 -->
       <div class="image-viewer-toolbar">
         <el-button-group>
-          <el-button icon="el-icon-zoom-in" @click="zoomIn" title="放大"></el-button>
-          <el-button icon="el-icon-zoom-out" @click="zoomOut" title="缩小"></el-button>
-          <el-button icon="el-icon-refresh-left" @click="rotateLeft" title="左旋转"></el-button>
-          <el-button icon="el-icon-refresh-right" @click="rotateRight" title="右旋转"></el-button>
-          <el-button icon="el-icon-full-screen" @click="toggleFullscreen" title="全屏"></el-button>
+          <el-button icon="el-icon-zoom-in" title="放大" @click="zoomIn" />
+          <el-button icon="el-icon-zoom-out" title="缩小" @click="zoomOut" />
+          <el-button icon="el-icon-refresh-left" title="左旋转" @click="rotateLeft" />
+          <el-button icon="el-icon-refresh-right" title="右旋转" @click="rotateRight" />
+          <el-button icon="el-icon-full-screen" title="全屏" @click="toggleFullscreen" />
         </el-button-group>
         <span class="scale-info">{{ Math.round(scale * 100) }}%</span>
       </div>
@@ -25,10 +25,10 @@
           ref="imageRef"
           :src="imageSrc"
           :style="imageStyle"
-          @load="handleLoad"
-          @error="handleError"
           class="preview-image"
           alt="preview"
+          @load="handleLoad"
+          @error="handleError"
         />
       </div>
 

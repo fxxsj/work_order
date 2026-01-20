@@ -6,8 +6,13 @@
         <span>图稿信息</span>
       </div>
       <el-table :data="artworks" border style="width: 100%">
-        <el-table-column prop="artwork_number" label="图稿编号" width="150"></el-table-column>
-        <el-table-column prop="version" label="版本" width="80" align="center"></el-table-column>
+        <el-table-column prop="artwork_number" label="图稿编号" width="150" />
+        <el-table-column
+          prop="version"
+          label="版本"
+          width="80"
+          align="center"
+        />
         <el-table-column label="确认状态" width="100" align="center">
           <template slot-scope="scope">
             <el-tag :type="getArtworkStatusType(scope.row.confirmed)" size="small">
@@ -20,7 +25,12 @@
             {{ formatDateTime(scope.row.confirmed_at) }}
           </template>
         </el-table-column>
-        <el-table-column prop="notes" label="备注" min-width="200" show-overflow-tooltip></el-table-column>
+        <el-table-column
+          prop="notes"
+          label="备注"
+          min-width="200"
+          show-overflow-tooltip
+        />
       </el-table>
     </el-card>
 
@@ -30,8 +40,8 @@
         <span>刀模信息</span>
       </div>
       <el-table :data="dies" border style="width: 100%">
-        <el-table-column prop="die_number" label="刀模编号" width="150"></el-table-column>
-        <el-table-column prop="die_size" label="刀模尺寸" width="150"></el-table-column>
+        <el-table-column prop="die_number" label="刀模编号" width="150" />
+        <el-table-column prop="die_size" label="刀模尺寸" width="150" />
         <el-table-column label="确认状态" width="100" align="center">
           <template slot-scope="scope">
             <el-tag :type="getDieStatusType(scope.row.confirmed)" size="small">
@@ -44,7 +54,12 @@
             {{ formatDateTime(scope.row.confirmed_at) }}
           </template>
         </el-table-column>
-        <el-table-column prop="notes" label="备注" min-width="200" show-overflow-tooltip></el-table-column>
+        <el-table-column
+          prop="notes"
+          label="备注"
+          min-width="200"
+          show-overflow-tooltip
+        />
       </el-table>
     </el-card>
 
@@ -54,8 +69,8 @@
         <span>烫金版信息</span>
       </div>
       <el-table :data="foilingPlates" border style="width: 100%">
-        <el-table-column prop="plate_number" label="烫金版编号" width="150"></el-table-column>
-        <el-table-column prop="plate_size" label="尺寸" width="150"></el-table-column>
+        <el-table-column prop="plate_number" label="烫金版编号" width="150" />
+        <el-table-column prop="plate_size" label="尺寸" width="150" />
         <el-table-column label="确认状态" width="100" align="center">
           <template slot-scope="scope">
             <el-tag :type="getPlateStatusType(scope.row.confirmed)" size="small">
@@ -68,7 +83,12 @@
             {{ formatDateTime(scope.row.confirmed_at) }}
           </template>
         </el-table-column>
-        <el-table-column prop="notes" label="备注" min-width="200" show-overflow-tooltip></el-table-column>
+        <el-table-column
+          prop="notes"
+          label="备注"
+          min-width="200"
+          show-overflow-tooltip
+        />
       </el-table>
     </el-card>
 
@@ -78,8 +98,8 @@
         <span>压纹版信息</span>
       </div>
       <el-table :data="embossingPlates" border style="width: 100%">
-        <el-table-column prop="plate_number" label="压纹版编号" width="150"></el-table-column>
-        <el-table-column prop="plate_size" label="尺寸" width="150"></el-table-column>
+        <el-table-column prop="plate_number" label="压纹版编号" width="150" />
+        <el-table-column prop="plate_size" label="尺寸" width="150" />
         <el-table-column label="确认状态" width="100" align="center">
           <template slot-scope="scope">
             <el-tag :type="getPlateStatusType(scope.row.confirmed)" size="small">
@@ -92,7 +112,12 @@
             {{ formatDateTime(scope.row.confirmed_at) }}
           </template>
         </el-table-column>
-        <el-table-column prop="notes" label="备注" min-width="200" show-overflow-tooltip></el-table-column>
+        <el-table-column
+          prop="notes"
+          label="备注"
+          min-width="200"
+          show-overflow-tooltip
+        />
       </el-table>
     </el-card>
   </div>

@@ -52,13 +52,15 @@
           </tr>
           <tr v-if="workOrder.specification">
             <th>产品规格</th>
-            <td colspan="3">{{ workOrder.specification }}</td>
+            <td colspan="3">
+              {{ workOrder.specification }}
+            </td>
           </tr>
         </table>
       </div>
 
       <!-- 产品列表 -->
-      <div class="print-section" v-if="hasProducts">
+      <div v-if="hasProducts" class="print-section">
         <h3>产品列表</h3>
         <table class="print-table">
           <thead>
@@ -83,15 +85,19 @@
           </tbody>
           <tfoot>
             <tr>
-              <td colspan="5" style="text-align: right; font-weight: bold;">总计：</td>
-              <td style="text-align: right; font-weight: bold;">¥{{ totalAmount }}</td>
+              <td colspan="5" style="text-align: right; font-weight: bold;">
+                总计：
+              </td>
+              <td style="text-align: right; font-weight: bold;">
+                ¥{{ totalAmount }}
+              </td>
             </tr>
           </tfoot>
         </table>
       </div>
 
       <!-- 工序信息 -->
-      <div class="print-section" v-if="hasProcesses">
+      <div v-if="hasProcesses" class="print-section">
         <h3>工序信息</h3>
         <table class="print-table">
           <thead>
@@ -120,7 +126,7 @@
       </div>
 
       <!-- 物料信息 -->
-      <div class="print-section" v-if="hasMaterials">
+      <div v-if="hasMaterials" class="print-section">
         <h3>物料信息</h3>
         <table class="print-table">
           <thead>
@@ -145,7 +151,7 @@
       </div>
 
       <!-- 图稿信息 -->
-      <div class="print-section" v-if="hasArtworks">
+      <div v-if="hasArtworks" class="print-section">
         <h3>图稿信息</h3>
         <table class="print-table">
           <thead>
@@ -168,13 +174,15 @@
       </div>
 
       <!-- 备注 -->
-      <div class="print-section" v-if="workOrder.notes">
+      <div v-if="workOrder.notes" class="print-section">
         <h3>备注</h3>
-        <div class="print-notes">{{ workOrder.notes }}</div>
+        <div class="print-notes">
+          {{ workOrder.notes }}
+        </div>
       </div>
 
       <!-- 审核信息 -->
-      <div class="print-section" v-if="workOrder.approval_status === 'approved'">
+      <div v-if="workOrder.approval_status === 'approved'" class="print-section">
         <h3>审核信息</h3>
         <table class="print-table">
           <tr>
@@ -185,7 +193,9 @@
           </tr>
           <tr v-if="workOrder.approval_comment">
             <th>审核意见</th>
-            <td colspan="3">{{ workOrder.approval_comment }}</td>
+            <td colspan="3">
+              {{ workOrder.approval_comment }}
+            </td>
           </tr>
         </table>
       </div>
@@ -247,10 +257,11 @@ export default {
     },
     totalAmount() {
       if (!this.hasProducts) return this.workOrder.total_amount || 0
-      return this.workOrder.products.reduce((sum, product) => {
-        return sum + this.calculateSubtotal(product)
-      }, 0).toFixed(2)
+      return this.workOrder.products.reduce((sum, product) => sum + this.calculateSubtotal(product), 0).toFixed(2)
     }
+  },
+  mounted() {
+    this.printTime = new Date().toLocaleString('zh-CN')
   },
   methods: {
     formatDate(dateStr) {
@@ -289,9 +300,6 @@ export default {
     handleExportPDF() {
       this.$message.info('导出PDF功能开发中...')
     }
-  },
-  mounted() {
-    this.printTime = new Date().toLocaleString('zh-CN')
   }
 }
 </script>

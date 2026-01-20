@@ -5,31 +5,53 @@
     <div class="search-section">
       <el-form :model="filters" inline @submit.native.prevent="handleSearch">
         <el-form-item label="搜索">
-          <el-input v-model="filters.search" placeholder="订单号/客户名称" clearable @keyup.enter.native="handleSearch" style="width: 200px;" />
+          <el-input
+            v-model="filters.search"
+            placeholder="订单号/客户名称"
+            clearable
+            style="width: 200px;"
+            @keyup.enter.native="handleSearch"
+          />
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="filters.status" placeholder="订单状态" clearable style="width: 150px;">
-            <el-option label="全部" value=""></el-option>
-            <el-option label="草稿" value="draft"></el-option>
-            <el-option label="已提交" value="submitted"></el-option>
-            <el-option label="已审核" value="approved"></el-option>
-            <el-option label="生产中" value="in_production"></el-option>
-            <el-option label="已完成" value="completed"></el-option>
-            <el-option label="已取消" value="cancelled"></el-option>
+          <el-select
+            v-model="filters.status"
+            placeholder="订单状态"
+            clearable
+            style="width: 150px;"
+          >
+            <el-option label="全部" value="" />
+            <el-option label="草稿" value="draft" />
+            <el-option label="已提交" value="submitted" />
+            <el-option label="已审核" value="approved" />
+            <el-option label="生产中" value="in_production" />
+            <el-option label="已完成" value="completed" />
+            <el-option label="已取消" value="cancelled" />
           </el-select>
         </el-form-item>
         <el-form-item label="付款状态">
-          <el-select v-model="filters.payment_status" placeholder="付款状态" clearable style="width: 150px;">
-            <el-option label="全部" value=""></el-option>
-            <el-option label="未付款" value="unpaid"></el-option>
-            <el-option label="部分付款" value="partial"></el-option>
-            <el-option label="已付款" value="paid"></el-option>
+          <el-select
+            v-model="filters.payment_status"
+            placeholder="付款状态"
+            clearable
+            style="width: 150px;"
+          >
+            <el-option label="全部" value="" />
+            <el-option label="未付款" value="unpaid" />
+            <el-option label="部分付款" value="partial" />
+            <el-option label="已付款" value="paid" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch" icon="el-icon-search">搜索</el-button>
-          <el-button @click="handleReset" icon="el-icon-refresh-right">重置</el-button>
-          <el-button type="success" @click="handleAdd" icon="el-icon-plus">新建销售订单</el-button>
+          <el-button type="primary" icon="el-icon-search" @click="handleSearch">
+            搜索
+          </el-button>
+          <el-button icon="el-icon-refresh-right" @click="handleReset">
+            重置
+          </el-button>
+          <el-button type="success" icon="el-icon-plus" @click="handleAdd">
+            新建销售订单
+          </el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -44,14 +66,24 @@
       @sort-change="handleSortChange"
     >
       <el-table-column type="selection" width="55" />
-      <el-table-column prop="order_number" label="订单号" width="150" fixed="left">
+      <el-table-column
+        prop="order_number"
+        label="订单号"
+        width="150"
+        fixed="left"
+      >
         <template slot-scope="scope">
           <el-link type="primary" @click="handleView(scope.row)">
             {{ scope.row.order_number }}
           </el-link>
         </template>
       </el-table-column>
-      <el-table-column prop="customer_name" label="客户名称" width="150" show-overflow-tooltip />
+      <el-table-column
+        prop="customer_name"
+        label="客户名称"
+        width="150"
+        show-overflow-tooltip
+      />
       <el-table-column prop="order_date" label="订单日期" width="120" />
       <el-table-column prop="delivery_date" label="交货日期" width="120">
         <template slot-scope="scope">
@@ -63,54 +95,101 @@
           </span>
         </template>
       </el-table-column>
-      <el-table-column prop="total_amount" label="订单金额" width="120" align="right">
+      <el-table-column
+        prop="total_amount"
+        label="订单金额"
+        width="120"
+        align="right"
+      >
         <template slot-scope="scope">
           <span class="amount-text">¥{{ formatAmount(scope.row.total_amount) }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="status" label="订单状态" width="100" align="center">
+      <el-table-column
+        prop="status"
+        label="订单状态"
+        width="100"
+        align="center"
+      >
         <template slot-scope="scope">
           <el-tag :type="getStatusType(scope.row.status)" effect="plain">
             {{ getStatusText(scope.row.status) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="payment_status" label="付款状态" width="100" align="center">
+      <el-table-column
+        prop="payment_status"
+        label="付款状态"
+        width="100"
+        align="center"
+      >
         <template slot-scope="scope">
           <el-tag :type="getPaymentStatusType(scope.row.payment_status)" effect="plain">
             {{ getPaymentStatusText(scope.row.payment_status) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="items_count" label="明细数" width="80" align="center">
+      <el-table-column
+        prop="items_count"
+        label="明细数"
+        width="80"
+        align="center"
+      >
         <template slot-scope="scope">
-          <el-tag size="mini" type="info">{{ scope.row.items_count || 0 }}</el-tag>
+          <el-tag size="mini" type="info">
+            {{ scope.row.items_count || 0 }}
+          </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="200" fixed="right" align="center">
+      <el-table-column
+        label="操作"
+        width="200"
+        fixed="right"
+        align="center"
+      >
         <template slot-scope="scope">
           <div class="action-buttons">
             <el-tooltip v-if="canEdit(scope.row)" content="编辑订单" placement="top">
-              <el-button size="mini" type="primary" @click="handleEdit(scope.row)" icon="el-icon-edit" />
+              <el-button
+                size="mini"
+                type="primary"
+                icon="el-icon-edit"
+                @click="handleEdit(scope.row)"
+              />
             </el-tooltip>
             <el-tooltip v-if="scope.row.status === 'draft'" content="提交审核" placement="top">
-              <el-button size="mini" type="success" @click="handleSubmit(scope.row)" icon="el-icon-upload2" />
+              <el-button
+                size="mini"
+                type="success"
+                icon="el-icon-upload2"
+                @click="handleSubmit(scope.row)"
+              />
             </el-tooltip>
             <template v-if="scope.row.status === 'submitted'">
               <el-tooltip content="审核通过" placement="top">
-                <el-button size="mini" type="success" @click="handleApprove(scope.row)" icon="el-icon-check" />
+                <el-button
+                  size="mini"
+                  type="success"
+                  icon="el-icon-check"
+                  @click="handleApprove(scope.row)"
+                />
               </el-tooltip>
               <el-tooltip content="审核拒绝" placement="top">
-                <el-button size="mini" type="warning" @click="handleReject(scope.row)" icon="el-icon-close" />
+                <el-button
+                  size="mini"
+                  type="warning"
+                  icon="el-icon-close"
+                  @click="handleReject(scope.row)"
+                />
               </el-tooltip>
             </template>
-            <el-dropdown @command="(cmd) => handleCommand(cmd, scope.row)" trigger="click">
+            <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, scope.row)">
               <el-button size="mini" type="text" icon="el-icon-more" />
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item command="detail">
                   <i class="el-icon-view"></i> 查看详情
                 </el-dropdown-item>
-                <el-dropdown-item command="cancel" v-if="canCancel(scope.row)" divided>
+                <el-dropdown-item v-if="canCancel(scope.row)" command="cancel" divided>
                   <i class="el-icon-remove-outline"></i> 取消订单
                 </el-dropdown-item>
                 <el-dropdown-item command="delete" divided>
@@ -123,7 +202,9 @@
       </el-table-column>
       <template slot="empty">
         <el-empty description="暂无销售订单数据">
-          <el-button type="primary" @click="handleAdd">创建销售订单</el-button>
+          <el-button type="primary" @click="handleAdd">
+            创建销售订单
+          </el-button>
         </el-empty>
       </template>
     </el-table>
@@ -146,7 +227,9 @@
       @closed="handleDialogClose"
     >
       <div v-if="submitErrors.length" style="color: red; margin-bottom: 10px;">
-        <div v-for="error in submitErrors" :key="error">{{ error }}</div>
+        <div v-for="error in submitErrors" :key="error">
+          {{ error }}
+        </div>
       </div>
       <sales-order-form
         v-if="dialogVisible"
@@ -160,11 +243,18 @@
     <!-- 审核/拒绝对话框 -->
     <el-dialog title="审核销售订单" :visible.sync="approveVisible" width="50%">
       <div v-if="approveErrors.length" style="color: red; margin-bottom: 10px;">
-        <div v-for="error in approveErrors" :key="error">{{ error }}</div>
+        <div v-for="error in approveErrors" :key="error">
+          {{ error }}
+        </div>
       </div>
       <el-form :model="approveForm">
         <el-form-item label="审核意见">
-          <el-input v-model="approveForm.approval_comment" type="textarea" rows="4" placeholder="请输入审核意见"></el-input>
+          <el-input
+            v-model="approveForm.approval_comment"
+            type="textarea"
+            rows="4"
+            placeholder="请输入审核意见"
+          />
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">

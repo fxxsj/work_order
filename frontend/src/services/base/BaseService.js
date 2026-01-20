@@ -180,28 +180,26 @@ class BaseService {
    * @returns {Array} 过滤后的数据
    */
   filter(items, filters) {
-    return items.filter(item => {
-      return Object.entries(filters).every(([key, value]) => {
-        if (value === null || value === undefined || value === '') {
-          return true
-        }
+    return items.filter(item => Object.entries(filters).every(([key, value]) => {
+      if (value === null || value === undefined || value === '') {
+        return true
+      }
 
-        const itemValue = item[key]
+      const itemValue = item[key]
 
-        // 支持模糊匹配（字符串）
-        if (typeof value === 'string' && typeof itemValue === 'string') {
-          return itemValue.toLowerCase().includes(value.toLowerCase())
-        }
+      // 支持模糊匹配（字符串）
+      if (typeof value === 'string' && typeof itemValue === 'string') {
+        return itemValue.toLowerCase().includes(value.toLowerCase())
+      }
 
-        // 支持数组包含
-        if (Array.isArray(value)) {
-          return value.includes(itemValue)
-        }
+      // 支持数组包含
+      if (Array.isArray(value)) {
+        return value.includes(itemValue)
+      }
 
-        // 精确匹配
-        return itemValue === value
-      })
-    })
+      // 精确匹配
+      return itemValue === value
+    }))
   }
 
   /**

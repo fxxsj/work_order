@@ -102,17 +102,15 @@ service.interceptors.request.use(
           console.log('[API Cache] Hit:', cacheKey)
 
           // 返回缓存的数据
-          config.adapter = () => {
-            return Promise.resolve({
-              data: cachedData,
-              status: 200,
-              statusText: 'OK (Cached)',
-              headers: {},
-              config,
-              request: {},
-              fromCache: true
-            })
-          }
+          config.adapter = () => Promise.resolve({
+            data: cachedData,
+            status: 200,
+            statusText: 'OK (Cached)',
+            headers: {},
+            config,
+            request: {},
+            fromCache: true
+          })
         }
       }
     }

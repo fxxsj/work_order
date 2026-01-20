@@ -12,61 +12,87 @@
               @input="handleSearchDebounced"
               @clear="handleSearchDebounced"
             >
-              <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
+              <el-button slot="append" icon="el-icon-search" @click="handleSearch" />
             </el-input>
           </el-col>
           <el-col :span="3">
-            <el-select v-model="filters.status" placeholder="任务状态" clearable @change="handleSearchDebounced">
+            <el-select
+              v-model="filters.status"
+              placeholder="任务状态"
+              clearable
+              @change="handleSearchDebounced"
+            >
               <el-option
                 v-for="status in taskStatusOptions"
                 :key="status.value"
                 :label="status.label"
                 :value="status.value"
-              ></el-option>
+              />
             </el-select>
           </el-col>
           <el-col :span="3">
-            <el-select v-model="filters.task_type" placeholder="任务类型" clearable @change="handleSearchDebounced">
+            <el-select
+              v-model="filters.task_type"
+              placeholder="任务类型"
+              clearable
+              @change="handleSearchDebounced"
+            >
               <el-option
                 v-for="type in taskTypeOptions"
                 :key="type.value"
                 :label="type.label"
                 :value="type.value"
-              ></el-option>
+              />
             </el-select>
           </el-col>
           <el-col :span="3">
-            <el-select v-model="filters.assigned_department" placeholder="分派部门" clearable filterable @change="handleSearchDebounced">
+            <el-select
+              v-model="filters.assigned_department"
+              placeholder="分派部门"
+              clearable
+              filterable
+              @change="handleSearchDebounced"
+            >
               <el-option
                 v-for="dept in departmentList"
                 :key="dept.id"
                 :label="dept.name"
                 :value="dept.id"
-              ></el-option>
+              />
             </el-select>
           </el-col>
           <el-col :span="3">
-            <el-select v-model="filters.work_order_process" placeholder="工序" clearable filterable @change="handleSearchDebounced">
+            <el-select
+              v-model="filters.work_order_process"
+              placeholder="工序"
+              clearable
+              filterable
+              @change="handleSearchDebounced"
+            >
               <el-option
                 v-for="process in processList"
                 :key="process.id"
                 :label="process.name"
                 :value="process.id"
-              ></el-option>
+              />
             </el-select>
           </el-col>
           <el-col :span="7" style="text-align: right;">
-            <el-button icon="el-icon-refresh-left" @click="resetFilters">重置筛选</el-button>
+            <el-button icon="el-icon-refresh-left" @click="resetFilters">
+              重置筛选
+            </el-button>
             <el-button
               v-if="canExport()"
               type="success"
               icon="el-icon-download"
-              @click="handleExport"
               :loading="exporting"
+              @click="handleExport"
             >
               导出Excel
             </el-button>
-            <el-button type="primary" icon="el-icon-refresh" @click="loadData">刷新</el-button>
+            <el-button type="primary" icon="el-icon-refresh" @click="loadData">
+              刷新
+            </el-button>
           </el-col>
         </el-row>
       </div>
@@ -74,8 +100,12 @@
       <!-- 视图切换 -->
       <div style="margin-top: 20px; margin-bottom: 10px; text-align: right;">
         <el-radio-group v-model="viewMode" size="small">
-          <el-radio-button label="table">列表视图</el-radio-button>
-          <el-radio-button label="kanban">看板视图</el-radio-button>
+          <el-radio-button label="table">
+            列表视图
+          </el-radio-button>
+          <el-radio-button label="kanban">
+            看板视图
+          </el-radio-button>
         </el-radio-group>
       </div>
 
@@ -101,15 +131,20 @@
         :data="tableData"
         border
         style="width: 100%; margin-top: 20px;"
-        @sort-change="handleSortChange"
         :row-key="getRowKey"
+        @sort-change="handleSortChange"
       >
         <el-table-column type="expand" width="50">
           <template slot-scope="scope">
             <TaskLogs :task="scope.row" />
           </template>
         </el-table-column>
-        <el-table-column prop="id" label="ID" width="80" sortable="custom"></el-table-column>
+        <el-table-column
+          prop="id"
+          label="ID"
+          width="80"
+          sortable="custom"
+        />
         <el-table-column label="施工单号" width="150">
           <template slot-scope="scope">
             <el-link
@@ -127,7 +162,12 @@
             {{ scope.row.work_order_process_info?.process?.name || '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="work_content" label="任务内容" min-width="200" show-overflow-tooltip></el-table-column>
+        <el-table-column
+          prop="work_content"
+          label="任务内容"
+          min-width="200"
+          show-overflow-tooltip
+        />
         <el-table-column label="分派部门" width="120">
           <template slot-scope="scope">
             {{ scope.row.assigned_department_name || '-' }}
@@ -143,8 +183,18 @@
             <TaskRelatedInfo :task="scope.row" />
           </template>
         </el-table-column>
-        <el-table-column prop="production_quantity" label="生产数量" width="100" align="right"></el-table-column>
-        <el-table-column prop="quantity_completed" label="完成数量" width="100" align="right"></el-table-column>
+        <el-table-column
+          prop="production_quantity"
+          label="生产数量"
+          width="100"
+          align="right"
+        />
+        <el-table-column
+          prop="quantity_completed"
+          label="完成数量"
+          width="100"
+          align="right"
+        />
         <el-table-column label="进度" width="80" align="right">
           <template slot-scope="scope">
             {{ taskService.calculateProgress(scope.row) }}%
@@ -402,7 +452,7 @@ export default {
     /**
      * 防抖搜索
      */
-    handleSearchDebounced: debounce(function() {
+    handleSearchDebounced: debounce(function () {
       this.handleSearch()
     }, 300),
 

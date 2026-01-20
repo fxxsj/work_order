@@ -1,10 +1,20 @@
 <template>
   <div class="task-management">
     <!-- 任务列表 -->
-    <el-table :data="tasks" border style="width: 100%; margin-top: 10px;" size="small">
-      <el-table-column prop="id" label="任务ID" width="80" align="center"></el-table-column>
-      <el-table-column prop="task_name" label="任务名称" min-width="150"></el-table-column>
-      <el-table-column prop="operator_name" label="操作员" width="100"></el-table-column>
+    <el-table
+      :data="tasks"
+      border
+      style="width: 100%; margin-top: 10px;"
+      size="small"
+    >
+      <el-table-column
+        prop="id"
+        label="任务ID"
+        width="80"
+        align="center"
+      />
+      <el-table-column prop="task_name" label="任务名称" min-width="150" />
+      <el-table-column prop="operator_name" label="操作员" width="100" />
       <el-table-column label="状态" width="100" align="center">
         <template slot-scope="scope">
           <el-tag :type="getTaskStatusType(scope.row.status)" size="small">
@@ -17,10 +27,15 @@
           <el-progress
             :percentage="calculateTaskProgress(scope.row)"
             :color="getProgressColor(scope.row)"
-          ></el-progress>
+          />
         </template>
       </el-table-column>
-      <el-table-column prop="quantity_completed" label="完成数量" width="100" align="right">
+      <el-table-column
+        prop="quantity_completed"
+        label="完成数量"
+        width="100"
+        align="right"
+      >
         <template slot-scope="scope">
           {{ scope.row.quantity_completed || 0 }} / {{ scope.row.production_quantity || 0 }}
         </template>
@@ -39,8 +54,8 @@
             type="success"
             size="mini"
             icon="el-icon-check"
-            @click="handleComplete(scope.row)"
             :disabled="!isTaskActionable(scope.row)"
+            @click="handleComplete(scope.row)"
           >
             完成
           </el-button>
@@ -53,15 +68,15 @@
           >
             更新
           </el-button>
-          <el-dropdown @command="(cmd) => handleTaskAction(cmd, scope.row)" style="margin-left: 10px;">
+          <el-dropdown style="margin-left: 10px;" @command="(cmd) => handleTaskAction(cmd, scope.row)">
             <el-button size="mini" type="text">
               更多<i class="el-icon-arrow-down el-icon--right"></i>
             </el-button>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item command="assign" v-if="canAssignTask(scope.row)">
+              <el-dropdown-item v-if="canAssignTask(scope.row)" command="assign">
                 <i class="el-icon-user"></i> 分派
               </el-dropdown-item>
-              <el-dropdown-item command="split" v-if="canSplitTask(scope.row)">
+              <el-dropdown-item v-if="canSplitTask(scope.row)" command="split">
                 <i class="el-icon-s-grid"></i> 拆分
               </el-dropdown-item>
             </el-dropdown-menu>
@@ -77,14 +92,19 @@
       width="600px"
       :before-close="handleCloseCompleteDialog"
     >
-      <el-form :model="completeForm" label-width="120px" :rules="completeRules" ref="completeFormRef">
+      <el-form
+        ref="completeFormRef"
+        :model="completeForm"
+        label-width="120px"
+        :rules="completeRules"
+      >
         <el-form-item label="生产数量" prop="quantity_completed">
           <el-input-number
             v-model="completeForm.quantity_completed"
             :min="0"
             :max="currentTask?.production_quantity || 999999"
             :step="1"
-          ></el-input-number>
+          />
           <span style="margin-left: 10px;">{{ currentTask?.production_quantity || 0 }}</span>
         </el-form-item>
         <el-form-item label="不良品数量" prop="quantity_defective">
@@ -93,7 +113,7 @@
             :min="0"
             :max="completeForm.quantity_completed"
             :step="1"
-          ></el-input-number>
+          />
         </el-form-item>
         <el-form-item
           v-if="isPlateMakingTask"
@@ -125,7 +145,7 @@
             type="textarea"
             :rows="3"
             placeholder="请输入完成说明（可选）"
-          ></el-input>
+          />
         </el-form-item>
         <el-alert
           v-if="taskBlockReason"
@@ -133,11 +153,13 @@
           type="error"
           :closable="false"
           style="margin-bottom: 15px;"
-        ></el-alert>
+        />
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="completeDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleConfirmComplete" :loading="completing">
+        <el-button @click="completeDialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="completing" @click="handleConfirmComplete">
           确定
         </el-button>
       </div>
@@ -149,14 +171,19 @@
       :visible.sync="updateDialogVisible"
       width="600px"
     >
-      <el-form :model="updateForm" label-width="120px" :rules="updateRules" ref="updateFormRef">
+      <el-form
+        ref="updateFormRef"
+        :model="updateForm"
+        label-width="120px"
+        :rules="updateRules"
+      >
         <el-form-item label="完成数量" prop="quantity_completed">
           <el-input-number
             v-model="updateForm.quantity_completed"
             :min="0"
             :max="currentTask?.production_quantity || 999999"
             :step="1"
-          ></el-input-number>
+          />
         </el-form-item>
         <el-form-item label="更新说明">
           <el-input
@@ -164,12 +191,14 @@
             type="textarea"
             :rows="3"
             placeholder="请输入更新说明（可选）"
-          ></el-input>
+          />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="updateDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleConfirmUpdate" :loading="updating">
+        <el-button @click="updateDialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="updating" @click="handleConfirmUpdate">
           确定
         </el-button>
       </div>

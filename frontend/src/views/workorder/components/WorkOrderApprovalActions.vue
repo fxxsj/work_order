@@ -5,28 +5,38 @@
       <div slot="header" class="card-header">
         <span>业务员审核</span>
       </div>
-      <el-form :model="approvalForm" label-width="100px" :rules="approvalRules" ref="approvalForm">
+      <el-form
+        ref="approvalForm"
+        :model="approvalForm"
+        label-width="100px"
+        :rules="approvalRules"
+      >
         <el-form-item label="审核意见" prop="comment">
           <el-input
             v-model="approvalForm.comment"
             type="textarea"
             :rows="3"
             placeholder="请输入审核意见（可选）"
-          ></el-input>
+          />
         </el-form-item>
-        <el-form-item label="拒绝原因" prop="rejection_reason" v-if="showRejectionReason">
+        <el-form-item v-if="showRejectionReason" label="拒绝原因" prop="rejection_reason">
           <el-input
             v-model="approvalForm.rejection_reason"
             type="textarea"
             :rows="3"
             placeholder="请填写拒绝原因（必填）"
-          ></el-input>
+          />
         </el-form-item>
         <el-form-item>
-          <el-button type="success" @click="$emit('approve', 'approved')" :loading="loading">
+          <el-button type="success" :loading="loading" @click="$emit('approve', 'approved')">
             <i class="el-icon-check"></i> 通过审核
           </el-button>
-          <el-button type="danger" @click="$emit('approve', 'rejected')" :loading="loading" style="margin-left: 10px;">
+          <el-button
+            type="danger"
+            :loading="loading"
+            style="margin-left: 10px;"
+            @click="$emit('approve', 'rejected')"
+          >
             <i class="el-icon-close"></i> 拒绝审核
           </el-button>
         </el-form-item>
@@ -38,17 +48,17 @@
       <div slot="header" class="card-header">
         <span>重新提交审核</span>
       </div>
-      <el-form :model="resubmitForm" label-width="100px" ref="resubmitForm">
+      <el-form ref="resubmitForm" :model="resubmitForm" label-width="100px">
         <el-form-item label="修改说明" prop="comment">
           <el-input
             v-model="resubmitForm.comment"
             type="textarea"
             :rows="3"
             placeholder="请输入修改说明（必填）"
-          ></el-input>
+          />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="$emit('resubmit')" :loading="loading">
+          <el-button type="primary" :loading="loading" @click="$emit('resubmit')">
             <i class="el-icon-refresh"></i> 重新提交审核
           </el-button>
         </el-form-item>
@@ -60,17 +70,17 @@
       <div slot="header" class="card-header">
         <span>请求重新审核</span>
       </div>
-      <el-form :model="reapprovalForm" label-width="100px" ref="reapprovalForm">
+      <el-form ref="reapprovalForm" :model="reapprovalForm" label-width="100px">
         <el-form-item label="申请原因" prop="reason">
           <el-input
             v-model="reapprovalForm.reason"
             type="textarea"
             :rows="3"
             placeholder="请输入申请重新审核的原因（必填）"
-          ></el-input>
+          />
         </el-form-item>
         <el-form-item>
-          <el-button type="warning" @click="$emit('request-reapproval')" :loading="loading">
+          <el-button type="warning" :loading="loading" @click="$emit('request-reapproval')">
             <i class="el-icon-warning"></i> 请求重新审核
           </el-button>
         </el-form-item>

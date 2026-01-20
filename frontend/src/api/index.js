@@ -55,9 +55,7 @@ service.interceptors.request.use(
 
 // 响应拦截器
 service.interceptors.response.use(
-  response => {
-    return response.data
-  },
+  response => response.data,
   error => {
     // 对响应错误做点什么
     console.error('Response error:', error)

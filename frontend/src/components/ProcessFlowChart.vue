@@ -1,6 +1,6 @@
 <template>
   <div class="process-flow-chart">
-    <div class="flow-container" v-if="processes && processes.length > 0">
+    <div v-if="processes && processes.length > 0" class="flow-container">
       <div
         v-for="(process, index) in sortedProcesses"
         :key="process.id"
@@ -39,7 +39,9 @@
             ></i>
           </div>
           <div class="node-content">
-            <div class="node-name">{{ process.process_name }}</div>
+            <div class="node-name">
+              {{ process.process_name }}
+            </div>
             <div class="node-status">
               <el-tag
                 :type="getStatusTagType(process.status)"
@@ -48,17 +50,17 @@
                 {{ getStatusDisplay(process.status) }}
               </el-tag>
             </div>
-            <div class="node-info" v-if="process.tasks && process.tasks.length > 0">
+            <div v-if="process.tasks && process.tasks.length > 0" class="node-info">
               <span class="task-count">
                 任务: {{ getCompletedTaskCount(process.tasks) }}/{{ process.tasks.length }}
               </span>
             </div>
-            <div class="node-progress" v-if="process.status === 'in_progress'">
+            <div v-if="process.status === 'in_progress'" class="node-progress">
               <el-progress
                 :percentage="getProcessProgress(process)"
                 :stroke-width="4"
                 :show-text="false"
-              ></el-progress>
+              />
             </div>
           </div>
         </div>
@@ -72,7 +74,7 @@
         </div>
       </div>
     </div>
-    <el-empty v-else description="暂无工序信息"></el-empty>
+    <el-empty v-else description="暂无工序信息" />
   </div>
 </template>
 
@@ -91,9 +93,7 @@ export default {
         return []
       }
       // 按 sequence 排序
-      return [...this.processes].sort((a, b) => {
-        return (a.sequence || 0) - (b.sequence || 0)
-      })
+      return [...this.processes].sort((a, b) => (a.sequence || 0) - (b.sequence || 0))
     }
   },
   methods: {
@@ -322,7 +322,7 @@ export default {
     max-width: 200px;
     padding: 12px 15px;
   }
-  
+
   .parallel-indicator {
     position: static;
     transform: none;

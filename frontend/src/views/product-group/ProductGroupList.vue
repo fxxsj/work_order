@@ -10,13 +10,14 @@
           @input="handleSearchDebounced"
           @clear="handleSearch"
         >
-          <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
+          <el-button slot="append" icon="el-icon-search" @click="handleSearch" />
         </el-input>
         <el-button
           v-if="canCreate()"
           type="primary"
           icon="el-icon-plus"
-          @click="handleAdd()">
+          @click="handleAdd()"
+        >
           新增产品组
         </el-button>
       </div>
@@ -27,17 +28,27 @@
         border
         style="width: 100%; margin-top: 20px;"
       >
-        <el-table-column prop="code" label="编码" width="150"></el-table-column>
-        <el-table-column prop="name" label="名称"></el-table-column>
-        <el-table-column prop="description" label="描述" show-overflow-tooltip></el-table-column>
-        <el-table-column prop="is_active" label="状态" width="100" align="center">
+        <el-table-column prop="code" label="编码" width="150" />
+        <el-table-column prop="name" label="名称" />
+        <el-table-column prop="description" label="描述" show-overflow-tooltip />
+        <el-table-column
+          prop="is_active"
+          label="状态"
+          width="100"
+          align="center"
+        >
           <template slot-scope="scope">
             <el-tag :type="scope.row.is_active ? 'success' : 'info'" size="small">
               {{ scope.row.is_active ? '启用' : '禁用' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="items_count" label="子项数量" width="100" align="center">
+        <el-table-column
+          prop="items_count"
+          label="子项数量"
+          width="100"
+          align="center"
+        >
           <template slot-scope="scope">
             {{ scope.row.items ? scope.row.items.length : 0 }}
           </template>
@@ -47,12 +58,18 @@
             <el-button
               v-if="canEdit()"
               size="mini"
-              @click="handleEdit(scope.row)">编辑</el-button>
+              @click="handleEdit(scope.row)"
+            >
+              编辑
+            </el-button>
             <el-button
               v-if="canDelete()"
               size="mini"
               type="danger"
-              @click="handleDelete(scope.row)">删除</el-button>
+              @click="handleDelete(scope.row)"
+            >
+              删除
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -65,8 +82,7 @@
         layout="total, prev, pager, next"
         style="margin-top: 20px; text-align: right;"
         @current-change="handlePageChange"
-      >
-      </el-pagination>
+      />
     </el-card>
 
     <!-- 新增/编辑对话框 -->
@@ -83,10 +99,10 @@
         label-width="120px"
       >
         <el-form-item label="编码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入编码"></el-input>
+          <el-input v-model="form.code" placeholder="请输入编码" />
         </el-form-item>
         <el-form-item label="名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入名称"></el-input>
+          <el-input v-model="form.name" placeholder="请输入名称" />
         </el-form-item>
         <el-form-item label="描述">
           <el-input
@@ -94,14 +110,14 @@
             type="textarea"
             :rows="3"
             placeholder="请输入描述"
-          ></el-input>
+          />
         </el-form-item>
         <el-form-item label="状态">
           <el-switch
             v-model="form.is_active"
             active-text="启用"
             inactive-text="禁用"
-          ></el-switch>
+          />
         </el-form-item>
 
         <el-divider>子产品列表</el-divider>
@@ -120,18 +136,18 @@
                     :key="product.id"
                     :label="`${product.name} (${product.code})`"
                     :value="product.id"
-                  ></el-option>
+                  />
                 </el-select>
               </el-form-item>
             </el-col>
             <el-col :span="8">
               <el-form-item :label="index === 0 ? '子产品名称' : ''" :prop="`items.${index}.item_name`">
-                <el-input v-model="item.item_name" placeholder="如：天盒、地盒"></el-input>
+                <el-input v-model="item.item_name" placeholder="如：天盒、地盒" />
               </el-form-item>
             </el-col>
             <el-col :span="4">
               <el-form-item :label="index === 0 ? '排序' : ''">
-                <el-input-number v-model="item.sort_order" :min="0" style="width: 100%;"></el-input-number>
+                <el-input-number v-model="item.sort_order" :min="0" style="width: 100%;" />
               </el-form-item>
             </el-col>
             <el-col :span="4" style="text-align: right; padding-top: 30px;">
@@ -140,24 +156,28 @@
                 type="danger"
                 size="mini"
                 icon="el-icon-delete"
-                @click="removeItem(index)"
                 circle
-              ></el-button>
+                @click="removeItem(index)"
+              />
               <el-button
                 v-if="index === form.items.length - 1"
                 type="primary"
                 size="mini"
                 icon="el-icon-plus"
-                @click="addItem"
                 circle
-              ></el-button>
+                @click="addItem"
+              />
             </el-col>
           </el-row>
         </div>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="formLoading">确定</el-button>
+        <el-button @click="dialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="formLoading" @click="handleSubmit">
+          确定
+        </el-button>
       </div>
     </el-dialog>
   </div>
@@ -202,6 +222,18 @@ export default {
         name: [
           { required: true, message: '请输入名称', trigger: 'blur' }
         ]
+      }
+    }
+  },
+  watch: {
+    // 监听对话框显示状态，编辑时填充表单
+    dialogVisible(val) {
+      if (!val) {
+        this.$nextTick(() => {
+          if (this.$refs.form) {
+            this.$refs.form.clearValidate()
+          }
+        })
       }
     }
   },
@@ -271,18 +303,18 @@ export default {
           is_active: detail.is_active,
           items: detail.items && detail.items.length > 0
             ? detail.items.map(item => ({
-                id: item.id,
-                product: item.product,
-                item_name: item.item_name,
-                sort_order: item.sort_order
-              }))
+              id: item.id,
+              product: item.product,
+              item_name: item.item_name,
+              sort_order: item.sort_order
+            }))
             : [
-                {
-                  product: null,
-                  item_name: '',
-                  sort_order: 0
-                }
-              ]
+              {
+                product: null,
+                item_name: '',
+                sort_order: 0
+              }
+            ]
         }
         this.dialogVisible = true
       } catch (error) {
@@ -357,18 +389,6 @@ export default {
 
     resetForm() {
       this.$refs.form && this.$refs.form.resetFields()
-    }
-  },
-  watch: {
-    // 监听对话框显示状态，编辑时填充表单
-    dialogVisible(val) {
-      if (!val) {
-        this.$nextTick(() => {
-          if (this.$refs.form) {
-            this.$refs.form.clearValidate()
-          }
-        })
-      }
     }
   }
 }

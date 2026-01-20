@@ -2,12 +2,12 @@
   <el-form-item label="客户" prop="customer" required>
     <el-select
       :value="value"
-      @input="handleInput"
       placeholder="请选择客户"
       filterable
       :loading="loading"
       :disabled="disabled"
       style="width: 100%;"
+      @input="handleInput"
     >
       <el-option
         v-for="customer in customerList"

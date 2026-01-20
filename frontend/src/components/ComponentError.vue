@@ -3,8 +3,15 @@
     <el-icon class="error-icon">
       <i class="el-icon-warning-outline"></i>
     </el-icon>
-    <p class="error-text">{{ text }}</p>
-    <el-button v-if="showRetry" type="primary" size="small" @click="handleRetry">
+    <p class="error-text">
+      {{ text }}
+    </p>
+    <el-button
+      v-if="showRetry"
+      type="primary"
+      size="small"
+      @click="handleRetry"
+    >
       重试
     </el-button>
   </div>

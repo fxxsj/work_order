@@ -19,8 +19,8 @@
 
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="handleClose" :disabled="loading">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="loading">
+        <el-button :disabled="loading" @click="handleClose">取消</el-button>
+        <el-button type="primary" :loading="loading" @click="handleSubmit">
           {{ submitText }}
         </el-button>
       </span>

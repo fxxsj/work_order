@@ -4,8 +4,12 @@
     <div class="header">
       <h2>质量检验</h2>
       <div class="actions">
-        <el-button type="primary" icon="el-icon-plus" @click="handleCreate">新建质检</el-button>
-        <el-button icon="el-icon-refresh" @click="fetchQualityList">刷新</el-button>
+        <el-button type="primary" icon="el-icon-plus" @click="handleCreate">
+          新建质检
+        </el-button>
+        <el-button icon="el-icon-refresh" @click="fetchQualityList">
+          刷新
+        </el-button>
       </div>
     </div>
 
@@ -16,71 +20,150 @@
           <el-input v-model="filters.inspection_number" placeholder="检验单号" clearable />
         </el-form-item>
         <el-form-item label="产品">
-          <el-select v-model="filters.product" placeholder="全部产品" clearable filterable>
-            <el-option v-for="product in productList" :key="product.id" :label="product.name" :value="product.id" />
+          <el-select
+            v-model="filters.product"
+            placeholder="全部产品"
+            clearable
+            filterable
+          >
+            <el-option
+              v-for="product in productList"
+              :key="product.id"
+              :label="product.name"
+              :value="product.id"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="检验类型">
-          <el-select v-model="filters.inspection_type" placeholder="全部类型" clearable @change="handleSearch">
-            <el-option label="入库检验" value="incoming"></el-option>
-            <el-option label="过程检验" value="in_process"></el-option>
-            <el-option label="最终检验" value="final"></el-option>
-            <el-option label="出货检验" value="outgoing"></el-option>
+          <el-select
+            v-model="filters.inspection_type"
+            placeholder="全部类型"
+            clearable
+            @change="handleSearch"
+          >
+            <el-option label="入库检验" value="incoming" />
+            <el-option label="过程检验" value="in_process" />
+            <el-option label="最终检验" value="final" />
+            <el-option label="出货检验" value="outgoing" />
           </el-select>
         </el-form-item>
         <el-form-item label="检验结果">
-          <el-select v-model="filters.result" placeholder="全部结果" clearable @change="handleSearch">
-            <el-option label="合格" value="passed"></el-option>
-            <el-option label="不合格" value="failed"></el-option>
-            <el-option label="条件接收" value="conditional"></el-option>
+          <el-select
+            v-model="filters.result"
+            placeholder="全部结果"
+            clearable
+            @change="handleSearch"
+          >
+            <el-option label="合格" value="passed" />
+            <el-option label="不合格" value="failed" />
+            <el-option label="条件接收" value="conditional" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="filters.status" placeholder="全部状态" clearable @change="handleSearch">
-            <el-option label="待检验" value="pending"></el-option>
-            <el-option label="检验中" value="in_progress"></el-option>
-            <el-option label="已完成" value="completed"></el-option>
+          <el-select
+            v-model="filters.status"
+            placeholder="全部状态"
+            clearable
+            @change="handleSearch"
+          >
+            <el-option label="待检验" value="pending" />
+            <el-option label="检验中" value="in_progress" />
+            <el-option label="已完成" value="completed" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">查询</el-button>
-          <el-button @click="handleReset">重置</el-button>
+          <el-button type="primary" @click="handleSearch">
+            查询
+          </el-button>
+          <el-button @click="handleReset">
+            重置
+          </el-button>
         </el-form-item>
       </el-form>
     </div>
 
     <!-- 数据表格 -->
     <div class="table-section">
-      <el-table v-loading="loading" :data="qualityList" border style="width: 100%">
+      <el-table
+        v-loading="loading"
+        :data="qualityList"
+        border
+        style="width: 100%"
+      >
         <el-table-column prop="inspection_number" label="检验单号" width="150" />
         <el-table-column prop="inspection_type_display" label="检验类型" width="100" />
-        <el-table-column prop="product_name" label="产品名称" width="200" show-overflow-tooltip />
+        <el-table-column
+          prop="product_name"
+          label="产品名称"
+          width="200"
+          show-overflow-tooltip
+        />
         <el-table-column prop="batch_number" label="批次号" width="150" />
         <el-table-column prop="inspection_date" label="检验日期" width="120" />
         <el-table-column prop="inspector_name" label="检验员" width="100" />
-        <el-table-column prop="sample_quantity" label="抽样数量" width="100" align="right" />
-        <el-table-column prop="qualified_quantity" label="合格数量" width="100" align="right" />
-        <el-table-column prop="defective_quantity" label="不合格数量" width="100" align="right" />
-        <el-table-column prop="defective_rate" label="不合格率" width="100" align="right">
+        <el-table-column
+          prop="sample_quantity"
+          label="抽样数量"
+          width="100"
+          align="right"
+        />
+        <el-table-column
+          prop="qualified_quantity"
+          label="合格数量"
+          width="100"
+          align="right"
+        />
+        <el-table-column
+          prop="defective_quantity"
+          label="不合格数量"
+          width="100"
+          align="right"
+        />
+        <el-table-column
+          prop="defective_rate"
+          label="不合格率"
+          width="100"
+          align="right"
+        >
           <template #default="{ row }">
             <span :class="getDefectiveRateClass(row)">{{ row.defective_rate !== null ? row.defective_rate.toFixed(1) + '%' : '-' }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="result_display" label="检验结果" width="100">
           <template #default="{ row }">
-            <el-tag :type="getResultTagType(row.result)">{{ row.result_display }}</el-tag>
+            <el-tag :type="getResultTagType(row.result)">
+              {{ row.result_display }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="status_display" label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">{{ row.status_display }}</el-tag>
+            <el-tag :type="getStatusType(row.status)">
+              {{ row.status_display }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" @click="handleView(row)">查看</el-button>
-            <el-button v-if="row.status === 'pending' || row.status === 'in_progress'" size="small" type="primary" @click="handleInspect(row)">检验</el-button>
-            <el-button v-if="row.status === 'in_progress'" size="small" type="success" @click="handleComplete(row)">完成</el-button>
+            <el-button size="small" @click="handleView(row)">
+              查看
+            </el-button>
+            <el-button
+              v-if="row.status === 'pending' || row.status === 'in_progress'"
+              size="small"
+              type="primary"
+              @click="handleInspect(row)"
+            >
+              检验
+            </el-button>
+            <el-button
+              v-if="row.status === 'in_progress'"
+              size="small"
+              type="success"
+              @click="handleComplete(row)"
+            >
+              完成
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -96,40 +179,119 @@
     </div>
 
     <!-- 质检详情对话框 -->
-    <el-dialog :visible.sync="detailDialogVisible" title="质检详情" width="1000px" :close-on-click-modal="false">
+    <el-dialog
+      :visible.sync="detailDialogVisible"
+      title="质检详情"
+      width="1000px"
+      :close-on-click-modal="false"
+    >
       <div v-if="currentQuality">
         <el-descriptions :column="3" border>
-          <el-descriptions-item label="检验单号">{{ currentQuality.inspection_number }}</el-descriptions-item>
-          <el-descriptions-item label="检验类型">{{ currentQuality.inspection_type_display }}</el-descriptions-item>
-          <el-descriptions-item label="状态">
-            <el-tag :type="getStatusType(currentQuality.status)">{{ currentQuality.status_display }}</el-tag>
+          <el-descriptions-item label="检验单号">
+            {{ currentQuality.inspection_number }}
           </el-descriptions-item>
-          <el-descriptions-item label="产品名称">{{ currentQuality.product_name }}</el-descriptions-item>
-          <el-descriptions-item label="批次号">{{ currentQuality.batch_number || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="检验日期">{{ currentQuality.inspection_date }}</el-descriptions-item>
-          <el-descriptions-item label="检验员">{{ currentQuality.inspector_name || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="检验标准">{{ currentQuality.standard || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="检验类型">
+            {{ currentQuality.inspection_type_display }}
+          </el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <el-tag :type="getStatusType(currentQuality.status)">
+              {{ currentQuality.status_display }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="产品名称">
+            {{ currentQuality.product_name }}
+          </el-descriptions-item>
+          <el-descriptions-item label="批次号">
+            {{ currentQuality.batch_number || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="检验日期">
+            {{ currentQuality.inspection_date }}
+          </el-descriptions-item>
+          <el-descriptions-item label="检验员">
+            {{ currentQuality.inspector_name || '-' }}
+          </el-descriptions-item>
+          <el-descriptions-item label="检验标准">
+            {{ currentQuality.standard || '-' }}
+          </el-descriptions-item>
           <el-descriptions-item label="检验结果">
-            <el-tag :type="getResultTagType(currentQuality.result)">{{ currentQuality.result_display }}</el-tag>
+            <el-tag :type="getResultTagType(currentQuality.result)">
+              {{ currentQuality.result_display }}
+            </el-tag>
           </el-descriptions-item>
         </el-descriptions>
 
         <div class="inspection-data">
           <h3>检验数据</h3>
           <el-row :gutter="20" style="margin-top: 10px;">
-            <el-col :span="6"><el-card><div class="data-item"><div class="data-label">送检数量</div><div class="data-value">{{ currentQuality.inspection_quantity || '-' }}</div></div></el-card></el-col>
-            <el-col :span="6"><el-card><div class="data-item"><div class="data-label">抽样数量</div><div class="data-value">{{ currentQuality.sample_quantity || '-' }}</div></div></el-card></el-col>
-            <el-col :span="6"><el-card><div class="data-item"><div class="data-label">合格数量</div><div class="data-value success">{{ currentQuality.qualified_quantity || '-' }}</div></div></el-card></el-col>
-            <el-col :span="6"><el-card><div class="data-item"><div class="data-label">不合格数量</div><div class="data-value danger">{{ currentQuality.defective_quantity || '-' }}</div></div></el-card></el-col>
+            <el-col :span="6">
+              <el-card>
+                <div class="data-item">
+                  <div class="data-label">
+                    送检数量
+                  </div><div class="data-value">
+                    {{ currentQuality.inspection_quantity || '-' }}
+                  </div>
+                </div>
+              </el-card>
+            </el-col>
+            <el-col :span="6">
+              <el-card>
+                <div class="data-item">
+                  <div class="data-label">
+                    抽样数量
+                  </div><div class="data-value">
+                    {{ currentQuality.sample_quantity || '-' }}
+                  </div>
+                </div>
+              </el-card>
+            </el-col>
+            <el-col :span="6">
+              <el-card>
+                <div class="data-item">
+                  <div class="data-label">
+                    合格数量
+                  </div><div class="data-value success">
+                    {{ currentQuality.qualified_quantity || '-' }}
+                  </div>
+                </div>
+              </el-card>
+            </el-col>
+            <el-col :span="6">
+              <el-card>
+                <div class="data-item">
+                  <div class="data-label">
+                    不合格数量
+                  </div><div class="data-value danger">
+                    {{ currentQuality.defective_quantity || '-' }}
+                  </div>
+                </div>
+              </el-card>
+            </el-col>
           </el-row>
         </div>
       </div>
-      <template #footer><el-button @click="detailDialogVisible = false">关闭</el-button><el-button type="primary" @click="handlePrint">打印</el-button></template>
+      <template #footer>
+        <el-button @click="detailDialogVisible = false">
+          关闭
+        </el-button><el-button type="primary" @click="handlePrint">
+          打印
+        </el-button>
+      </template>
     </el-dialog>
 
     <!-- 检验表单对话框 -->
-    <el-dialog :visible.sync="inspectDialogVisible" title="质量检验" width="800px" :close-on-click-modal="false">
-      <el-form :model="inspectForm" :rules="inspectRules" ref="inspectFormRef" label-width="100px">
+    <el-dialog
+      :visible.sync="inspectDialogVisible"
+      title="质量检验"
+      width="800px"
+      :close-on-click-modal="false"
+    >
+      <el-form
+        ref="inspectFormRef"
+        :model="inspectForm"
+        :rules="inspectRules"
+        label-width="100px"
+      >
         <el-form-item label="抽样数量" prop="sample_quantity">
           <el-input-number v-model="inspectForm.sample_quantity" :min="0" style="width: 100%;" />
         </el-form-item>
@@ -141,16 +303,33 @@
         </el-form-item>
         <el-form-item label="检验结果" prop="result">
           <el-radio-group v-model="inspectForm.result">
-            <el-radio label="passed">合格</el-radio>
-            <el-radio label="failed">不合格</el-radio>
-            <el-radio label="conditional">条件接收</el-radio>
+            <el-radio label="passed">
+              合格
+            </el-radio>
+            <el-radio label="failed">
+              不合格
+            </el-radio>
+            <el-radio label="conditional">
+              条件接收
+            </el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="检验备注">
-          <el-input v-model="inspectForm.inspection_notes" type="textarea" :rows="3" placeholder="请输入检验备注" />
+          <el-input
+            v-model="inspectForm.inspection_notes"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入检验备注"
+          />
         </el-form-item>
       </el-form>
-      <template #footer><el-button @click="inspectDialogVisible = false">取消</el-button><el-button type="primary" @click="handleSaveInspect">保存</el-button></template>
+      <template #footer>
+        <el-button @click="inspectDialogVisible = false">
+          取消
+        </el-button><el-button type="primary" @click="handleSaveInspect">
+          保存
+        </el-button>
+      </template>
     </el-dialog>
   </div>
 </template>

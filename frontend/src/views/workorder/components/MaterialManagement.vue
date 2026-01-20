@@ -15,10 +15,15 @@
         </el-button>
       </div>
       <el-table :data="materials" border style="width: 100%">
-        <el-table-column prop="material_name" label="物料名称" width="200"></el-table-column>
-        <el-table-column prop="material_size" label="尺寸" width="150"></el-table-column>
-        <el-table-column prop="material_usage" label="用量" width="150"></el-table-column>
-        <el-table-column prop="notes" label="备注" min-width="200" show-overflow-tooltip></el-table-column>
+        <el-table-column prop="material_name" label="物料名称" width="200" />
+        <el-table-column prop="material_size" label="尺寸" width="150" />
+        <el-table-column prop="material_usage" label="用量" width="150" />
+        <el-table-column
+          prop="notes"
+          label="备注"
+          min-width="200"
+          show-overflow-tooltip
+        />
         <el-table-column label="采购状态" width="120" align="center">
           <template slot-scope="scope">
             <el-tag :type="getPurchaseStatusType(scope.row.purchase_status)" size="small">
@@ -47,8 +52,8 @@
               type="primary"
               size="mini"
               icon="el-icon-edit"
-              @click="handleUpdateStatus(scope.row)"
               :disabled="!editable"
+              @click="handleUpdateStatus(scope.row)"
             >
               更新状态
             </el-button>
@@ -63,7 +68,12 @@
       :visible.sync="addDialogVisible"
       width="600px"
     >
-      <el-form :model="addForm" label-width="120px" :rules="addRules" ref="addFormRef">
+      <el-form
+        ref="addFormRef"
+        :model="addForm"
+        label-width="120px"
+        :rules="addRules"
+      >
         <el-form-item label="物料" prop="material_id">
           <el-select
             v-model="addForm.material_id"
@@ -89,12 +99,14 @@
             v-model="addForm.planned_quantity"
             :min="0"
             :step="1"
-          ></el-input-number>
+          />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="addDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleConfirmAdd" :loading="adding">
+        <el-button @click="addDialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="adding" @click="handleConfirmAdd">
           确定
         </el-button>
       </div>
@@ -106,24 +118,29 @@
       :visible.sync="statusDialogVisible"
       width="600px"
     >
-      <el-form :model="statusForm" label-width="120px" :rules="statusRules" ref="statusFormRef">
+      <el-form
+        ref="statusFormRef"
+        :model="statusForm"
+        label-width="120px"
+        :rules="statusRules"
+      >
         <el-form-item label="物料名称">
-          <el-input v-model="statusForm.material_name" disabled></el-input>
+          <el-input v-model="statusForm.material_name" disabled />
         </el-form-item>
         <el-form-item label="当前状态">
-          <el-input v-model="statusForm.current_status" disabled></el-input>
+          <el-input v-model="statusForm.current_status" disabled />
         </el-form-item>
         <el-form-item label="采购状态" prop="purchase_status">
           <el-select v-model="statusForm.purchase_status" placeholder="请选择状态" style="width: 100%">
-            <el-option label="未采购" value="not_purchased"></el-option>
-            <el-option label="采购中" value="purchasing"></el-option>
-            <el-option label="已采购" value="purchased"></el-option>
+            <el-option label="未采购" value="not_purchased" />
+            <el-option label="采购中" value="purchasing" />
+            <el-option label="已采购" value="purchased" />
           </el-select>
         </el-form-item>
         <el-form-item
+          v-if="statusForm.purchase_status !== 'not_purchased'"
           label="采购日期"
           prop="purchase_date"
-          v-if="statusForm.purchase_status !== 'not_purchased'"
         >
           <el-date-picker
             v-model="statusForm.purchase_date"
@@ -131,12 +148,12 @@
             placeholder="选择日期"
             value-format="yyyy-MM-dd"
             style="width: 100%"
-          ></el-date-picker>
+          />
         </el-form-item>
         <el-form-item
+          v-if="statusForm.purchase_status === 'purchased'"
           label="回料日期"
           prop="received_date"
-          v-if="statusForm.purchase_status === 'purchased'"
         >
           <el-date-picker
             v-model="statusForm.received_date"
@@ -144,12 +161,12 @@
             placeholder="选择日期"
             value-format="yyyy-MM-dd"
             style="width: 100%"
-          ></el-date-picker>
+          />
         </el-form-item>
         <el-form-item
+          v-if="statusForm.purchase_status === 'purchased'"
           label="开料日期"
           prop="cut_date"
-          v-if="statusForm.purchase_status === 'purchased'"
         >
           <el-date-picker
             v-model="statusForm.cut_date"
@@ -157,12 +174,14 @@
             placeholder="选择日期"
             value-format="yyyy-MM-dd"
             style="width: 100%"
-          ></el-date-picker>
+          />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="statusDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleConfirmUpdateStatus" :loading="updating">
+        <el-button @click="statusDialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="updating" @click="handleConfirmUpdateStatus">
           确定
         </el-button>
       </div>

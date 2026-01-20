@@ -7,7 +7,7 @@
       @clear="handleClear"
       @input="handleInput"
     >
-      <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
+      <el-button slot="append" icon="el-icon-search" @click="handleSearch" />
     </el-input>
   </div>
 </template>
