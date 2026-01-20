@@ -8,6 +8,7 @@
           style="width: 300px;"
           clearable
           @clear="handleSearch"
+          @keyup.enter.native="handleSearch"
         >
           <el-button slot="append" icon="el-icon-search" @click="handleSearch" />
         </el-input>
@@ -21,7 +22,24 @@
         </el-button>
       </div>
 
+      <!-- 空状态 -->
+      <el-empty
+        v-if="!loading && tableData.length === 0"
+        description="暂无部门数据"
+        style="margin-top: 40px;"
+      >
+        <el-button
+          v-if="canCreate()"
+          type="primary"
+          icon="el-icon-plus"
+          @click="showCreateDialog()"
+        >
+          新建部门
+        </el-button>
+      </el-empty>
+
       <el-table
+        v-else
         v-loading="loading"
         :data="tableData"
         style="width: 100%; margin-top: 20px;"
@@ -130,9 +148,10 @@
 
     <!-- 部门表单对话框 -->
     <el-dialog
-      :title="formTitle"
+      :title="dialogTitle"
       :visible.sync="dialogVisible"
       width="500px"
+      :before-close="handleDialogClose"
     >
       <el-form
         ref="form"
@@ -141,7 +160,11 @@
         label-width="120px"
       >
         <el-form-item label="部门编码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入部门编码（英文，如：prepress）" :disabled="isEdit" />
+          <el-input
+            v-model="form.code"
+            placeholder="请输入部门编码（英文，如：prepress）"
+            :disabled="isEditMode"
+          />
           <div style="font-size: 12px; color: #909399; margin-top: 5px;">
             建议使用英文小写，如：prepress、printing、surface等
           </div>
@@ -156,7 +179,7 @@
             clearable
             filterable
             style="width: 100%;"
-            :disabled="isEdit && form.children_count > 0"
+            :disabled="isEditMode && form.children_count > 0"
           >
             <el-option
               v-for="dept in availableParents"
@@ -199,7 +222,7 @@
         <el-button @click="dialogVisible = false">
           取消
         </el-button>
-        <el-button type="primary" @click="handleSubmit">
+        <el-button type="primary" :loading="dialogLoading" @click="handleSubmit">
           确定
         </el-button>
       </div>
@@ -210,13 +233,26 @@
 <script>
 import { departmentAPI, processAPI } from '@/api/modules'
 import listPageMixin from '@/mixins/listPageMixin'
+import formDialogMixin from '@/mixins/formDialogMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import ErrorHandler from '@/utils/errorHandler'
 import Pagination from '@/components/common/Pagination.vue'
+
+// 表单初始值常量
+const formInitialValues = {
+  code: '',
+  name: '',
+  parent: null,
+  sort_order: 0,
+  is_active: true,
+  processes: [],
+  children_count: 0
+}
 
 export default {
   name: 'DepartmentList',
   components: { Pagination },
-  mixins: [listPageMixin, crudPermissionMixin],
+  mixins: [listPageMixin, formDialogMixin, crudPermissionMixin],
   data() {
     return {
       // API 服务和权限配置
@@ -227,15 +263,10 @@ export default {
       allProcesses: [],
       allDepartments: [],
       expandedProcesses: {}, // 记录每行工序的展开状态，key为部门ID
-      form: {
-        code: '',
-        name: '',
-        parent: null,
-        sort_order: 0,
-        is_active: true,
-        processes: [],
-        children_count: 0
-      },
+      currentRow: null, // 当前编辑的行
+
+      // 表单数据
+      form: { ...formInitialValues },
       rules: {
         code: [
           { required: true, message: '请输入部门编码', trigger: 'blur' },
@@ -248,41 +279,19 @@ export default {
     }
   },
   computed: {
-    formTitle() {
-      return this.dialogType === 'edit' ? '编辑部门' : '新建部门'
-    },
     availableParents() {
       // 可选的上级部门：排除自己和自己的子部门（避免循环引用）
-      if (this.dialogType === 'edit' && this.currentRow) {
+      if (this.isEditMode && this.currentRow) {
         return this.allDepartments.filter(dept => {
           // 排除自己
           if (dept.id === this.currentRow.id) return false
-          // 排除自己的子部门（简单检查，实际应该递归检查）
+          // 排除层级太深的部门（最多3级）
+          if (dept.level >= 2) return false
           return true
         })
       }
-      return this.allDepartments
-    }
-  },
-  watch: {
-    // 监听对话框显示状态，编辑时填充表单
-    dialogVisible(val) {
-      if (val && this.dialogType === 'edit' && this.currentRow) {
-        this.form = {
-          code: this.currentRow.code,
-          name: this.currentRow.name,
-          parent: this.currentRow.parent || null,
-          sort_order: this.currentRow.sort_order,
-          is_active: this.currentRow.is_active,
-          processes: this.currentRow.processes || [],
-          children_count: this.currentRow.children_count || 0
-        }
-        this.$nextTick(() => {
-          if (this.$refs.form) {
-            this.$refs.form.clearValidate()
-          }
-        })
-      }
+      // 创建时只能选择层级不超过2的部门作为上级
+      return this.allDepartments.filter(dept => dept.level < 2)
     }
   },
   created() {
@@ -298,21 +307,16 @@ export default {
         page_size: this.pageSize
       }
 
-      const response = await this.apiService.getList(params)
-      let results = response.results || []
-
-      // 前端过滤搜索
+      // 使用后端搜索参数
       if (this.searchText) {
-        const searchLower = this.searchText.toLowerCase()
-        results = results.filter(item =>
-          item.name.toLowerCase().includes(searchLower) ||
-          item.code.toLowerCase().includes(searchLower)
-        )
+        params.search = this.searchText
       }
 
+      const response = await this.apiService.getList(params)
+
       return {
-        results,
-        count: response.count || results.length
+        results: response.results || [],
+        count: response.count || 0
       }
     },
 
@@ -352,53 +356,75 @@ export default {
 
         this.allProcesses = allProcesses
       } catch (error) {
-        console.error('加载工序列表失败:', error)
+        ErrorHandler.showMessage(error, '加载工序列表')
         this.allProcesses = []
       }
     },
 
     async loadAllDepartments() {
       try {
-        let allDepartments = []
-        let page = 1
-        let hasMore = true
-
-        while (hasMore) {
-          const response = await departmentAPI.getList({
-            page_size: 100,
-            page: page
-          })
-
-          if (response.results && response.results.length > 0) {
-            allDepartments = allDepartments.concat(response.results)
-            hasMore = response.next !== null && response.next !== undefined
-            page++
-          } else {
-            hasMore = false
-          }
-        }
-
-        this.allDepartments = allDepartments
+        // 使用新的 getAll API
+        const response = await departmentAPI.getAll()
+        this.allDepartments = response || []
       } catch (error) {
-        console.error('加载部门列表失败:', error)
+        ErrorHandler.showMessage(error, '加载部门列表')
         this.allDepartments = []
       }
     },
 
+    // 重写 showCreateDialog（覆盖 formDialogMixin 的默认实现）
     showCreateDialog() {
-      this.resetForm()
-      this.handleCreate()
+      this.dialogType = 'create'
+      this.dialogTitle = '新建部门'
+      this.currentRow = null
+      this.customResetForm()
+      this.dialogVisible = true
     },
 
-    resetForm() {
+    // 编辑方法
+    handleEdit(row) {
+      this.dialogType = 'edit'
+      this.dialogTitle = '编辑部门'
+      this.currentRow = row
       this.form = {
-        code: '',
-        name: '',
-        parent: null,
-        sort_order: 0,
-        is_active: true,
-        processes: [],
-        children_count: 0
+        code: row.code,
+        name: row.name,
+        parent: row.parent || null,
+        sort_order: row.sort_order,
+        is_active: row.is_active,
+        processes: row.processes || [],
+        children_count: row.children_count || 0
+      }
+      this.dialogVisible = true
+      this.$nextTick(() => {
+        if (this.$refs.form) {
+          this.$refs.form.clearValidate()
+        }
+      })
+    },
+
+    // 自定义重置表单方法（formDialogMixin 会调用）
+    customResetForm() {
+      this.form = { ...formInitialValues }
+      this.currentRow = null
+    },
+
+    // 删除方法
+    async handleDelete(row) {
+      const confirmed = await ErrorHandler.confirm(
+        `确定要删除部门「${row.name}」吗？`,
+        '确认删除'
+      )
+
+      if (!confirmed) return
+
+      try {
+        await this.apiService.delete(row.id)
+        ErrorHandler.showSuccess('删除成功')
+        this.loadData()
+        this.loadAllDepartments() // 刷新部门列表
+      } catch (error) {
+        ErrorHandler.showMessage(error, '删除部门')
       }
     },
 
@@ -414,24 +440,23 @@ export default {
       this.$refs.form.validate(async (valid) => {
         if (!valid) return false
 
-        this.formLoading = true
+        this.dialogLoading = true
         try {
-          if (this.dialogType === 'edit') {
+          if (this.isEditMode) {
             await this.apiService.update(this.currentRow.id, this.form)
-            this.showSuccess('保存成功')
+            ErrorHandler.showSuccess('保存成功')
           } else {
             await this.apiService.create(this.form)
-            this.showSuccess('创建成功')
+            ErrorHandler.showSuccess('创建成功')
           }
 
           this.dialogVisible = false
           this.loadData()
+          this.loadAllDepartments() // 刷新部门列表
         } catch (error) {
-          const errorMsg = error.response?.data?.detail || error.response?.data?.error ||
-                          (this.dialogType === 'edit' ? '保存失败' : '创建失败')
-          this.$message.error(errorMsg)
+          ErrorHandler.showMessage(error, this.isEditMode ? '保存部门' : '创建部门')
         } finally {
-          this.formLoading = false
+          this.dialogLoading = false
         }
       })
     },
@@ -498,4 +523,3 @@ export default {
   background-color: #ecf5ff;
 }
 </style>
-
