@@ -4,10 +4,13 @@
       :value="value"
       placeholder="请选择客户"
       filterable
+      remote
+      :remote-method="searchCustomers"
       :loading="loading"
       :disabled="disabled"
       style="width: 100%;"
       @input="handleInput"
+      @focus="onFocus"
     >
       <el-option
         v-for="customer in customerList"
@@ -25,7 +28,7 @@
 </template>
 
 <script>
-import { customerAPI } from '@/api/workorder'
+import { customerAPI } from '@/api/modules/customer'
 
 export default {
   name: 'CustomerSelector',
@@ -48,12 +51,23 @@ export default {
   async created() {
     await this.loadCustomerList()
   },
+  beforeDestroy() {
+    if (this.searchTimer) {
+      clearTimeout(this.searchTimer)
+    }
+  },
   methods: {
-    async loadCustomerList() {
+    async loadCustomerList(search = '') {
       this.loading = true
       try {
-        const response = await customerAPI.getList({ page_size: 1000 })
-        this.customerList = response.results || []
+        const params = {
+          page_size: 20
+        }
+        if (search) {
+          params.search = search
+        }
+        const response = await customerAPI.getList(params)
+        this.customerList = response.results || response.data || response
       } catch (error) {
         console.error('加载客户列表失败:', error)
         this.$message.error('加载客户列表失败')
@@ -61,6 +75,24 @@ export default {
         this.loading = false
       }
     },
+
+    searchCustomers(query) {
+      // 远程搜索：防抖处理
+      if (this.searchTimer) {
+        clearTimeout(this.searchTimer)
+      }
+      this.searchTimer = setTimeout(() => {
+        this.loadCustomerList(query)
+      }, 300)
+    },
+
+    onFocus() {
+      // 聚焦时加载初始列表
+      if (this.customerList.length === 0) {
+        this.loadCustomerList()
+      }
+    },
+
     handleInput(value) {
       this.$emit('input', value)
       this.$emit('change', value)

@@ -46,7 +46,12 @@
 
         <!-- 步骤内容 -->
         <div class="step-content">
-          <el-form ref="workOrderForm" :model="form" label-width="100px">
+          <el-form
+            ref="workOrderForm"
+            :model="form"
+            :rules="rules"
+            label-width="100px"
+          >
             <!-- 步骤1: 基本信息 -->
             <div v-show="currentStep === 0" class="step-panel">
               <h3>基本信息</h3>
@@ -306,6 +311,7 @@ import ArtworkAndDieInfo from './components/ArtworkAndDieInfo.vue'
 import { customerAPI } from '@/api/modules/customer'
 import { workOrderAPI } from '@/api/modules/workorder'
 import { authAPI } from '@/api/modules/auth'
+import { productAPI } from '@/api/modules/product'
 
 export default {
   name: 'WorkOrderFormSimplified',
@@ -359,6 +365,19 @@ export default {
       saving: false,
       submitting: false,
 
+      // 表单验证规则
+      rules: {
+        customer: [
+          { required: true, message: '请选择客户', trigger: 'change' }
+        ],
+        delivery_date: [
+          { required: true, message: '请选择交货日期', trigger: 'change' }
+        ],
+        priority: [
+          { required: true, message: '请选择优先级', trigger: 'change' }
+        ]
+      },
+
       // 选项数据
       priorityOptions: [
         { label: '低', value: 'low', color: '#67C23A' },
@@ -399,13 +418,78 @@ export default {
       }
     }
   },
+  watch: {
+    // 监听表单数据变化，自动保存草稿
+    form: {
+      handler(newVal) {
+        if (!this.isEdit) {
+          // 仅在新建模式下自动保存草稿
+          this.saveDraftToLocalStorage(newVal)
+        }
+      },
+      deep: true
+    },
+    // 监听当前步骤变化
+    currentStep(newVal) {
+      this.saveDraftToLocalStorage({ ...this.form, _step: newVal })
+    }
+  },
   async mounted() {
     await this.loadData()
     if (this.isEdit) {
       await this.loadWorkOrder()
+    } else {
+      // 恢复本地存储的草稿
+      this.restoreDraftFromLocalStorage()
     }
   },
   methods: {
+    saveDraftToLocalStorage(formData) {
+      try {
+        const draft = {
+          formData: formData || this.form,
+          currentStep: this.currentStep,
+          timestamp: new Date().toISOString()
+        }
+        localStorage.setItem('workorder_draft', JSON.stringify(draft))
+      } catch (error) {
+        console.error('保存草稿失败:', error)
+      }
+    },
+
+    restoreDraftFromLocalStorage() {
+      try {
+        const draftStr = localStorage.getItem('workorder_draft')
+        if (!draftStr) return
+
+        const draft = JSON.parse(draftStr)
+
+        // 检查草稿是否过期（24小时）
+        const draftTime = new Date(draft.timestamp)
+        const now = new Date()
+        const hoursDiff = (now - draftTime) / (1000 * 60 * 60)
+
+        if (hoursDiff > 24) {
+          localStorage.removeItem('workorder_draft')
+          return
+        }
+
+        // 恢复表单数据和步骤
+        this.form = { ...this.form, ...draft.formData }
+        this.currentStep = draft.currentStep || 0
+
+        // 提示用户
+        this.$message.info('已恢复上次的草稿数据')
+      } catch (error) {
+        console.error('恢复草稿失败:', error)
+        localStorage.removeItem('workorder_draft')
+      }
+    },
+
+    clearDraftFromLocalStorage() {
+      localStorage.removeItem('workorder_draft')
+    },
+
     async loadData() {
       // 并行加载基础数据
       try {
@@ -471,55 +555,62 @@ export default {
     },
 
     // 智能排程
-    autoArrangeProcesses() {
+    async autoArrangeProcesses() {
       if (!this.form.products.length) {
         this.$message.warning('请先添加产品')
         return
       }
 
-      // 根据产品自动推荐工序
-      const recommendedProcesses = this.getRecommendedProcesses(this.form.products)
-      this.form.processes = recommendedProcesses
+      // 根据产品自动推荐工序（基于产品的 default_processes 字段）
+      try {
+        const recommendedProcesses = await this.getRecommendedProcesses(this.form.products)
+        this.form.processes = recommendedProcesses
+        this.$message.success(`已自动推荐 ${recommendedProcesses.length} 个工序`)
+      } catch (error) {
+        this.$message.error('智能排程失败')
+      }
     },
 
-    getRecommendedProcesses(products) {
-      // 简化版：根据产品类型推荐工序
-      const processMap = {
-        印刷品: ['CTP', 'CUT', 'PRT', 'PACK'],
-        包装盒: ['CTP', 'CUT', 'PRT', 'DIE', 'BOX', 'PACK'],
-        标签: ['CTP', 'CUT', 'PRT', 'DIE', 'PACK']
+    async getRecommendedProcesses(products) {
+      // 收集所有产品的默认工序 ID
+      const processIds = new Set()
+
+      for (const productItem of products) {
+        if (!productItem.product) continue
+
+        try {
+          // 获取产品详情，包含默认工序
+          const response = await productAPI.getDetail(productItem.product)
+          const productDetail = response.data || response
+
+          // 添加产品的默认工序 ID
+          if (productDetail.default_processes && Array.isArray(productDetail.default_processes)) {
+            productDetail.default_processes.forEach(process => {
+              processIds.add(process.id || process) // 支持 ID 和对象两种格式
+            })
+          }
+        } catch (error) {
+          console.error(`获取产品 ${productItem.product} 的默认工序失败:`, error)
+        }
       }
 
-      // 获取产品类型并返回对应工序
-      const productTypes = products.map(p => p.category)
-      const uniqueTypes = [...new Set(productTypes)]
-
-      const allProcesses = []
-      uniqueTypes.forEach(type => {
-        if (processMap[type]) {
-          allProcesses.push(...processMap[type])
-        }
-      })
-
-      return [...new Set(allProcesses)] // 去重
+      // 转换为数组
+      return Array.from(processIds)
     },
 
-    // 添加操作
-    addProduct() {
-      // 触发产品选择器
-      this.$refs.productSelector.show()
-    },
-
-    addProcess() {
-      // 触发工序选择器
-      this.$refs.processSelector.show()
-    },
+    // 添加操作（已移除：子组件内部有自己的添加按钮）
+    // ProductListEditor 和 ProcessSelector 组件内部已包含添加功能
 
     // 保存操作
     async saveDraft() {
       this.saving = true
       try {
-        await workOrderAPI.create({ ...this.form, status: 'draft' })
+        const data = { ...this.form, status: 'draft' }
+        if (this.isEdit) {
+          await workOrderAPI.update(this.id, data)
+        } else {
+          await workOrderAPI.create(data)
+        }
         this.$message.success('草稿保存成功')
       } catch (error) {
         this.$message.error('草稿保存失败')
@@ -531,16 +622,43 @@ export default {
     async submitForApproval() {
       this.submitting = true
       try {
-        const data = { ...this.form, approval_status: 'pending' }
+        // 准备提交数据（与 saveAll 相同的格式）
+        const submitData = {
+          ...this.form,
+          approval_status: 'pending',
+          // 转换产品数据格式
+          products_data: this.form.products.map(p => ({
+            product: p.product,
+            quantity: p.quantity,
+            unit: p.unit || '件',
+            specification: p.specification || '',
+            sort_order: p.sort_order || 0
+          })),
+          // 转换工序数据为 ID 数组
+          processes: this.form.processes,
+          // 转换物料数据格式
+          materials_data: (this.form.materials || []).map(m => ({
+            material: m.material || m.id,
+            material_size: m.material_size || '',
+            material_usage: m.material_usage || '',
+            need_cutting: m.need_cutting || false,
+            notes: m.notes || '',
+            purchase_status: m.purchase_status || 'pending'
+          }))
+        }
+
         if (this.isEdit) {
-          await workOrderAPI.update(this.id, data)
+          await workOrderAPI.update(this.id, submitData)
         } else {
-          await workOrderAPI.create(data)
+          await workOrderAPI.create(submitData)
         }
         this.$message.success('提交审核成功')
+
+        // 清除本地存储的草稿
+        localStorage.removeItem('workorder_draft')
         this.$router.push('/workorders')
       } catch (error) {
-        this.$message.error('提交审核失败')
+        this.$message.error('提交审核失败：' + (error.response?.data?.detail || error.message))
       } finally {
         this.submitting = false
       }
@@ -551,17 +669,43 @@ export default {
 
       this.saving = true
       try {
+        // 准备提交数据
+        const submitData = {
+          ...this.form,
+          // 转换产品数据格式
+          products_data: this.form.products.map(p => ({
+            product: p.product,
+            quantity: p.quantity,
+            unit: p.unit || '件',
+            specification: p.specification || '',
+            sort_order: p.sort_order || 0
+          })),
+          // 转换工序数据为 ID 数组
+          processes: this.form.processes,
+          // 转换物料数据格式
+          materials_data: (this.form.materials || []).map(m => ({
+            material: m.material || m.id,
+            material_size: m.material_size || '',
+            material_usage: m.material_usage || '',
+            need_cutting: m.need_cutting || false,
+            notes: m.notes || '',
+            purchase_status: m.purchase_status || 'pending'
+          }))
+        }
+
         if (this.isEdit) {
-          await workOrderAPI.update(this.id, this.form)
+          await workOrderAPI.update(this.id, submitData)
           this.$message.success('施工单更新成功')
         } else {
-          await workOrderAPI.create(this.form)
+          await workOrderAPI.create(submitData)
           this.$message.success('施工单创建成功')
         }
 
+        // 清除本地存储的草稿
+        localStorage.removeItem('workorder_draft')
         this.$router.push('/workorders')
       } catch (error) {
-        this.$message.error('保存失败')
+        this.$message.error('保存失败：' + (error.response?.data?.detail || error.message))
       } finally {
         this.saving = false
       }
