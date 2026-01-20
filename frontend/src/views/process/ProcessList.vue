@@ -140,14 +140,14 @@
 
 <script>
 import { processAPI } from '@/api/modules'
-import listPageMixin from '@/mixins/listPageMixin'
+import crudMixin from '@/mixins/crudMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 import Pagination from '@/components/common/Pagination.vue'
 
 export default {
   name: 'ProcessList',
   components: { Pagination },
-  mixins: [listPageMixin, crudPermissionMixin],
+  mixins: [crudMixin, crudPermissionMixin],
   data() {
     return {
       // API 服务和权限配置
@@ -155,7 +155,7 @@ export default {
       permissionPrefix: 'process',
 
       // 表单相关
-      form: {
+      formInitialValues: {
         code: '',
         name: '',
         description: '',
@@ -163,6 +163,7 @@ export default {
         sort_order: 0,
         is_active: true
       },
+      form: {},  // 将在 created 中初始化
       rules: {
         code: [
           { required: true, message: '请输入工序编码', trigger: 'blur' }
@@ -194,6 +195,8 @@ export default {
     }
   },
   created() {
+    // 初始化表单
+    this.form = { ...this.formInitialValues }
     this.loadData()
   },
   methods: {
@@ -217,14 +220,7 @@ export default {
     },
 
     resetForm() {
-      this.form = {
-        code: '',
-        name: '',
-        description: '',
-        standard_duration: 0,
-        sort_order: 0,
-        is_active: true
-      }
+      this.form = { ...this.formInitialValues }
     },
 
     async handleSubmit() {

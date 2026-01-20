@@ -79,43 +79,6 @@ export const departmentAPI = {
   }
 }
 
-// 工序管理
-export const processAPI = {
-  getList(params) {
-    return request({
-      url: '/processes/',
-      method: 'get',
-      params
-    })
-  },
-  getDetail(id) {
-    return request({
-      url: `/processes/${id}/`,
-      method: 'get'
-    })
-  },
-  create(data) {
-    return request({
-      url: '/processes/',
-      method: 'post',
-      data
-    })
-  },
-  update(id, data) {
-    return request({
-      url: `/processes/${id}/`,
-      method: 'put',
-      data
-    })
-  },
-  delete(id) {
-    return request({
-      url: `/processes/${id}/`,
-      method: 'delete'
-    })
-  }
-}
-
 // 产品管理
 export const productAPI = {
   getList(params) {

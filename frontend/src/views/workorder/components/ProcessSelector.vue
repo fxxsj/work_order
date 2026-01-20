@@ -36,7 +36,8 @@
 </template>
 
 <script>
-import { processAPI } from '@/api/workorder'
+import { processAPI } from '@/api/modules'
+import ErrorHandler from '@/utils/errorHandler'
 
 export default {
   name: 'ProcessSelector',
@@ -72,31 +73,15 @@ export default {
     async loadProcessList() {
       this.loading = true
       try {
-        // 分页加载所有工序
-        let allProcesses = []
-        let page = 1
-        let hasMore = true
-
-        while (hasMore) {
-          const response = await processAPI.getList({
-            is_active: true,
-            page_size: 100,
-            page: page
-          })
-
-          if (response.results && response.results.length > 0) {
-            allProcesses = allProcesses.concat(response.results)
-            hasMore = response.next !== null && response.next !== undefined
-            page++
-          } else {
-            hasMore = false
-          }
-        }
-
-        this.processList = allProcesses
+        // 一次性获取所有活跃工序（优化后的方式）
+        const response = await processAPI.getList({
+          is_active: true,
+          page_size: 1000,
+          ordering: 'sort_order,code'
+        })
+        this.processList = response.results || []
       } catch (error) {
-        console.error('加载工序列表失败:', error)
-        this.$message.error('加载工序列表失败')
+        ErrorHandler.showMessage(error, '加载工序列表失败')
       } finally {
         this.loading = false
       }
