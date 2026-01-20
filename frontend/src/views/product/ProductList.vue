@@ -23,6 +23,7 @@
       </div>
 
       <el-table
+        v-if="tableData.length > 0"
         v-loading="loading"
         :data="tableData"
         style="width: 100%; margin-top: 20px;"
