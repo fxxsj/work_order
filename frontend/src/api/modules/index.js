@@ -32,6 +32,11 @@ export { productionCostAPI } from './production-cost'
 export { paymentAPI } from './payment'
 export { statementAPI } from './statement'
 
+// Inventory API (库存管理)
+export { productStockAPI } from './product-stock'
+export { deliveryOrderAPI } from './delivery-order'
+export { qualityInspectionAPI } from './quality-inspection'
+
 // Complex API Modules (包含自定义操作)
 export { workOrderAPI } from './workorder'
 export { workOrderTaskAPI } from './workorder-task'
