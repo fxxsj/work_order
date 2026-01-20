@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- 背景圆形 -->
+  <circle cx="32" cy="32" r="30" fill="#409EFF" opacity="0.1"/>
+
+  <!-- 外圆边框 -->
+  <circle cx="32" cy="32" r="30" fill="none" stroke="#409EFF" stroke-width="2"/>
+
+  <!-- 打印机纸张 -->
+  <rect x="16" y="20" width="32" height="24" rx="2" fill="#409EFF" opacity="0.2" stroke="#409EFF" stroke-width="1.5"/>
+
+  <!-- 纸张中间的线条（代表文字/内容） -->
+  <line x1="20" y1="24" x2="44" y2="24" stroke="#409EFF" stroke-width="1.5"/>
+  <line x1="20" y1="28" x2="44" y2="28" stroke="#409EFF" stroke-width="1.5"/>
+  <line x1="20" y1="32" x2="40" y2="32" stroke="#409EFF" stroke-width="1.5"/>
+  <line x1="20" y1="36" x2="44" y2="36" stroke="#409EFF" stroke-width="1.5"/>
+
+  <!-- 左上角的齿轮（代表工单/流程） -->
+  <g transform="translate(12, 12)">
+    <circle cx="0" cy="0" r="6" fill="none" stroke="#67C23A" stroke-width="1.5"/>
+    <!-- 齿轮齿 -->
+    <rect x="-1.5" y="-7.5" width="3" height="2" fill="#67C23A" rx="0.5"/>
+    <rect x="-1.5" y="5.5" width="3" height="2" fill="#67C23A" rx="0.5"/>
+    <rect x="-7.5" y="-1.5" width="2" height="3" fill="#67C23A" rx="0.5"/>
+    <rect x="5.5" y="-1.5" width="2" height="3" fill="#67C23A" rx="0.5"/>
+    <!-- 中心圆点 -->
+    <circle cx="0" cy="0" r="2" fill="#67C23A"/>
+  </g>
+
+  <!-- 右下角的对号（代表完成/检查） -->
+  <g transform="translate(50, 50)">
+    <circle cx="0" cy="0" r="5" fill="none" stroke="#E6A23C" stroke-width="1.5"/>
+    <path d="M -2 0 L 0 2 L 2.5 -1" fill="none" stroke="#E6A23C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- 中心主图标：文件+箭头 -->
+  <g transform="translate(32, 32)">
+    <!-- 文件夹形状 -->
+    <path d="M -8 -6 L -8 8 Q -8 9 -7 9 L 8 9 Q 9 9 9 8 L 9 -2 Q 9 -3 8 -3 L -2 -3 L -4 -6 Q -5 -6 -5 -5 L -8 -6"
+          fill="none" stroke="#409EFF" stroke-width="1.5" stroke-linejoin="round"/>
+    <!-- 向右箭头 -->
+    <path d="M 0 -1 L 5 -1 L 3.5 -2.5" fill="none" stroke="#409EFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 5 -1 L 3.5 0.5" fill="none" stroke="#409EFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
