@@ -26,6 +26,12 @@ export { supplierAPI } from './supplier'
 // Authentication API (认证和授权)
 export { authAPI } from './auth'
 
+// Finance API (财务管理)
+export { invoiceAPI } from './invoice'
+export { productionCostAPI } from './production-cost'
+export { paymentAPI } from './payment'
+export { statementAPI } from './statement'
+
 // Complex API Modules (包含自定义操作)
 export { workOrderAPI } from './workorder'
 export { workOrderTaskAPI } from './workorder-task'
