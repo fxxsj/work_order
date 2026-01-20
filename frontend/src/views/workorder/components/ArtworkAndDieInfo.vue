@@ -2,7 +2,12 @@
   <div class="artwork-die-info">
     <!-- 空状态 -->
     <el-empty v-if="!items || items.length === 0" :description="emptyText">
-      <el-button v-if="!disabled" type="primary" size="small" @click="handleAdd">
+      <el-button
+        v-if="!disabled"
+        type="primary"
+        size="small"
+        @click="handleAdd"
+      >
         <i class="el-icon-plus"></i>
         {{ addButtonText }}
       </el-button>
@@ -12,15 +17,30 @@
     <div v-else>
       <div class="list-header">
         <span class="list-title">{{ title }}（{{ items.length }}）</span>
-        <el-button v-if="!disabled" type="primary" size="small" @click="handleAdd">
+        <el-button
+          v-if="!disabled"
+          type="primary"
+          size="small"
+          @click="handleAdd"
+        >
           <i class="el-icon-plus"></i>
           添加
         </el-button>
       </div>
 
-      <el-table :data="items" border size="small" style="width: 100%">
+      <el-table
+        :data="items"
+        border
+        size="small"
+        style="width: 100%"
+      >
         <el-table-column prop="name" :label="nameLabel" min-width="150" />
-        <el-table-column prop="version" label="版本" width="80" align="center" />
+        <el-table-column
+          prop="version"
+          label="版本"
+          width="80"
+          align="center"
+        />
         <el-table-column label="确认状态" width="100" align="center">
           <template slot-scope="scope">
             <el-tag :type="scope.row.confirmed ? 'success' : 'warning'" size="small">
@@ -28,13 +48,28 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="notes" label="备注" min-width="150" show-overflow-tooltip />
-        <el-table-column v-if="!disabled" label="操作" width="120" align="center">
+        <el-table-column
+          prop="notes"
+          label="备注"
+          min-width="150"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          v-if="!disabled"
+          label="操作"
+          width="120"
+          align="center"
+        >
           <template slot-scope="scope">
             <el-button type="text" size="small" @click="handleEdit(scope.$index)">
               编辑
             </el-button>
-            <el-button type="text" size="small" style="color: #F56C6C;" @click="handleDelete(scope.$index)">
+            <el-button
+              type="text"
+              size="small"
+              style="color: #F56C6C;"
+              @click="handleDelete(scope.$index)"
+            >
               删除
             </el-button>
           </template>

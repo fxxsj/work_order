@@ -47,215 +47,215 @@
         <!-- 步骤内容 -->
         <div class="step-content">
           <el-form ref="workOrderForm" :model="form" label-width="100px">
-          <!-- 步骤1: 基本信息 -->
-          <div v-show="currentStep === 0" class="step-panel">
-            <h3>基本信息</h3>
-            <el-row :gutter="20">
-              <el-col :xs="24" :sm="12" :md="8">
-                <el-form-item label="客户" prop="customer">
-                  <customer-selector
-                    v-model="form.customer"
-                    :disabled="isApproved"
-                    @change="onCustomerChange"
-                  />
-                </el-form-item>
-              </el-col>
-
-              <el-col :xs="24" :sm="12" :md="8">
-                <el-form-item label="优先级" prop="priority">
-                  <el-select v-model="form.priority" style="width: 100%;">
-                    <el-option
-                      v-for="item in priorityOptions"
-                      :key="item.value"
-                      :label="item.label"
-                      :value="item.value"
-                    >
-                      <span :style="{color: item.color}">{{ item.label }}</span>
-                    </el-option>
-                  </el-select>
-                </el-form-item>
-              </el-col>
-
-              <el-col :xs="24" :sm="12" :md="8">
-                <el-form-item label="制表人" prop="manager">
-                  <el-select
-                    v-model="form.manager"
-                    filterable
-                    style="width: 100%;"
-                    :disabled="isApproved"
-                  >
-                    <el-option
-                      v-for="user in managerList"
-                      :key="user.id"
-                      :label="user.username"
-                      :value="user.id"
-                    />
-                  </el-select>
-                </el-form-item>
-              </el-col>
-            </el-row>
-
-            <el-row :gutter="20">
-              <el-col :xs="24" :sm="12">
-                <el-form-item label="下单日期" prop="order_date">
-                  <el-date-picker
-                    v-model="form.order_date"
-                    type="date"
-                    placeholder="选择下单日期"
-                    style="width: 100%;"
-                    value-format="yyyy-MM-dd"
-                    :disabled="isApproved"
-                  />
-                </el-form-item>
-              </el-col>
-
-              <el-col :xs="24" :sm="12">
-                <el-form-item label="交货日期" prop="delivery_date">
-                  <el-date-picker
-                    v-model="form.delivery_date"
-                    type="date"
-                    placeholder="选择交货日期"
-                    style="width: 100%;"
-                    value-format="yyyy-MM-dd"
-                    :disabled="isApproved"
-                  />
-                </el-form-item>
-              </el-col>
-            </el-row>
-
-            <el-form-item label="备注">
-              <el-input
-                v-model="form.notes"
-                type="textarea"
-                :rows="2"
-                placeholder="请输入备注信息"
-                :disabled="isApproved"
-              />
-            </el-form-item>
-          </div>
-
-          <!-- 步骤2: 产品配置 -->
-          <div v-show="currentStep === 1" class="step-panel">
-            <div class="panel-header">
-              <h3>产品配置</h3>
-              <el-button type="primary" size="small" @click="addProduct">
-                <i class="el-icon-plus"></i>
-                添加产品
-              </el-button>
-            </div>
-
-            <product-list-editor
-              v-model="form.products"
-              :disabled="isApproved"
-              @change="onProductsChange"
-            />
-          </div>
-
-          <!-- 步骤3: 工序安排 -->
-          <div v-show="currentStep === 2" class="step-panel">
-            <div class="panel-header">
-              <h3>工序安排</h3>
-              <el-button-group>
-                <el-button size="small" @click="autoArrangeProcesses">
-                  <i class="el-icon-magic-stick"></i>
-                  智能排程
-                </el-button>
-                <el-button size="small" @click="addProcess">
-                  <i class="el-icon-plus"></i>
-                  添加工序
-                </el-button>
-              </el-button-group>
-            </div>
-
-            <process-selector
-              v-model="form.processes"
-              :disabled="isApproved"
-              @change="onProcessesChange"
-            />
-          </div>
-
-          <!-- 步骤4: 物料资产 -->
-          <div v-show="currentStep === 3" class="step-panel">
-            <el-tabs v-model="materialTab" class="material-tabs">
-              <el-tab-pane label="物料配置" name="materials">
-                <material-management
-                  v-model="form.materials"
-                  :disabled="isApproved"
-                  @change="onMaterialsChange"
-                />
-              </el-tab-pane>
-
-              <el-tab-pane label="图稿" name="artworks">
-                <artwork-and-die-info
-                  v-model="form.artworks"
-                  type="artwork"
-                  :disabled="isApproved"
-                />
-              </el-tab-pane>
-
-              <el-tab-pane label="刀模" name="dies">
-                <artwork-and-die-info
-                  v-model="form.dies"
-                  type="die"
-                  :disabled="isApproved"
-                />
-              </el-tab-pane>
-
-              <el-tab-pane label="烫金版" name="foiling_plates">
-                <artwork-and-die-info
-                  v-model="form.foiling_plates"
-                  type="foiling_plate"
-                  :disabled="isApproved"
-                />
-              </el-tab-pane>
-            </el-tabs>
-          </div>
-
-          <!-- 步骤5: 确认提交 -->
-          <div v-show="currentStep === 4" class="step-panel">
-            <h3>确认信息</h3>
-            <div class="summary-section">
+            <!-- 步骤1: 基本信息 -->
+            <div v-show="currentStep === 0" class="step-panel">
+              <h3>基本信息</h3>
               <el-row :gutter="20">
-                <el-col :span="12">
-                  <div class="summary-card">
-                    <h4>基本信息</h4>
-                    <div class="summary-item">
-                      <span class="label">客户：</span>
-                      <span class="value">{{ selectedCustomerName }}</span>
-                    </div>
-                    <div class="summary-item">
-                      <span class="label">优先级：</span>
-                      <el-tag :type="getPriorityTagType(form.priority)">
-                        {{ getPriorityLabel(form.priority) }}
-                      </el-tag>
-                    </div>
-                    <div class="summary-item">
-                      <span class="label">交货日期：</span>
-                      <span class="value">{{ form.delivery_date }}</span>
-                    </div>
-                  </div>
+                <el-col :xs="24" :sm="12" :md="8">
+                  <el-form-item label="客户" prop="customer">
+                    <customer-selector
+                      v-model="form.customer"
+                      :disabled="isApproved"
+                      @change="onCustomerChange"
+                    />
+                  </el-form-item>
                 </el-col>
 
-                <el-col :span="12">
-                  <div class="summary-card">
-                    <h4>配置统计</h4>
-                    <div class="summary-item">
-                      <span class="label">产品数量：</span>
-                      <span class="value">{{ form.products.length }} 款</span>
-                    </div>
-                    <div class="summary-item">
-                      <span class="label">工序数量：</span>
-                      <span class="value">{{ form.processes.length }} 个</span>
-                    </div>
-                    <div class="summary-item">
-                      <span class="label">物料数量：</span>
-                      <span class="value">{{ form.materials.length }} 种</span>
-                    </div>
-                  </div>
+                <el-col :xs="24" :sm="12" :md="8">
+                  <el-form-item label="优先级" prop="priority">
+                    <el-select v-model="form.priority" style="width: 100%;">
+                      <el-option
+                        v-for="item in priorityOptions"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                      >
+                        <span :style="{color: item.color}">{{ item.label }}</span>
+                      </el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+
+                <el-col :xs="24" :sm="12" :md="8">
+                  <el-form-item label="制表人" prop="manager">
+                    <el-select
+                      v-model="form.manager"
+                      filterable
+                      style="width: 100%;"
+                      :disabled="isApproved"
+                    >
+                      <el-option
+                        v-for="user in managerList"
+                        :key="user.id"
+                        :label="user.username"
+                        :value="user.id"
+                      />
+                    </el-select>
+                  </el-form-item>
                 </el-col>
               </el-row>
+
+              <el-row :gutter="20">
+                <el-col :xs="24" :sm="12">
+                  <el-form-item label="下单日期" prop="order_date">
+                    <el-date-picker
+                      v-model="form.order_date"
+                      type="date"
+                      placeholder="选择下单日期"
+                      style="width: 100%;"
+                      value-format="yyyy-MM-dd"
+                      :disabled="isApproved"
+                    />
+                  </el-form-item>
+                </el-col>
+
+                <el-col :xs="24" :sm="12">
+                  <el-form-item label="交货日期" prop="delivery_date">
+                    <el-date-picker
+                      v-model="form.delivery_date"
+                      type="date"
+                      placeholder="选择交货日期"
+                      style="width: 100%;"
+                      value-format="yyyy-MM-dd"
+                      :disabled="isApproved"
+                    />
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <el-form-item label="备注">
+                <el-input
+                  v-model="form.notes"
+                  type="textarea"
+                  :rows="2"
+                  placeholder="请输入备注信息"
+                  :disabled="isApproved"
+                />
+              </el-form-item>
             </div>
-          </div>
+
+            <!-- 步骤2: 产品配置 -->
+            <div v-show="currentStep === 1" class="step-panel">
+              <div class="panel-header">
+                <h3>产品配置</h3>
+                <el-button type="primary" size="small" @click="addProduct">
+                  <i class="el-icon-plus"></i>
+                  添加产品
+                </el-button>
+              </div>
+
+              <product-list-editor
+                v-model="form.products"
+                :disabled="isApproved"
+                @change="onProductsChange"
+              />
+            </div>
+
+            <!-- 步骤3: 工序安排 -->
+            <div v-show="currentStep === 2" class="step-panel">
+              <div class="panel-header">
+                <h3>工序安排</h3>
+                <el-button-group>
+                  <el-button size="small" @click="autoArrangeProcesses">
+                    <i class="el-icon-magic-stick"></i>
+                    智能排程
+                  </el-button>
+                  <el-button size="small" @click="addProcess">
+                    <i class="el-icon-plus"></i>
+                    添加工序
+                  </el-button>
+                </el-button-group>
+              </div>
+
+              <process-selector
+                v-model="form.processes"
+                :disabled="isApproved"
+                @change="onProcessesChange"
+              />
+            </div>
+
+            <!-- 步骤4: 物料资产 -->
+            <div v-show="currentStep === 3" class="step-panel">
+              <el-tabs v-model="materialTab" class="material-tabs">
+                <el-tab-pane label="物料配置" name="materials">
+                  <material-management
+                    v-model="form.materials"
+                    :disabled="isApproved"
+                    @change="onMaterialsChange"
+                  />
+                </el-tab-pane>
+
+                <el-tab-pane label="图稿" name="artworks">
+                  <artwork-and-die-info
+                    v-model="form.artworks"
+                    type="artwork"
+                    :disabled="isApproved"
+                  />
+                </el-tab-pane>
+
+                <el-tab-pane label="刀模" name="dies">
+                  <artwork-and-die-info
+                    v-model="form.dies"
+                    type="die"
+                    :disabled="isApproved"
+                  />
+                </el-tab-pane>
+
+                <el-tab-pane label="烫金版" name="foiling_plates">
+                  <artwork-and-die-info
+                    v-model="form.foiling_plates"
+                    type="foiling_plate"
+                    :disabled="isApproved"
+                  />
+                </el-tab-pane>
+              </el-tabs>
+            </div>
+
+            <!-- 步骤5: 确认提交 -->
+            <div v-show="currentStep === 4" class="step-panel">
+              <h3>确认信息</h3>
+              <div class="summary-section">
+                <el-row :gutter="20">
+                  <el-col :span="12">
+                    <div class="summary-card">
+                      <h4>基本信息</h4>
+                      <div class="summary-item">
+                        <span class="label">客户：</span>
+                        <span class="value">{{ selectedCustomerName }}</span>
+                      </div>
+                      <div class="summary-item">
+                        <span class="label">优先级：</span>
+                        <el-tag :type="getPriorityTagType(form.priority)">
+                          {{ getPriorityLabel(form.priority) }}
+                        </el-tag>
+                      </div>
+                      <div class="summary-item">
+                        <span class="label">交货日期：</span>
+                        <span class="value">{{ form.delivery_date }}</span>
+                      </div>
+                    </div>
+                  </el-col>
+
+                  <el-col :span="12">
+                    <div class="summary-card">
+                      <h4>配置统计</h4>
+                      <div class="summary-item">
+                        <span class="label">产品数量：</span>
+                        <span class="value">{{ form.products.length }} 款</span>
+                      </div>
+                      <div class="summary-item">
+                        <span class="label">工序数量：</span>
+                        <span class="value">{{ form.processes.length }} 个</span>
+                      </div>
+                      <div class="summary-item">
+                        <span class="label">物料数量：</span>
+                        <span class="value">{{ form.materials.length }} 种</span>
+                      </div>
+                    </div>
+                  </el-col>
+                </el-row>
+              </div>
+            </div>
           </el-form>
         </div>
 
@@ -304,7 +304,7 @@ import MaterialManagement from './components/MaterialManagement.vue'
 import ArtworkAndDieInfo from './components/ArtworkAndDieInfo.vue'
 // 导入 API 模块
 import { customerAPI } from '@/api/modules/customer'
-import { workOrderAPI } from '@/api/modules/workOrder'
+import { workOrderAPI } from '@/api/modules/workorder'
 import { authAPI } from '@/api/modules/auth'
 
 export default {
