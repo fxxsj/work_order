@@ -17,7 +17,7 @@ class AuthAPI extends BaseAPI {
    */
   login(credentials) {
     return this.request({
-      url: `${this.baseURL}login/`,
+      url: `${this.baseUrl}login/`,
       method: 'post',
       data: credentials
     })
@@ -29,7 +29,7 @@ class AuthAPI extends BaseAPI {
    */
   logout() {
     return this.request({
-      url: `${this.baseURL}logout/`,
+      url: `${this.baseUrl}logout/`,
       method: 'post'
     })
   }
@@ -40,7 +40,7 @@ class AuthAPI extends BaseAPI {
    */
   getCurrentUser() {
     return this.request({
-      url: `${this.baseURL}user/`,
+      url: `${this.baseUrl}user/`,
       method: 'get'
     })
   }
@@ -52,7 +52,7 @@ class AuthAPI extends BaseAPI {
    */
   register(data) {
     return this.request({
-      url: `${this.baseURL}register/`,
+      url: `${this.baseUrl}register/`,
       method: 'post',
       data
     })
@@ -64,7 +64,7 @@ class AuthAPI extends BaseAPI {
    */
   getSalespersons() {
     return this.request({
-      url: `${this.baseURL}salespersons/`,
+      url: `${this.baseUrl}salespersons/`,
       method: 'get'
     })
   }
@@ -80,7 +80,7 @@ class AuthAPI extends BaseAPI {
       params.department_id = departmentId
     }
     return this.request({
-      url: `${this.baseURL}users/`,
+      url: `${this.baseUrl}users/`,
       method: 'get',
       params
     })
@@ -93,7 +93,7 @@ class AuthAPI extends BaseAPI {
    */
   changePassword(data) {
     return this.request({
-      url: `${this.baseURL}change-password/`,
+      url: `${this.baseUrl}change-password/`,
       method: 'post',
       data
     })
@@ -106,7 +106,7 @@ class AuthAPI extends BaseAPI {
    */
   updateProfile(data) {
     return this.request({
-      url: `${this.baseURL}update-profile/`,
+      url: `${this.baseUrl}update-profile/`,
       method: 'put',
       data
     })
