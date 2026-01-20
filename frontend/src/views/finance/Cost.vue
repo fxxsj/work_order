@@ -365,7 +365,7 @@
 </template>
 
 <script>
-import { getProductionCosts, getProductionCost, updateProductionCost, calculateTotalCost, getCostStats } from '@/api/finance'
+import { productionCostAPI } from '@/api/modules'
 import Pagination from '@/components/common/Pagination.vue'
 
 export default {
@@ -398,13 +398,13 @@ export default {
       this.loading = true
       try {
         const params = { page: this.pagination.page, page_size: this.pagination.pageSize, ...(this.filters.work_order && { work_order: this.filters.work_order }), ...(this.filters.cost_center && { cost_center: this.filters.cost_center }) }
-        const response = await getProductionCosts(params)
+        const response = await productionCostAPI.getList(params)
         this.costList = response.results || []
         this.pagination.total = response.count || 0
       } catch (error) { this.$message.error('获取成本列表失败') } finally { this.loading = false }
     },
     async fetchCostStats() {
-      try { const response = await getCostStats(); this.stats = response || {} } catch (error) { console.error('获取成本统计失败', error) }
+      try { const response = await productionCostAPI.getStats(); this.stats = response || {} } catch (error) { console.error('获取成本统计失败', error) }
     },
     async fetchWorkOrders() {
       try { this.workOrderList = [] } catch (error) { console.error('获取施工单列表失败', error) }
@@ -417,10 +417,10 @@ export default {
     handleSizeChange(size) { this.pagination.pageSize = size; this.pagination.page = 1; this.fetchCostList() },
     handlePageChange(page) { this.pagination.page = page; this.fetchCostList() },
     async handleView(row) {
-      try { const response = await getProductionCost(row.id); this.currentCost = response; this.detailDialogVisible = true } catch (error) { this.$message.error('获取成本详情失败') }
+      try { const response = await productionCostAPI.getDetail(row.id); this.currentCost = response; this.detailDialogVisible = true } catch (error) { this.$message.error('获取成本详情失败') }
     },
     async handleCalculate(row) {
-      this.$confirm('确认重新计算该订单成本？', '提示').then(async () => { try { await calculateTotalCost(row.id); this.$message.success('计算成功'); this.fetchCostList() } catch (error) { this.$message.error('计算失败') } })
+      this.$confirm('确认重新计算该订单成本？', '提示').then(async () => { try { await productionCostAPI.calculateTotal(row.id); this.$message.success('计算成功'); this.fetchCostList() } catch (error) { this.$message.error('计算失败') } })
     },
     handleEdit(row) {
       this.adjustForm = { id: row.id, material_cost: row.material_cost, labor_cost: row.labor_cost, equipment_cost: row.equipment_cost, overhead_cost: row.overhead_cost, adjust_reason: '' }
@@ -429,7 +429,7 @@ export default {
     async handleSaveAdjust() {
       this.$refs.adjustFormRef.validate(async (valid) => {
         if (!valid) return
-        try { await updateProductionCost(this.adjustForm.id, this.adjustForm); this.$message.success('调整成功'); this.adjustDialogVisible = false; this.fetchCostList() } catch (error) { this.$message.error('调整失败') }
+        try { await productionCostAPI.update(this.adjustForm.id, this.adjustForm); this.$message.success('调整成功'); this.adjustDialogVisible = false; this.fetchCostList() } catch (error) { this.$message.error('调整失败') }
       })
     },
     async handleStats() {

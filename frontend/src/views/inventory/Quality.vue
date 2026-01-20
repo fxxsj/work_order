@@ -335,7 +335,7 @@
 </template>
 
 <script>
-import { getQualityInspections, getQualityInspectionDetail, updateQualityInspection, completeQualityInspection } from '@/api/inventory'
+import { qualityInspectionAPI } from '@/api/modules'
 import Pagination from '@/components/common/Pagination.vue'
 
 export default {
@@ -374,7 +374,7 @@ export default {
         if (this.filters.inspection_type) params.inspection_type = this.filters.inspection_type
         if (this.filters.result) params.result = this.filters.result
         if (this.filters.status) params.status = this.filters.status
-        const response = await getQualityInspections(params)
+        const response = await qualityInspectionAPI.getList(params)
         this.qualityList = response.results || []
         this.pagination.total = response.count || 0
       } catch (error) {
@@ -396,7 +396,7 @@ export default {
     handlePageChange(page) { this.pagination.page = page; this.fetchQualityList() },
     handleCreate() { this.$message.info('新建质检功能开发中') },
     async handleView(row) {
-      try { const response = await getQualityInspectionDetail(row.id); this.currentQuality = response; this.detailDialogVisible = true } catch (error) { this.$message.error('获取质检详情失败') }
+      try { const response = await qualityInspectionAPI.getDetail(row.id); this.currentQuality = response; this.detailDialogVisible = true } catch (error) { this.$message.error('获取质检详情失败') }
     },
     handleInspect(row) {
       this.currentQuality = row
@@ -406,11 +406,11 @@ export default {
     handleSaveInspect() {
       this.$refs.inspectFormRef.validate(async (valid) => {
         if (!valid) return
-        try { await updateQualityInspection(this.currentQuality.id, this.inspectForm); this.$message.success('保存成功'); this.inspectDialogVisible = false; this.fetchQualityList() } catch (error) { this.$message.error('保存失败') }
+        try { await qualityInspectionAPI.update(this.currentQuality.id, this.inspectForm); this.$message.success('保存成功'); this.inspectDialogVisible = false; this.fetchQualityList() } catch (error) { this.$message.error('保存失败') }
       })
     },
     handleComplete(row) {
-      this.$confirm('确认完成该质检单？', '提示').then(async () => { try { await completeQualityInspection(row.id, {}); this.$message.success('完成成功'); this.fetchQualityList() } catch (error) { this.$message.error('完成失败') } })
+      this.$confirm('确认完成该质检单？', '提示').then(async () => { try { await qualityInspectionAPI.complete(row.id, {}); this.$message.success('完成成功'); this.fetchQualityList() } catch (error) { this.$message.error('完成失败') } })
     },
     handlePrint() { window.print() },
     getDefectiveRateClass(row) {

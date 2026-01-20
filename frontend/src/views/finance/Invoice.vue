@@ -327,7 +327,7 @@
 </template>
 
 <script>
-import { getInvoices, getInvoiceDetail, createInvoice, submitInvoice } from '@/api/finance'
+import { invoiceAPI } from '@/api/modules'
 
 export default {
   name: 'InvoiceList',
@@ -388,7 +388,7 @@ export default {
           params.customer = this.filters.customer
         }
 
-        const response = await getInvoices(params)
+        const response = await invoiceAPI.getList(params)
         this.invoiceList = response.results || []
         this.pagination.total = response.count || 0
       } catch (error) {
@@ -428,7 +428,7 @@ export default {
     // 查看详情
     async handleView(row) {
       try {
-        const response = await getInvoiceDetail(row.id)
+        const response = await invoiceAPI.getDetail(row.id)
         this.currentInvoice = response
         this.detailDialogVisible = true
       } catch (error) {
@@ -458,7 +458,7 @@ export default {
         if (!valid) return
 
         try {
-          await createInvoice(this.invoiceForm)
+          await invoiceAPI.create(this.invoiceForm)
           this.$message.success('创建成功')
           this.formDialogVisible = false
           this.fetchInvoiceList()
@@ -476,7 +476,7 @@ export default {
         cancelButtonText: '取消'
       }).then(async () => {
         try {
-          await submitInvoice(row.id)
+          await invoiceAPI.submit(row.id)
           this.$message.success('提交成功')
           this.fetchInvoiceList()
         } catch (error) {

@@ -350,7 +350,7 @@
 </template>
 
 <script>
-import { getStatements, getStatementDetail, createStatement, confirmStatement } from '@/api/finance'
+import { statementAPI } from '@/api/modules'
 import Pagination from '@/components/common/Pagination.vue'
 
 export default {
@@ -397,7 +397,7 @@ export default {
           params.period_start = formatDate(this.filters.period_range[0])
           params.period_end = formatDate(this.filters.period_range[1])
         }
-        const response = await getStatements(params)
+        const response = await statementAPI.getList(params)
         this.statementList = response.results || []
         this.pagination.total = response.count || 0
       } catch (error) { this.$message.error('获取对账单列表失败') } finally { this.loading = false }
@@ -410,7 +410,7 @@ export default {
     handleSizeChange(size) { this.pagination.pageSize = size; this.pagination.page = 1; this.fetchStatementList() },
     handlePageChange(page) { this.pagination.page = page; this.fetchStatementList() },
     async handleView(row) {
-      try { const response = await getStatementDetail(row.id); this.currentStatement = response; this.detailDialogVisible = true } catch (error) { this.$message.error('获取对账单详情失败') }
+      try { const response = await statementAPI.getDetail(row.id); this.currentStatement = response; this.detailDialogVisible = true } catch (error) { this.$message.error('获取对账单详情失败') }
     },
     handleCreate() {
       this.statementForm = { statement_type: 'customer', partner: null, period: null, statement_date: new Date(), notes: '' }
@@ -421,7 +421,7 @@ export default {
         if (!valid) return
         try {
           const data = { statement_type: this.statementForm.statement_type, partner: this.statementForm.partner, period_start: this.statementForm.period[0], period_end: this.statementForm.period[1], statement_date: this.statementForm.statement_date, notes: this.statementForm.notes }
-          await createStatement(data)
+          await statementAPI.create(data)
           this.$message.success('生成成功')
           this.formDialogVisible = false
           this.fetchStatementList()
@@ -435,7 +435,7 @@ export default {
     },
     async handleSaveConfirm() {
       try {
-        await confirmStatement(this.currentStatement.id, this.confirmForm)
+        await statementAPI.confirm(this.currentStatement.id, this.confirmForm)
         this.$message.success('确认成功')
         this.confirmDialogVisible = false
         this.fetchStatementList()

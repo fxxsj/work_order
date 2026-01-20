@@ -324,7 +324,7 @@
 </template>
 
 <script>
-import { getProductStocks, getLowStock, getExpiredStock, getStockSummary } from '@/api/inventory'
+import { productStockAPI } from '@/api/modules'
 import Pagination from '@/components/common/Pagination.vue'
 
 export default {
@@ -374,7 +374,7 @@ export default {
           ...(this.filters.status && { status: this.filters.status }),
           ...(this.filters.batch_number && { batch_number: this.filters.batch_number })
         }
-        const response = await getProductStocks(params)
+        const response = await productStockAPI.getList(params)
         this.stockList = response.results || []
         this.pagination.total = response.count || 0
       } catch (error) {
@@ -385,7 +385,7 @@ export default {
     },
     async fetchStockSummary() {
       try {
-        const response = await getStockSummary()
+        const response = await productStockAPI.getSummary()
         this.stats = response || {}
       } catch (error) {
         console.error('获取库存汇总失败', error)
@@ -427,7 +427,7 @@ export default {
       this.lowStockDialogVisible = true
       this.loadingLowStock = true
       try {
-        const response = await getLowStock()
+        const response = await productStockAPI.getLowStock()
         this.lowStockList = response.results || []
       } catch (error) {
         this.$message.error('获取库存预警失败')
@@ -439,7 +439,7 @@ export default {
       this.expiredDialogVisible = true
       this.loadingExpired = true
       try {
-        const response = await getExpiredStock()
+        const response = await productStockAPI.getExpired()
         this.expiredList = response.results || []
       } catch (error) {
         this.$message.error('获取过期库存失败')

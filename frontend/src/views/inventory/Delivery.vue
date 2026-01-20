@@ -66,8 +66,7 @@
 </template>
 
 <script>
-import { getDeliveryOrders, createDeliveryOrder, updateDeliveryOrder, shipDeliveryOrder, receiveDeliveryOrder, getProductStocks } from '@/api/inventory'
-import { getSalesOrderList } from '@/api/sales'
+import { deliveryOrderAPI, productStockAPI, salesOrderAPI } from '@/api/modules'
 import { getCustomerList } from '@/api/purchase'
 import { productAPI } from '@/api/workorder'
 import DeliveryFilters from './components/DeliveryFilters.vue'
@@ -147,7 +146,7 @@ export default {
         if (this.filters.customer) params.customer = this.filters.customer
         if (this.filters.tracking_number) params.tracking_number = this.filters.tracking_number
 
-        const response = await getDeliveryOrders(params)
+        const response = await deliveryOrderAPI.getList(params)
         this.deliveryList = response.results || []
         this.pagination.total = response.count || 0
       } catch (error) {
@@ -177,7 +176,7 @@ export default {
 
     async fetchSalesOrders() {
       try {
-        const response = await getSalesOrderList({ status: 'approved', page_size: 1000 })
+        const response = await salesOrderAPI.getList({ status: 'approved', page_size: 1000 })
         this.salesOrderList = response.results || []
       } catch (error) {
         console.error('获取销售订单列表失败', error)
@@ -195,7 +194,7 @@ export default {
 
     async fetchStocks() {
       try {
-        const response = await getProductStocks({ page_size: 1000 })
+        const response = await productStockAPI.getList({ page_size: 1000 })
         this.stockList = response.results || []
       } catch (error) {
         console.error('获取库存列表失败', error)
@@ -299,10 +298,10 @@ export default {
         delete data.id
 
         if (this.isEdit) {
-          await updateDeliveryOrder(this.form.id, data)
+          await deliveryOrderAPI.update(this.form.id, data)
           this.$message.success('发货单更新成功')
         } else {
-          await createDeliveryOrder(data)
+          await deliveryOrderAPI.create(data)
           this.$message.success('发货单创建成功')
         }
 
@@ -335,7 +334,7 @@ export default {
         cancelButtonText: '取消'
       }).then(async () => {
         try {
-          await shipDeliveryOrder(row.id, {})
+          await deliveryOrderAPI.ship(row.id, {})
           this.$message.success('发货成功')
           this.fetchDeliveryOrders()
         } catch (error) {
@@ -351,7 +350,7 @@ export default {
 
     async handleConfirmReceive(form) {
       try {
-        await receiveDeliveryOrder(form.delivery_id, form)
+        await deliveryOrderAPI.receive(form.delivery_id, form)
         this.$message.success('签收成功')
         this.receiveDialogVisible = false
         this.fetchDeliveryOrders()

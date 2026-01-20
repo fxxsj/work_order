@@ -313,7 +313,7 @@
 </template>
 
 <script>
-import { getSalesOrderDetail, submitSalesOrder, approveSalesOrder, cancelSalesOrder, startProduction, completeSalesOrder } from '@/api/sales'
+import { salesOrderAPI } from '@/api/modules'
 
 export default {
   name: 'SalesOrderDetail',
@@ -363,7 +363,7 @@ export default {
     async fetchData() {
       this.loading = true
       try {
-        const response = await getSalesOrderDetail(this.orderId)
+        const response = await salesOrderAPI.getDetail(this.orderId)
         console.log('[DEBUG] Order detail response:', response)
         this.detailData = response
       } catch (error) {
@@ -386,7 +386,7 @@ export default {
         type: 'warning'
       }).then(async () => {
         try {
-          await submitSalesOrder(this.orderId)
+          await salesOrderAPI.submit(this.orderId)
           this.$message.success('提交成功')
           this.$emit('refresh')
           this.fetchData()
@@ -403,7 +403,7 @@ export default {
         inputErrorMessage: '请输入审核意见'
       }).then(async ({ value }) => {
         try {
-          await approveSalesOrder(this.orderId, { approval_comment: value })
+          await salesOrderAPI.approve(this.orderId, { approval_comment: value })
           this.$message.success('审核通过')
           this.$emit('refresh')
           this.fetchData()
@@ -420,7 +420,7 @@ export default {
         inputErrorMessage: '请输入拒绝原因'
       }).then(async ({ value }) => {
         try {
-          await cancelSalesOrder(this.orderId, { reason: value })
+          await salesOrderAPI.cancel(this.orderId, { reason: value })
           this.$message.success('已拒绝该订单')
           this.$emit('refresh')
           this.fetchData()
@@ -436,7 +436,7 @@ export default {
         type: 'warning'
       }).then(async () => {
         try {
-          await startProduction(this.orderId)
+          await salesOrderAPI.startProduction(this.orderId)
           this.$message.success('已开始生产')
           this.$emit('refresh')
           this.fetchData()
@@ -452,7 +452,7 @@ export default {
         type: 'warning'
       }).then(async () => {
         try {
-          await completeSalesOrder(this.orderId)
+          await salesOrderAPI.complete(this.orderId)
           this.$message.success('订单已完成')
           this.$emit('refresh')
           this.fetchData()
@@ -469,7 +469,7 @@ export default {
         inputErrorMessage: '请输入取消原因'
       }).then(async ({ value }) => {
         try {
-          await cancelSalesOrder(this.orderId, { reason: value })
+          await salesOrderAPI.cancel(this.orderId, { reason: value })
           this.$message.success('订单已取消')
           this.$emit('refresh')
           this.fetchData()

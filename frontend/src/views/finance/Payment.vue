@@ -347,7 +347,7 @@
 </template>
 
 <script>
-import { getPayments, getPaymentDetail, createPayment, updatePayment, deletePayment, getPaymentSummary } from '@/api/finance'
+import { paymentAPI } from '@/api/modules'
 import Pagination from '@/components/common/Pagination.vue'
 
 export default {
@@ -403,18 +403,18 @@ export default {
         if (this.filters.customer) params.customer = this.filters.customer
         if (this.filters.payment_method) params.payment_method = this.filters.payment_method
         if (this.filters.date_range?.length === 2) { params.payment_date_start = this.filters.date_range[0]; params.payment_date_end = this.filters.date_range[1] }
-        const response = await getPayments(params)
+        const response = await paymentAPI.getList(params)
         this.paymentList = response.results || []
         this.pagination.total = response.count || 0
       } catch (error) { this.$message.error(`获取收款列表失败: ${error.response?.data?.detail || error.message}`) }
       finally { this.loading = false }
     },
-    async fetchPaymentSummary() { try { this.stats = await getPaymentSummary() || {} } catch (error) { console.error('获取收款汇总失败', error) } },
+    async fetchPaymentSummary() { try { this.stats = await paymentAPI.getSummary() || {} } catch (error) { console.error('获取收款汇总失败', error) } },
     async fetchCustomers() { try { this.customerList = [] } catch (error) { console.error('获取客户列表失败', error) } },
     handleSearch() { this.pagination.page = 1; this.fetchPaymentList() },
     handleReset() { this.filters = { customer: '', payment_method: '', date_range: null }; this.pagination.page = 1; this.fetchPaymentList() },
     async handleView(row) {
-      try { this.currentPayment = await getPaymentDetail(row.id); this.detailDialogVisible = true }
+      try { this.currentPayment = await paymentAPI.getDetail(row.id); this.detailDialogVisible = true }
       catch (error) { this.$message.error('获取收款详情失败') }
     },
     handleCreate() { this.formMode = 'create'; this.paymentForm = { customer: null, payment_date: null, payment_method: '', amount: null, bank_account: '', transaction_number: '', notes: '' }; this.formDialogVisible = true },
@@ -424,8 +424,8 @@ export default {
         if (!valid) return
         try {
           const data = { ...this.paymentForm }
-          if (this.formMode === 'create') await createPayment(data)
-          else await updatePayment(data.id, data)
+          if (this.formMode === 'create') await paymentAPI.create(data)
+          else await paymentAPI.update(data.id, data)
           this.$message.success(this.formMode === 'create' ? '创建成功' : '更新成功')
           this.formDialogVisible = false
           this.fetchPaymentList()
@@ -433,7 +433,7 @@ export default {
         } catch (error) { this.$message.error(this.formMode === 'create' ? '创建失败' : '更新失败') }
       })
     },
-    handleDelete(row) { this.$confirm('确认删除该收款记录？', '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }).then(async () => { try { await deletePayment(row.id); this.$message.success('删除成功'); this.fetchPaymentList(); this.fetchPaymentSummary() } catch { this.$message.error('删除失败') } }).catch(() => {}) },
+    handleDelete(row) { this.$confirm('确认删除该收款记录？', '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }).then(async () => { try { await paymentAPI.delete(row.id); this.$message.success('删除成功'); this.fetchPaymentList(); this.fetchPaymentSummary() } catch { this.$message.error('删除失败') } }).catch(() => {}) },
     handleSizeChange(size) { this.pagination.pageSize = size; this.pagination.page = 1; this.fetchPaymentList() },
     handlePageChange(page) { this.pagination.page = page; this.fetchPaymentList() },
     getRemainingClass(row) { return row.remaining_amount > 0 ? 'has-remaining' : '' }

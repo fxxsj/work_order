@@ -284,7 +284,7 @@
 </template>
 
 <script>
-import { getSalesOrderList, createSalesOrder, updateSalesOrder, deleteSalesOrder, getSalesOrderDetail, approveSalesOrder, cancelSalesOrder, submitSalesOrder } from '@/api/sales'
+import { salesOrderAPI } from '@/api/modules'
 import SalesOrderForm from './SalesForm.vue'
 import SalesOrderDetail from './SalesDetail.vue'
 import Pagination from '@/components/common/Pagination.vue'
@@ -339,7 +339,7 @@ export default {
           status: this.filters.status || undefined,
           payment_status: this.filters.payment_status || undefined
         }
-        const response = await getSalesOrderList(params)
+        const response = await salesOrderAPI.getList(params)
         this.tableData = response.results || []
         this.pagination.total = response.count || 0
       } catch (error) {
@@ -381,7 +381,7 @@ export default {
     },
     async handleEdit(row) {
       try {
-        const response = await getSalesOrderDetail(row.id)
+        const response = await salesOrderAPI.getDetail(row.id)
         this.dialogMode = 'edit'
         this.submitForm = response
         this.submitErrors = []
@@ -397,7 +397,7 @@ export default {
         type: 'warning'
       }).then(async () => {
         try {
-          await deleteSalesOrder(row.id)
+          await salesOrderAPI.delete(row.id)
           this.$message.success('删除成功')
           this.fetchData()
         } catch (error) {
@@ -412,7 +412,7 @@ export default {
         type: 'warning'
       }).then(async () => {
         try {
-          await submitSalesOrder(row.id)
+          await salesOrderAPI.submit(row.id)
           this.$message.success('提交成功')
           this.fetchData()
         } catch (error) {
@@ -424,10 +424,10 @@ export default {
     async handleFormSubmit(formData) {
       try {
         if (this.dialogMode === 'add') {
-          await createSalesOrder(formData)
+          await salesOrderAPI.create(formData)
           this.$message.success('创建成功')
         } else {
-          await updateSalesOrder(this.submitForm.id, formData)
+          await salesOrderAPI.update(this.submitForm.id, formData)
           this.$message.success('更新成功')
         }
         this.dialogVisible = false
@@ -452,7 +452,7 @@ export default {
     },
     async confirmApprove() {
       try {
-        await approveSalesOrder(this.approveOrder.id, { approval_comment: this.approveForm.approval_comment })
+        await salesOrderAPI.approve(this.approveOrder.id, { approval_comment: this.approveForm.approval_comment })
         this.$message.success('审核通过')
         this.approveVisible = false
         this.fetchData()
@@ -469,7 +469,7 @@ export default {
     },
     async confirmReject() {
       try {
-        await cancelSalesOrder(this.approveOrder.id, { reason: this.approveForm.approval_comment })
+        await salesOrderAPI.cancel(this.approveOrder.id, { reason: this.approveForm.approval_comment })
         this.$message.success('已拒绝')
         this.approveVisible = false
         this.fetchData()
@@ -485,7 +485,7 @@ export default {
         type: 'warning'
       }).then(async () => {
         try {
-          await cancelSalesOrder(row.id, { reason: '用户取消' })
+          await salesOrderAPI.cancel(row.id, { reason: '用户取消' })
           this.$message.success('已取消')
           this.fetchData()
         } catch (error) {
