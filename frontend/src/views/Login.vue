@@ -14,10 +14,9 @@
         :description="loginPromptMessage"
         show-icon
         :closable="true"
-        @close="showLoginPrompt = false"
         class="login-alert"
-      >
-      </el-alert>
+        @close="showLoginPrompt = false"
+      />
 
       <!-- 登录成功提示 -->
       <el-alert
@@ -28,8 +27,7 @@
         show-icon
         :closable="false"
         class="login-alert"
-      >
-      </el-alert>
+      />
 
       <el-form
         ref="loginForm"
@@ -42,9 +40,9 @@
             v-model="loginForm.username"
             placeholder="用户名"
             prefix-icon="el-icon-user"
-            @keyup.enter.native="handleLogin"
             :disabled="loading"
-          ></el-input>
+            @keyup.enter.native="handleLogin"
+          />
         </el-form-item>
 
         <el-form-item prop="password">
@@ -53,10 +51,10 @@
             type="password"
             placeholder="密码"
             prefix-icon="el-icon-lock"
-            @keyup.enter.native="handleLogin"
             show-password
             :disabled="loading"
-          ></el-input>
+            @keyup.enter.native="handleLogin"
+          />
         </el-form-item>
 
         <el-form-item>
@@ -81,7 +79,7 @@
 </template>
 
 <script>
-import { login, getCurrentUser } from '@/api/auth'
+import { authAPI } from '@/api/modules'
 
 export default {
   name: 'Login',
@@ -109,7 +107,7 @@ export default {
   async mounted() {
     // 页面加载时获取 CSRF token
     try {
-      await getCurrentUser()
+      await authAPI.getCurrentUser()
     } catch (error) {
       // 忽略错误，只是为了获取 CSRF cookie
     }
@@ -143,7 +141,7 @@ export default {
 
       try {
         // 调用登录 API
-        const user = await login(this.loginForm)
+        const user = await authAPI.login(this.loginForm)
 
         if (user && user.id) {
           // 登录成功

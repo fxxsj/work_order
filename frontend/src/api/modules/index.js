@@ -23,6 +23,9 @@ export { embossingPlateAPI } from './embossing-plate'
 export { productMaterialAPI } from './product-material'
 export { supplierAPI } from './supplier'
 
+// Authentication API (认证和授权)
+export { authAPI } from './auth'
+
 // Complex API Modules (包含自定义操作)
 export { workOrderAPI } from './workorder'
 export { workOrderTaskAPI } from './workorder-task'

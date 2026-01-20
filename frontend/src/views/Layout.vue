@@ -160,8 +160,12 @@
       <el-header class="header">
         <div class="header-left">
           <el-breadcrumb separator="/">
-            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-            <el-breadcrumb-item v-if="$route.meta.title">{{ $route.meta.title }}</el-breadcrumb-item>
+            <el-breadcrumb-item :to="{ path: '/' }">
+              首页
+            </el-breadcrumb-item>
+            <el-breadcrumb-item v-if="$route.meta.title">
+              {{ $route.meta.title }}
+            </el-breadcrumb-item>
           </el-breadcrumb>
         </div>
         <div class="header-right">
@@ -172,9 +176,15 @@
               <i class="el-icon-arrow-down el-icon--right"></i>
             </span>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item command="profile">个人信息</el-dropdown-item>
-              <el-dropdown-item command="admin">管理后台</el-dropdown-item>
-              <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+              <el-dropdown-item command="profile">
+                个人信息
+              </el-dropdown-item>
+              <el-dropdown-item command="admin">
+                管理后台
+              </el-dropdown-item>
+              <el-dropdown-item command="logout" divided>
+                退出登录
+              </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </div>
@@ -189,7 +199,7 @@
 </template>
 
 <script>
-import { logout } from '@/api/auth'
+import { authAPI } from '@/api/modules'
 
 export default {
   name: 'Layout',
@@ -279,7 +289,7 @@ export default {
     }
   },
   methods: {
-     // 检查用户是否有指定权限
+    // 检查用户是否有指定权限
     hasPermission(permission) {
       // 使用 store getter 检查权限
       return this.$store.getters['user/hasPermission'](permission)
@@ -306,7 +316,7 @@ export default {
 
             try {
               // 调用后端 logout API
-              await logout()
+              await authAPI.logout()
             } catch (e) {
               // 忽略 logout API 错误，继续清除本地状态
               console.warn('后端登出API调用失败，但继续清除本地状态:', e)
