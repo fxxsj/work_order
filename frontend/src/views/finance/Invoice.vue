@@ -277,7 +277,7 @@
 
 <script>
 import { invoiceAPI } from '@/api/modules'
-import { StatsCards } from '@/components/common'
+import StatsCards from '@/components/common/StatsCards.vue'
 
 export default {
   name: 'InvoiceList',

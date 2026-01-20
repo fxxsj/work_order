@@ -320,7 +320,7 @@
 
 <script>
 import { productionCostAPI } from '@/api/modules'
-import { StatsCards } from '@/components/common'
+import StatsCards from '@/components/common/StatsCards.vue'
 import Pagination from '@/components/common/Pagination.vue'
 
 export default {
