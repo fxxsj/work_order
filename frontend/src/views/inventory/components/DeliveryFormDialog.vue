@@ -6,8 +6,15 @@
     :close-on-click-modal="false"
     @close="handleClose"
   >
-    <el-form :model="localForm" :rules="rules" ref="formRef" label-width="120px">
-      <h4 class="form-section-title">基本信息</h4>
+    <el-form
+      ref="formRef"
+      :model="localForm"
+      :rules="rules"
+      label-width="120px"
+    >
+      <h4 class="form-section-title">
+        基本信息
+      </h4>
       <el-row :gutter="20">
         <el-col :span="12">
           <el-form-item label="销售订单" prop="sales_order">
@@ -15,8 +22,8 @@
               v-model="localForm.sales_order"
               placeholder="请选择销售订单"
               filterable
-              @change="handleSalesOrderChange"
               style="width: 100%"
+              @change="handleSalesOrderChange"
             >
               <el-option
                 v-for="so in salesOrderList"
@@ -33,8 +40,8 @@
               v-model="localForm.customer"
               placeholder="请选择客户"
               filterable
-              @change="handleCustomerChange"
               style="width: 100%"
+              @change="handleCustomerChange"
             >
               <el-option
                 v-for="customer in customerList"
@@ -47,7 +54,9 @@
         </el-col>
       </el-row>
 
-      <h4 class="form-section-title">收货信息</h4>
+      <h4 class="form-section-title">
+        收货信息
+      </h4>
       <el-row :gutter="20">
         <el-col :span="12">
           <el-form-item label="收货人" prop="receiver_name">
@@ -61,10 +70,17 @@
         </el-col>
       </el-row>
       <el-form-item label="送货地址" prop="delivery_address">
-        <el-input v-model="localForm.delivery_address" type="textarea" :rows="2" placeholder="请输入送货地址" />
+        <el-input
+          v-model="localForm.delivery_address"
+          type="textarea"
+          :rows="2"
+          placeholder="请输入送货地址"
+        />
       </el-form-item>
 
-      <h4 class="form-section-title">物流信息</h4>
+      <h4 class="form-section-title">
+        物流信息
+      </h4>
       <el-row :gutter="20">
         <el-col :span="12">
           <el-form-item label="发货日期" prop="delivery_date">
@@ -79,7 +95,13 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="物流公司">
-            <el-select v-model="localForm.logistics_company" placeholder="请选择物流公司" filterable allow-create style="width: 100%">
+            <el-select
+              v-model="localForm.logistics_company"
+              placeholder="请选择物流公司"
+              filterable
+              allow-create
+              style="width: 100%"
+            >
               <el-option label="顺丰速运" value="顺丰速运" />
               <el-option label="中通快递" value="中通快递" />
               <el-option label="圆通速递" value="圆通速递" />
@@ -99,7 +121,12 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="运费（元）">
-            <el-input-number v-model="localForm.freight" :precision="2" :min="0" style="width: 100%" />
+            <el-input-number
+              v-model="localForm.freight"
+              :precision="2"
+              :min="0"
+              style="width: 100%"
+            />
           </el-form-item>
         </el-col>
       </el-row>
@@ -111,21 +138,37 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="总重量（kg）">
-            <el-input-number v-model="localForm.package_weight" :precision="2" :min="0" style="width: 100%" />
+            <el-input-number
+              v-model="localForm.package_weight"
+              :precision="2"
+              :min="0"
+              style="width: 100%"
+            />
           </el-form-item>
         </el-col>
       </el-row>
 
       <h4 class="form-section-title">
         发货明细
-        <el-button type="primary" size="small" icon="el-icon-plus" @click="addItem" style="margin-left: 10px">
+        <el-button
+          type="primary"
+          size="small"
+          icon="el-icon-plus"
+          style="margin-left: 10px"
+          @click="addItem"
+        >
           添加明细
         </el-button>
       </h4>
       <el-table :data="localForm.items_data" border style="width: 100%">
         <el-table-column label="产品" width="250">
           <template slot-scope="scope">
-            <el-select v-model="scope.row.product" placeholder="请选择产品" filterable style="width: 100%">
+            <el-select
+              v-model="scope.row.product"
+              placeholder="请选择产品"
+              filterable
+              style="width: 100%"
+            >
               <el-option
                 v-for="product in productList"
                 :key="product.id"
@@ -137,7 +180,12 @@
         </el-table-column>
         <el-table-column label="数量" width="150">
           <template slot-scope="scope">
-            <el-input-number v-model="scope.row.quantity" :min="1" :precision="2" style="width: 100%" />
+            <el-input-number
+              v-model="scope.row.quantity"
+              :min="1"
+              :precision="2"
+              style="width: 100%"
+            />
           </template>
         </el-table-column>
         <el-table-column label="单位" width="100">
@@ -147,7 +195,12 @@
         </el-table-column>
         <el-table-column label="单价（元）" width="150">
           <template slot-scope="scope">
-            <el-input-number v-model="scope.row.unit_price" :min="0" :precision="2" style="width: 100%" />
+            <el-input-number
+              v-model="scope.row.unit_price"
+              :min="0"
+              :precision="2"
+              style="width: 100%"
+            />
           </template>
         </el-table-column>
         <el-table-column label="小计（元）" width="120">
@@ -157,19 +210,33 @@
         </el-table-column>
         <el-table-column label="操作" width="80">
           <template slot-scope="scope">
-            <el-button type="danger" size="small" icon="el-icon-delete" @click="removeItem(scope.$index)" />
+            <el-button
+              type="danger"
+              size="small"
+              icon="el-icon-delete"
+              @click="removeItem(scope.$index)"
+            />
           </template>
         </el-table-column>
       </el-table>
 
       <el-form-item label="备注" style="margin-top: 20px">
-        <el-input v-model="localForm.notes" type="textarea" :rows="3" placeholder="请输入备注信息" />
+        <el-input
+          v-model="localForm.notes"
+          type="textarea"
+          :rows="3"
+          placeholder="请输入备注信息"
+        />
       </el-form-item>
     </el-form>
 
     <template #footer>
-      <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" :loading="submitting" @click="handleSubmit">提交</el-button>
+      <el-button @click="handleClose">
+        取消
+      </el-button>
+      <el-button type="primary" :loading="submitting" @click="handleSubmit">
+        提交
+      </el-button>
     </template>
   </el-dialog>
 </template>
@@ -181,10 +248,22 @@ export default {
     visible: Boolean,
     isEdit: Boolean,
     submitting: Boolean,
-    form: Object,
-    customerList: Array,
-    salesOrderList: Array,
-    productList: Array
+    form: {
+      type: Object,
+      default: () => ({})
+    },
+    customerList: {
+      type: Array,
+      default: () => []
+    },
+    salesOrderList: {
+      type: Array,
+      default: () => []
+    },
+    productList: {
+      type: Array,
+      default: () => []
+    }
   },
   data() {
     return {

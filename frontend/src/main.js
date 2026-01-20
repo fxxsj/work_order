@@ -52,7 +52,7 @@ Vue.use(VueLazyload, {
 })
 
 // 全局过滤器
-Vue.filter('formatDate', function(value) {
+Vue.filter('formatDate', function (value) {
   if (!value) return '-'
   const date = new Date(value)
   if (isNaN(date.getTime())) return value
@@ -62,7 +62,7 @@ Vue.filter('formatDate', function(value) {
   return `${year}-${month}-${day}`
 })
 
-Vue.filter('formatDateTime', function(value) {
+Vue.filter('formatDateTime', function (value) {
   if (!value) return '-'
   const date = new Date(value)
   if (isNaN(date.getTime())) return value
@@ -76,6 +76,7 @@ Vue.filter('formatDateTime', function(value) {
 })
 
 new Vue({
+  name: 'App',
   router,
   store,
   render: h => h(App)

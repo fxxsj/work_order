@@ -23,7 +23,7 @@ module.exports = {
     // ===== Vue 规则 =====
     // 组件命名：必须多词，PascalCase
     'vue/multi-word-component-names': ['error', {
-      ignores: ['Layout', 'Dashboard', 'Login', 'Profile', 'Notification']
+      ignores: ['Layout', 'Dashboard', 'Login', 'Profile', 'Notification', 'Pagination']
     }],
 
     // 组件名必须使用 PascalCase
@@ -122,7 +122,7 @@ module.exports = {
 
     // ===== JavaScript 规则 =====
     // 缩进 2 空格
-    'indent': ['error', 2, {
+    indent: ['error', 2, {
       SwitchCase: 1,
       VariableDeclarator: 1,
       outerIIFEBody: 1,
@@ -138,13 +138,13 @@ module.exports = {
     }],
 
     // 使用单引号
-    'quotes': ['error', 'single', {
+    quotes: ['error', 'single', {
       avoidEscape: true,
       allowTemplateLiterals: true
     }],
 
     // 不使用分号
-    'semi': ['error', 'never'],
+    semi: ['error', 'never'],
 
     // 逗号后空格
     'comma-spacing': ['error', { before: false, after: true }],
@@ -175,7 +175,7 @@ module.exports = {
     'space-infix-ops': 'error',
 
     // 驼峰命名
-    'camelcase': ['error', {
+    camelcase: ['error', {
       properties: 'never',
       ignoreDestructuring: false,
       ignoreImports: false,
@@ -206,7 +206,7 @@ module.exports = {
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
 
     // 要求使用 === 和 !==
-    'eqeqeq': ['error', 'always', { null: 'ignore' }],
+    eqeqeq: ['error', 'always', { null: 'ignore' }],
 
     // 禁止在 return、throw、continue 和 break 语句之后出现不可达代码
     'no-unreachable': 'error',

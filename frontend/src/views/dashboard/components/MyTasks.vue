@@ -20,7 +20,12 @@
             <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="work_content" label="任务内容" min-width="200" show-overflow-tooltip></el-table-column>
+        <el-table-column
+          prop="work_content"
+          label="任务内容"
+          min-width="200"
+          show-overflow-tooltip
+        />
         <el-table-column label="状态" width="100">
           <template slot-scope="scope">
             <span :class="'status-badge status-' + scope.row.status">
@@ -33,11 +38,11 @@
             <el-progress
               :percentage="getTaskProgress(scope.row)"
               :color="getTaskProgress(scope.row) === 100 ? '#67C23A' : '#409EFF'"
-            ></el-progress>
+            />
           </template>
         </el-table-column>
         <el-table-column label="操作" width="100" fixed="right">
-          <template>
+          <template slot-scope="scope">
             <el-button
               type="text"
               size="small"
