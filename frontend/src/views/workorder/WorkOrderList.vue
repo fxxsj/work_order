@@ -214,8 +214,7 @@
 </template>
 
 <script>
-import { workOrderAPI } from '@/api/workorder'
-import { getSalespersons } from '@/api/auth'
+import { workOrderAPI, authAPI } from '@/api/modules'
 import { debounce } from '@/utils/debounce'
 import SkeletonLoader from '@/components/SkeletonLoader.vue'
 import Pagination from '@/components/common/Pagination.vue'
@@ -305,7 +304,7 @@ export default {
       } catch (error) { this.$message.error('加载数据失败') }
       finally { this.loading = false }
     },
-    async loadSalespersons() { try { this.salespersons = await getSalespersons() || [] } catch (error) { console.error('加载业务员列表失败:', error); this.salespersons = [] } },
+    async loadSalespersons() { try { this.salespersons = await authAPI.getSalespersons() || [] } catch (error) { console.error('加载业务员列表失败:', error); this.salespersons = [] } },
     handleSearch() { this.currentPage = 1; this.loadData() },
     handleSearchDebounced: debounce(function () { this.currentPage = 1; this.loadData() }, 300),
     handleReset() {

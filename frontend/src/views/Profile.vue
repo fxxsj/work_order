@@ -129,7 +129,7 @@
 </template>
 
 <script>
-import { changePassword, updateProfile } from '@/api/auth'
+import { authAPI } from '@/api/modules'
 
 export default {
   name: 'Profile',
@@ -209,7 +209,7 @@ export default {
 
       this.updateLoading = true
       try {
-        const result = await updateProfile(this.profileForm)
+        const result = await authAPI.updateProfile(this.profileForm)
 
         // 更新 store 中的用户信息
         this.$store.dispatch('user/initUser', result)
@@ -245,7 +245,7 @@ export default {
 
       this.passwordLoading = true
       try {
-        await changePassword(this.passwordForm)
+        await authAPI.changePassword(this.passwordForm)
 
         this.$message({
           message: '密码修改成功，请重新登录',

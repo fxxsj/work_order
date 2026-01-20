@@ -235,8 +235,7 @@
 </template>
 
 <script>
-import { workOrderTaskAPI, departmentAPI } from '@/api/workorder'
-import { getUsersByDepartment } from '@/api/auth'
+import { workOrderTaskAPI, departmentAPI, authAPI } from '@/api/modules'
 
 export default {
   name: 'AssignmentHistory',
@@ -278,7 +277,7 @@ export default {
     },
     async loadUserList() {
       try {
-        const response = await getUsersByDepartment(null)
+        const response = await authAPI.getUsersByDepartment(null)
         this.userList = response || []
       } catch (error) {
         console.error('加载用户列表失败:', error)

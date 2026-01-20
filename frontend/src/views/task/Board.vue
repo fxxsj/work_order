@@ -187,8 +187,7 @@
 </template>
 
 <script>
-import { taskAPI, departmentAPI } from '@/api/workorder'
-import { getUsersByDepartment } from '@/api/auth'
+import { departmentAPI, authAPI } from '@/api/modules'
 import { permissionService } from '@/services'
 import TaskStats from './components/TaskStats.vue'
 import TaskFilters from './components/TaskFilters.vue'
@@ -327,7 +326,7 @@ export default {
     },
     async loadUsers(departmentId) {
       try {
-        const result = await getUsersByDepartment(departmentId)
+        const result = await authAPI.getUsersByDepartment(departmentId)
         if (result.data) {
           this.userList = result.data
         }

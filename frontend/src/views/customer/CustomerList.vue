@@ -146,8 +146,7 @@
 </template>
 
 <script>
-import { customerAPI } from '@/api/modules'
-import { getSalespersons } from '@/api/auth'
+import { customerAPI, authAPI } from '@/api/modules'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 
@@ -225,7 +224,7 @@ export default {
 
     async loadSalespersons() {
       try {
-        const salespersons = await getSalespersons()
+        const salespersons = await authAPI.getSalespersons()
         this.salespersonList = salespersons || []
       } catch (error) {
         console.error('加载业务员列表失败:', error)
