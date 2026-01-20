@@ -77,7 +77,7 @@
               @click="handleReset"
             />
             <el-button
-              v-if="canExport"
+              v-if="canExport()"
               type="success"
               icon="el-icon-download"
               :loading="exporting"
@@ -180,7 +180,7 @@
               查看
             </el-button>
             <el-button
-              v-if="canEdit"
+              v-if="canEdit()"
               type="text"
               size="small"
               @click.stop="handleEdit(scope.row)"
@@ -188,7 +188,7 @@
               编辑
             </el-button>
             <el-button
-              v-if="canDelete"
+              v-if="canDelete()"
               type="text"
               size="small"
               style="color: #F56C6C;"
@@ -215,6 +215,9 @@
 
 <script>
 import { workOrderAPI, authAPI } from '@/api/modules'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import exportMixin from '@/mixins/exportMixin'
 import { debounce } from '@/utils/debounce'
 import SkeletonLoader from '@/components/SkeletonLoader.vue'
 import Pagination from '@/components/common/Pagination.vue'
@@ -222,16 +225,24 @@ import Pagination from '@/components/common/Pagination.vue'
 export default {
   name: 'WorkOrderList',
   components: { SkeletonLoader, Pagination },
+  mixins: [listPageMixin, crudPermissionMixin, exportMixin],
   data() {
     return {
-      loading: false,
-      exporting: false,
-      tableData: [],
-      currentPage: 1,
-      pageSize: 20,
-      total: 0,
+      // API 服务和权限配置
+      apiService: workOrderAPI,
+      permissionPrefix: 'workorder',
+
+      // 自定义数据
       salespersons: [],
-      filters: { search: '', status: '', priority: '', approval_status: '', customer__salesperson: '', delivery_date__gte: '', delivery_date__lte: '' }
+      filters: {
+        search: '',
+        status: '',
+        priority: '',
+        approval_status: '',
+        customer__salesperson: '',
+        delivery_date__gte: '',
+        delivery_date__lte: ''
+      }
     }
   },
   computed: {
@@ -239,18 +250,6 @@ export default {
     isSalesperson() {
       const userInfo = this.$store.getters['user/currentUser']
       return userInfo && userInfo.is_salesperson
-    },
-    // 检查是否有编辑权限
-    canEdit() {
-      return this.hasPermission('workorder.change_workorder')
-    },
-    // 检查是否有删除权限
-    canDelete() {
-      return this.hasPermission('workorder.delete_workorder')
-    },
-    // 检查是否有导出权限
-    canExport() {
-      return this.hasPermission('workorder.view_workorder')
     }
   },
   async created() {
@@ -279,42 +278,52 @@ export default {
     this.loadData()
   },
   methods: {
-    hasPermission(permission) {
-      const userInfo = this.$store.getters['user/currentUser']
-      if (!userInfo) return false
-      if (userInfo.is_superuser) return true
-      const permissions = userInfo.permissions || []
-      if (permissions.includes('*')) return true
-      return permissions.includes(permission)
+    /**
+     * 获取数据（listPageMixin 要求实现）
+     */
+    async fetchData() {
+      const params = {
+        page: this.currentPage,
+        page_size: this.pageSize,
+        ordering: '-created_at'
+      }
+      if (this.filters.search) params.search = this.filters.search
+      if (this.filters.status) params.status = this.filters.status
+      if (this.filters.priority) params.priority = this.filters.priority
+      if (this.filters.approval_status) params.approval_status = this.filters.approval_status
+      if (this.filters.customer__salesperson) params.customer__salesperson = this.filters.customer__salesperson
+      if (this.filters.delivery_date__gte) params.delivery_date__gte = this.filters.delivery_date__gte
+      if (this.filters.delivery_date__lte) params.delivery_date__lte = this.filters.delivery_date__lte
+      return await this.apiService.getList(params)
     },
-    async loadData() {
-      this.loading = true
+    async loadSalespersons() {
       try {
-        const params = { page: this.currentPage, page_size: this.pageSize, ordering: '-created_at' }
-        if (this.filters.search) params.search = this.filters.search
-        if (this.filters.status) params.status = this.filters.status
-        if (this.filters.priority) params.priority = this.filters.priority
-        if (this.filters.approval_status) params.approval_status = this.filters.approval_status
-        if (this.filters.customer__salesperson) params.customer__salesperson = this.filters.customer__salesperson
-        if (this.filters.delivery_date__gte) params.delivery_date__gte = this.filters.delivery_date__gte
-        if (this.filters.delivery_date__lte) params.delivery_date__lte = this.filters.delivery_date__lte
-        const response = await workOrderAPI.getList(params)
-        this.tableData = response.results || []
-        this.total = response.count || 0
-      } catch (error) { this.$message.error('加载数据失败') }
-      finally { this.loading = false }
+        this.salespersons = await authAPI.getSalespersons() || []
+      } catch (error) {
+        console.error('加载业务员列表失败:', error)
+        this.salespersons = []
+      }
     },
-    async loadSalespersons() { try { this.salespersons = await authAPI.getSalespersons() || [] } catch (error) { console.error('加载业务员列表失败:', error); this.salespersons = [] } },
     handleSearch() { this.currentPage = 1; this.loadData() },
     handleSearchDebounced: debounce(function () { this.currentPage = 1; this.loadData() }, 300),
     handleReset() {
-      this.filters = { search: '', status: '', priority: '', approval_status: '', customer__salesperson: '', delivery_date__gte: '', delivery_date__lte: '' }
+      this.filters = {
+        search: '',
+        status: '',
+        priority: '',
+        approval_status: '',
+        customer__salesperson: '',
+        delivery_date__gte: '',
+        delivery_date__lte: ''
+      }
       this.currentPage = 1
-      if (Object.keys(this.$route.query).length > 0) { this.$router.replace({ query: {} }).catch(err => { if (err.name !== 'NavigationDuplicated') console.error('导航错误:', err) }) }
+      if (Object.keys(this.$route.query).length > 0) {
+        this.$router.replace({ query: {} }).catch(err => {
+          if (err.name !== 'NavigationDuplicated') console.error('导航错误:', err)
+        })
+      }
       this.loadData()
     },
-    handleSizeChange(size) { this.pageSize = size; this.loadData() },
-    handlePageChange(page) { this.currentPage = page; this.loadData() },
     handleCreate() { this.$router.push('/workorders/create') },
     handleView(row) { this.$router.push(`/workorders/${row.id}`) },
     handleEdit(row) { if (row.approval_status === 'approved') { this.$confirm('该施工单已审核通过。核心字段（产品、工序、版选择等）不能修改，非核心字段（备注、交货日期等）可以修改。确定要继续编辑吗？', '编辑已审核的施工单', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }).then(() => { this.$router.push(`/workorders/${row.id}/edit`) }).catch(() => {}) } else { this.$router.push(`/workorders/${row.id}/edit`) } },

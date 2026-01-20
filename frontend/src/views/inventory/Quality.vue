@@ -170,9 +170,9 @@
 
       <!-- 分页 -->
       <Pagination
-        :current-page="pagination.page"
-        :page-size="pagination.pageSize"
-        :total="pagination.total"
+        :current-page="currentPage"
+        :page-size="pageSize"
+        :total="total"
         @current-change="handlePageChange"
         @size-change="handleSizeChange"
       />
@@ -337,12 +337,19 @@
 <script>
 import { qualityInspectionAPI } from '@/api/modules'
 import Pagination from '@/components/common/Pagination.vue'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 
 export default {
   name: 'QualityList',
   components: { Pagination },
+  mixins: [listPageMixin, crudPermissionMixin],
   data() {
     return {
+      // API 服务和权限配置
+      apiService: qualityInspectionAPI,
+      permissionPrefix: 'qualityinspection',
+
       loading: false,
       qualityList: [],
       productList: [],
@@ -350,7 +357,6 @@ export default {
       detailDialogVisible: false,
       inspectDialogVisible: false,
       filters: { inspection_number: '', product: '', inspection_type: '', result: '', status: '' },
-      pagination: { page: 1, pageSize: 20, total: 0 },
       inspectForm: { sample_quantity: null, qualified_quantity: null, defective_quantity: null, result: 'passed', inspection_notes: '' },
       inspectRules: {
         sample_quantity: [{ required: true, message: '请输入抽样数量', trigger: 'blur' }],
@@ -365,18 +371,26 @@ export default {
     this.fetchProducts()
   },
   methods: {
+    // 实现 fetchData 方法（listPageMixin 要求）
+    async fetchData() {
+      const params = {
+        page: this.currentPage,
+        page_size: this.pageSize
+      }
+      if (this.filters.inspection_number) params.inspection_number = this.filters.inspection_number
+      if (this.filters.product) params.product = this.filters.product
+      if (this.filters.inspection_type) params.inspection_type = this.filters.inspection_type
+      if (this.filters.result) params.result = this.filters.result
+      if (this.filters.status) params.status = this.filters.status
+      return await this.apiService.getList(params)
+    },
+
     async fetchQualityList() {
       this.loading = true
       try {
-        const params = { page: this.pagination.page, page_size: this.pagination.pageSize }
-        if (this.filters.inspection_number) params.inspection_number = this.filters.inspection_number
-        if (this.filters.product) params.product = this.filters.product
-        if (this.filters.inspection_type) params.inspection_type = this.filters.inspection_type
-        if (this.filters.result) params.result = this.filters.result
-        if (this.filters.status) params.status = this.filters.status
-        const response = await qualityInspectionAPI.getList(params)
+        const response = await this.fetchData()
         this.qualityList = response.results || []
-        this.pagination.total = response.count || 0
+        this.total = response.count || 0
       } catch (error) {
         this.$message.error('获取质检列表失败')
       } finally {
@@ -386,14 +400,14 @@ export default {
     async fetchProducts() {
       try { this.productList = [] } catch (error) { console.error('获取产品列表失败', error) }
     },
-    handleSearch() { this.pagination.page = 1; this.fetchQualityList() },
+    handleSearch() { this.currentPage = 1; this.fetchQualityList() },
     handleReset() {
       this.filters = { inspection_number: '', product: '', inspection_type: '', result: '', status: '' }
-      this.pagination.page = 1
+      this.currentPage = 1
       this.fetchQualityList()
     },
-    handleSizeChange(size) { this.pagination.pageSize = size; this.pagination.page = 1; this.fetchQualityList() },
-    handlePageChange(page) { this.pagination.page = page; this.fetchQualityList() },
+    handleSizeChange(size) { this.pageSize = size; this.currentPage = 1; this.fetchQualityList() },
+    handlePageChange(page) { this.currentPage = page; this.fetchQualityList() },
     handleCreate() { this.$message.info('新建质检功能开发中') },
     async handleView(row) {
       try { const response = await qualityInspectionAPI.getDetail(row.id); this.currentQuality = response; this.detailDialogVisible = true } catch (error) { this.$message.error('获取质检详情失败') }

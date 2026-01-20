@@ -74,6 +74,8 @@ import DeliveryTable from './components/DeliveryTable.vue'
 import DeliveryDetailDialog from './components/DeliveryDetailDialog.vue'
 import DeliveryReceiveDialog from './components/DeliveryReceiveDialog.vue'
 import DeliveryFormDialog from './components/DeliveryFormDialog.vue'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 
 export default {
   name: 'DeliveryList',
@@ -84,8 +86,13 @@ export default {
     DeliveryReceiveDialog,
     DeliveryFormDialog
   },
+  mixins: [listPageMixin, crudPermissionMixin],
   data() {
     return {
+      // API 服务和权限配置
+      apiService: deliveryOrderAPI,
+      permissionPrefix: 'deliveryorder',
+
       loading: false,
       deliveryList: [],
       customerList: [],
@@ -118,11 +125,6 @@ export default {
         status: '',
         customer: '',
         tracking_number: ''
-      },
-      pagination: {
-        page: 1,
-        pageSize: 20,
-        total: 0
       }
     }
   },
@@ -134,21 +136,24 @@ export default {
     this.fetchStocks()
   },
   methods: {
+    // 实现 fetchData 方法（listPageMixin 要求）
+    async fetchData() {
+      const params = {
+        page: this.currentPage,
+        page_size: this.pageSize
+      }
+      if (this.filters.status) params.status = this.filters.status
+      if (this.filters.customer) params.customer = this.filters.customer
+      if (this.filters.tracking_number) params.tracking_number = this.filters.tracking_number
+      return await this.apiService.getList(params)
+    },
+
     async fetchDeliveryOrders() {
       this.loading = true
       try {
-        const params = {
-          page: this.pagination.page,
-          page_size: this.pagination.pageSize
-        }
-
-        if (this.filters.status) params.status = this.filters.status
-        if (this.filters.customer) params.customer = this.filters.customer
-        if (this.filters.tracking_number) params.tracking_number = this.filters.tracking_number
-
-        const response = await deliveryOrderAPI.getList(params)
+        const response = await this.fetchData()
         this.deliveryList = response.results || []
-        this.pagination.total = response.count || 0
+        this.total = response.count || 0
       } catch (error) {
         let errorMessage = '获取发货单列表失败'
         if (error.response) {
@@ -202,13 +207,13 @@ export default {
     },
 
     handleSearch() {
-      this.pagination.page = 1
+      this.currentPage = 1
       this.fetchDeliveryOrders()
     },
 
     handleReset() {
       this.filters = { status: '', customer: '', tracking_number: '' }
-      this.pagination.page = 1
+      this.currentPage = 1
       this.fetchDeliveryOrders()
     },
 
@@ -361,13 +366,13 @@ export default {
     },
 
     handleSizeChange(val) {
-      this.pagination.pageSize = val
-      this.pagination.page = 1
+      this.pageSize = val
+      this.currentPage = 1
       this.fetchDeliveryOrders()
     },
 
     handleCurrentChange(val) {
-      this.pagination.page = val
+      this.currentPage = val
       this.fetchDeliveryOrders()
     }
   }

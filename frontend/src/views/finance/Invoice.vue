@@ -126,17 +126,14 @@
       </el-table>
 
       <!-- 分页 -->
-      <div class="pagination-section">
-        <el-pagination
-          :current-page="pagination.page"
-          :page-size="pagination.pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          :total="pagination.total"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
-      </div>
+      <Pagination
+        v-if="total > 0"
+        :current-page="currentPage"
+        :page-size="pageSize"
+        :total="total"
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"
+      />
     </div>
 
     <!-- 发票详情对话框 -->
@@ -277,30 +274,28 @@
 
 <script>
 import { invoiceAPI } from '@/api/modules'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import statisticsMixin from '@/mixins/statisticsMixin'
 import StatsCards from '@/components/common/StatsCards.vue'
+import Pagination from '@/components/common/Pagination.vue'
 
 export default {
   name: 'InvoiceList',
-  components: { StatsCards },
+  components: { StatsCards, Pagination },
+  mixins: [listPageMixin, crudPermissionMixin, statisticsMixin],
   data() {
     return {
-      loading: false,
-      invoiceList: [],
+      // API 服务和权限配置
+      apiService: invoiceAPI,
+      permissionPrefix: 'invoice',
+
+      // 自定义数据
       customerList: [],
       currentInvoice: null,
       detailDialogVisible: false,
       formDialogVisible: false,
       formMode: 'create',
-      stats: {},
-      filters: {
-        status: '',
-        customer: ''
-      },
-      pagination: {
-        page: 1,
-        pageSize: 20,
-        total: 0
-      },
       invoiceForm: {
         customer: null,
         invoice_type: 'vat_special',
@@ -351,35 +346,19 @@ export default {
     }
   },
   created() {
-    this.fetchInvoiceList()
+    this.loadData()
     this.fetchInvoiceSummary()
   },
   methods: {
-    // 获取发票列表
-    async fetchInvoiceList() {
-      this.loading = true
-      try {
-        const params = {
-          page: this.pagination.page,
-          page_size: this.pagination.pageSize
-        }
-
-        if (this.filters.status) {
-          params.status = this.filters.status
-        }
-        if (this.filters.customer) {
-          params.customer = this.filters.customer
-        }
-
-        const response = await invoiceAPI.getList(params)
-        this.invoiceList = response.results || []
-        this.pagination.total = response.count || 0
-      } catch (error) {
-        this.$message.error('获取发票列表失败')
-        console.error(error)
-      } finally {
-        this.loading = false
+    // 实现 fetchData 方法（listPageMixin 要求）
+    async fetchData() {
+      const params = {
+        page: this.currentPage,
+        page_size: this.pageSize
       }
+      if (this.filters.status) params.status = this.filters.status
+      if (this.filters.customer) params.customer = this.filters.customer
+      return await this.apiService.getList(params)
     },
 
     // 获取发票汇总
@@ -394,8 +373,8 @@ export default {
 
     // 搜索
     handleSearch() {
-      this.pagination.page = 1
-      this.fetchInvoiceList()
+      this.currentPage = 1
+      this.loadData()
     },
 
     // 重置
@@ -404,8 +383,8 @@ export default {
         status: '',
         customer: ''
       }
-      this.pagination.page = 1
-      this.fetchInvoiceList()
+      this.currentPage = 1
+      this.loadData()
     },
 
     // 查看详情
@@ -415,13 +394,14 @@ export default {
         this.currentInvoice = response
         this.detailDialogVisible = true
       } catch (error) {
-        this.$message.error('获取发票详情失败')
+        this.showError('获取发票详情失败')
         console.error(error)
       }
     },
 
     // 新建
     handleCreate() {
+      if (!this.canCreate()) return
       this.formMode = 'create'
       this.invoiceForm = {
         customer: null,
@@ -442,11 +422,11 @@ export default {
 
         try {
           await invoiceAPI.create(this.invoiceForm)
-          this.$message.success('创建成功')
+          this.showSuccess('创建成功')
           this.formDialogVisible = false
-          this.fetchInvoiceList()
+          this.loadData()
         } catch (error) {
-          this.$message.error('创建失败')
+          this.showError('创建失败')
           console.error(error)
         }
       })
@@ -460,25 +440,13 @@ export default {
       }).then(async () => {
         try {
           await invoiceAPI.submit(row.id)
-          this.$message.success('提交成功')
-          this.fetchInvoiceList()
+          this.showSuccess('提交成功')
+          this.loadData()
         } catch (error) {
-          this.$message.error('提交失败')
+          this.showError('提交失败')
           console.error(error)
         }
       })
-    },
-
-    // 分页
-    handleSizeChange(val) {
-      this.pagination.pageSize = val
-      this.pagination.page = 1
-      this.fetchInvoiceList()
-    },
-
-    handleCurrentChange(val) {
-      this.pagination.page = val
-      this.fetchInvoiceList()
     },
 
     // 状态标签类型
@@ -508,43 +476,6 @@ export default {
   margin-bottom: 20px;
 }
 
-.stats-cards {
-  margin-bottom: 20px;
-}
-
-.stat-card {
-  border-radius: 4px;
-}
-
-.stat-card.warning {
-  border-color: #e6a23c;
-}
-
-.stat-card.success {
-  border-color: #67c23a;
-}
-
-.stat-card.info {
-  border-color: #409eff;
-}
-
-.stat-item {
-  text-align: center;
-  padding: 10px 0;
-}
-
-.stat-label {
-  font-size: 14px;
-  color: #909399;
-  margin-bottom: 8px;
-}
-
-.stat-value {
-  font-size: 24px;
-  font-weight: bold;
-  color: #303133;
-}
-
 .filter-section {
   margin-bottom: 20px;
   padding: 20px;
@@ -554,17 +485,5 @@ export default {
 
 .filter-form {
   margin-bottom: 0;
-}
-
-.table-section {
-  background: #fff;
-  border-radius: 4px;
-  padding: 20px;
-}
-
-.pagination-section {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
 }
 </style>

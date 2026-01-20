@@ -141,9 +141,9 @@
 
       <!-- 分页 -->
       <Pagination
-        :current-page="pagination.page"
-        :page-size="pagination.pageSize"
-        :total="pagination.total"
+        :current-page="currentPage"
+        :page-size="pageSize"
+        :total="total"
         @current-change="handlePageChange"
         @size-change="handleSizeChange"
       />
@@ -276,6 +276,9 @@
 import { productStockAPI } from '@/api/modules'
 import StatsCards from '@/components/common/StatsCards.vue'
 import Pagination from '@/components/common/Pagination.vue'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import statisticsMixin from '@/mixins/statisticsMixin'
 
 export default {
   name: 'StockList',
@@ -283,8 +286,13 @@ export default {
     Pagination,
     StatsCards
   },
+  mixins: [listPageMixin, crudPermissionMixin, statisticsMixin],
   data() {
     return {
+      // API 服务和权限配置
+      apiService: productStockAPI,
+      permissionPrefix: 'productstock',
+
       loading: false,
       loadingLowStock: false,
       loadingExpired: false,
@@ -301,11 +309,6 @@ export default {
         product: '',
         status: '',
         batch_number: ''
-      },
-      pagination: {
-        page: 1,
-        pageSize: 20,
-        total: 0
       }
     }
   },
@@ -325,19 +328,24 @@ export default {
     this.fetchProducts()
   },
   methods: {
+    // 实现 fetchData 方法（listPageMixin 要求）
+    async fetchData() {
+      const params = {
+        page: this.currentPage,
+        page_size: this.pageSize,
+        ...(this.filters.product && { product: this.filters.product }),
+        ...(this.filters.status && { status: this.filters.status }),
+        ...(this.filters.batch_number && { batch_number: this.filters.batch_number })
+      }
+      return await this.apiService.getList(params)
+    },
+
     async fetchStockList() {
       this.loading = true
       try {
-        const params = {
-          page: this.pagination.page,
-          page_size: this.pagination.pageSize,
-          ...(this.filters.product && { product: this.filters.product }),
-          ...(this.filters.status && { status: this.filters.status }),
-          ...(this.filters.batch_number && { batch_number: this.filters.batch_number })
-        }
-        const response = await productStockAPI.getList(params)
+        const response = await this.fetchData()
         this.stockList = response.results || []
-        this.pagination.total = response.count || 0
+        this.total = response.count || 0
       } catch (error) {
         this.$message.error('获取库存列表失败')
       } finally {
@@ -360,21 +368,21 @@ export default {
       }
     },
     handleSearch() {
-      this.pagination.page = 1
+      this.currentPage = 1
       this.fetchStockList()
     },
     handleReset() {
       this.filters = { product: '', status: '', batch_number: '' }
-      this.pagination.page = 1
+      this.currentPage = 1
       this.fetchStockList()
     },
     handleSizeChange(size) {
-      this.pagination.pageSize = size
-      this.pagination.page = 1
+      this.pageSize = size
+      this.currentPage = 1
       this.fetchStockList()
     },
     handlePageChange(page) {
-      this.pagination.page = page
+      this.currentPage = page
       this.fetchStockList()
     },
     handleView(row) {

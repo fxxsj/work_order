@@ -164,14 +164,13 @@
         </el-table-column>
       </el-table>
 
-      <el-pagination
+      <Pagination
         v-if="total > 0"
         :current-page="currentPage"
         :page-size="pageSize"
         :total="total"
-        layout="total, prev, pager, next"
-        style="margin-top: 20px; text-align: right;"
         @current-change="handlePageChange"
+        @size-change="handleSizeChange"
       />
     </el-card>
 
@@ -391,9 +390,11 @@
 import { artworkAPI, productAPI, dieAPI, foilingPlateAPI, embossingPlateAPI } from '@/api/modules'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import Pagination from '@/components/common/Pagination.vue'
 
 export default {
   name: 'ArtworkList',
+  components: { Pagination },
   mixins: [listPageMixin, crudPermissionMixin],
   data() {
     return {

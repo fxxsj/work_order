@@ -152,9 +152,9 @@
       </el-table>
 
       <Pagination
-        :current-page="pagination.page"
-        :page-size="pagination.pageSize"
-        :total="pagination.total"
+        :current-page="currentPage"
+        :page-size="pageSize"
+        :total="total"
         @current-change="handlePageChange"
         @size-change="handleSizeChange"
       />
@@ -352,12 +352,19 @@
 <script>
 import { statementAPI } from '@/api/modules'
 import Pagination from '@/components/common/Pagination.vue'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 
 export default {
   name: 'StatementList',
   components: { Pagination },
+  mixins: [listPageMixin, crudPermissionMixin],
   data() {
     return {
+      // API 服务和权限配置
+      apiService: statementAPI,
+      permissionPrefix: 'statement',
+
       loading: false,
       statementList: [],
       partnerList: [],
@@ -366,7 +373,6 @@ export default {
       formDialogVisible: false,
       confirmDialogVisible: false,
       filters: { statement_type: '', partner: '', period_range: null, status: '' },
-      pagination: { page: 1, pageSize: 20, total: 0 },
       statementForm: { statement_type: 'customer', partner: null, period: null, statement_date: null, notes: '' },
       statementRules: {
         statement_type: [{ required: true, message: '请选择对账类型', trigger: 'change' }],
@@ -385,30 +391,49 @@ export default {
     this.fetchPartners()
   },
   methods: {
+    // 实现 fetchData 方法（listPageMixin 要求）
+    async fetchData() {
+      const params = {
+        page: this.currentPage,
+        page_size: this.pageSize
+      }
+      if (this.filters.statement_type) params.statement_type = this.filters.statement_type
+      if (this.filters.partner) params.partner = this.filters.partner
+      if (this.filters.status) params.status = this.filters.status
+      if (this.filters.period_range && this.filters.period_range.length === 2) {
+        const formatDate = (date) => {
+          const d = new Date(date)
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+        }
+        params.period_start = formatDate(this.filters.period_range[0])
+        params.period_end = formatDate(this.filters.period_range[1])
+      }
+      return await this.apiService.getList(params)
+    },
+
     async fetchStatementList() {
       this.loading = true
       try {
-        const params = { page: this.pagination.page, page_size: this.pagination.pageSize }
-        if (this.filters.statement_type) params.statement_type = this.filters.statement_type
-        if (this.filters.partner) params.partner = this.filters.partner
-        if (this.filters.status) params.status = this.filters.status
-        if (this.filters.period_range && this.filters.period_range.length === 2) {
-          const formatDate = (date) => { const d = new Date(date); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
-          params.period_start = formatDate(this.filters.period_range[0])
-          params.period_end = formatDate(this.filters.period_range[1])
-        }
-        const response = await statementAPI.getList(params)
+        const response = await this.fetchData()
         this.statementList = response.results || []
-        this.pagination.total = response.count || 0
-      } catch (error) { this.$message.error('获取对账单列表失败') } finally { this.loading = false }
+        this.total = response.count || 0
+      } catch (error) {
+        this.$message.error('获取对账单列表失败')
+      } finally {
+        this.loading = false
+      }
     },
     async fetchPartners() {
       try { this.partnerList = [] } catch (error) { console.error('获取对方单位列表失败', error) }
     },
-    handleSearch() { this.pagination.page = 1; this.fetchStatementList() },
-    handleReset() { this.filters = { statement_type: '', partner: '', period_range: null, status: '' }; this.pagination.page = 1; this.fetchStatementList() },
-    handleSizeChange(size) { this.pagination.pageSize = size; this.pagination.page = 1; this.fetchStatementList() },
-    handlePageChange(page) { this.pagination.page = page; this.fetchStatementList() },
+    handleSearch() { this.currentPage = 1; this.fetchStatementList() },
+    handleReset() {
+      this.filters = { statement_type: '', partner: '', period_range: null, status: '' }
+      this.currentPage = 1
+      this.fetchStatementList()
+    },
+    handleSizeChange(size) { this.pageSize = size; this.currentPage = 1; this.fetchStatementList() },
+    handlePageChange(page) { this.currentPage = page; this.fetchStatementList() },
     async handleView(row) {
       try { const response = await statementAPI.getDetail(row.id); this.currentStatement = response; this.detailDialogVisible = true } catch (error) { this.$message.error('获取对账单详情失败') }
     },

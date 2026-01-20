@@ -135,9 +135,9 @@
 
       <!-- 分页 -->
       <Pagination
-        :current-page="pagination.page"
-        :page-size="pagination.pageSize"
-        :total="pagination.total"
+        :current-page="currentPage"
+        :page-size="pageSize"
+        :total="total"
         @current-change="handlePageChange"
         @size-change="handleSizeChange"
       />
@@ -299,12 +299,20 @@
 import { paymentAPI } from '@/api/modules'
 import StatsCards from '@/components/common/StatsCards.vue'
 import Pagination from '@/components/common/Pagination.vue'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import statisticsMixin from '@/mixins/statisticsMixin'
 
 export default {
   name: 'PaymentList',
   components: { Pagination, StatsCards },
+  mixins: [listPageMixin, crudPermissionMixin, statisticsMixin],
   data() {
     return {
+      // API 服务和权限配置
+      apiService: paymentAPI,
+      permissionPrefix: 'payment',
+
       loading: false,
       paymentList: [],
       customerList: [],
@@ -317,11 +325,6 @@ export default {
         customer: '',
         payment_method: '',
         date_range: null
-      },
-      pagination: {
-        page: 1,
-        pageSize: 20,
-        total: 0
       },
       paymentForm: {
         customer: null,
@@ -356,23 +359,41 @@ export default {
     this.fetchCustomers()
   },
   methods: {
+    // 实现 fetchData 方法（listPageMixin 要求）
+    async fetchData() {
+      const params = {
+        page: this.currentPage,
+        page_size: this.pageSize
+      }
+      if (this.filters.customer) params.customer = this.filters.customer
+      if (this.filters.payment_method) params.payment_method = this.filters.payment_method
+      if (this.filters.date_range?.length === 2) {
+        params.payment_date_start = this.filters.date_range[0]
+        params.payment_date_end = this.filters.date_range[1]
+      }
+      return await this.apiService.getList(params)
+    },
+
     async fetchPaymentList() {
       this.loading = true
       try {
-        const params = { page: this.pagination.page, page_size: this.pagination.pageSize }
-        if (this.filters.customer) params.customer = this.filters.customer
-        if (this.filters.payment_method) params.payment_method = this.filters.payment_method
-        if (this.filters.date_range?.length === 2) { params.payment_date_start = this.filters.date_range[0]; params.payment_date_end = this.filters.date_range[1] }
-        const response = await paymentAPI.getList(params)
+        const response = await this.fetchData()
         this.paymentList = response.results || []
-        this.pagination.total = response.count || 0
-      } catch (error) { this.$message.error(`获取收款列表失败: ${error.response?.data?.detail || error.message}`) }
-      finally { this.loading = false }
+        this.total = response.count || 0
+      } catch (error) {
+        this.$message.error(`获取收款列表失败: ${error.response?.data?.detail || error.message}`)
+      } finally {
+        this.loading = false
+      }
     },
     async fetchPaymentSummary() { try { this.stats = await paymentAPI.getSummary() || {} } catch (error) { console.error('获取收款汇总失败', error) } },
     async fetchCustomers() { try { this.customerList = [] } catch (error) { console.error('获取客户列表失败', error) } },
-    handleSearch() { this.pagination.page = 1; this.fetchPaymentList() },
-    handleReset() { this.filters = { customer: '', payment_method: '', date_range: null }; this.pagination.page = 1; this.fetchPaymentList() },
+    handleSearch() { this.currentPage = 1; this.fetchPaymentList() },
+    handleReset() {
+      this.filters = { customer: '', payment_method: '', date_range: null }
+      this.currentPage = 1
+      this.fetchPaymentList()
+    },
     async handleView(row) {
       try { this.currentPayment = await paymentAPI.getDetail(row.id); this.detailDialogVisible = true }
       catch (error) { this.$message.error('获取收款详情失败') }
@@ -393,9 +414,24 @@ export default {
         } catch (error) { this.$message.error(this.formMode === 'create' ? '创建失败' : '更新失败') }
       })
     },
-    handleDelete(row) { this.$confirm('确认删除该收款记录？', '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }).then(async () => { try { await paymentAPI.delete(row.id); this.$message.success('删除成功'); this.fetchPaymentList(); this.fetchPaymentSummary() } catch { this.$message.error('删除失败') } }).catch(() => {}) },
-    handleSizeChange(size) { this.pagination.pageSize = size; this.pagination.page = 1; this.fetchPaymentList() },
-    handlePageChange(page) { this.pagination.page = page; this.fetchPaymentList() },
+    handleDelete(row) {
+      this.$confirm('确认删除该收款记录？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        try {
+          await this.apiService.delete(row.id)
+          this.$message.success('删除成功')
+          this.fetchPaymentList()
+          this.fetchPaymentSummary()
+        } catch {
+          this.$message.error('删除失败')
+        }
+      }).catch(() => {})
+    },
+    handleSizeChange(size) { this.pageSize = size; this.currentPage = 1; this.fetchPaymentList() },
+    handlePageChange(page) { this.currentPage = page; this.fetchPaymentList() },
     getRemainingClass(row) { return row.remaining_amount > 0 ? 'has-remaining' : '' }
   }
 }

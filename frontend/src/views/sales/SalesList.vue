@@ -211,9 +211,9 @@
 
     <!-- 分页 -->
     <Pagination
-      :current-page="pagination.page"
-      :page-size="pagination.pageSize"
-      :total="pagination.total"
+      :current-page="currentPage"
+      :page-size="pageSize"
+      :total="total"
       @current-change="handlePageChange"
       @size-change="handleSizeChange"
     />
@@ -288,6 +288,8 @@ import { salesOrderAPI } from '@/api/modules'
 import SalesOrderForm from './SalesForm.vue'
 import SalesOrderDetail from './SalesDetail.vue'
 import Pagination from '@/components/common/Pagination.vue'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 
 export default {
   name: 'SalesOrderList',
@@ -296,19 +298,19 @@ export default {
     SalesOrderDetail,
     Pagination
   },
+  mixins: [listPageMixin, crudPermissionMixin],
   data() {
     return {
+      // API 服务和权限配置
+      apiService: salesOrderAPI,
+      permissionPrefix: 'salesorder',
+
       loading: false,
       tableData: [],
       filters: {
         search: '',
         status: '',
         payment_status: ''
-      },
-      pagination: {
-        page: 1,
-        pageSize: 20,
-        total: 0
       },
       dialogVisible: false,
       dialogMode: 'add',
@@ -326,45 +328,51 @@ export default {
     }
   },
   mounted() {
-    this.fetchData()
+    this.loadData()
   },
   methods: {
+    // 实现 fetchData 方法（listPageMixin 要求）
     async fetchData() {
+      const params = {
+        page: this.currentPage,
+        page_size: this.pageSize,
+        search: this.filters.search || undefined,
+        status: this.filters.status || undefined,
+        payment_status: this.filters.payment_status || undefined
+      }
+      return await this.apiService.getList(params)
+    },
+
+    async loadData() {
       this.loading = true
       try {
-        const params = {
-          page: this.pagination.page,
-          page_size: this.pagination.pageSize,
-          search: this.filters.search || undefined,
-          status: this.filters.status || undefined,
-          payment_status: this.filters.payment_status || undefined
-        }
-        const response = await salesOrderAPI.getList(params)
+        const response = await this.fetchData()
         this.tableData = response.results || []
-        this.pagination.total = response.count || 0
+        this.total = response.count || 0
       } catch (error) {
         this.$message.error('获取销售订单列表失败')
       } finally {
         this.loading = false
       }
     },
+
     handleSearch() {
-      this.pagination.page = 1
-      this.fetchData()
+      this.currentPage = 1
+      this.loadData()
     },
     handleReset() {
       this.filters = { search: '', status: '', payment_status: '' }
-      this.pagination.page = 1
-      this.fetchData()
+      this.currentPage = 1
+      this.loadData()
     },
     handleSizeChange(size) {
-      this.pagination.pageSize = size
-      this.pagination.page = 1
-      this.fetchData()
+      this.pageSize = size
+      this.currentPage = 1
+      this.loadData()
     },
     handlePageChange(page) {
-      this.pagination.page = page
-      this.fetchData()
+      this.currentPage = page
+      this.loadData()
     },
     handleSortChange(column) {
       if (!column.prop) return

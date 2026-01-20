@@ -161,9 +161,9 @@
       </el-table>
 
       <Pagination
-        :current-page="pagination.page"
-        :page-size="pagination.pageSize"
-        :total="pagination.total"
+        :current-page="currentPage"
+        :page-size="pageSize"
+        :total="total"
         @current-change="handlePageChange"
         @size-change="handleSizeChange"
       />
@@ -322,12 +322,20 @@
 import { productionCostAPI } from '@/api/modules'
 import StatsCards from '@/components/common/StatsCards.vue'
 import Pagination from '@/components/common/Pagination.vue'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import statisticsMixin from '@/mixins/statisticsMixin'
 
 export default {
   name: 'CostList',
   components: { Pagination, StatsCards },
+  mixins: [listPageMixin, crudPermissionMixin, statisticsMixin],
   data() {
     return {
+      // API 服务和权限配置
+      apiService: productionCostAPI,
+      permissionPrefix: 'productioncost',
+
       loading: false,
       costList: [],
       workOrderList: [],
@@ -337,7 +345,6 @@ export default {
       adjustDialogVisible: false,
       stats: {},
       filters: { work_order: '', cost_center: '' },
-      pagination: { page: 1, pageSize: 20, total: 0 },
       adjustForm: { id: null, material_cost: null, labor_cost: null, equipment_cost: null, overhead_cost: null, adjust_reason: '' },
       adjustRules: { adjust_reason: [{ required: true, message: '请输入调整原因', trigger: 'blur' }] }
     }
@@ -359,14 +366,28 @@ export default {
     this.fetchCostCenters()
   },
   methods: {
+    // 实现 fetchData 方法（listPageMixin 要求）
+    async fetchData() {
+      const params = {
+        page: this.currentPage,
+        page_size: this.pageSize,
+        ...(this.filters.work_order && { work_order: this.filters.work_order }),
+        ...(this.filters.cost_center && { cost_center: this.filters.cost_center })
+      }
+      return await this.apiService.getList(params)
+    },
+
     async fetchCostList() {
       this.loading = true
       try {
-        const params = { page: this.pagination.page, page_size: this.pagination.pageSize, ...(this.filters.work_order && { work_order: this.filters.work_order }), ...(this.filters.cost_center && { cost_center: this.filters.cost_center }) }
-        const response = await productionCostAPI.getList(params)
+        const response = await this.fetchData()
         this.costList = response.results || []
-        this.pagination.total = response.count || 0
-      } catch (error) { this.$message.error('获取成本列表失败') } finally { this.loading = false }
+        this.total = response.count || 0
+      } catch (error) {
+        this.$message.error('获取成本列表失败')
+      } finally {
+        this.loading = false
+      }
     },
     async fetchCostStats() {
       try { const response = await productionCostAPI.getStats(); this.stats = response || {} } catch (error) { console.error('获取成本统计失败', error) }
@@ -377,10 +398,14 @@ export default {
     async fetchCostCenters() {
       try { this.costCenterList = [] } catch (error) { console.error('获取成本中心列表失败', error) }
     },
-    handleSearch() { this.pagination.page = 1; this.fetchCostList() },
-    handleReset() { this.filters = { work_order: '', cost_center: '' }; this.pagination.page = 1; this.fetchCostList() },
-    handleSizeChange(size) { this.pagination.pageSize = size; this.pagination.page = 1; this.fetchCostList() },
-    handlePageChange(page) { this.pagination.page = page; this.fetchCostList() },
+    handleSearch() { this.currentPage = 1; this.fetchCostList() },
+    handleReset() {
+      this.filters = { work_order: '', cost_center: '' }
+      this.currentPage = 1
+      this.fetchCostList()
+    },
+    handleSizeChange(size) { this.pageSize = size; this.currentPage = 1; this.fetchCostList() },
+    handlePageChange(page) { this.currentPage = page; this.fetchCostList() },
     async handleView(row) {
       try { const response = await productionCostAPI.getDetail(row.id); this.currentCost = response; this.detailDialogVisible = true } catch (error) { this.$message.error('获取成本详情失败') }
     },
