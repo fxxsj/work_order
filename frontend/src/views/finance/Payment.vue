@@ -14,58 +14,7 @@
     </div>
 
     <!-- 统计卡片 -->
-    <div class="stats-cards">
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <el-card class="stat-card">
-            <div class="stat-item">
-              <div class="stat-label">
-                总收款金额
-              </div>
-              <div class="stat-value">
-                ¥{{ (stats.total_amount || 0).toLocaleString() }}
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="stat-card success">
-            <div class="stat-item">
-              <div class="stat-label">
-                已核销金额
-              </div>
-              <div class="stat-value">
-                ¥{{ (stats.applied_amount || 0).toLocaleString() }}
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="stat-card warning">
-            <div class="stat-item">
-              <div class="stat-label">
-                未核销金额
-              </div>
-              <div class="stat-value">
-                ¥{{ (stats.unapplied_amount || 0).toLocaleString() }}
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="stat-card info">
-            <div class="stat-item">
-              <div class="stat-label">
-                收款笔数
-              </div>
-              <div class="stat-value">
-                {{ stats.total_count || 0 }}
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-      </el-row>
-    </div>
+    <stats-cards :items="statsItems" />
 
     <!-- 搜索和过滤 -->
     <div class="filter-section">
@@ -348,11 +297,12 @@
 
 <script>
 import { paymentAPI } from '@/api/modules'
+import { StatsCards } from '@/components/common'
 import Pagination from '@/components/common/Pagination.vue'
 
 export default {
   name: 'PaymentList',
-  components: { Pagination },
+  components: { Pagination, StatsCards },
   data() {
     return {
       loading: false,
@@ -388,6 +338,16 @@ export default {
         payment_method: [{ required: true, message: '请选择付款方式', trigger: 'change' }],
         amount: [{ required: true, message: '请输入收款金额', trigger: 'blur' }]
       }
+    }
+  },
+  computed: {
+    statsItems() {
+      return [
+        { label: '总收款金额', value: this.stats.total_amount || 0, format: 'currency', prefix: '¥', type: 'primary' },
+        { label: '已核销金额', value: this.stats.applied_amount || 0, format: 'currency', prefix: '¥', type: 'success' },
+        { label: '未核销金额', value: this.stats.unapplied_amount || 0, format: 'currency', prefix: '¥', type: 'warning' },
+        { label: '收款笔数', value: this.stats.total_count || 0, type: 'info' }
+      ]
     }
   },
   created() {

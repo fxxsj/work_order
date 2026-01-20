@@ -17,58 +17,7 @@
     </div>
 
     <!-- 统计卡片 -->
-    <div class="stats-cards">
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <el-card class="stat-card">
-            <div class="stat-item">
-              <div class="stat-label">
-                总库存数
-              </div>
-              <div class="stat-value">
-                {{ stats.total_quantity || 0 }}
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="stat-card">
-            <div class="stat-item">
-              <div class="stat-label">
-                产品种类
-              </div>
-              <div class="stat-value">
-                {{ stats.total_products || 0 }}
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="stat-card warning">
-            <div class="stat-item">
-              <div class="stat-label">
-                低库存
-              </div>
-              <div class="stat-value">
-                {{ stats.low_stock_count || 0 }}
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="stat-card danger">
-            <div class="stat-item">
-              <div class="stat-label">
-                过期批次
-              </div>
-              <div class="stat-value">
-                {{ stats.expired_count || 0 }}
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-      </el-row>
-    </div>
+    <stats-cards :items="statsItems" />
 
     <!-- 搜索和过滤 -->
     <div class="filter-section">
@@ -325,12 +274,14 @@
 
 <script>
 import { productStockAPI } from '@/api/modules'
+import { StatsCards } from '@/components/common'
 import Pagination from '@/components/common/Pagination.vue'
 
 export default {
   name: 'StockList',
   components: {
-    Pagination
+    Pagination,
+    StatsCards
   },
   data() {
     return {
@@ -356,6 +307,16 @@ export default {
         pageSize: 20,
         total: 0
       }
+    }
+  },
+  computed: {
+    statsItems() {
+      return [
+        { label: '总库存数', value: this.stats.total_quantity || 0, type: 'primary' },
+        { label: '产品种类', value: this.stats.total_products || 0, type: 'info' },
+        { label: '低库存', value: this.stats.low_stock_count || 0, type: 'warning' },
+        { label: '过期批次', value: this.stats.expired_count || 0, type: 'danger' }
+      ]
     }
   },
   created() {

@@ -14,58 +14,7 @@
     </div>
 
     <!-- 统计卡片 -->
-    <div class="stats-cards">
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <el-card class="stat-card">
-            <div class="stat-item">
-              <div class="stat-label">
-                总金额
-              </div>
-              <div class="stat-value">
-                ¥{{ (stats.total_amount || 0).toLocaleString() }}
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="stat-card warning">
-            <div class="stat-item">
-              <div class="stat-label">
-                待收款
-              </div>
-              <div class="stat-value">
-                ¥{{ (stats.pending_amount || 0).toLocaleString() }}
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="stat-card success">
-            <div class="stat-item">
-              <div class="stat-label">
-                已收款
-              </div>
-              <div class="stat-value">
-                ¥{{ (stats.received_amount || 0).toLocaleString() }}
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="stat-card info">
-            <div class="stat-item">
-              <div class="stat-label">
-                发票数
-              </div>
-              <div class="stat-value">
-                {{ stats.total_count || 0 }}
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-      </el-row>
-    </div>
+    <stats-cards :items="statsItems" />
 
     <!-- 搜索和过滤 -->
     <div class="filter-section">
@@ -328,9 +277,11 @@
 
 <script>
 import { invoiceAPI } from '@/api/modules'
+import { StatsCards } from '@/components/common'
 
 export default {
   name: 'InvoiceList',
+  components: { StatsCards },
   data() {
     return {
       loading: false,
@@ -365,6 +316,38 @@ export default {
         invoice_date: [{ required: true, message: '请选择开票日期', trigger: 'change' }],
         amount: [{ required: true, message: '请输入金额', trigger: 'blur' }]
       }
+    }
+  },
+  computed: {
+    statsItems() {
+      return [
+        {
+          label: '总金额',
+          value: this.stats.total_amount || 0,
+          format: 'currency',
+          prefix: '¥',
+          type: 'primary'
+        },
+        {
+          label: '待收款',
+          value: this.stats.pending_amount || 0,
+          format: 'currency',
+          prefix: '¥',
+          type: 'warning'
+        },
+        {
+          label: '已收款',
+          value: this.stats.received_amount || 0,
+          format: 'currency',
+          prefix: '¥',
+          type: 'success'
+        },
+        {
+          label: '发票数',
+          value: this.stats.total_count || 0,
+          type: 'info'
+        }
+      ]
     }
   },
   created() {

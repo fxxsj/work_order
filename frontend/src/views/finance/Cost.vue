@@ -12,54 +12,8 @@
       </div>
     </div>
 
-    <div class="stats-cards">
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <el-card class="stat-card">
-            <div class="stat-item">
-              <div class="stat-label">
-                订单数量
-              </div><div class="stat-value">
-                {{ stats.total_orders || 0 }}
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="stat-card">
-            <div class="stat-item">
-              <div class="stat-label">
-                平均材料成本
-              </div><div class="stat-value">
-                ¥{{ ((stats.avg_material_cost || 0) / 1000).toFixed(1) }}k
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="stat-card">
-            <div class="stat-item">
-              <div class="stat-label">
-                平均人工成本
-              </div><div class="stat-value">
-                ¥{{ ((stats.avg_labor_cost || 0) / 1000).toFixed(1) }}k
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="stat-card">
-            <div class="stat-item">
-              <div class="stat-label">
-                平均总成本
-              </div><div class="stat-value">
-                ¥{{ ((stats.avg_total_cost || 0) / 1000).toFixed(1) }}k
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-      </el-row>
-    </div>
+    <!-- 统计卡片 -->
+    <stats-cards :items="statsItems" />
 
     <div class="filter-section">
       <el-form :inline="true" :model="filters" class="filter-form">
@@ -366,11 +320,12 @@
 
 <script>
 import { productionCostAPI } from '@/api/modules'
+import { StatsCards } from '@/components/common'
 import Pagination from '@/components/common/Pagination.vue'
 
 export default {
   name: 'CostList',
-  components: { Pagination },
+  components: { Pagination, StatsCards },
   data() {
     return {
       loading: false,
@@ -385,6 +340,16 @@ export default {
       pagination: { page: 1, pageSize: 20, total: 0 },
       adjustForm: { id: null, material_cost: null, labor_cost: null, equipment_cost: null, overhead_cost: null, adjust_reason: '' },
       adjustRules: { adjust_reason: [{ required: true, message: '请输入调整原因', trigger: 'blur' }] }
+    }
+  },
+  computed: {
+    statsItems() {
+      return [
+        { label: '订单数量', value: this.stats.total_orders || 0, type: 'primary' },
+        { label: '平均材料成本', value: ((this.stats.avg_material_cost || 0) / 1000).toFixed(1), suffix: 'k', prefix: '¥', type: 'info' },
+        { label: '平均人工成本', value: ((this.stats.avg_labor_cost || 0) / 1000).toFixed(1), suffix: 'k', prefix: '¥', type: 'info' },
+        { label: '平均总成本', value: ((this.stats.avg_total_cost || 0) / 1000).toFixed(1), suffix: 'k', prefix: '¥', type: 'success' }
+      ]
     }
   },
   created() {
