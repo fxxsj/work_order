@@ -36,6 +36,11 @@ export { statementAPI } from './statement'
 export { productStockAPI } from './product-stock'
 export { deliveryOrderAPI } from './delivery-order'
 export { qualityInspectionAPI } from './quality-inspection'
+export { stockInAPI } from './stock-in'
+export { stockOutAPI } from './stock-out'
+
+// Sales API (销售管理)
+export { salesOrderAPI } from './sales-order'
 
 // Complex API Modules (包含自定义操作)
 export { workOrderAPI } from './workorder'
