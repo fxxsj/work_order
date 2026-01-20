@@ -18,6 +18,11 @@ class NotificationAPI extends BaseAPI {
   markAllAsRead() {
     return this.customAction(`${this.baseUrl}mark_all_read/`, 'post')
   }
+
+  // 获取未读通知数量
+  getUnreadCount() {
+    return this.customAction(`${this.baseUrl}unread_count/`, 'get')
+  }
 }
 
 export const notificationAPI = new NotificationAPI()
