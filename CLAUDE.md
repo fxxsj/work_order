@@ -16,7 +16,7 @@
 ### Frontend (`frontend/`)
 - `src/api/` - API 接口封装
   - `src/api/base/` - API 基础类（BaseAPI.js）
-  - `src/api/modules/` - API 模块（16个模块）
+  - `src/api/modules/` - API 模块（27个模块）
 - `src/components/` - Vue 组件
 - `src/views/` - 页面视图
 - `src/router/` - Vue Router 路由配置
@@ -55,8 +55,17 @@
 
 ### Frontend Architecture Patterns (v2.1.0+)
 
-#### API 模块化
-所有 API 接口已模块化到 `src/api/modules/` 目录：
+#### API 模块化 ✨ 完全重构（v3.0）
+所有 API 接口已完全模块化到 `src/api/modules/` 目录（27个模块）：
+
+**模块分类**：
+- **基础模块**（12个）：customer, department, process, product, material, productGroup, artwork, die, foilingPlate, embossingPlate, productMaterial, supplier
+- **认证模块**（1个）：auth
+- **财务模块**（4个）：invoice, productionCost, payment, statement
+- **库存模块**（5个）：productStock, deliveryOrder, qualityInspection, stockIn, stockOut
+- **销售模块**（1个）：salesOrder
+- **施工单模块**（5个）：workOrder, workOrderTask, workOrderProcess, workOrderMaterial, workOrderProduct
+- **其他模块**（2个）：purchase, notification
 
 **创建新 API 模块**：
 ```javascript
@@ -67,6 +76,15 @@ class MyResourceAPI extends BaseAPI {
   constructor() {
     super('/my-resources/', request)
   }
+
+  // 自定义业务方法
+  customMethod(id, data) {
+    return this.request({
+      url: `${this.baseURL}${id}/action/`,
+      method: 'post',
+      data
+    })
+  }
 }
 
 export const myResourceAPI = new MyResourceAPI()
@@ -74,7 +92,18 @@ export const myResourceAPI = new MyResourceAPI()
 
 **使用 API 模块**：
 ```javascript
+// 导入模块
 import { myResourceAPI } from '@/api/modules'
+
+// 使用标准 CRUD（继承自 BaseAPI）
+await myResourceAPI.getList({ page: 1, page_size: 20 })
+await myResourceAPI.getDetail(id)
+await myResourceAPI.create(data)
+await myResourceAPI.update(id, data)
+await myResourceAPI.delete(id)
+
+// 使用自定义方法
+await myResourceAPI.customMethod(id, data)
 ```
 
 #### 列表页面 Mixins
@@ -303,6 +332,27 @@ python manage.py sqlmigrate workorder 0001  # 查看迁移 SQL
 
 ---
 
-**最后更新**: 2026-01-14
-**项目版本**: v2.0.0
+## 版本历史
+
+### v3.0.0 (2026-01-20)
+**重大更新：API 完全模块化**
+- ✅ 创建 27 个 API 模块（继承 BaseAPI）
+- ✅ 迁移 9 个页面到新 API 模块（财务 4 + 库存 3 + 销售 2）
+- ✅ 删除旧的函数式 API 文件（finance.js, inventory.js, sales.js）
+- 📦 减少代码重复：-833 行旧代码
+- 🎯 统一错误处理和接口调用方式
+- 📚 所有业务模块采用一致的模块化架构
+
+### v2.1.0 (2026-01-14)
+- ✅ Mixin 模式标准化（listPageMixin, crudPermissionMixin）
+- ✅ BaseAPI 基础类创建
+- ✅ 初步 API 模块化（基础模块）
+
+### v2.0.0 (2025-12-01)
+- 初始版本
+
+---
+
+**最后更新**: 2026-01-20
+**项目版本**: v3.0.0
 **文档维护**: 如有疑问请查看 `docs/` 目录或提交 Issue
