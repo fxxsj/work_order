@@ -12,17 +12,43 @@
         >
           <el-button slot="append" icon="el-icon-search" @click="handleSearch" />
         </el-input>
+        <div class="header-actions">
+          <el-button
+            :loading="loading"
+            icon="el-icon-refresh"
+            @click="handleRefresh"
+          >
+            刷新
+          </el-button>
+          <el-button
+            v-if="canCreate()"
+            type="primary"
+            icon="el-icon-plus"
+            @click="handleCreate"
+          >
+            新建刀模
+          </el-button>
+        </div>
+      </div>
+
+      <!-- 空状态显示 -->
+      <el-empty
+        v-if="!loading && tableData.length === 0"
+        description="暂无刀模数据"
+        style="margin-top: 40px;"
+      >
         <el-button
           v-if="canCreate()"
           type="primary"
           icon="el-icon-plus"
-          @click="showDialog()"
+          @click="handleCreate"
         >
-          新建刀模
+          创建第一个刀模
         </el-button>
-      </div>
+      </el-empty>
 
       <el-table
+        v-else
         v-loading="loading"
         :data="tableData"
         style="width: 100%; margin-top: 20px;"
@@ -32,6 +58,16 @@
         <el-table-column prop="size" label="尺寸" width="180" />
         <el-table-column prop="material" label="材质" width="120" />
         <el-table-column prop="thickness" label="厚度" width="100" />
+        <el-table-column label="确认状态" width="120">
+          <template slot-scope="scope">
+            <el-tag v-if="scope.row.confirmed" type="success" size="small">
+              已确认
+            </el-tag>
+            <el-tag v-else type="info" size="small">
+              待确认
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="包含产品" min-width="200">
           <template slot-scope="scope">
             <el-tag
@@ -61,7 +97,7 @@
               v-if="canEdit()"
               type="text"
               size="small"
-              @click="showDialog(scope.row)"
+              @click="handleEdit(scope.row)"
             >
               编辑
             </el-button>
@@ -89,123 +125,15 @@
     </el-card>
 
     <!-- 刀模表单对话框 -->
-    <el-dialog
-      :title="dialogTitle"
+    <DieFormDialog
       :visible.sync="dialogVisible"
-      width="700px"
-    >
-      <el-form
-        ref="form"
-        :model="form"
-        :rules="rules"
-        label-width="120px"
-      >
-        <el-form-item label="刀模编码" prop="code">
-          <el-input
-            v-model="form.code"
-            placeholder="留空则系统自动生成（格式：DIE + yyyymm + 序号）"
-          />
-          <div style="font-size: 12px; color: #909399; margin-top: 5px;">
-            留空则自动生成，格式：DIE202412001
-          </div>
-        </el-form-item>
-        <el-form-item label="刀模名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入刀模名称" />
-        </el-form-item>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="尺寸">
-              <el-input v-model="form.size" placeholder="如：420x594mm" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="材质">
-              <el-input v-model="form.material" placeholder="如：木板、胶板" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="厚度">
-          <el-input v-model="form.thickness" placeholder="如：3mm、5mm" />
-        </el-form-item>
-
-        <el-divider content-position="left">
-          包含产品及数量
-        </el-divider>
-
-        <el-form-item label="产品列表">
-          <el-button
-            type="primary"
-            size="small"
-            icon="el-icon-plus"
-            @click="addProductItem"
-          >
-            添加产品
-          </el-button>
-          <div style="margin-top: 15px;">
-            <el-table
-              :data="productItems"
-              border
-              style="width: 100%"
-            >
-              <el-table-column label="产品名称" width="250">
-                <template slot-scope="scope">
-                  <el-select
-                    v-model="scope.row.product"
-                    placeholder="请选择产品"
-                    filterable
-                    style="width: 100%;"
-                  >
-                    <el-option
-                      v-for="product in productList"
-                      :key="product.id"
-                      :label="`${product.name} (${product.code})`"
-                      :value="product.id"
-                    />
-                  </el-select>
-                </template>
-              </el-table-column>
-              <el-table-column label="数量" width="150">
-                <template slot-scope="scope">
-                  <el-input-number
-                    v-model="scope.row.quantity"
-                    :min="1"
-                    style="width: 100%;"
-                    size="small"
-                  />
-                </template>
-              </el-table-column>
-              <el-table-column label="操作" width="100" align="center">
-                <template slot-scope="scope">
-                  <el-button
-                    type="danger"
-                    size="mini"
-                    icon="el-icon-delete"
-                    @click="removeProductItem(scope.$index)"
-                  />
-                </template>
-              </el-table-column>
-            </el-table>
-          </div>
-        </el-form-item>
-
-        <el-form-item label="备注">
-          <el-input
-            v-model="form.notes"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入备注信息"
-          />
-        </el-form-item>
-      </el-form>
-      <div slot="footer">
-        <el-button @click="dialogVisible = false">
-          取消
-        </el-button>
-        <el-button type="primary" :loading="formLoading" @click="handleSubmit">
-          确定
-        </el-button>
-      </div>
-    </el-dialog>
+      :dialog-type="dialogType"
+      :initial-data="currentRow"
+      :loading="formLoading"
+      :product-list="productList"
+      @submit="handleFormSubmit"
+      @close="handleDialogClose"
+    />
   </div>
 </template>
 
@@ -213,12 +141,15 @@
 import { dieAPI, productAPI } from '@/api/modules'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import formDialogMixin from '@/mixins/formDialogMixin'
 import Pagination from '@/components/common/Pagination.vue'
+import DieFormDialog from './components/DieFormDialog.vue'
+import ErrorHandler from '@/utils/errorHandler'
 
 export default {
   name: 'DieList',
-  components: { Pagination },
-  mixins: [listPageMixin, crudPermissionMixin],
+  components: { Pagination, DieFormDialog },
+  mixins: [listPageMixin, crudPermissionMixin, formDialogMixin],
   data() {
     return {
       // API 服务和权限配置
@@ -227,38 +158,8 @@ export default {
 
       // 表单相关
       productList: [],
-      isEdit: false,
-      productItems: [],
-      form: {
-        code: '',
-        name: '',
-        size: '',
-        material: '',
-        thickness: '',
-        notes: ''
-      },
-      rules: {
-        name: [
-          { required: true, message: '请输入刀模名称', trigger: 'blur' }
-        ]
-      }
-    }
-  },
-  computed: {
-    dialogTitle() {
-      return this.isEdit ? '编辑刀模' : '新建刀模'
-    }
-  },
-  watch: {
-    // 监听对话框显示状态，编辑时填充表单
-    dialogVisible(val) {
-      if (!val) {
-        this.$nextTick(() => {
-          if (this.$refs.form) {
-            this.$refs.form.clearValidate()
-          }
-        })
-      }
+      currentRow: null,
+      formLoading: false
     }
   },
   created() {
@@ -297,108 +198,76 @@ export default {
         const response = await productAPI.getList({ is_active: true, page_size: 100 })
         this.productList = response.results || []
       } catch (error) {
-        console.error('加载产品列表失败:', error)
+        ErrorHandler.showMessage(error, '加载产品列表')
       }
     },
 
-    addProductItem() {
-      this.productItems.push({
-        product: null,
-        quantity: 1,
-        sort_order: this.productItems.length
-      })
+    // 刷新数据
+    handleRefresh() {
+      this.loadData()
     },
 
-    removeProductItem(index) {
-      this.productItems.splice(index, 1)
-    },
-
-    async showDialog(row = null) {
-      if (row) {
-        this.isEdit = true
-        this.currentRow = row
-        this.dialogType = 'edit'
-
-        try {
-          const detail = await dieAPI.getDetail(row.id)
-          this.form = {
-            code: detail.code,
-            name: detail.name,
-            size: detail.size || '',
-            material: detail.material || '',
-            thickness: detail.thickness || '',
-            notes: detail.notes || ''
-          }
-
-          if (detail.products && detail.products.length > 0) {
-            this.productItems = detail.products.map(p => ({
-              id: p.id,
-              product: p.product,
-              quantity: p.quantity,
-              sort_order: p.sort_order || 0
-            }))
-          } else {
-            this.productItems = []
-          }
-        } catch (error) {
-          console.error('加载刀模详情失败:', error)
-        }
-      } else {
-        this.isEdit = false
-        this.currentRow = null
-        this.dialogType = 'create'
-        this.form = {
-          code: '',
-          name: '',
-          size: '',
-          material: '',
-          thickness: '',
-          notes: ''
-        }
-        this.productItems = []
-      }
+    // 创建刀模
+    handleCreate() {
+      this.currentRow = null
+      this.dialogType = 'create'
       this.dialogVisible = true
     },
 
-    async handleSubmit() {
-      this.$refs.form.validate(async (valid) => {
-        if (!valid) {
-          return false
+    // 编辑刀模
+    async handleEdit(row) {
+      try {
+        const detail = await dieAPI.getDetail(row.id)
+        this.currentRow = detail
+        this.dialogType = 'edit'
+        this.dialogVisible = true
+      } catch (error) {
+        ErrorHandler.showMessage(error, '加载刀模详情')
+      }
+    },
+
+    // 表单提交处理
+    async handleFormSubmit(data) {
+      this.formLoading = true
+      try {
+        if (this.dialogType === 'edit' && this.currentRow) {
+          await this.apiService.update(this.currentRow.id, data)
+          ErrorHandler.showSuccess('保存成功')
+        } else {
+          await this.apiService.create(data)
+          ErrorHandler.showSuccess('创建成功')
         }
 
-        this.formLoading = true
-        try {
-          const data = { ...this.form }
+        this.dialogVisible = false
+        this.loadData()
+      } catch (error) {
+        ErrorHandler.showMessage(error, this.dialogType === 'edit' ? '保存刀模' : '创建刀模')
+      } finally {
+        this.formLoading = false
+      }
+    },
 
-          if (!this.isEdit && !data.code) {
-            delete data.code
-          }
+    // 对话框关闭处理
+    handleDialogClose() {
+      this.currentRow = null
+    },
 
-          const productsData = this.productItems
-            .filter(item => item.product)
-            .map(item => ({
-              product: item.product,
-              quantity: item.quantity || 1
-            }))
+    // 删除刀模
+    async handleDelete(row) {
+      const confirmed = await ErrorHandler.confirm(
+        `确定要删除刀模"${row.name}"吗？此操作不可恢复。`,
+        '删除确认'
+      )
 
-          data.products_data = productsData
+      if (!confirmed) return
 
-          if (this.isEdit) {
-            await this.apiService.update(this.currentRow.id, data)
-            this.showSuccess('保存成功')
-          } else {
-            await this.apiService.create(data)
-            this.showSuccess('创建成功')
-          }
-
-          this.dialogVisible = false
-          this.loadData()
-        } catch (error) {
-          this.showMessage(error, this.isEdit ? '保存失败' : '创建失败')
-        } finally {
-          this.formLoading = false
-        }
-      })
+      try {
+        await this.apiService.delete(row.id)
+        ErrorHandler.showSuccess('删除成功')
+        this.loadData()
+      } catch (error) {
+        ErrorHandler.showMessage(error, '删除刀模')
+      }
     }
   }
 }
@@ -413,5 +282,10 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
 }
 </style>
