@@ -22,7 +22,20 @@
         </el-button>
       </div>
 
+      <!-- 空状态显示 -->
+      <el-empty
+        v-if="!loading && tableData.length === 0"
+        description="暂无产品组数据"
+        :image-size="200"
+        style="margin-top: 40px;"
+      >
+        <el-button v-if="canCreate()" type="primary" @click="handleAdd()">
+          创建第一个产品组
+        </el-button>
+      </el-empty>
+
       <el-table
+        v-else
         v-loading="loading"
         :data="tableData"
         border
@@ -89,7 +102,7 @@
       :title="dialogTitle"
       :visible.sync="dialogVisible"
       width="800px"
-      @close="resetForm"
+      @close="handleDialogClose"
     >
       <el-form
         ref="form"
@@ -119,56 +132,75 @@
           />
         </el-form-item>
 
-        <el-divider>子产品列表</el-divider>
-        <div v-for="(item, index) in form.items" :key="index" style="margin-bottom: 15px; padding: 15px; border: 1px solid #e4e7ed; border-radius: 4px;">
-          <el-row :gutter="20">
-            <el-col :span="8">
-              <el-form-item :label="index === 0 ? '产品' : ''" :prop="`items.${index}.product`">
-                <el-select
-                  v-model="item.product"
-                  placeholder="请选择产品"
-                  filterable
-                  style="width: 100%;"
-                >
-                  <el-option
-                    v-for="product in productList"
-                    :key="product.id"
-                    :label="`${product.name} (${product.code})`"
-                    :value="product.id"
+        <el-divider content-position="left">
+          子产品配置
+        </el-divider>
+
+        <el-form-item label="子产品列表">
+          <el-button
+            type="primary"
+            size="small"
+            icon="el-icon-plus"
+            @click="addItem"
+          >
+            添加子产品
+          </el-button>
+          <div style="margin-top: 15px;">
+            <el-table
+              :data="form.items"
+              border
+              style="width: 100%"
+            >
+              <el-table-column label="产品" min-width="200">
+                <template slot-scope="scope">
+                  <el-select
+                    v-model="scope.row.product"
+                    placeholder="请选择产品"
+                    filterable
+                    style="width: 100%;"
+                  >
+                    <el-option
+                      v-for="product in productList"
+                      :key="product.id"
+                      :label="`${product.name} (${product.code})`"
+                      :value="product.id"
+                    />
+                  </el-select>
+                </template>
+              </el-table-column>
+              <el-table-column label="子产品名称" min-width="180">
+                <template slot-scope="scope">
+                  <el-input
+                    v-model="scope.row.item_name"
+                    placeholder="如：天盒、地盒"
+                    size="small"
                   />
-                </el-select>
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item :label="index === 0 ? '子产品名称' : ''" :prop="`items.${index}.item_name`">
-                <el-input v-model="item.item_name" placeholder="如：天盒、地盒" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="4">
-              <el-form-item :label="index === 0 ? '排序' : ''">
-                <el-input-number v-model="item.sort_order" :min="0" style="width: 100%;" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="4" style="text-align: right; padding-top: 30px;">
-              <el-button
-                v-if="form.items.length > 1"
-                type="danger"
-                size="mini"
-                icon="el-icon-delete"
-                circle
-                @click="removeItem(index)"
-              />
-              <el-button
-                v-if="index === form.items.length - 1"
-                type="primary"
-                size="mini"
-                icon="el-icon-plus"
-                circle
-                @click="addItem"
-              />
-            </el-col>
-          </el-row>
-        </div>
+                </template>
+              </el-table-column>
+              <el-table-column label="排序" width="120" align="center">
+                <template slot-scope="scope">
+                  <el-input-number
+                    v-model="scope.row.sort_order"
+                    :min="0"
+                    size="small"
+                    style="width: 100%;"
+                  />
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="100" align="center">
+                <template slot-scope="scope">
+                  <el-button
+                    type="danger"
+                    size="mini"
+                    icon="el-icon-delete"
+                    :disabled="form.items.length <= 1"
+                    @click="removeItem(scope.$index)"
+                  />
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">
@@ -186,12 +218,30 @@
 import { productGroupAPI, productAPI } from '@/api/modules'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import formDialogMixin from '@/mixins/formDialogMixin'
+import ErrorHandler from '@/utils/errorHandler'
 import Pagination from '@/components/common/Pagination.vue'
+
+// 表单初始值
+const getFormInitialValues = () => ({
+  id: null,
+  code: '',
+  name: '',
+  description: '',
+  is_active: true,
+  items: [
+    {
+      product: null,
+      item_name: '',
+      sort_order: 0
+    }
+  ]
+})
 
 export default {
   name: 'ProductGroupList',
   components: { Pagination },
-  mixins: [listPageMixin, crudPermissionMixin],
+  mixins: [listPageMixin, crudPermissionMixin, formDialogMixin],
   data() {
     return {
       // API 服务和权限配置
@@ -200,22 +250,8 @@ export default {
 
       // 表单相关
       productList: [],
-      dialogTitle: '新增产品组',
-      isEdit: false,
-      form: {
-        id: null,
-        code: '',
-        name: '',
-        description: '',
-        is_active: true,
-        items: [
-          {
-            product: null,
-            item_name: '',
-            sort_order: 0
-          }
-        ]
-      },
+      formLoading: false,
+      form: getFormInitialValues(),
       rules: {
         code: [
           { required: true, message: '请输入编码', trigger: 'blur' }
@@ -262,37 +298,22 @@ export default {
         const response = await productAPI.getList({ page_size: 1000 })
         this.productList = response.results || []
       } catch (error) {
-        console.error('加载产品列表失败:', error)
+        ErrorHandler.showMessage(error, '加载产品列表')
       }
     },
 
     handleAdd() {
-      this.dialogTitle = '新增产品组'
-      this.isEdit = false
-      this.currentRow = null
       this.dialogType = 'create'
-      this.form = {
-        id: null,
-        code: '',
-        name: '',
-        description: '',
-        is_active: true,
-        items: [
-          {
-            product: null,
-            item_name: '',
-            sort_order: 0
-          }
-        ]
-      }
+      this.dialogTitle = '新增产品组'
+      this.currentRow = null
+      this.form = getFormInitialValues()
       this.dialogVisible = true
     },
 
     async handleEdit(row) {
-      this.dialogTitle = '编辑产品组'
-      this.isEdit = true
-      this.currentRow = row
       this.dialogType = 'edit'
+      this.dialogTitle = '编辑产品组'
+      this.currentRow = row
 
       try {
         const detail = await this.apiService.getDetail(row.id)
@@ -319,7 +340,22 @@ export default {
         }
         this.dialogVisible = true
       } catch (error) {
-        this.showMessage(error, '加载详情失败')
+        ErrorHandler.showMessage(error, '加载详情')
+      }
+    },
+
+    async handleDelete(row) {
+      const confirmed = await ErrorHandler.confirm(
+        `确定要删除产品组"${row.name}"吗？此操作不可撤销。`
+      )
+      if (!confirmed) return
+
+      try {
+        await this.apiService.delete(row.id)
+        ErrorHandler.showSuccess('删除成功')
+        await this.loadData()
+      } catch (error) {
+        ErrorHandler.showMessage(error, '删除失败')
       }
     },
 
@@ -343,53 +379,66 @@ export default {
 
         // 验证子产品列表
         if (!this.form.items || this.form.items.length === 0) {
-          this.$message.warning('请至少添加一个子产品')
+          ErrorHandler.showWarning('请至少添加一个子产品')
           return
         }
 
         for (let i = 0; i < this.form.items.length; i++) {
           const item = this.form.items[i]
           if (!item.product) {
-            this.$message.warning(`请选择第 ${i + 1} 个子产品的产品`)
+            ErrorHandler.showWarning(`请选择第 ${i + 1} 个子产品的产品`)
             return
           }
           if (!item.item_name) {
-            this.$message.warning(`请输入第 ${i + 1} 个子产品的名称`)
+            ErrorHandler.showWarning(`请输入第 ${i + 1} 个子产品的名称`)
             return
           }
         }
 
         this.formLoading = true
         try {
+          // 构建提交数据，包含 items
           const data = {
             code: this.form.code,
             name: this.form.name,
             description: this.form.description,
-            is_active: this.form.is_active
+            is_active: this.form.is_active,
+            items_write: this.form.items.map(item => ({
+              product: item.product,
+              item_name: item.item_name,
+              sort_order: item.sort_order
+            }))
           }
 
           if (this.form.id) {
             // 更新
             await this.apiService.update(this.form.id, data)
-            this.showSuccess('更新成功')
+            ErrorHandler.showSuccess('更新成功')
           } else {
             // 创建
             await this.apiService.create(data)
-            this.showSuccess('创建成功')
+            ErrorHandler.showSuccess('创建成功')
           }
 
           this.dialogVisible = false
           this.loadData()
         } catch (error) {
-          this.showMessage(error, this.form.id ? '更新失败' : '创建失败')
+          ErrorHandler.showMessage(error, this.form.id ? '更新失败' : '创建失败')
         } finally {
           this.formLoading = false
         }
       })
     },
 
-    resetForm() {
+    // 对话框关闭处理
+    handleDialogClose() {
       this.$refs.form && this.$refs.form.resetFields()
+      this.form = getFormInitialValues()
+    },
+
+    // 自定义重置表单方法（formDialogMixin 会调用）
+    customResetForm() {
+      this.form = getFormInitialValues()
     }
   }
 }
