@@ -5,8 +5,17 @@
  */
 
 import BaseService from './base/BaseService'
-import { workOrderAPI } from '@/api/modules'
 import formValidationService from './FormValidationService'
+
+// 延迟加载 workOrderAPI 以避免循环依赖
+let _workOrderAPI = null
+function getWorkOrderAPI() {
+  if (!_workOrderAPI) {
+    // eslint-disable-next-line global-require
+    _workOrderAPI = require('@/api/modules/workorder').workOrderAPI
+  }
+  return _workOrderAPI
+}
 
 /**
  * 施工单状态枚举
@@ -42,8 +51,18 @@ const Priority = {
  */
 class WorkOrderService extends BaseService {
   constructor() {
-    super(workOrderApi)
+    // 传入 null，使用私有属性存储延迟加载的 API
+    super(null)
     this.validationService = formValidationService
+    this._lazyApiClient = null
+  }
+
+  // 覆盖父类方法，延迟获取 API 客户端
+  getApiClient() {
+    if (!this._lazyApiClient) {
+      this._lazyApiClient = getWorkOrderAPI()
+    }
+    return this._lazyApiClient
   }
 
   /**
@@ -59,7 +78,7 @@ class WorkOrderService extends BaseService {
     }
 
     return this.execute(
-      () => this.apiClient.list({ ...defaultParams, ...params }),
+      () => this.getApiClient().list({ ...defaultParams, ...params }),
       { showLoading: true }
     )
   }
@@ -71,7 +90,7 @@ class WorkOrderService extends BaseService {
    */
   async getWorkOrderDetail(id) {
     return this.execute(
-      () => this.apiClient.getDetail(id),
+      () => this.getApiClient().getDetail(id),
       { showLoading: true }
     )
   }
@@ -96,7 +115,7 @@ class WorkOrderService extends BaseService {
     const submitData = this._prepareSubmitData(formData)
 
     return this.execute(
-      () => this.apiClient.create(submitData),
+      () => this.getApiClient().create(submitData),
       {
         showLoading: true,
         successMessage: '施工单创建成功'
@@ -125,7 +144,7 @@ class WorkOrderService extends BaseService {
     const submitData = this._prepareSubmitData(formData)
 
     return this.execute(
-      () => this.apiClient.update(id, submitData),
+      () => this.getApiClient().update(id, submitData),
       {
         showLoading: true,
         successMessage: '施工单更新成功'
@@ -140,7 +159,7 @@ class WorkOrderService extends BaseService {
    */
   async deleteWorkOrder(id) {
     return this.execute(
-      () => this.apiClient.delete(id),
+      () => this.getApiClient().delete(id),
       {
         showLoading: true,
         successMessage: '施工单删除成功'
@@ -155,7 +174,7 @@ class WorkOrderService extends BaseService {
    */
   async submitForApproval(id) {
     return this.execute(
-      () => this.apiClient.submitForApproval(id),
+      () => this.getApiClient().submitForApproval(id),
       {
         showLoading: true,
         successMessage: '已提交审核'
@@ -172,7 +191,7 @@ class WorkOrderService extends BaseService {
    */
   async reviewWorkOrder(id, action, comment = '') {
     return this.execute(
-      () => this.apiClient.review(id, { action, comment }),
+      () => this.getApiClient().review(id, { action, comment }),
       {
         showLoading: true,
         successMessage: action === 'approve' ? '已通过审核' : '已拒绝审核'
@@ -187,7 +206,7 @@ class WorkOrderService extends BaseService {
    */
   async startWorkOrder(id) {
     return this.execute(
-      () => this.apiClient.start(id),
+      () => this.getApiClient().start(id),
       {
         showLoading: true,
         successMessage: '施工单已开始'
@@ -202,7 +221,7 @@ class WorkOrderService extends BaseService {
    */
   async completeWorkOrder(id) {
     return this.execute(
-      () => this.apiClient.complete(id),
+      () => this.getApiClient().complete(id),
       {
         showLoading: true,
         successMessage: '施工单已完成'
@@ -218,7 +237,7 @@ class WorkOrderService extends BaseService {
    */
   async cancelWorkOrder(id, reason = '') {
     return this.execute(
-      () => this.apiClient.cancel(id, { reason }),
+      () => this.getApiClient().cancel(id, { reason }),
       {
         showLoading: true,
         successMessage: '施工单已取消'
@@ -563,7 +582,7 @@ class WorkOrderService extends BaseService {
    */
   async getWorkOrderProcesses(workOrderId) {
     return this.execute(
-      () => this.apiClient.getProcesses(workOrderId),
+      () => this.getApiClient().getProcesses(workOrderId),
       { showLoading: true }
     )
   }
@@ -575,7 +594,7 @@ class WorkOrderService extends BaseService {
    */
   async getWorkOrderTasks(workOrderId) {
     return this.execute(
-      () => this.apiClient.getTasks(workOrderId),
+      () => this.getApiClient().getTasks(workOrderId),
       { showLoading: true }
     )
   }
@@ -587,7 +606,7 @@ class WorkOrderService extends BaseService {
    */
   async getWorkOrderLogs(workOrderId) {
     return this.execute(
-      () => this.apiClient.getLogs(workOrderId),
+      () => this.getApiClient().getLogs(workOrderId),
       { showLoading: false }
     )
   }
