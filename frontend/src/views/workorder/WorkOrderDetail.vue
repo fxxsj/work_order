@@ -99,7 +99,8 @@
 </template>
 
 <script>
-import { workOrderAPI, processAPI, materialAPI, artworkAPI } from '@/api/workorder'
+import { workOrderAPI, materialAPI, artworkAPI } from '@/api/workorder'
+import { processAPI } from '@/api/modules'
 import { workOrderService, permissionService } from '@/services'
 import WorkOrderBasicInfo from './components/WorkOrderBasicInfo.vue'
 import WorkOrderProducts from './components/WorkOrderProducts.vue'

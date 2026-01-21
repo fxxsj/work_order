@@ -5,7 +5,7 @@
  */
 
 import BaseService from './base/BaseService'
-import workOrderApi from '@/api/workorder'
+import { workOrderAPI } from '@/api/modules'
 import formValidationService from './FormValidationService'
 
 /**

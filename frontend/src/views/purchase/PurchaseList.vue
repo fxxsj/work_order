@@ -1,47 +1,62 @@
 <template>
-  <div class="purchase-order-list">
-    <el-card>
-      <!-- 搜索和筛选 -->
-      <el-form
-        :inline="true"
-        :model="filters"
-        class="search-form"
-        @keyup.enter.native="handleSearch"
-      >
-        <el-form-item label="采购单号">
-          <el-input v-model="searchText" placeholder="请输入采购单号" clearable />
-        </el-form-item>
-        <el-form-item label="供应商">
-          <el-input v-model="filters.supplier_name" placeholder="请输入供应商名称" clearable />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="filters.status" placeholder="请选择" clearable>
-            <el-option label="草稿" value="draft" />
-            <el-option label="已提交" value="submitted" />
-            <el-option label="已批准" value="approved" />
-            <el-option label="已下单" value="ordered" />
-            <el-option label="已收货" value="received" />
-            <el-option label="已取消" value="cancelled" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">
-            搜索
-          </el-button>
-          <el-button @click="resetFilters">
-            重置
-          </el-button>
-          <el-button v-if="canCreate()" type="success" @click="showCreateDialog">
-            新增采购单
-          </el-button>
-          <el-button type="warning" @click="handleLowStock">
-            库存预警
-          </el-button>
-        </el-form-item>
-      </el-form>
+  <div class="page-container">
+    <!-- 搜索栏：使用 header-section 布局 -->
+    <div class="header-section">
+      <div class="filter-group">
+        <el-input
+          v-model="searchText"
+          placeholder="搜索采购单号"
+          prefix-icon="el-icon-search"
+          clearable
+          style="width: 200px"
+          @keyup.enter.native="handleSearch"
+          @clear="handleSearch"
+        />
+        <el-input
+          v-model="filters.supplier_name"
+          placeholder="供应商名称"
+          clearable
+          style="width: 180px"
+          @keyup.enter.native="handleSearch"
+          @clear="handleSearch"
+        />
+        <el-select
+          v-model="filters.status"
+          placeholder="状态"
+          clearable
+          style="width: 120px"
+          @change="handleSearch"
+        >
+          <el-option
+            v-for="item in statusOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+        <el-button icon="el-icon-refresh" @click="resetFilters">
+          重置
+        </el-button>
+      </div>
+      <div class="action-group">
+        <el-button
+          v-if="canCreate()"
+          type="primary"
+          icon="el-icon-plus"
+          @click="showCreateDialog"
+        >
+          新增采购单
+        </el-button>
+        <el-button icon="el-icon-warning" @click="showLowStockDialog">
+          库存预警
+        </el-button>
+      </div>
+    </div>
 
-      <!-- 数据表格 -->
+    <el-card shadow="never">
+      <!-- 数据表格：添加条件渲染 -->
       <el-table
+        v-if="tableData.length > 0"
         v-loading="loading"
         :data="tableData"
         border
@@ -74,78 +89,74 @@
         </el-table-column>
         <el-table-column prop="received_progress" label="收货进度" width="120">
           <template slot-scope="scope">
-            <el-progress :percentage="scope.row.received_progress" :color="getProgressColor(scope.row.received_progress)" />
+            <el-progress
+              :percentage="Math.round(scope.row.received_progress || 0)"
+              :color="getProgressColor(scope.row.received_progress)"
+            />
           </template>
         </el-table-column>
         <el-table-column prop="submitted_by_name" label="提交人" width="100" />
         <el-table-column prop="created_at" label="创建时间" width="160" />
-        <el-table-column label="操作" width="300" fixed="right">
+        <!-- 操作列：使用下拉菜单收纳 -->
+        <el-table-column label="操作" width="180" fixed="right">
           <template slot-scope="scope">
-            <el-button size="mini" type="primary" @click="handleView(scope.row)">
+            <el-button type="text" @click="handleView(scope.row)">
               查看
             </el-button>
             <el-button
               v-if="scope.row.status === 'draft' && canEdit()"
-              size="mini"
-              type="success"
+              type="text"
               @click="showEditDialog(scope.row)"
             >
               编辑
             </el-button>
-            <el-button
-              v-if="scope.row.status === 'draft'"
-              size="mini"
-              type="warning"
-              @click="handleSubmit(scope.row)"
+            <el-dropdown
+              v-if="hasStatusActions(scope.row)"
+              trigger="click"
+              @command="(cmd) => handleStatusAction(cmd, scope.row)"
             >
-              提交
-            </el-button>
-            <el-button
-              v-if="scope.row.status === 'submitted'"
-              size="mini"
-              type="success"
-              @click="handleApprove(scope.row)"
-            >
-              批准
-            </el-button>
-            <el-button
-              v-if="scope.row.status === 'submitted'"
-              size="mini"
-              type="danger"
-              @click="handleReject(scope.row)"
-            >
-              拒绝
-            </el-button>
-            <el-button
-              v-if="scope.row.status === 'approved'"
-              size="mini"
-              type="warning"
-              @click="handlePlaceOrder(scope.row)"
-            >
-              下单
-            </el-button>
-            <el-button
-              v-if="scope.row.status === 'ordered'"
-              size="mini"
-              type="success"
-              @click="handleReceive(scope.row)"
-            >
-              收货
-            </el-button>
-            <el-button
-              v-if="['draft', 'submitted', 'approved'].includes(scope.row.status)"
-              size="mini"
-              type="danger"
-              @click="handleCancel(scope.row)"
-            >
-              取消
-            </el-button>
+              <el-button type="text">
+                更多<i class="el-icon-arrow-down el-icon--right"></i>
+              </el-button>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item v-if="scope.row.status === 'draft'" command="submit">
+                  提交
+                </el-dropdown-item>
+                <el-dropdown-item v-if="scope.row.status === 'submitted'" command="approve">
+                  批准
+                </el-dropdown-item>
+                <el-dropdown-item v-if="scope.row.status === 'submitted'" command="reject">
+                  拒绝
+                </el-dropdown-item>
+                <el-dropdown-item v-if="scope.row.status === 'approved'" command="placeOrder">
+                  下单
+                </el-dropdown-item>
+                <el-dropdown-item v-if="scope.row.status === 'ordered'" command="receive">
+                  收货
+                </el-dropdown-item>
+                <el-dropdown-item
+                  v-if="['draft', 'submitted', 'approved'].includes(scope.row.status)"
+                  command="cancel"
+                  divided
+                >
+                  <span style="color: #F56C6C">取消</span>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>
 
+      <!-- 空状态 -->
+      <el-empty v-if="!loading && tableData.length === 0" description="暂无采购单数据">
+        <el-button v-if="canCreate()" type="primary" @click="showCreateDialog">
+          创建第一个采购单
+        </el-button>
+      </el-empty>
+
       <!-- 分页 -->
       <Pagination
+        v-if="total > 0"
         :current-page="currentPage"
         :page-size="pageSize"
         :total="total"
@@ -154,250 +165,71 @@
       />
     </el-card>
 
-    <!-- 新增/编辑对话框 -->
-    <el-dialog
-      :title="dialogTitle"
+    <!-- 表单对话框组件 -->
+    <PurchaseFormDialog
       :visible.sync="dialogVisible"
-      width="900px"
+      :form-data="form"
+      :is-edit="isEditMode"
+      @confirm="handleFormConfirm"
       @close="resetForm"
-    >
-      <el-form
-        ref="form"
-        :model="form"
-        :rules="rules"
-        label-width="100px"
-      >
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="供应商" prop="supplier">
-              <el-select
-                v-model="form.supplier"
-                placeholder="请选择供应商"
-                filterable
-                style="width: 100%"
-              >
-                <el-option
-                  v-for="item in supplierOptions"
-                  :key="item.id"
-                  :label="item.name"
-                  :value="item.id"
-                />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="关联施工单">
-              <el-input v-model="form.work_order_number" placeholder="请输入施工单号" disabled />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="备注">
-          <el-input
-            v-model="form.notes"
-            type="textarea"
-            :rows="2"
-            placeholder="请输入备注"
-          />
-        </el-form-item>
-        <el-divider>采购明细</el-divider>
-        <el-button size="small" type="primary" @click="handleAddItem">
-          添加明细
-        </el-button>
-        <el-table :data="form.items" border style="margin-top: 10px">
-          <el-table-column label="物料" width="250">
-            <template slot-scope="scope">
-              <el-select
-                v-model="scope.row.material"
-                placeholder="请选择物料"
-                filterable
-                @change="handleMaterialChange(scope.row)"
-              >
-                <el-option
-                  v-for="item in materialOptions"
-                  :key="item.id"
-                  :label="`${item.code} - ${item.name}`"
-                  :value="item.id"
-                />
-              </el-select>
-            </template>
-          </el-table-column>
-          <el-table-column label="采购数量" width="150">
-            <template slot-scope="scope">
-              <el-input-number v-model="scope.row.quantity" :min="1" :precision="2" />
-            </template>
-          </el-table-column>
-          <el-table-column label="单价" width="150">
-            <template slot-scope="scope">
-              <el-input-number v-model="scope.row.unit_price" :min="0" :precision="2" />
-            </template>
-          </el-table-column>
-          <el-table-column label="小计" width="120">
-            <template slot-scope="scope">
-              ¥{{ ((scope.row.quantity || 0) * (scope.row.unit_price || 0)).toFixed(2) }}
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="100">
-            <template slot-scope="scope">
-              <el-button size="mini" type="danger" @click="handleDeleteItem(scope.$index)">
-                删除
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="dialogLoading" @click="submitForm">确定</el-button>
-      </span>
-    </el-dialog>
+    />
 
-    <!-- 查看详情对话框 -->
-    <el-dialog title="采购单详情" :visible.sync="detailDialogVisible" width="900px">
-      <el-descriptions :column="2" border>
-        <el-descriptions-item label="采购单号">
-          {{ detailData.order_number }}
-        </el-descriptions-item>
-        <el-descriptions-item label="供应商">
-          {{ detailData.supplier_name }}
-        </el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <el-tag :type="getStatusType(detailData.status)">
-            {{ detailData.status_display }}
-          </el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="总金额">
-          ¥{{ (detailData.total_amount || 0).toFixed(2) }}
-        </el-descriptions-item>
-        <el-descriptions-item label="提交人">
-          {{ detailData.submitted_by_name }}
-        </el-descriptions-item>
-        <el-descriptions-item label="提交时间">
-          {{ detailData.submitted_at }}
-        </el-descriptions-item>
-        <el-descriptions-item label="审核人">
-          {{ detailData.approved_by_name }}
-        </el-descriptions-item>
-        <el-descriptions-item label="审核时间">
-          {{ detailData.approved_at }}
-        </el-descriptions-item>
-        <el-descriptions-item label="下单日期">
-          {{ detailData.ordered_date }}
-        </el-descriptions-item>
-        <el-descriptions-item label="预计到货日期">
-          {{ detailData.expected_date }}
-        </el-descriptions-item>
-        <el-descriptions-item label="备注" :span="2">
-          {{ detailData.notes }}
-        </el-descriptions-item>
-      </el-descriptions>
-      <el-divider>采购明细</el-divider>
-      <el-table :data="detailData.items" border>
-        <el-table-column prop="material_name" label="物料" width="200" />
-        <el-table-column prop="material_code" label="物料编码" width="120" />
-        <el-table-column
-          prop="quantity"
-          label="采购数量"
-          width="120"
-          align="right"
-        />
-        <el-table-column
-          prop="received_quantity"
-          label="已收货数量"
-          width="120"
-          align="right"
-        />
-        <el-table-column
-          prop="unit_price"
-          label="单价"
-          width="120"
-          align="right"
-        >
-          <template slot-scope="scope">
-            ¥{{ (scope.row.unit_price || 0).toFixed(2) }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="subtotal"
-          label="小计"
-          width="120"
-          align="right"
-        >
-          <template slot-scope="scope">
-            ¥{{ scope.row.subtotal.toFixed(2) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="status_display" label="收货状态" width="120">
-          <template slot-scope="scope">
-            <el-tag :type="getItemStatusType(scope.row.status)">
-              {{ scope.row.status_display }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="notes"
-          label="备注"
-          min-width="150"
-          show-overflow-tooltip
-        />
-      </el-table>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="detailDialogVisible = false">关闭</el-button>
-      </span>
-    </el-dialog>
+    <!-- 详情对话框组件 -->
+    <PurchaseDetailDialog
+      ref="detailDialog"
+      :visible.sync="detailDialogVisible"
+      :purchase-id="currentPurchaseId"
+    />
 
-    <!-- 库存预警对话框 -->
-    <el-dialog title="库存不足预警" :visible.sync="lowStockDialogVisible" width="800px">
-      <el-table :data="lowStockMaterials" border>
-        <el-table-column prop="code" label="物料编码" width="120" />
-        <el-table-column prop="name" label="物料名称" width="200" />
-        <el-table-column
-          prop="stock_quantity"
-          label="当前库存"
-          width="120"
-          align="right"
-        />
-        <el-table-column
-          prop="min_stock_quantity"
-          label="最小库存"
-          width="120"
-          align="right"
-        />
-        <el-table-column
-          prop="needed_quantity"
-          label="需要采购"
-          width="120"
-          align="right"
-        >
-          <template slot-scope="scope">
-            <span style="color: #f56c6c;">{{ scope.row.needed_quantity }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="default_supplier" label="默认供应商" width="180" />
-      </el-table>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="lowStockDialogVisible = false">关闭</el-button>
-        <el-button type="primary" @click="handleCreatePurchaseFromLowStock">创建采购单</el-button>
-      </span>
-    </el-dialog>
+    <!-- 库存预警对话框组件 -->
+    <LowStockAlertDialog
+      :visible.sync="lowStockDialogVisible"
+      @create-purchase="handleCreateFromLowStock"
+    />
   </div>
 </template>
 
 <script>
-import { purchaseOrderAPI, supplierAPI, materialAPI } from '@/api/modules'
+import { purchaseOrderAPI } from '@/api/modules'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
-import formDialogMixin from '@/mixins/formDialogMixin'
 import Pagination from '@/components/common/Pagination.vue'
 import ErrorHandler from '@/utils/errorHandler'
+import {
+  PurchaseFormDialog,
+  PurchaseDetailDialog,
+  LowStockAlertDialog
+} from './components'
+
+// 表单初始值常量
+const FORM_INITIAL = {
+  supplier: null,
+  work_order_number: '',
+  notes: '',
+  items: []
+}
+
+// 状态选项
+const STATUS_OPTIONS = [
+  { label: '草稿', value: 'draft' },
+  { label: '已提交', value: 'submitted' },
+  { label: '已批准', value: 'approved' },
+  { label: '已下单', value: 'ordered' },
+  { label: '已收货', value: 'received' },
+  { label: '已取消', value: 'cancelled' }
+]
 
 export default {
   name: 'PurchaseOrderList',
 
   components: {
-    Pagination
+    Pagination,
+    PurchaseFormDialog,
+    PurchaseDetailDialog,
+    LowStockAlertDialog
   },
 
-  mixins: [listPageMixin, crudPermissionMixin, formDialogMixin],
+  mixins: [listPageMixin, crudPermissionMixin],
 
   data() {
     return {
@@ -405,36 +237,25 @@ export default {
       apiService: purchaseOrderAPI,
       permissionPrefix: 'purchaseorder',
 
+      // 状态选项
+      statusOptions: STATUS_OPTIONS,
+
       // 表单数据
-      form: {
-        supplier: null,
-        work_order_number: '',
-        notes: '',
-        items: []
-      },
-
-      // 验证规则
-      rules: {
-        supplier: [{ required: true, message: '请选择供应商', trigger: 'change' }]
-      },
-
-      // 选项数据
-      supplierOptions: [],
-      materialOptions: [],
+      form: { ...FORM_INITIAL },
+      isEditMode: false,
+      dialogVisible: false,
 
       // 详情对话框
       detailDialogVisible: false,
-      detailData: {},
+      currentPurchaseId: null,
 
       // 库存预警对话框
-      lowStockDialogVisible: false,
-      lowStockMaterials: []
+      lowStockDialogVisible: false
     }
   },
 
   created() {
     this.loadData()
-    this.fetchOptions()
   },
 
   methods: {
@@ -453,72 +274,19 @@ export default {
     },
 
     /**
-     * 加载选项数据
+     * 显示创建对话框
      */
-    async fetchOptions() {
-      try {
-        const [supplierRes, materialRes] = await Promise.all([
-          supplierAPI.getList({ page_size: 1000, status: 'active' }),
-          materialAPI.getList({ page_size: 1000 })
-        ])
-        this.supplierOptions = supplierRes.results || []
-        this.materialOptions = materialRes.results || []
-      } catch (error) {
-        ErrorHandler.showMessage(error, '获取选项数据')
-      }
+    showCreateDialog() {
+      this.isEditMode = false
+      this.form = { ...FORM_INITIAL, items: [] }
+      this.dialogVisible = true
     },
 
     /**
-     * 处理表单提交（formDialogMixin 要求实现）
-     */
-    async handleFormSubmit(formData) {
-      // 验证明细数据
-      if (!formData.items || formData.items.length === 0) {
-        ErrorHandler.showWarning('请至少添加一条采购明细')
-        throw new Error('请至少添加一条采购明细')
-      }
-
-      // 准备提交数据
-      const data = {
-        supplier: formData.supplier,
-        work_order_number: formData.work_order_number,
-        notes: formData.notes,
-        items: formData.items.map(item => ({
-          material: item.material,
-          quantity: item.quantity,
-          unit_price: item.unit_price
-        }))
-      }
-
-      if (this.dialogType === 'create') {
-        await this.apiService.create(data)
-        ErrorHandler.showSuccess('创建成功')
-      } else {
-        await this.apiService.update(formData.id, data)
-        ErrorHandler.showSuccess('更新成功')
-      }
-
-      await this.loadData()
-    },
-
-    /**
-     * 自定义重置表单（formDialogMixin 使用）
-     */
-    customResetForm() {
-      this.form = {
-        supplier: null,
-        work_order_number: '',
-        notes: '',
-        items: []
-      }
-    },
-
-    /**
-     * 显示编辑对话框（覆盖 formDialogMixin）
+     * 显示编辑对话框
      */
     showEditDialog(row) {
-      this.dialogType = 'edit'
-      this.dialogTitle = '编辑采购单'
+      this.isEditMode = true
       this.form = {
         id: row.id,
         supplier: row.supplier,
@@ -535,11 +303,83 @@ export default {
     },
 
     /**
+     * 重置表单
+     */
+    resetForm() {
+      this.form = { ...FORM_INITIAL, items: [] }
+      this.isEditMode = false
+    },
+
+    /**
+     * 处理表单确认
+     */
+    async handleFormConfirm(formData) {
+      try {
+        // 准备提交数据
+        const data = {
+          supplier: formData.supplier,
+          work_order_number: formData.work_order_number,
+          notes: formData.notes,
+          items: formData.items.map(item => ({
+            material: item.material,
+            quantity: item.quantity,
+            unit_price: item.unit_price
+          }))
+        }
+
+        if (this.isEditMode) {
+          await this.apiService.update(formData.id, data)
+          ErrorHandler.showSuccess('更新成功')
+        } else {
+          await this.apiService.create(data)
+          ErrorHandler.showSuccess('创建成功')
+        }
+
+        this.dialogVisible = false
+        await this.loadData()
+      } catch (error) {
+        ErrorHandler.showMessage(error, this.isEditMode ? '更新' : '创建')
+      }
+    },
+
+    /**
      * 查看详情
      */
     handleView(row) {
-      this.detailData = { ...row, items: row.items || [] }
+      this.currentPurchaseId = row.id
+      this.$refs.detailDialog.setDetailData(row)
       this.detailDialogVisible = true
+    },
+
+    /**
+     * 检查是否有状态操作按钮
+     */
+    hasStatusActions(row) {
+      const actionsMap = {
+        draft: ['submit', 'cancel'],
+        submitted: ['approve', 'reject', 'cancel'],
+        approved: ['placeOrder', 'cancel'],
+        ordered: ['receive']
+      }
+      return (actionsMap[row.status] || []).length > 0
+    },
+
+    /**
+     * 处理状态操作
+     */
+    handleStatusAction(command, row) {
+      const actionMap = {
+        submit: this.handleSubmit,
+        approve: this.handleApprove,
+        reject: this.handleReject,
+        placeOrder: this.handlePlaceOrder,
+        receive: this.handleReceive,
+        cancel: this.handleCancel
+      }
+      const action = actionMap[command]
+      if (action) {
+        action.call(this, row)
+      }
     },
 
     /**
@@ -601,7 +441,9 @@ export default {
     async handlePlaceOrder(row) {
       try {
         await ErrorHandler.confirm(`确定要下单采购单"${row.order_number}"吗？`)
-        await this.apiService.placeOrder(row.id, { ordered_date: new Date().toISOString().split('T')[0] })
+        await this.apiService.placeOrder(row.id, {
+          ordered_date: new Date().toISOString().split('T')[0]
+        })
         ErrorHandler.showSuccess('下单成功')
         await this.loadData()
       } catch (error) {
@@ -648,52 +490,17 @@ export default {
     },
 
     /**
-     * 库存预警
+     * 显示库存预警对话框
      */
-    async handleLowStock() {
-      try {
-        const response = await this.apiService.getLowStockMaterials()
-        this.lowStockMaterials = response.data?.materials || []
-        this.lowStockDialogVisible = true
-      } catch (error) {
-        ErrorHandler.showMessage(error, '获取库存预警')
-      }
+    showLowStockDialog() {
+      this.lowStockDialogVisible = true
     },
 
     /**
      * 从库存预警创建采购单
      */
-    handleCreatePurchaseFromLowStock() {
-      this.lowStockDialogVisible = false
+    handleCreateFromLowStock() {
       this.showCreateDialog()
-    },
-
-    /**
-     * 添加明细行
-     */
-    handleAddItem() {
-      this.form.items.push({
-        material: null,
-        quantity: 1,
-        unit_price: 0
-      })
-    },
-
-    /**
-     * 删除明细行
-     */
-    handleDeleteItem(index) {
-      this.form.items.splice(index, 1)
-    },
-
-    /**
-     * 物料变化时自动填充单价
-     */
-    handleMaterialChange(row) {
-      const material = this.materialOptions.find(m => m.id === row.material)
-      if (material && material.unit_price) {
-        row.unit_price = material.unit_price
-      }
     },
 
     /**
@@ -712,18 +519,6 @@ export default {
     },
 
     /**
-     * 获取明细状态类型
-     */
-    getItemStatusType(status) {
-      const map = {
-        pending: 'info',
-        partial: 'warning',
-        received: 'success'
-      }
-      return map[status] || 'info'
-    },
-
-    /**
      * 获取进度条颜色
      */
     getProgressColor(percentage) {
@@ -736,11 +531,29 @@ export default {
 </script>
 
 <style scoped>
-.purchase-order-list {
+.page-container {
   padding: 20px;
 }
 
-.search-form {
-  margin-bottom: 20px;
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 </style>

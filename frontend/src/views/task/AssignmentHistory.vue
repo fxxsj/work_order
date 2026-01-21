@@ -9,8 +9,12 @@
               <i class="el-icon-s-order"></i>
             </div>
             <div class="stat-info">
-              <div class="stat-value">{{ summary.total }}</div>
-              <div class="stat-label">总记录数</div>
+              <div class="stat-value">
+                {{ summary.total }}
+              </div>
+              <div class="stat-label">
+                总记录数
+              </div>
             </div>
           </div>
         </el-card>
@@ -22,8 +26,12 @@
               <i class="el-icon-s-claim"></i>
             </div>
             <div class="stat-info">
-              <div class="stat-value">{{ summary.unique_tasks }}</div>
-              <div class="stat-label">涉及任务数</div>
+              <div class="stat-value">
+                {{ summary.unique_tasks }}
+              </div>
+              <div class="stat-label">
+                涉及任务数
+              </div>
             </div>
           </div>
         </el-card>
@@ -35,8 +43,12 @@
               <i class="el-icon-office-building"></i>
             </div>
             <div class="stat-info">
-              <div class="stat-value">{{ summary.unique_departments }}</div>
-              <div class="stat-label">涉及部门数</div>
+              <div class="stat-value">
+                {{ summary.unique_departments }}
+              </div>
+              <div class="stat-label">
+                涉及部门数
+              </div>
             </div>
           </div>
         </el-card>
@@ -48,8 +60,12 @@
               <i class="el-icon-user"></i>
             </div>
             <div class="stat-info">
-              <div class="stat-value">{{ summary.unique_operators }}</div>
-              <div class="stat-label">涉及操作员数</div>
+              <div class="stat-value">
+                {{ summary.unique_operators }}
+              </div>
+              <div class="stat-label">
+                涉及操作员数
+              </div>
             </div>
           </div>
         </el-card>
@@ -111,8 +127,12 @@
           </el-select>
         </div>
         <div class="action-group">
-          <el-button icon="el-icon-refresh-left" @click="handleReset">重置</el-button>
-          <el-button type="primary" icon="el-icon-refresh" @click="loadData">刷新</el-button>
+          <el-button icon="el-icon-refresh-left" @click="handleReset">
+            重置
+          </el-button>
+          <el-button type="primary" icon="el-icon-refresh" @click="loadData">
+            刷新
+          </el-button>
         </div>
       </div>
 
@@ -209,7 +229,9 @@
         description="暂无分派历史记录"
         :image-size="200"
       >
-        <el-button v-if="hasFilters" @click="handleReset">重置筛选</el-button>
+        <el-button v-if="hasFilters" @click="handleReset">
+          重置筛选
+        </el-button>
       </el-empty>
     </el-card>
   </div>
