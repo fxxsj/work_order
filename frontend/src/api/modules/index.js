@@ -52,3 +52,6 @@ export { purchaseOrderAPI } from './purchase'
 
 // Notification API (包含自定义操作)
 export { notificationAPI } from './notification'
+
+// System API (系统管理)
+export { taskAssignmentRuleAPI } from './task-assignment-rule'

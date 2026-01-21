@@ -12,6 +12,7 @@
           <el-button slot="append" icon="el-icon-search" @click="handleSearch" />
         </el-input>
         <el-button
+          v-if="canCreate()"
           type="primary"
           icon="el-icon-plus"
           @click="showDialog()"
@@ -85,7 +86,20 @@
         </el-row>
       </div>
 
+      <!-- 空状态 -->
+      <el-empty
+        v-if="!loading && tableData.length === 0"
+        description="暂无分派规则数据"
+        :image-size="200"
+        style="margin-top: 40px;"
+      >
+        <el-button v-if="canCreate()" type="primary" @click="showDialog()">
+          创建第一个分派规则
+        </el-button>
+      </el-empty>
+
       <el-table
+        v-else
         v-loading="loading"
         :data="tableData"
         style="width: 100%; margin-top: 20px;"
@@ -148,6 +162,7 @@
         <el-table-column label="操作" width="150" fixed="right">
           <template slot-scope="scope">
             <el-button
+              v-if="canEdit()"
               type="text"
               size="small"
               @click="showDialog(scope.row)"
@@ -155,6 +170,7 @@
               编辑
             </el-button>
             <el-button
+              v-if="canDelete()"
               type="text"
               size="small"
               style="color: #F56C6C;"
@@ -286,38 +302,47 @@
 </template>
 
 <script>
-import { taskAssignmentRuleAPI, processAPI, departmentAPI } from '@/api/workorder'
+import { taskAssignmentRuleAPI, processAPI, departmentAPI } from '@/api/modules'
+import listPageMixin from '@/mixins/listPageMixin'
+import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import ErrorHandler from '@/utils/errorHandler'
+
+// 表单初始值常量
+const FORM_INITIAL = {
+  process: null,
+  department: null,
+  priority: 0,
+  operator_selection_strategy: 'least_tasks',
+  is_active: true,
+  notes: ''
+}
 
 export default {
   name: 'AssignmentRule',
+  mixins: [listPageMixin, crudPermissionMixin],
   data() {
     return {
-      loading: false,
-      submitting: false,
-      tableData: [],
+      // API 服务
+      apiService: taskAssignmentRuleAPI,
+      // 权限前缀
+      permissionPrefix: 'taskassignmentrule',
+      // 数据列表
       processList: [],
       departmentList: [],
-      searchText: '',
+      // 筛选条件
       filters: {
         process: null,
         department: null,
         is_active: null
       },
-      currentPage: 1,
-      pageSize: 20,
-      total: 0,
+      // 对话框
       dialogVisible: false,
       dialogTitle: '新建分派规则',
       isEdit: false,
       currentRuleId: null,
-      form: {
-        process: null,
-        department: null,
-        priority: 0,
-        operator_selection_strategy: 'least_tasks',
-        is_active: true,
-        notes: ''
-      },
+      submitting: false,
+      // 表单
+      form: { ...FORM_INITIAL },
       rules: {
         process: [
           { required: true, message: '请选择工序', trigger: 'change' }
@@ -338,59 +363,58 @@ export default {
     this.loadData()
   },
   methods: {
+    /**
+     * 获取数据（listPageMixin 要求实现）
+     */
+    fetchData() {
+      const params = {
+        page: this.currentPage,
+        page_size: this.pageSize
+      }
+
+      if (this.searchText) {
+        params.search = this.searchText
+      }
+      if (this.filters.process) {
+        params.process = this.filters.process
+      }
+      if (this.filters.department) {
+        params.department = this.filters.department
+      }
+      if (this.filters.is_active !== null) {
+        params.is_active = this.filters.is_active
+      }
+
+      return this.apiService.getList(params)
+    },
+
+    /**
+     * 加载工序列表
+     */
     async loadProcessList() {
       try {
         const res = await processAPI.getList({ page_size: 1000 })
         this.processList = res.results || []
       } catch (error) {
-        console.error('加载工序列表失败:', error)
-        this.$message.error('加载工序列表失败')
+        ErrorHandler.showMessage(error, '加载工序列表')
       }
     },
+
+    /**
+     * 加载部门列表
+     */
     async loadDepartmentList() {
       try {
         const res = await departmentAPI.getList({ page_size: 1000 })
         this.departmentList = res.results || []
       } catch (error) {
-        console.error('加载部门列表失败:', error)
-        this.$message.error('加载部门列表失败')
+        ErrorHandler.showMessage(error, '加载部门列表')
       }
     },
-    async loadData() {
-      this.loading = true
-      try {
-        const params = {
-          page: this.currentPage,
-          page_size: this.pageSize
-        }
 
-        if (this.searchText) {
-          params.search = this.searchText
-        }
-        if (this.filters.process) {
-          params.process = this.filters.process
-        }
-        if (this.filters.department) {
-          params.department = this.filters.department
-        }
-        if (this.filters.is_active !== null) {
-          params.is_active = this.filters.is_active
-        }
-
-        const res = await taskAssignmentRuleAPI.getList(params)
-        this.tableData = res.results || []
-        this.total = res.count || 0
-      } catch (error) {
-        console.error('加载分派规则失败:', error)
-        this.$message.error('加载分派规则失败')
-      } finally {
-        this.loading = false
-      }
-    },
-    handleSearch() {
-      this.currentPage = 1
-      this.loadData()
-    },
+    /**
+     * 重置筛选条件
+     */
     handleReset() {
       this.searchText = ''
       this.filters = {
@@ -401,10 +425,10 @@ export default {
       this.currentPage = 1
       this.loadData()
     },
-    handlePageChange(page) {
-      this.currentPage = page
-      this.loadData()
-    },
+
+    /**
+     * 显示对话框
+     */
     showDialog(row = null) {
       if (row) {
         this.isEdit = true
@@ -426,21 +450,22 @@ export default {
       }
       this.dialogVisible = true
     },
+
+    /**
+     * 重置表单
+     */
     resetForm() {
-      this.form = {
-        process: null,
-        department: null,
-        priority: 0,
-        operator_selection_strategy: 'least_tasks',
-        is_active: true,
-        notes: ''
-      }
+      this.form = { ...FORM_INITIAL }
       this.$nextTick(() => {
         if (this.$refs.form) {
           this.$refs.form.clearValidate()
         }
       })
     },
+
+    /**
+     * 提交表单
+     */
     async handleSubmit() {
       this.$refs.form.validate(async (valid) => {
         if (!valid) {
@@ -450,42 +475,45 @@ export default {
         this.submitting = true
         try {
           if (this.isEdit && this.currentRuleId) {
-            await taskAssignmentRuleAPI.update(this.currentRuleId, this.form)
-            this.$message.success('分派规则更新成功')
+            await this.apiService.update(this.currentRuleId, this.form)
+            ErrorHandler.showSuccess('分派规则更新成功')
           } else {
-            await taskAssignmentRuleAPI.create(this.form)
-            this.$message.success('分派规则创建成功')
+            await this.apiService.create(this.form)
+            ErrorHandler.showSuccess('分派规则创建成功')
           }
           this.dialogVisible = false
           this.loadData()
         } catch (error) {
-          const errorMessage = error.response?.data?.error || error.response?.data?.detail ||
-                             (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
-          this.$message.error(errorMessage)
-          console.error('保存分派规则失败:', error)
+          ErrorHandler.showMessage(error, this.isEdit ? '更新分派规则' : '创建分派规则')
         } finally {
           this.submitting = false
         }
       })
     },
+
+    /**
+     * 删除分派规则
+     */
     async handleDelete(row) {
-      this.$confirm(`确定要删除分派规则"${row.process_name} -> ${row.department_name}"吗？`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(async () => {
-        try {
-          await taskAssignmentRuleAPI.delete(row.id)
-          this.$message.success('删除成功')
-          this.loadData()
-        } catch (error) {
-          const errorMessage = error.response?.data?.error || error.response?.data?.detail ||
-                             (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '删除失败'
-          this.$message.error(errorMessage)
-          console.error('删除分派规则失败:', error)
-        }
-      }).catch(() => {})
+      const confirmed = await ErrorHandler.confirm(
+        `确定要删除分派规则"${row.process_name} -> ${row.department_name}"吗？`,
+        '删除确认'
+      )
+
+      if (!confirmed) return
+
+      try {
+        await this.apiService.delete(row.id)
+        ErrorHandler.showSuccess('删除成功')
+        this.loadData()
+      } catch (error) {
+        ErrorHandler.showMessage(error, '删除分派规则')
+      }
     },
+
+    /**
+     * 获取优先级标签类型
+     */
     getPriorityTagType(priority) {
       if (priority >= 80) return 'danger'
       if (priority >= 50) return 'warning'
@@ -511,4 +539,3 @@ export default {
   margin-bottom: 20px;
 }
 </style>
-
