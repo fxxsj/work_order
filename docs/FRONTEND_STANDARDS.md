@@ -1074,9 +1074,166 @@ export default [
 
 ---
 
-## 9. 注释规范
+## 9. 页面布局规范
 
-### 9.1 文件头注释
+### 9.1 统计页面布局
+
+**规则**: 统计卡片放在主内容卡片**外部**，提升视觉层次
+
+```vue
+✅ 正确：
+<template>
+  <div class="stats-page">
+    <!-- 统计摘要（卡片外部） -->
+    <div v-if="summary" class="summary-section">
+      <el-row :gutter="20">
+        <el-col :span="8">
+          <el-card class="stat-card">...</el-card>
+        </el-col>
+        <!-- 更多统计卡片 -->
+      </el-row>
+    </div>
+
+    <!-- 主内容卡片 -->
+    <el-card>
+      <!-- 筛选条件 -->
+      <!-- 表格/列表 -->
+    </el-card>
+  </div>
+</template>
+
+❌ 错误：
+<template>
+  <div class="stats-page">
+    <el-card>
+      <!-- 统计摘要放在卡片内部 - 不推荐 -->
+      <div class="summary-section">...</div>
+      <!-- 筛选条件 -->
+      <!-- 表格 -->
+    </el-card>
+  </div>
+</template>
+```
+
+### 9.2 统计卡片风格
+
+**规则**: 统计卡片使用统一的图标+数值布局，与任务看板 `TaskStats` 组件保持一致
+
+```vue
+<!-- 统计卡片标准结构 -->
+<el-card class="stat-card">
+  <div class="stat-content">
+    <div class="stat-icon" style="background-color: #409EFF;">
+      <i class="el-icon-user"></i>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value">{{ value }}</div>
+      <div class="stat-label">标签文字</div>
+    </div>
+  </div>
+</el-card>
+```
+
+**统计卡片样式规范**:
+
+```css
+/* 统计卡片样式 */
+.stat-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.stat-content {
+  display: flex;
+  align-items: center;
+}
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  margin-right: 12px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #303133;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #909399;
+}
+```
+
+**颜色规范**:
+
+| 统计类型 | 图标 | 背景色 |
+|----------|------|--------|
+| 总数/数量 | `el-icon-s-order` | `#409EFF` (蓝色) |
+| 待处理 | `el-icon-time` | `#909399` (灰色) |
+| 进行中 | `el-icon-loading` | `#E6A23C` (橙色) |
+| 已完成 | `el-icon-circle-check` | `#67C23A` (绿色) |
+| 警告/异常 | `el-icon-warning` | `#F56C6C` (红色) |
+| 百分比/比率 | `el-icon-pie-chart` | 动态（根据阈值） |
+| 用户/人员 | `el-icon-user` | `#409EFF` (蓝色) |
+
+**布局规范**:
+
+| 卡片数量 | 布局方式 | el-col span |
+|----------|----------|-------------|
+| 4个 | 1行4个 | `:span="6"` |
+| 6个 | 2行各3个 | `:span="8"` |
+| 其他 | 根据实际调整 | - |
+
+### 9.3 空状态处理
+
+**规则**: 必须处理空数据状态，使用 `el-empty` 组件
+
+```vue
+✅ 正确：
+<!-- 空状态显示 -->
+<el-empty
+  v-if="!loading && tableData.length === 0"
+  description="暂无数据"
+  :image-size="200"
+>
+  <p style="color: #909399; font-size: 14px;">
+    提示信息或操作引导
+  </p>
+  <el-button v-if="canCreate()" type="primary" @click="handleCreate">
+    创建第一条数据
+  </el-button>
+</el-empty>
+
+<!-- 数据表格 -->
+<el-table v-else ...>
+  ...
+</el-table>
+
+❌ 错误：
+<!-- 不使用 el-empty，自定义空状态 -->
+<template slot="empty">
+  <div class="empty-state">
+    <i class="el-icon-warning" />
+    <p>暂无数据</p>
+  </div>
+</template>
+```
+
+---
+
+## 10. 注释规范
+
+### 10.1 文件头注释
 
 ```javascript
 /**

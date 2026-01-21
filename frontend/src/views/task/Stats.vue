@@ -1,5 +1,119 @@
 <template>
   <div class="task-stats">
+    <!-- 统计摘要（卡片外部，与任务看板风格统一） -->
+    <div v-if="summary" class="summary-section">
+      <el-row :gutter="20">
+        <el-col :span="8">
+          <el-card class="stat-card">
+            <div class="stat-content">
+              <div class="stat-icon" style="background-color: #409EFF;">
+                <i class="el-icon-user"></i>
+              </div>
+              <div class="stat-info">
+                <div class="stat-value">
+                  {{ summary.total_operators }}
+                </div>
+                <div class="stat-label">
+                  操作员总数
+                </div>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="8">
+          <el-card class="stat-card">
+            <div class="stat-content">
+              <div class="stat-icon" style="background-color: #909399;">
+                <i class="el-icon-s-order"></i>
+              </div>
+              <div class="stat-info">
+                <div class="stat-value">
+                  {{ summary.total_tasks }}
+                </div>
+                <div class="stat-label">
+                  任务总数
+                </div>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="8">
+          <el-card class="stat-card">
+            <div class="stat-content">
+              <div class="stat-icon" style="background-color: #67C23A;">
+                <i class="el-icon-circle-check"></i>
+              </div>
+              <div class="stat-info">
+                <div class="stat-value">
+                  {{ summary.total_completed_tasks }}
+                </div>
+                <div class="stat-label">
+                  已完成任务
+                </div>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20" style="margin-top: 20px;">
+        <el-col :span="8">
+          <el-card class="stat-card">
+            <div class="stat-content">
+              <div class="stat-icon" style="background-color: #E6A23C;">
+                <i class="el-icon-s-data"></i>
+              </div>
+              <div class="stat-info">
+                <div class="stat-value">
+                  {{ summary.total_completed_quantity }}
+                </div>
+                <div class="stat-label">
+                  完成总数
+                </div>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="8">
+          <el-card class="stat-card">
+            <div class="stat-content">
+              <div class="stat-icon" style="background-color: #F56C6C;">
+                <i class="el-icon-warning"></i>
+              </div>
+              <div class="stat-info">
+                <div class="stat-value">
+                  {{ summary.total_defective_quantity }}
+                </div>
+                <div class="stat-label">
+                  不良品总数
+                </div>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :span="8">
+          <el-card class="stat-card">
+            <div class="stat-content">
+              <div
+                class="stat-icon"
+                :style="{ backgroundColor: summary.overall_defective_rate > 5 ? '#F56C6C' : '#67C23A' }"
+              >
+                <i class="el-icon-pie-chart"></i>
+              </div>
+              <div class="stat-info">
+                <div class="stat-value">
+                  {{ summary.overall_defective_rate }}%
+                </div>
+                <div class="stat-label">
+                  总体不良品率
+                </div>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
+    </div>
+
+    <!-- 主内容卡片 -->
     <el-card>
       <!-- 筛选条件 -->
       <div class="filter-section">
@@ -59,88 +173,20 @@
         </el-row>
       </div>
 
-      <!-- 统计摘要 -->
-      <div v-if="summary" class="summary-section" style="margin-top: 20px;">
-        <el-row :gutter="20">
-          <el-col :span="6">
-            <el-card shadow="hover">
-              <div class="summary-item">
-                <div class="summary-label">
-                  操作员总数
-                </div>
-                <div class="summary-value">
-                  {{ summary.total_operators }}
-                </div>
-              </div>
-            </el-card>
-          </el-col>
-          <el-col :span="6">
-            <el-card shadow="hover">
-              <div class="summary-item">
-                <div class="summary-label">
-                  任务总数
-                </div>
-                <div class="summary-value">
-                  {{ summary.total_tasks }}
-                </div>
-              </div>
-            </el-card>
-          </el-col>
-          <el-col :span="6">
-            <el-card shadow="hover">
-              <div class="summary-item">
-                <div class="summary-label">
-                  已完成任务
-                </div>
-                <div class="summary-value">
-                  {{ summary.total_completed_tasks }}
-                </div>
-              </div>
-            </el-card>
-          </el-col>
-          <el-col :span="6">
-            <el-card shadow="hover">
-              <div class="summary-item">
-                <div class="summary-label">
-                  完成总数
-                </div>
-                <div class="summary-value">
-                  {{ summary.total_completed_quantity }}
-                </div>
-              </div>
-            </el-card>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20" style="margin-top: 20px;">
-          <el-col :span="6">
-            <el-card shadow="hover">
-              <div class="summary-item">
-                <div class="summary-label">
-                  不良品总数
-                </div>
-                <div class="summary-value" style="color: #F56C6C;">
-                  {{ summary.total_defective_quantity }}
-                </div>
-              </div>
-            </el-card>
-          </el-col>
-          <el-col :span="6">
-            <el-card shadow="hover">
-              <div class="summary-item">
-                <div class="summary-label">
-                  总体不良品率
-                </div>
-                <div class="summary-value" :style="{ color: summary.overall_defective_rate > 5 ? '#F56C6C' : '#67C23A' }">
-                  {{ summary.overall_defective_rate }}%
-                </div>
-              </div>
-            </el-card>
-          </el-col>
-        </el-row>
-      </div>
+      <!-- 空状态显示 -->
+      <el-empty
+        v-if="!loading && statsList.length === 0"
+        description="暂无统计数据"
+        :image-size="200"
+      >
+        <p style="color: #909399; font-size: 14px;">
+          请调整筛选条件或等待任务完成
+        </p>
+      </el-empty>
 
       <!-- 操作员统计表格 -->
       <el-table
+        v-else
         v-loading="loading"
         :data="statsList"
         border
@@ -275,7 +321,8 @@
 </template>
 
 <script>
-import { workOrderTaskAPI, departmentAPI } from '@/api/workorder'
+import { workOrderTaskAPI, departmentAPI } from '@/api/modules'
+import ErrorHandler from '@/utils/errorHandler'
 
 export default {
   name: 'TaskStats',
@@ -303,7 +350,7 @@ export default {
         this.departmentList = res.results || []
       } catch (error) {
         console.error('加载部门列表失败:', error)
-        this.$message.error('加载部门列表失败')
+        ErrorHandler.showMessage(error, '加载部门列表')
       }
     },
     async loadData() {
@@ -325,7 +372,7 @@ export default {
         this.summary = res.summary || null
       } catch (error) {
         console.error('加载统计数据失败:', error)
-        this.$message.error('加载统计数据失败')
+        ErrorHandler.showMessage(error, '加载统计数据')
       } finally {
         this.loading = false
       }
@@ -368,20 +415,44 @@ export default {
   margin-bottom: 20px;
 }
 
-.summary-item {
-  text-align: center;
+/* 统计卡片样式（与任务看板 TaskStats 组件保持一致） */
+.stat-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
 
-.summary-label {
-  font-size: 14px;
-  color: #909399;
-  margin-bottom: 10px;
+.stat-content {
+  display: flex;
+  align-items: center;
 }
 
-.summary-value {
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  margin-right: 12px;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-value {
   font-size: 24px;
   font-weight: bold;
   color: #303133;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #909399;
 }
 </style>
 

@@ -38,6 +38,34 @@ class WorkOrderTaskAPI extends BaseAPI {
       params
     })
   }
+
+  // 获取协作统计数据
+  getCollaborationStats(params) {
+    return this.request({
+      url: `${this.baseUrl}collaboration_stats/`,
+      method: 'get',
+      params
+    })
+  }
+
+  // 获取分派历史记录
+  getAssignmentHistory(params) {
+    return this.request({
+      url: `${this.baseUrl}assignment_history/`,
+      method: 'get',
+      params
+    })
+  }
+
+  // 导出任务列表
+  export(params) {
+    return this.request({
+      url: `${this.baseUrl}export/`,
+      method: 'get',
+      params,
+      responseType: 'blob'
+    })
+  }
 }
 
 export const workOrderTaskAPI = new WorkOrderTaskAPI()
