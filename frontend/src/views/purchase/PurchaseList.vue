@@ -84,7 +84,7 @@
           align="right"
         >
           <template slot-scope="scope">
-            ¥{{ (scope.row.total_amount || 0).toFixed(2) }}
+            ¥{{ Number(scope.row.total_amount || 0).toFixed(2) }}
           </template>
         </el-table-column>
         <el-table-column prop="received_progress" label="收货进度" width="120">
@@ -320,7 +320,7 @@ export default {
           supplier: formData.supplier,
           work_order_number: formData.work_order_number,
           notes: formData.notes,
-          items: formData.items.map(item => ({
+          items_data: formData.items.map(item => ({
             material: item.material,
             quantity: item.quantity,
             unit_price: item.unit_price

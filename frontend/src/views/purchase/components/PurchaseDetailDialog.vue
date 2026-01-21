@@ -17,7 +17,7 @@
         </el-tag>
       </el-descriptions-item>
       <el-descriptions-item label="总金额">
-        <span class="amount">¥{{ (detailData.total_amount || 0).toFixed(2) }}</span>
+        <span class="amount">¥{{ Number(detailData.total_amount || 0).toFixed(2) }}</span>
       </el-descriptions-item>
       <el-descriptions-item label="提交人">
         {{ detailData.submitted_by_name || '-' }}
@@ -66,7 +66,7 @@
         align="right"
       >
         <template slot-scope="scope">
-          ¥{{ (scope.row.unit_price || 0).toFixed(2) }}
+          ¥{{ Number(scope.row.unit_price || 0).toFixed(2) }}
         </template>
       </el-table-column>
       <el-table-column
@@ -75,7 +75,7 @@
         align="right"
       >
         <template slot-scope="scope">
-          ¥{{ ((scope.row.quantity || 0) * (scope.row.unit_price || 0)).toFixed(2) }}
+          ¥{{ (Number(scope.row.quantity || 0) * Number(scope.row.unit_price || 0)).toFixed(2) }}
         </template>
       </el-table-column>
       <el-table-column prop="status_display" label="收货状态" width="120">

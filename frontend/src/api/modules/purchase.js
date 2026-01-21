@@ -15,7 +15,7 @@ class PurchaseOrderAPI extends BaseAPI {
    */
   submit(id) {
     return this.request({
-      url: `${this.baseURL}${id}/submit/`,
+      url: `${this.baseUrl}${id}/submit/`,
       method: 'post'
     })
   }
@@ -25,7 +25,7 @@ class PurchaseOrderAPI extends BaseAPI {
    */
   approve(id) {
     return this.request({
-      url: `${this.baseURL}${id}/approve/`,
+      url: `${this.baseUrl}${id}/approve/`,
       method: 'post'
     })
   }
@@ -35,7 +35,7 @@ class PurchaseOrderAPI extends BaseAPI {
    */
   reject(id, data) {
     return this.request({
-      url: `${this.baseURL}${id}/reject/`,
+      url: `${this.baseUrl}${id}/reject/`,
       method: 'post',
       data
     })
@@ -46,7 +46,7 @@ class PurchaseOrderAPI extends BaseAPI {
    */
   placeOrder(id, data) {
     return this.request({
-      url: `${this.baseURL}${id}/place_order/`,
+      url: `${this.baseUrl}${id}/place_order/`,
       method: 'post',
       data
     })
@@ -57,7 +57,7 @@ class PurchaseOrderAPI extends BaseAPI {
    */
   receive(id, data) {
     return this.request({
-      url: `${this.baseURL}${id}/receive/`,
+      url: `${this.baseUrl}${id}/receive/`,
       method: 'post',
       data
     })
@@ -68,7 +68,7 @@ class PurchaseOrderAPI extends BaseAPI {
    */
   cancel(id) {
     return this.request({
-      url: `${this.baseURL}${id}/cancel/`,
+      url: `${this.baseUrl}${id}/cancel/`,
       method: 'post'
     })
   }
@@ -78,7 +78,7 @@ class PurchaseOrderAPI extends BaseAPI {
    */
   getLowStockMaterials() {
     return this.request({
-      url: `${this.baseURL}low_stock_materials/`,
+      url: `${this.baseUrl}low_stock_materials/`,
       method: 'get'
     })
   }
