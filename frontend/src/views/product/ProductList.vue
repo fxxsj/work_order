@@ -16,7 +16,7 @@
           v-if="canCreate()"
           type="primary"
           icon="el-icon-plus"
-          @click="showCreateDialog()"
+          @click="showCreateDialog"
         >
           新建产品
         </el-button>
@@ -111,184 +111,22 @@
         :image-size="200"
         style="margin-top: 50px;"
       >
-        <el-button v-if="canCreate()" type="primary" @click="showCreateDialog()">
+        <el-button v-if="canCreate()" type="primary" @click="showCreateDialog">
           创建第一个产品
         </el-button>
       </el-empty>
     </el-card>
 
     <!-- 产品表单对话框 -->
-    <el-dialog
-      :title="formTitle"
+    <product-form-dialog
       :visible.sync="dialogVisible"
-      width="600px"
-    >
-      <el-form
-        ref="form"
-        :model="form"
-        :rules="rules"
-        label-width="100px"
-      >
-        <el-form-item label="产品编码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入产品编码" :disabled="dialogType === 'edit'" />
-        </el-form-item>
-        <el-form-item label="产品名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入产品名称" />
-        </el-form-item>
-        <el-form-item label="规格" prop="specification">
-          <el-input v-model="form.specification" placeholder="请输入产品规格" />
-        </el-form-item>
-        <el-form-item label="单位" prop="unit">
-          <el-input v-model="form.unit" placeholder="如：件、张、本" />
-        </el-form-item>
-        <el-form-item label="单价" prop="unit_price">
-          <el-input-number
-            v-model="form.unit_price"
-            :min="0"
-            :precision="2"
-            style="width: 100%;"
-          />
-        </el-form-item>
-        <el-form-item label="库存数量" prop="stock_quantity">
-          <el-input-number
-            v-model="form.stock_quantity"
-            :min="0"
-            :precision="0"
-            style="width: 100%;"
-          />
-        </el-form-item>
-        <el-form-item label="最小库存" prop="min_stock_quantity">
-          <el-input-number
-            v-model="form.min_stock_quantity"
-            :min="0"
-            :precision="0"
-            style="width: 100%;"
-          />
-        </el-form-item>
-        <el-form-item label="产品描述">
-          <el-input
-            v-model="form.description"
-            type="textarea"
-            :rows="2"
-            placeholder="请输入产品描述"
-          />
-        </el-form-item>
-
-        <el-divider content-position="left">
-          默认物料配置
-        </el-divider>
-
-        <el-form-item label="物料列表">
-          <el-button
-            type="primary"
-            size="small"
-            icon="el-icon-plus"
-            @click="addProductMaterialItem"
-          >
-            添加物料
-          </el-button>
-          <div style="margin-top: 15px;">
-            <el-table
-              :data="productMaterialItems"
-              border
-              style="width: 100%"
-            >
-              <el-table-column label="物料名称" width="200">
-                <template slot-scope="scope">
-                  <el-select
-                    v-model="scope.row.material"
-                    placeholder="请选择物料"
-                    filterable
-                    style="width: 100%;"
-                  >
-                    <el-option
-                      v-for="material in materialList"
-                      :key="material.id"
-                      :label="`${material.name} (${material.code})`"
-                      :value="material.id"
-                    />
-                  </el-select>
-                </template>
-              </el-table-column>
-              <el-table-column label="尺寸" width="180">
-                <template slot-scope="scope">
-                  <el-input
-                    v-model="scope.row.material_size"
-                    placeholder="如：A4、210x297mm"
-                    size="small"
-                  />
-                </template>
-              </el-table-column>
-              <el-table-column label="用量" width="180">
-                <template slot-scope="scope">
-                  <el-input
-                    v-model="scope.row.material_usage"
-                    placeholder="如：1000张、50平方米"
-                    size="small"
-                  />
-                </template>
-              </el-table-column>
-              <el-table-column label="需要开料" width="100" align="center">
-                <template slot-scope="scope">
-                  <el-switch
-                    v-model="scope.row.need_cutting"
-                    size="small"
-                  />
-                </template>
-              </el-table-column>
-              <el-table-column label="备注" min-width="200">
-                <template slot-scope="scope">
-                  <el-input
-                    v-model="scope.row.notes"
-                    placeholder="请输入备注"
-                    size="small"
-                  />
-                </template>
-              </el-table-column>
-              <el-table-column label="操作" width="100" align="center">
-                <template slot-scope="scope">
-                  <el-button
-                    type="danger"
-                    size="mini"
-                    icon="el-icon-delete"
-                    @click="removeProductMaterialItem(scope.$index)"
-                  />
-                </template>
-              </el-table-column>
-            </el-table>
-          </div>
-        </el-form-item>
-
-        <el-divider content-position="left">
-          默认工序配置
-        </el-divider>
-
-        <el-form-item label="默认工序">
-          <el-checkbox-group v-model="form.default_processes" style="width: 100%;">
-            <el-checkbox
-              v-for="process in allProcesses"
-              :key="process.id"
-              :label="process.id"
-              :disabled="!process.is_active"
-            >
-              {{ process.name }}
-            </el-checkbox>
-          </el-checkbox-group>
-        </el-form-item>
-
-        <el-form-item label="是否启用">
-          <el-switch v-model="form.is_active" />
-        </el-form-item>
-      </el-form>
-      <div slot="footer">
-        <el-button @click="dialogVisible = false">
-          取消
-        </el-button>
-        <el-button type="primary" :loading="formLoading" @click="handleSubmit">
-          确定
-        </el-button>
-      </div>
-    </el-dialog>
+      :dialog-type="dialogType"
+      :product="currentProduct"
+      :loading="formLoading"
+      :materials="materialList"
+      :processes="allProcesses"
+      @confirm="handleFormConfirm"
+    />
   </div>
 </template>
 
@@ -296,11 +134,16 @@
 import { productAPI, processAPI, materialAPI, productMaterialAPI } from '@/api/modules'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import ErrorHandler from '@/utils/errorHandler'
 import Pagination from '@/components/common/Pagination.vue'
+import ProductFormDialog from './components/ProductFormDialog.vue'
 
 export default {
   name: 'ProductList',
-  components: { Pagination },
+  components: {
+    Pagination,
+    ProductFormDialog
+  },
   mixins: [listPageMixin, crudPermissionMixin],
   data() {
     return {
@@ -308,58 +151,15 @@ export default {
       apiService: productAPI,
       permissionPrefix: 'product',
 
-      // 对话框状态（crudMixin 提供的属性）
+      // 对话框状态
       dialogVisible: false,
       dialogType: 'create',
       formLoading: false,
-      currentRow: null,
+      currentProduct: null,
 
-      // 自定义数据
+      // 选项数据
       allProcesses: [],
-      materialList: [],
-      productMaterialItems: [],
-      form: {
-        code: '',
-        name: '',
-        specification: '',
-        unit: '件',
-        unit_price: 0,
-        stock_quantity: 0,
-        min_stock_quantity: 0,
-        description: '',
-        is_active: true,
-        default_processes: []
-      },
-      rules: {
-        code: [
-          { required: true, message: '请输入产品编码', trigger: 'blur' }
-        ],
-        name: [
-          { required: true, message: '请输入产品名称', trigger: 'blur' }
-        ],
-        specification: [
-          { required: true, message: '请输入产品规格', trigger: 'blur' }
-        ],
-        unit: [
-          { required: true, message: '请输入单位', trigger: 'blur' }
-        ],
-        unit_price: [
-          { required: true, message: '请输入单价', trigger: 'blur' }
-        ]
-      }
-    }
-  },
-  computed: {
-    formTitle() {
-      return this.dialogType === 'edit' ? '编辑产品' : '新建产品'
-    }
-  },
-  watch: {
-    // 监听对话框显示状态，编辑时填充表单
-    dialogVisible(val) {
-      if (val && this.dialogType === 'edit' && this.currentRow) {
-        this.loadProductDetail(this.currentRow)
-      }
+      materialList: []
     }
   },
   created() {
@@ -406,7 +206,7 @@ export default {
 
         this.allProcesses = allProcesses
       } catch (error) {
-        console.error('加载工序列表失败:', error)
+        ErrorHandler.showMessage(error, '加载工序列表')
       }
     },
 
@@ -415,130 +215,75 @@ export default {
         const response = await materialAPI.getList({ page_size: 100 })
         this.materialList = response.results || []
       } catch (error) {
-        console.error('加载物料列表失败:', error)
+        ErrorHandler.showMessage(error, '加载物料列表')
       }
     },
 
-    addProductMaterialItem() {
-      this.productMaterialItems.push({
-        material: null,
-        material_size: '',
-        material_usage: '',
-        need_cutting: false,
-        notes: '',
-        sort_order: this.productMaterialItems.length
-      })
-    },
-
-    removeProductMaterialItem(index) {
-      this.productMaterialItems.splice(index, 1)
-    },
-
     showCreateDialog() {
-      this.resetForm()
       this.dialogType = 'create'
-      this.currentRow = null
+      this.currentProduct = null
       this.dialogVisible = true
     },
 
-    handleEdit(row) {
-      this.dialogType = 'edit'
-      this.currentRow = row
-      this.loadProductDetail(row)
-      this.dialogVisible = true
+    async handleEdit(row) {
+      try {
+        // 加载产品详情
+        const detail = await this.apiService.getDetail(row.id)
+        this.currentProduct = detail
+        this.dialogType = 'edit'
+        this.dialogVisible = true
+      } catch (error) {
+        ErrorHandler.showMessage(error, '加载产品详情')
+      }
     },
 
     async handleDelete(row) {
       try {
-        await this.$confirm(
-          `确定要删除产品"${row.name}"吗？此操作不可撤销。`,
-          '确认删除',
-          {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }
+        const confirmed = await ErrorHandler.confirm(
+          `确定要删除产品"${row.name}"吗？此操作不可撤销。`
         )
 
+        if (!confirmed) return
+
         await this.apiService.delete(row.id)
-        this.$message.success('删除成功')
+        ErrorHandler.showSuccess('删除成功')
         await this.loadData()
       } catch (error) {
         if (error !== 'cancel') {
-          console.error('删除失败:', error)
-          this.$message.error('删除失败')
+          ErrorHandler.showMessage(error, '删除失败')
         }
       }
     },
 
-    showMessage(error, defaultMessage = '操作失败') {
-      let message = defaultMessage
+    async handleFormConfirm({ form, materialItems }) {
+      this.formLoading = true
+      try {
+        let productId
 
-      if (error.response && error.response.data) {
-        if (typeof error.response.data === 'string') {
-          message = error.response.data
-        } else if (error.response.data.detail) {
-          message = error.response.data.detail
-        } else if (error.response.data.message) {
-          message = error.response.data.message
-        } else if (error.response.data.error) {
-          message = error.response.data.error
+        if (this.dialogType === 'edit') {
+          await this.apiService.update(this.currentProduct.id, form)
+          productId = this.currentProduct.id
+          ErrorHandler.showSuccess('保存成功')
+        } else {
+          const result = await this.apiService.create(form)
+          productId = result.id
+          ErrorHandler.showSuccess('创建成功')
         }
-      } else if (error.message) {
-        message = error.message
+
+        // 保存产品物料
+        await this.saveProductMaterials(productId, materialItems)
+
+        this.dialogVisible = false
+        await this.loadData()
+      } catch (error) {
+        ErrorHandler.showMessage(error, this.dialogType === 'edit' ? '保存失败' : '创建失败')
+      } finally {
+        this.formLoading = false
       }
-
-      this.$message.error(message)
     },
 
-    resetForm() {
-      this.form = {
-        code: '',
-        name: '',
-        specification: '',
-        unit: '件',
-        unit_price: 0,
-        stock_quantity: 0,
-        min_stock_quantity: 0,
-        description: '',
-        is_active: true,
-        default_processes: []
-      }
-      this.productMaterialItems = []
-    },
-
-    async handleSubmit() {
-      this.$refs.form.validate(async (valid) => {
-        if (!valid) return false
-
-        this.formLoading = true
-        try {
-          let productId
-          if (this.dialogType === 'edit') {
-            await this.apiService.update(this.currentRow.id, this.form)
-            productId = this.currentRow.id
-            this.showSuccess('保存成功')
-          } else {
-            const result = await this.apiService.create(this.form)
-            productId = result.id
-            this.showSuccess('创建成功')
-          }
-
-          // 保存产品物料
-          await this.saveProductMaterials(productId)
-
-          this.dialogVisible = false
-          this.loadData()
-        } catch (error) {
-          this.showMessage(error, this.dialogType === 'edit' ? '保存失败' : '创建失败')
-        } finally {
-          this.formLoading = false
-        }
-      })
-    },
-
-    async saveProductMaterials(productId) {
-      // 如果是编辑模式，先删除所有现有物料，然后重新添加
+    async saveProductMaterials(productId, materialItems) {
+      // 如果是编辑模式，先删除所有现有物料
       if (this.dialogType === 'edit') {
         try {
           const existingMaterials = await productMaterialAPI.getList({ product: productId })
@@ -546,13 +291,13 @@ export default {
             await productMaterialAPI.delete(material.id)
           }
         } catch (error) {
-          console.error('删除现有物料失败:', error)
+          console.warn('删除现有物料失败:', error)
         }
       }
 
       // 添加新物料
-      for (let i = 0; i < this.productMaterialItems.length; i++) {
-        const item = this.productMaterialItems[i]
+      for (let i = 0; i < materialItems.length; i++) {
+        const item = materialItems[i]
         if (item.material) {
           try {
             await productMaterialAPI.create({
@@ -565,44 +310,9 @@ export default {
               sort_order: i
             })
           } catch (error) {
-            console.error('保存物料失败:', error)
+            console.warn('保存物料失败:', error)
           }
         }
-      }
-    },
-
-    async loadProductDetail(row) {
-      try {
-        const detail = await this.apiService.getDetail(row.id)
-        this.form = {
-          code: detail.code,
-          name: detail.name,
-          specification: detail.specification || '',
-          unit: detail.unit,
-          unit_price: parseFloat(detail.unit_price),
-          stock_quantity: detail.stock_quantity || 0,
-          min_stock_quantity: detail.min_stock_quantity || 0,
-          description: detail.description || '',
-          is_active: detail.is_active,
-          default_processes: detail.default_processes || []
-        }
-
-        // 加载产品物料
-        if (detail.default_materials && detail.default_materials.length > 0) {
-          this.productMaterialItems = detail.default_materials.map(m => ({
-            id: m.id,
-            material: m.material,
-            material_size: m.material_size || '',
-            material_usage: m.material_usage || '',
-            need_cutting: m.need_cutting || false,
-            notes: m.notes || '',
-            sort_order: m.sort_order || 0
-          }))
-        } else {
-          this.productMaterialItems = []
-        }
-      } catch (error) {
-        console.error('加载产品详情失败:', error)
       }
     }
   }

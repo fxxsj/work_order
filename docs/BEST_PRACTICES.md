@@ -1,10 +1,10 @@
 # 印刷施工单跟踪系统 - 最佳实践文档
 
-> 基于产品管理模块（v3.0）的前后端开发规范
+> 基于产品管理模块（v3.1）的前后端开发规范
 
-**版本**: v3.0
-**最后更新**: 2026-01-20
-**参考模块**: Product（产品管理）
+**版本**: v3.1
+**最后更新**: 2026-01-21
+**参考模块**: Product（产品管理）、Board（任务看板）
 
 ---
 
@@ -13,10 +13,13 @@
 1. [架构概述](#架构概述)
 2. [后端开发规范](#后端开发规范)
 3. [前端开发规范](#前端开发规范)
-4. [API 设计规范](#api-设计规范)
-5. [数据库设计规范](#数据库设计规范)
-6. [测试规范](#测试规范)
-7. [代码审查清单](#代码审查清单)
+4. [前端 UI 一致性规范](#前端-ui-一致性规范) ✨ v3.1 新增
+5. [页面布局模式](#页面布局模式) ✨ v3.1 新增
+6. [对话框组件模式](#对话框组件模式) ✨ v3.1 新增
+7. [API 设计规范](#api-设计规范)
+8. [数据库设计规范](#数据库设计规范)
+9. [测试规范](#测试规范)
+10. [代码审查清单](#代码审查清单)
 
 ---
 
@@ -634,6 +637,13 @@ export default {
             <el-button
               v-if="canEdit()"
               type="text"
+              @click="handleEdit(scope.row)"
+            >
+              编辑
+            </el-button>
+            <el-button
+              v-if="canDelete()"
+              type="text"
               style="color: #F56C6C;"
               @click="handleDelete(scope.row)"
             >
@@ -743,7 +753,16 @@ export default {
 
     async handleDelete(row) {
       try {
-        await ErrorHandler.confirm(`确定要删除产品"${row.name}"吗？此操作不可撤销。`)
+        await this.$confirm(
+          `确定要删除产品"${row.name}"吗？此操作不可撤销。`,
+          '确认删除',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        )
+
         await this.apiService.delete(row.id)
         ErrorHandler.showSuccess('删除成功')
         await this.loadData()
@@ -1136,6 +1155,625 @@ async handleDelete(row) {
 - `error.message`
 
 #### 5.3 API 错误处理
+
+---
+
+## 前端 UI 一致性规范
+
+> ✨ v3.1 新增 - 确保所有页面保持统一的视觉风格和交互体验
+
+### 1. 页面结构一致性
+
+⚠️ **重要**：所有列表页面必须遵循统一的结构模式。
+
+**标准页面结构**：
+```vue
+<template>
+  <div class="page-container">
+    <!-- 1. 统计信息（可选，放在卡片外部） -->
+    <stats-component v-if="showStats" :data="tableData" />
+
+    <!-- 2. 主内容卡片 -->
+    <el-card>
+      <!-- 2.1 头部搜索栏 -->
+      <div class="header-section">
+        <div class="filter-group"><!-- 筛选器 --></div>
+        <div class="action-group"><!-- 操作按钮 --></div>
+      </div>
+
+      <!-- 2.2 数据表格 -->
+      <el-table v-if="tableData.length > 0" v-loading="loading" :data="tableData">
+        <!-- 表格列 -->
+      </el-table>
+
+      <!-- 2.3 分页组件 -->
+      <Pagination v-if="total > 0" ... />
+
+      <!-- 2.4 空状态 -->
+      <el-empty v-if="!loading && tableData.length === 0" ... />
+    </el-card>
+
+    <!-- 3. 对话框组件 -->
+    <form-dialog :visible.sync="dialogVisible" ... />
+  </div>
+</template>
+```
+
+### 2. 参考模块
+
+| 场景 | 参考组件 | 路径 |
+|-----|---------|------|
+| **简单列表页** | ProductList.vue | `views/product/ProductList.vue` |
+| **带统计的列表** | Board.vue | `views/task/Board.vue` |
+| **表单对话框** | ProductFormDialog.vue | `views/product/components/ProductFormDialog.vue` |
+| **操作对话框** | BoardUpdateDialog.vue | `views/task/components/BoardUpdateDialog.vue` |
+
+### 3. 按钮样式规范
+
+| 按钮类型 | 样式 | 使用场景 |
+|---------|------|---------|
+| **主操作** | `type="primary"` | 新建、保存、确认 |
+| **次要操作** | `type="default"` | 刷新、取消、重置 |
+| **危险操作** | `type="text" style="color: #F56C6C;"` | 删除（在表格操作列） |
+| **文本操作** | `type="text"` | 编辑、查看（在表格操作列） |
+
+**示例**：
+```vue
+<!-- 头部按钮 -->
+<el-button icon="el-icon-refresh" @click="loadData">刷新</el-button>
+<el-button type="primary" icon="el-icon-plus" @click="showCreateDialog">
+  新建
+</el-button>
+
+<!-- 表格操作列 -->
+<el-button v-if="canEdit()" type="text" size="small" @click="handleEdit(row)">
+  编辑
+</el-button>
+<el-button
+  v-if="canDelete()"
+  type="text"
+  size="small"
+  style="color: #F56C6C;"
+  @click="handleDelete(row)"
+>
+  删除
+</el-button>
+```
+
+### 4. 表格列规范
+
+| 列类型 | 宽度 | 对齐方式 | 示例 |
+|-------|------|---------|------|
+| **编码/ID** | `width="120"` | 左对齐（默认） | 产品编码、订单号 |
+| **名称** | `width="200"` 或 `min-width="150"` | 左对齐 | 产品名称、客户名称 |
+| **数量** | `width="100"` | `align="right"` | 库存数量、完成数量 |
+| **金额** | `width="120"` | `align="right"` | 单价、总价 |
+| **状态** | `width="100"` | `align="center"` | 启用/禁用、任务状态 |
+| **单位** | `width="80"` | `align="center"` | 件、张、本 |
+| **描述** | `min-width="150"` + `show-overflow-tooltip` | 左对齐 | 备注、说明 |
+| **操作** | `width="150"` + `fixed="right"` | 居中或左对齐 | 编辑、删除 |
+
+**示例**：
+```vue
+<el-table-column prop="code" label="产品编码" width="120" />
+<el-table-column prop="name" label="产品名称" width="200" />
+<el-table-column prop="unit_price" label="单价" width="120" align="right">
+  <template slot-scope="scope">
+    ¥{{ scope.row.unit_price }}
+  </template>
+</el-table-column>
+<el-table-column prop="stock_quantity" label="库存数量" width="100" align="right" />
+<el-table-column label="状态" width="100" align="center">
+  <template slot-scope="scope">
+    <el-tag :type="scope.row.is_active ? 'success' : 'info'">
+      {{ scope.row.is_active ? '启用' : '禁用' }}
+    </el-tag>
+  </template>
+</el-table-column>
+<el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip />
+<el-table-column label="操作" width="150" fixed="right">
+  <!-- 操作按钮 -->
+</el-table-column>
+```
+
+### 5. 状态标签规范
+
+| 状态类型 | Tag 类型 | 颜色 | 示例 |
+|---------|---------|------|------|
+| **启用/成功** | `success` | 绿色 | 启用、已完成、已通过 |
+| **禁用/默认** | `info` | 灰色 | 禁用、待开始 |
+| **警告/进行中** | `warning` | 橙色 | 进行中、待审核 |
+| **危险/失败** | `danger` | 红色 | 已取消、已拒绝 |
+| **主要** | `primary` | 蓝色 | 特殊标记 |
+
+**示例**：
+```vue
+<!-- 启用/禁用状态 -->
+<el-tag :type="row.is_active ? 'success' : 'info'">
+  {{ row.is_active ? '启用' : '禁用' }}
+</el-tag>
+
+<!-- 任务状态 -->
+<el-tag :type="statusTagType(row.status)">
+  {{ statusText(row.status) }}
+</el-tag>
+```
+
+```javascript
+// 状态映射方法
+statusTagType(status) {
+  const map = {
+    pending: 'info',
+    in_progress: 'warning',
+    completed: 'success',
+    cancelled: 'danger'
+  }
+  return map[status] || 'info'
+}
+```
+
+### 6. 表单对话框规范
+
+| 元素 | 规范 | 示例 |
+|-----|------|------|
+| **对话框宽度** | 简单表单 `500px`，复杂表单 `600-700px` | `width="600px"` |
+| **标签宽度** | 统一 `100px` 或 `120px` | `label-width="100px"` |
+| **输入框占满** | 使用 `style="width: 100%"` | 下拉框、数字输入框 |
+| **必填标记** | 使用表单验证规则自动显示 | `required: true` |
+| **按钮位置** | 对话框底部，右对齐 | `slot="footer"` |
+
+### 7. 空状态规范
+
+| 场景 | 描述文案 | 按钮 |
+|-----|---------|------|
+| **无数据（无筛选）** | `暂无{模块名}数据` | `创建第一个{模块名}` |
+| **无数据（有筛选）** | `暂无{模块名}数据` | `重置筛选` |
+| **搜索无结果** | `未找到匹配的{模块名}` | `清除搜索` |
+
+### 8. 页面容器样式
+
+所有列表页面使用统一的容器样式：
+
+```css
+.page-container {
+  padding: 20px;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-group,
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.el-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+```
+
+### 9. UI 一致性检查清单
+
+新建或修改页面时，检查以下项目：
+
+- [ ] **页面结构**：是否遵循标准页面结构（统计→卡片→对话框）
+- [ ] **头部布局**：是否使用 `header-section` + `filter-group` + `action-group`
+- [ ] **按钮样式**：主操作用 `primary`，删除用红色文本按钮
+- [ ] **表格列**：宽度、对齐方式是否符合规范
+- [ ] **状态标签**：是否使用正确的 Tag 类型
+- [ ] **空状态**：是否包含空状态，是否有引导按钮
+- [ ] **对话框**：宽度、标签宽度是否统一
+- [ ] **分页组件**：是否使用封装的 `Pagination` 组件
+- [ ] **容器样式**：是否使用 `padding: 20px`
+
+---
+
+## 页面布局模式
+
+> ✨ v3.1 新增 - 基于 Board.vue 任务看板重构总结
+
+### 1. 统计信息布局
+
+⚠️ **重要**：统计信息（如总数、状态统计）应放在主卡片**外部**，而不是内部。
+
+**正确示例**：
+```vue
+<template>
+  <div class="task-board">
+    <!-- ✅ 统计信息放在卡片外部 -->
+    <task-stats :tasks="tableData" style="margin-bottom: 20px;" />
+
+    <el-card>
+      <!-- 搜索栏、表格、分页等内容 -->
+    </el-card>
+  </div>
+</template>
+```
+
+**错误示例**：
+```vue
+<template>
+  <div class="task-board">
+    <el-card>
+      <!-- ❌ 统计信息放在卡片内部 -->
+      <task-stats :tasks="tableData" />
+      <!-- 搜索栏、表格等 -->
+    </el-card>
+  </div>
+</template>
+```
+
+### 2. 搜索栏布局（简洁风格）
+
+参考 ProductList.vue 的简洁搜索栏设计：
+
+```vue
+<div class="header-section">
+  <!-- 左侧：筛选和搜索 -->
+  <div class="filter-group">
+    <el-select v-model="selectedDepartment" placeholder="选择部门" clearable>
+      <!-- options -->
+    </el-select>
+    <el-select v-model="selectedStatus" placeholder="任务状态" clearable>
+      <!-- options -->
+    </el-select>
+    <el-input v-model="searchText" placeholder="搜索..." clearable>
+      <el-button slot="append" icon="el-icon-search" @click="handleSearch" />
+    </el-input>
+  </div>
+
+  <!-- 右侧：操作按钮 -->
+  <div class="action-group">
+    <el-button icon="el-icon-refresh" @click="loadData">刷新</el-button>
+    <el-button v-if="canCreate()" type="primary" @click="showCreateDialog">
+      新建
+    </el-button>
+  </div>
+</div>
+```
+
+### 3. 条件视图渲染
+
+⚠️ **重要**：当页面有多种视图模式时（如看板视图/列表视图），必须使用条件渲染**避免空状态与空列表重复显示**。
+
+**常见问题**：
+如果不正确处理条件渲染，会出现空状态组件和空表格同时显示的问题，导致页面混乱。
+
+**错误示例**：
+```vue
+<!-- ❌ 错误：没有条件限制，空状态会与空表格重复显示 -->
+<el-table :data="tableData">...</el-table>
+<el-empty v-if="tableData.length === 0" />
+```
+
+**正确示例**：
+```vue
+<template>
+  <!-- ✅ 看板视图：仅当有数据时显示 -->
+  <task-board-view
+    v-if="!showListView && tableData.length > 0"
+    :tasks="tableData"
+  />
+
+  <!-- ✅ 列表视图：仅当有数据时显示 -->
+  <task-list-view
+    v-if="showListView && tableData.length > 0"
+    :tasks="tableData"
+  />
+
+  <!-- ✅ 空状态：仅当无数据时显示（互斥条件） -->
+  <el-empty
+    v-if="!loading && tableData.length === 0"
+    description="暂无数据"
+  >
+    <el-button v-if="hasFilters" @click="handleReset">重置筛选</el-button>
+  </el-empty>
+</template>
+```
+
+**关键点**：
+- 数据视图组件添加 `tableData.length > 0` 条件，无数据时不渲染
+- 空状态添加 `!loading && tableData.length === 0` 条件，确保互斥
+- 使用 `v-if` 而非 `v-show`，确保组件完全不渲染
+- **避免空状态与空视图重复显示**
+
+### 4. 筛选重置
+
+当有筛选条件时，空状态应提供重置功能：
+
+```vue
+<el-empty v-if="!loading && tableData.length === 0" description="暂无数据">
+  <!-- 有筛选条件时显示重置按钮 -->
+  <el-button v-if="hasFilters" type="primary" @click="handleReset">
+    重置筛选
+  </el-button>
+  <!-- 无筛选条件时显示创建按钮 -->
+  <el-button v-else-if="canCreate()" type="primary" @click="showCreateDialog">
+    创建第一个
+  </el-button>
+</el-empty>
+```
+
+```javascript
+computed: {
+  hasFilters() {
+    return this.selectedDepartment || this.selectedStatus || this.searchText
+  }
+},
+methods: {
+  handleReset() {
+    this.selectedDepartment = null
+    this.selectedStatus = ''
+    this.searchText = ''
+    this.currentPage = 1
+    this.loadData()
+  }
+}
+```
+
+---
+
+## 对话框组件模式
+
+> ✨ v3.1 新增 - 基于 ProductFormDialog、BoardUpdateDialog 等组件总结
+
+### 1. 对话框组件提取原则
+
+⚠️ **重要**：当主组件包含表单对话框时，必须将对话框提取为独立组件。
+
+**触发条件**：
+- 对话框表单超过 5 个字段
+- 对话框逻辑复杂（有验证、联动）
+- 主组件代码超过 300 行
+
+**命名规范**：
+| 场景 | 命名模式 | 示例 |
+|------|---------|------|
+| 通用表单 | `{模块}FormDialog.vue` | `ProductFormDialog.vue` |
+| 特定操作 | `{模块}{操作}Dialog.vue` | `BoardUpdateDialog.vue` |
+| 看板专用 | `Board{操作}Dialog.vue` | `BoardAssignDialog.vue` |
+
+### 2. 对话框组件标准结构
+
+使用 `FORM_INITIAL` 常量模式：
+
+```vue
+<template>
+  <el-dialog
+    :title="dialogTitle"
+    :visible.sync="dialogVisible"
+    width="600px"
+    @close="handleClose"
+  >
+    <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
+      <!-- 只读信息展示 -->
+      <el-form-item label="任务内容">
+        <el-input :value="task?.work_content" disabled />
+      </el-form-item>
+
+      <!-- 可编辑字段 -->
+      <el-form-item label="完成数量" prop="quantity_completed">
+        <el-input-number v-model="form.quantity_completed" :min="0" />
+      </el-form-item>
+
+      <el-form-item label="备注">
+        <el-input v-model="form.notes" type="textarea" :rows="3" />
+      </el-form-item>
+    </el-form>
+
+    <div slot="footer">
+      <el-button @click="handleClose">取消</el-button>
+      <el-button type="primary" :loading="loading" @click="handleConfirm">
+        确定
+      </el-button>
+    </div>
+  </el-dialog>
+</template>
+
+<script>
+// ✅ 表单初始值常量（组件外部定义）
+const FORM_INITIAL = {
+  quantity_completed: 0,
+  notes: ''
+}
+
+export default {
+  name: 'BoardUpdateDialog',
+
+  props: {
+    // 对话框可见性
+    visible: {
+      type: Boolean,
+      default: false
+    },
+    // 当前操作的数据对象
+    task: {
+      type: Object,
+      default: null
+    },
+    // 提交加载状态
+    loading: {
+      type: Boolean,
+      default: false
+    }
+  },
+
+  data() {
+    return {
+      form: { ...FORM_INITIAL },
+      rules: {
+        quantity_completed: [
+          { required: true, message: '请输入完成数量', trigger: 'blur' }
+        ]
+      }
+    }
+  },
+
+  computed: {
+    // ✅ 双向绑定 visible
+    dialogVisible: {
+      get() {
+        return this.visible
+      },
+      set(val) {
+        this.$emit('update:visible', val)
+      }
+    },
+    dialogTitle() {
+      return '更新任务'
+    }
+  },
+
+  watch: {
+    // ✅ 监听 visible 变化初始化表单
+    visible(val) {
+      if (val && this.task) {
+        this.initForm()
+      }
+    }
+  },
+
+  methods: {
+    // ✅ 从数据对象初始化表单
+    initForm() {
+      this.form = {
+        quantity_completed: this.task?.quantity_completed || 0,
+        notes: this.task?.notes || ''
+      }
+      this.$nextTick(() => {
+        this.$refs.formRef?.clearValidate()
+      })
+    },
+
+    // ✅ 重置表单为初始值
+    resetForm() {
+      this.form = { ...FORM_INITIAL }
+      this.$refs.formRef?.resetFields()
+    },
+
+    // ✅ 确认提交
+    handleConfirm() {
+      this.$refs.formRef.validate((valid) => {
+        if (valid) {
+          this.$emit('confirm', { ...this.form })
+        }
+      })
+    },
+
+    // ✅ 关闭对话框
+    handleClose() {
+      this.resetForm()
+      this.dialogVisible = false
+    }
+  }
+}
+</script>
+```
+
+### 3. 父组件使用对话框
+
+```vue
+<template>
+  <div class="page">
+    <!-- 页面内容 -->
+
+    <!-- ✅ 使用 .sync 修饰符绑定 visible -->
+    <board-update-dialog
+      :visible.sync="updateDialogVisible"
+      :task="currentTask"
+      :loading="updating"
+      @confirm="handleConfirmUpdate"
+    />
+  </div>
+</template>
+
+<script>
+import BoardUpdateDialog from './components/BoardUpdateDialog.vue'
+import ErrorHandler from '@/utils/errorHandler'
+
+export default {
+  components: { BoardUpdateDialog },
+
+  data() {
+    return {
+      updateDialogVisible: false,
+      currentTask: null,
+      updating: false
+    }
+  },
+
+  methods: {
+    // 打开对话框
+    handleTaskUpdate(task) {
+      this.currentTask = task
+      this.updateDialogVisible = true
+    },
+
+    // 处理确认提交
+    async handleConfirmUpdate(formData) {
+      this.updating = true
+      try {
+        await this.apiService.update(this.currentTask.id, formData)
+        ErrorHandler.showSuccess('更新成功')
+        this.updateDialogVisible = false
+        await this.loadData()
+      } catch (error) {
+        ErrorHandler.showMessage(error, '更新失败')
+      } finally {
+        this.updating = false
+      }
+    }
+  }
+}
+</script>
+```
+
+### 4. 复杂表单对话框（带关联数据）
+
+当对话框需要外部数据（如下拉选项）时：
+
+```vue
+<!-- 父组件 -->
+<board-assign-dialog
+  :visible.sync="assignDialogVisible"
+  :task="currentTask"
+  :users="userList"
+  :loading="assigning"
+  @confirm="handleConfirmAssign"
+/>
+
+<!-- 对话框组件 -->
+<script>
+export default {
+  props: {
+    // ... visible, task, loading
+    users: {
+      type: Array,
+      default: () => []
+    }
+  }
+}
+</script>
+```
+
+### 5. 对话框组件检查清单
+
+- [ ] 使用 `FORM_INITIAL` 常量定义表单初始值
+- [ ] Props: `visible`, `task/data`, `loading`
+- [ ] Computed: `dialogVisible` 双向绑定
+- [ ] Watch: 监听 `visible` 初始化表单
+- [ ] Methods: `initForm()`, `resetForm()`, `handleConfirm()`, `handleClose()`
+- [ ] 表单验证规则定义在 `rules`
+- [ ] 使用 `$refs.formRef.validate()` 验证
+- [ ] 关闭时调用 `resetForm()` 清理状态
 
 ---
 
