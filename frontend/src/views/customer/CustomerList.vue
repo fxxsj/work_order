@@ -22,7 +22,19 @@
         </el-button>
       </div>
 
+      <!-- 空状态显示 -->
+      <el-empty
+        v-if="!loading && tableData.length === 0"
+        description="暂无客户数据"
+        :image-size="200"
+      >
+        <el-button v-if="canCreate()" type="primary" @click="showCreateDialog()">
+          创建第一个客户
+        </el-button>
+      </el-empty>
+
       <el-table
+        v-else
         v-loading="loading"
         :data="tableData"
         style="width: 100%; margin-top: 20px;"
@@ -80,6 +92,7 @@
       :title="formTitle"
       :visible.sync="dialogVisible"
       width="600px"
+      @close="resetForm"
     >
       <el-form
         ref="form"
@@ -136,7 +149,7 @@
         <el-button @click="dialogVisible = false">
           取消
         </el-button>
-        <el-button type="primary" @click="handleSubmit">
+        <el-button type="primary" :loading="formLoading" @click="handleSubmit">
           确定
         </el-button>
       </div>
@@ -148,12 +161,25 @@
 import { customerAPI, authAPI } from '@/api/modules'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import formDialogMixin from '@/mixins/formDialogMixin'
+import ErrorHandler from '@/utils/errorHandler'
 import Pagination from '@/components/common/Pagination.vue'
+
+// 表单初始值（避免重复定义）
+const formInitialValues = {
+  name: '',
+  contact_person: '',
+  phone: '',
+  email: '',
+  address: '',
+  salesperson: null,
+  notes: ''
+}
 
 export default {
   name: 'CustomerList',
   components: { Pagination },
-  mixins: [listPageMixin, crudPermissionMixin],
+  mixins: [listPageMixin, crudPermissionMixin, formDialogMixin],
   data() {
     return {
       // API 服务和权限配置
@@ -161,16 +187,8 @@ export default {
       permissionPrefix: 'customer',
 
       // 表单相关
-      dialogVisible: false,
-      form: {
-        name: '',
-        contact_person: '',
-        phone: '',
-        email: '',
-        address: '',
-        salesperson: null,
-        notes: ''
-      },
+      form: { ...formInitialValues },
+      formLoading: false,
       salespersonList: [],
       rules: {
         name: [
@@ -180,6 +198,7 @@ export default {
     }
   },
   computed: {
+    // 自定义对话框标题（不与 mixin 的 dialogTitle data 属性冲突）
     formTitle() {
       return this.dialogType === 'edit' ? '编辑客户' : '新建客户'
     }
@@ -228,27 +247,24 @@ export default {
         const salespersons = await authAPI.getSalespersons()
         this.salespersonList = salespersons || []
       } catch (error) {
-        console.error('加载业务员列表失败:', error)
+        ErrorHandler.showMessage(error, '加载业务员列表失败')
       }
     },
 
-    // 显示创建对话框
+    // 显示创建对话框（覆盖 formDialogMixin 的方法）
     showCreateDialog() {
       this.resetForm()
-      this.handleCreate()
+      this.dialogType = 'create'
+      this.currentRow = null
+      this.dialogVisible = true
     },
 
-    // 重置表单
+    // 重置表单（使用 formInitialValues 避免重复定义）
     resetForm() {
-      this.form = {
-        name: '',
-        contact_person: '',
-        phone: '',
-        email: '',
-        address: '',
-        salesperson: null,
-        notes: ''
-      }
+      this.form = { ...formInitialValues }
+      this.$nextTick(() => {
+        this.$refs.form?.clearValidate()
+      })
     },
 
     async handleSubmit() {
@@ -259,20 +275,34 @@ export default {
         try {
           if (this.dialogType === 'edit') {
             await this.apiService.update(this.currentRow.id, this.form)
-            this.showSuccess('保存成功')
+            ErrorHandler.showSuccess('保存成功')
           } else {
             await this.apiService.create(this.form)
-            this.showSuccess('创建成功')
+            ErrorHandler.showSuccess('创建成功')
           }
 
           this.dialogVisible = false
           this.loadData()
         } catch (error) {
-          this.showMessage(error, this.dialogType === 'edit' ? '保存失败' : '创建失败')
+          ErrorHandler.showMessage(error, this.dialogType === 'edit' ? '保存失败' : '创建失败')
         } finally {
           this.formLoading = false
         }
       })
+    },
+
+    // 删除客户（使用 ErrorHandler）
+    async handleDelete(row) {
+      try {
+        await ErrorHandler.confirm(`确定要删除客户"${row.name}"吗？`)
+        await this.apiService.delete(row.id)
+        ErrorHandler.showSuccess('删除成功')
+        await this.loadData()
+      } catch (error) {
+        if (error !== 'cancel' && error.message !== 'cancel') {
+          ErrorHandler.showMessage(error, '删除失败')
+        }
+      }
     }
   }
 }
@@ -289,4 +319,3 @@ export default {
   align-items: center;
 }
 </style>
-

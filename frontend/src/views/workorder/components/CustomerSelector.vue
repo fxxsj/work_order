@@ -19,8 +19,8 @@
         :value="customer.id"
       >
         <span style="float: left">{{ customer.name }}</span>
-        <span style="float: right; color: #8492a6; font-size: 13px">
-          {{ customer.code }}
+        <span v-if="customer.contact_person" style="float: right; color: #8492a6; font-size: 13px">
+          {{ customer.contact_person }}
         </span>
       </el-option>
     </el-select>
@@ -29,6 +29,7 @@
 
 <script>
 import { customerAPI } from '@/api/modules/customer'
+import ErrorHandler from '@/utils/errorHandler'
 
 export default {
   name: 'CustomerSelector',
@@ -69,8 +70,7 @@ export default {
         const response = await customerAPI.getList(params)
         this.customerList = response.results || response.data || response
       } catch (error) {
-        console.error('加载客户列表失败:', error)
-        this.$message.error('加载客户列表失败')
+        ErrorHandler.showMessage(error, '加载客户列表失败')
       } finally {
         this.loading = false
       }
