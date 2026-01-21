@@ -16,13 +16,15 @@
           v-if="canCreate()"
           type="primary"
           icon="el-icon-plus"
-          @click="showDialog()"
+          @click="showCreateDialog"
         >
           新建烫金版
         </el-button>
       </div>
 
+      <!-- 表格：仅在有数据时显示 -->
       <el-table
+        v-if="tableData.length > 0"
         v-loading="loading"
         :data="tableData"
         style="width: 100%; margin-top: 20px;"
@@ -36,9 +38,17 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="size" label="尺寸" width="180" />
+        <el-table-column prop="size" label="尺寸" width="150" />
         <el-table-column prop="material" label="材质" width="120" />
         <el-table-column prop="thickness" label="厚度" width="100" />
+        <!-- 确认状态列 -->
+        <el-table-column label="确认状态" width="120" align="center">
+          <template slot-scope="scope">
+            <el-tag :type="scope.row.confirmed ? 'success' : 'info'">
+              {{ scope.row.confirmed ? '已确认' : '待确认' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="包含产品" min-width="200">
           <template slot-scope="scope">
             <el-tag
@@ -62,13 +72,21 @@
             {{ formatDate(scope.row.created_at) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column label="操作" width="180" fixed="right">
           <template slot-scope="scope">
+            <el-button
+              v-if="!scope.row.confirmed && canEdit()"
+              type="text"
+              size="small"
+              @click="handleConfirmPlate(scope.row)"
+            >
+              确认
+            </el-button>
             <el-button
               v-if="canEdit()"
               type="text"
               size="small"
-              @click="showDialog(scope.row)"
+              @click="handleEdit(scope.row)"
             >
               编辑
             </el-button>
@@ -93,132 +111,34 @@
         @current-change="handlePageChange"
         @size-change="handleSizeChange"
       />
+
+      <!-- 空状态（完善版） -->
+      <el-empty
+        v-if="!loading && tableData.length === 0"
+        :description="hasFilters ? '未找到匹配的烫金版' : '暂无烫金版数据'"
+        :image-size="200"
+        style="margin-top: 50px;"
+      >
+        <!-- 有筛选条件时显示重置按钮 -->
+        <el-button v-if="hasFilters" type="primary" @click="handleReset">
+          重置筛选
+        </el-button>
+        <!-- 无筛选条件时显示创建按钮 -->
+        <el-button v-else-if="canCreate()" type="primary" @click="showCreateDialog">
+          创建第一个烫金版
+        </el-button>
+      </el-empty>
     </el-card>
 
-    <!-- 烫金版表单对话框 -->
-    <el-dialog
-      :title="dialogTitle"
+    <!-- 表单对话框组件 -->
+    <foiling-plate-form-dialog
       :visible.sync="dialogVisible"
-      width="700px"
-    >
-      <el-form
-        ref="form"
-        :model="form"
-        :rules="rules"
-        label-width="120px"
-      >
-        <el-form-item label="烫金版编码" prop="code">
-          <el-input
-            v-model="form.code"
-            placeholder="留空则系统自动生成（格式：FP + yyyymm + 序号）"
-          />
-          <div style="font-size: 12px; color: #909399; margin-top: 5px;">
-            留空则自动生成，格式：FP202412001
-          </div>
-        </el-form-item>
-        <el-form-item label="烫金版名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入烫金版名称" />
-        </el-form-item>
-        <el-form-item label="类型" prop="foiling_type">
-          <el-select v-model="form.foiling_type" placeholder="请选择类型" style="width: 100%;">
-            <el-option label="烫金" value="gold" />
-            <el-option label="烫银" value="silver" />
-          </el-select>
-        </el-form-item>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="尺寸">
-              <el-input v-model="form.size" placeholder="如：420x594mm" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="材质">
-              <el-input v-model="form.material" placeholder="如：铜版、锌版" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="厚度">
-          <el-input v-model="form.thickness" placeholder="如：3mm、5mm" />
-        </el-form-item>
-
-        <el-divider content-position="left">
-          包含产品及数量
-        </el-divider>
-
-        <el-form-item label="产品列表">
-          <el-button
-            type="primary"
-            size="small"
-            icon="el-icon-plus"
-            @click="addProductItem"
-          >
-            添加产品
-          </el-button>
-          <div style="margin-top: 15px;">
-            <el-table
-              :data="productItems"
-              border
-              style="width: 100%"
-            >
-              <el-table-column label="产品名称" width="250">
-                <template slot-scope="scope">
-                  <el-select
-                    v-model="scope.row.product"
-                    placeholder="请选择产品"
-                    filterable
-                    style="width: 100%;"
-                  >
-                    <el-option
-                      v-for="product in productList"
-                      :key="product.id"
-                      :label="`${product.name} (${product.code})`"
-                      :value="product.id"
-                    />
-                  </el-select>
-                </template>
-              </el-table-column>
-              <el-table-column label="数量" width="150">
-                <template slot-scope="scope">
-                  <el-input-number
-                    v-model="scope.row.quantity"
-                    :min="1"
-                    style="width: 100%;"
-                    size="small"
-                  />
-                </template>
-              </el-table-column>
-              <el-table-column label="操作" width="100" align="center">
-                <template slot-scope="scope">
-                  <el-button
-                    type="danger"
-                    size="mini"
-                    icon="el-icon-delete"
-                    @click="removeProductItem(scope.$index)"
-                  />
-                </template>
-              </el-table-column>
-            </el-table>
-          </div>
-        </el-form-item>
-
-        <el-form-item label="备注">
-          <el-input
-            v-model="form.notes"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入备注信息"
-          />
-        </el-form-item>
-      </el-form>
-      <div slot="footer">
-        <el-button @click="dialogVisible = false">
-          取消
-        </el-button>
-        <el-button type="primary" :loading="formLoading" @click="handleSubmit">
-          确定
-        </el-button>
-      </div>
-    </el-dialog>
+      :dialog-type="dialogType"
+      :foiling-plate="currentFoilingPlate"
+      :loading="formLoading"
+      :product-list="productList"
+      @confirm="handleFormConfirm"
+    />
   </div>
 </template>
 
@@ -226,59 +146,44 @@
 import { foilingPlateAPI, productAPI } from '@/api/modules'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import ErrorHandler from '@/utils/errorHandler'
 import Pagination from '@/components/common/Pagination.vue'
+import FoilingPlateFormDialog from './components/FoilingPlateFormDialog.vue'
 
 export default {
   name: 'FoilingPlateList',
-  components: { Pagination },
+  components: { Pagination, FoilingPlateFormDialog },
   mixins: [listPageMixin, crudPermissionMixin],
+
   data() {
     return {
       // API 服务和权限配置
       apiService: foilingPlateAPI,
       permissionPrefix: 'foiling-plate',
 
-      // 表单相关
-      productList: [],
-      isEdit: false,
-      productItems: [],
-      form: {
-        code: '',
-        name: '',
-        foiling_type: 'gold',
-        size: '',
-        material: '',
-        thickness: '',
-        notes: ''
-      },
-      rules: {
-        name: [
-          { required: true, message: '请输入烫金版名称', trigger: 'blur' }
-        ]
-      }
+      // 对话框相关
+      dialogVisible: false,
+      dialogType: 'create',
+      formLoading: false,
+      currentFoilingPlate: null,
+
+      // 产品列表
+      productList: []
     }
   },
+
   computed: {
-    dialogTitle() {
-      return this.isEdit ? '编辑烫金版' : '新建烫金版'
+    // 是否有筛选条件
+    hasFilters() {
+      return !!this.searchText
     }
   },
-  watch: {
-    // 监听对话框显示状态，编辑时填充表单
-    dialogVisible(val) {
-      if (!val) {
-        this.$nextTick(() => {
-          if (this.$refs.form) {
-            this.$refs.form.clearValidate()
-          }
-        })
-      }
-    }
-  },
+
   created() {
     this.loadData()
     this.loadProductList()
   },
+
   methods: {
     // 实现 fetchData 方法（listPageMixin 要求）
     async fetchData() {
@@ -311,110 +216,93 @@ export default {
         const response = await productAPI.getList({ is_active: true, page_size: 100 })
         this.productList = response.results || []
       } catch (error) {
-        console.error('加载产品列表失败:', error)
+        ErrorHandler.showMessage(error, '加载产品列表失败')
       }
     },
 
-    addProductItem() {
-      this.productItems.push({
-        product: null,
-        quantity: 1,
-        sort_order: this.productItems.length
-      })
-    },
-
-    removeProductItem(index) {
-      this.productItems.splice(index, 1)
-    },
-
-    async showDialog(row = null) {
-      if (row) {
-        this.isEdit = true
-        this.currentRow = row
-        this.dialogType = 'edit'
-
-        try {
-          const detail = await foilingPlateAPI.getDetail(row.id)
-          this.form = {
-            code: detail.code,
-            name: detail.name,
-            foiling_type: detail.foiling_type || 'gold',
-            size: detail.size || '',
-            material: detail.material || '',
-            thickness: detail.thickness || '',
-            notes: detail.notes || ''
-          }
-
-          if (detail.products && detail.products.length > 0) {
-            this.productItems = detail.products.map(p => ({
-              id: p.id,
-              product: p.product,
-              quantity: p.quantity,
-              sort_order: p.sort_order || 0
-            }))
-          } else {
-            this.productItems = []
-          }
-        } catch (error) {
-          console.error('加载烫金版详情失败:', error)
-        }
-      } else {
-        this.isEdit = false
-        this.currentRow = null
-        this.dialogType = 'create'
-        this.form = {
-          code: '',
-          name: '',
-          foiling_type: 'gold',
-          size: '',
-          material: '',
-          thickness: '',
-          notes: ''
-        }
-        this.productItems = []
-      }
+    showCreateDialog() {
+      this.dialogType = 'create'
+      this.currentFoilingPlate = null
       this.dialogVisible = true
     },
 
-    async handleSubmit() {
-      this.$refs.form.validate(async (valid) => {
-        if (!valid) {
-          return false
+    async handleEdit(row) {
+      try {
+        const detail = await foilingPlateAPI.getDetail(row.id)
+        this.currentFoilingPlate = detail
+        this.dialogType = 'edit'
+        this.dialogVisible = true
+      } catch (error) {
+        ErrorHandler.showMessage(error, '加载烫金版详情失败')
+      }
+    },
+
+    async handleDelete(row) {
+      try {
+        await ErrorHandler.confirm(`确定要删除烫金版"${row.name}"吗？此操作不可撤销。`)
+        await this.apiService.delete(row.id)
+        ErrorHandler.showSuccess('删除成功')
+        await this.loadData()
+      } catch (error) {
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '删除失败')
+        }
+      }
+    },
+
+    async handleConfirmPlate(row) {
+      try {
+        await ErrorHandler.confirm(`确定要确认烫金版"${row.name}"吗？确认后关键字段将不可修改。`)
+        await foilingPlateAPI.confirm(row.id)
+        ErrorHandler.showSuccess('确认成功')
+        await this.loadData()
+      } catch (error) {
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '确认失败')
+        }
+      }
+    },
+
+    async handleFormConfirm({ form, productItems }) {
+      this.formLoading = true
+      try {
+        const data = { ...form }
+
+        // 新建时如果没有编码则删除该字段，让后端自动生成
+        if (this.dialogType === 'create' && !data.code) {
+          delete data.code
         }
 
-        this.formLoading = true
-        try {
-          const data = { ...this.form }
+        // 处理产品数据
+        data.products_data = productItems
+          .filter(item => item.product)
+          .map(item => ({
+            product: item.product,
+            quantity: item.quantity || 1
+          }))
 
-          if (!this.isEdit && !data.code) {
-            delete data.code
-          }
-
-          const productsData = this.productItems
-            .filter(item => item.product)
-            .map(item => ({
-              product: item.product,
-              quantity: item.quantity || 1
-            }))
-
-          data.products_data = productsData
-
-          if (this.isEdit) {
-            await this.apiService.update(this.currentRow.id, data)
-            this.showSuccess('保存成功')
-          } else {
-            await this.apiService.create(data)
-            this.showSuccess('创建成功')
-          }
-
-          this.dialogVisible = false
-          this.loadData()
-        } catch (error) {
-          this.showMessage(error, this.isEdit ? '保存失败' : '创建失败')
-        } finally {
-          this.formLoading = false
+        if (this.dialogType === 'edit') {
+          await this.apiService.update(this.currentFoilingPlate.id, data)
+          ErrorHandler.showSuccess('保存成功')
+        } else {
+          await this.apiService.create(data)
+          ErrorHandler.showSuccess('创建成功')
         }
-      })
+
+        this.dialogVisible = false
+        await this.loadData()
+      } catch (error) {
+        ErrorHandler.showMessage(error, this.dialogType === 'edit' ? '保存失败' : '创建失败')
+      } finally {
+        this.formLoading = false
+      }
+    },
+
+    // 重置筛选条件
+    handleReset() {
+      this.searchText = ''
+      this.currentPage = 1
+      this.loadData()
     }
   }
 }
