@@ -29,6 +29,15 @@ class WorkOrderTaskAPI extends BaseAPI {
   split(id, data) {
     return this.customAction(`${this.baseUrl}${id}/split/`, 'post', data)
   }
+
+  // 获取任务统计数据
+  getStats(params) {
+    return this.request({
+      url: `${this.baseUrl}stats/`,
+      method: 'get',
+      params
+    })
+  }
 }
 
 export const workOrderTaskAPI = new WorkOrderTaskAPI()
