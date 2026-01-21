@@ -37,10 +37,18 @@
       </el-form-item>
       <el-form-item label="CMYK颜色">
         <el-checkbox-group v-model="form.cmyk_colors">
-          <el-checkbox label="C">C</el-checkbox>
-          <el-checkbox label="M">M</el-checkbox>
-          <el-checkbox label="Y">Y</el-checkbox>
-          <el-checkbox label="K">K</el-checkbox>
+          <el-checkbox label="C">
+            C
+          </el-checkbox>
+          <el-checkbox label="M">
+            M
+          </el-checkbox>
+          <el-checkbox label="Y">
+            Y
+          </el-checkbox>
+          <el-checkbox label="K">
+            K
+          </el-checkbox>
         </el-checkbox-group>
       </el-form-item>
       <el-form-item label="其他颜色">
@@ -192,7 +200,9 @@
       </el-form-item>
     </el-form>
     <div slot="footer">
-      <el-button @click="handleClose">取消</el-button>
+      <el-button @click="handleClose">
+        取消
+      </el-button>
       <el-button type="primary" :loading="loading" @click="handleConfirm">
         确定
       </el-button>

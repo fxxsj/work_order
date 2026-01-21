@@ -15,7 +15,9 @@
           </el-input>
         </div>
         <div class="action-group">
-          <el-button icon="el-icon-refresh" @click="loadData">刷新</el-button>
+          <el-button icon="el-icon-refresh" @click="loadData">
+            刷新
+          </el-button>
           <el-button
             v-if="canCreate()"
             type="primary"
