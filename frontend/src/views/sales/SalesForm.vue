@@ -226,8 +226,22 @@
 </template>
 
 <script>
-import { getCustomerList } from '@/api/purchase'
-import { productAPI } from '@/api/workorder'
+import { customerAPI, productAPI } from '@/api/modules'
+import ErrorHandler from '@/utils/errorHandler'
+
+// 表单初始值常量
+const FORM_INITIAL = {
+  customer: null,
+  order_date: '',
+  delivery_date: '',
+  contact_person: '',
+  contact_phone: '',
+  shipping_address: '',
+  tax_rate: 13,
+  discount_amount: 0,
+  notes: '',
+  items: []
+}
 
 export default {
   name: 'SalesOrderForm',
@@ -243,18 +257,7 @@ export default {
   },
   data() {
     return {
-      form: {
-        customer: null,
-        order_date: '',
-        delivery_date: '',
-        contact_person: '',
-        contact_phone: '',
-        shipping_address: '',
-        tax_rate: 13,
-        discount_amount: 0,
-        notes: '',
-        items: []
-      },
+      form: { ...FORM_INITIAL },
       customerOptions: [],
       productOptions: [],
       workOrderOptions: [],
@@ -299,10 +302,10 @@ export default {
   methods: {
     async fetchCustomers() {
       try {
-        const response = await getCustomerList({ page_size: 1000 })
+        const response = await customerAPI.getList({ page_size: 1000 })
         this.customerOptions = response.results || []
       } catch (error) {
-        this.$message.error('获取客户列表失败')
+        ErrorHandler.showMessage(error, '获取客户列表失败')
       }
     },
     async fetchProducts() {
@@ -310,7 +313,7 @@ export default {
         const response = await productAPI.getList({ page_size: 1000 })
         this.productOptions = response.results || []
       } catch (error) {
-        this.$message.error('获取产品列表失败')
+        ErrorHandler.showMessage(error, '获取产品列表失败')
       }
     },
     handleProductChange(row) {
@@ -392,8 +395,7 @@ export default {
 
           this.$emit('submit', submitData)
         } catch (error) {
-          console.error('[ERROR] Submit failed:', error)
-          this.$message.error('保存失败')
+          ErrorHandler.showMessage(error, '保存失败')
         } finally {
           this.submitting = false
         }

@@ -314,6 +314,7 @@
 
 <script>
 import { salesOrderAPI } from '@/api/modules'
+import ErrorHandler from '@/utils/errorHandler'
 
 export default {
   name: 'SalesOrderDetail',
@@ -364,11 +365,9 @@ export default {
       this.loading = true
       try {
         const response = await salesOrderAPI.getDetail(this.orderId)
-        console.log('[DEBUG] Order detail response:', response)
         this.detailData = response
       } catch (error) {
-        console.error('[ERROR] Failed to fetch order detail:', error)
-        this.$message.error('获取订单详情失败')
+        ErrorHandler.showMessage(error, '获取订单详情失败')
       } finally {
         this.loading = false
       }
@@ -380,20 +379,19 @@ export default {
       this.$emit('edit', this.orderId)
     },
     async handleSubmit() {
-      this.$confirm('确定要提交该销售订单吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(async () => {
-        try {
-          await salesOrderAPI.submit(this.orderId)
-          this.$message.success('提交成功')
-          this.$emit('refresh')
-          this.fetchData()
-        } catch (error) {
-          this.$message.error('提交失败')
+      try {
+        const confirmed = await ErrorHandler.confirm('确定要提交该销售订单吗？', '提交确认')
+        if (!confirmed) return
+
+        await salesOrderAPI.submit(this.orderId)
+        ErrorHandler.showSuccess('提交成功')
+        this.$emit('refresh')
+        this.fetchData()
+      } catch (error) {
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '提交失败')
         }
-      }).catch(() => {})
+      }
     },
     async handleApprove() {
       this.$prompt('请输入审核意见', '审核通过', {
@@ -404,11 +402,11 @@ export default {
       }).then(async ({ value }) => {
         try {
           await salesOrderAPI.approve(this.orderId, { approval_comment: value })
-          this.$message.success('审核通过')
+          ErrorHandler.showSuccess('审核通过')
           this.$emit('refresh')
           this.fetchData()
         } catch (error) {
-          this.$message.error('审核失败')
+          ErrorHandler.showMessage(error, '审核失败')
         }
       }).catch(() => {})
     },
@@ -421,45 +419,43 @@ export default {
       }).then(async ({ value }) => {
         try {
           await salesOrderAPI.cancel(this.orderId, { reason: value })
-          this.$message.success('已拒绝该订单')
+          ErrorHandler.showSuccess('已拒绝该订单')
           this.$emit('refresh')
           this.fetchData()
         } catch (error) {
-          this.$message.error('操作失败')
+          ErrorHandler.showMessage(error, '操作失败')
         }
       }).catch(() => {})
     },
     async handleStartProduction() {
-      this.$confirm('确定要开始生产吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(async () => {
-        try {
-          await salesOrderAPI.startProduction(this.orderId)
-          this.$message.success('已开始生产')
-          this.$emit('refresh')
-          this.fetchData()
-        } catch (error) {
-          this.$message.error('操作失败')
+      try {
+        const confirmed = await ErrorHandler.confirm('确定要开始生产吗？', '开始生产')
+        if (!confirmed) return
+
+        await salesOrderAPI.startProduction(this.orderId)
+        ErrorHandler.showSuccess('已开始生产')
+        this.$emit('refresh')
+        this.fetchData()
+      } catch (error) {
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '操作失败')
         }
-      }).catch(() => {})
+      }
     },
     async handleComplete() {
-      this.$confirm('确定要完成该订单吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(async () => {
-        try {
-          await salesOrderAPI.complete(this.orderId)
-          this.$message.success('订单已完成')
-          this.$emit('refresh')
-          this.fetchData()
-        } catch (error) {
-          this.$message.error('操作失败')
+      try {
+        const confirmed = await ErrorHandler.confirm('确定要完成该订单吗？', '完成订单')
+        if (!confirmed) return
+
+        await salesOrderAPI.complete(this.orderId)
+        ErrorHandler.showSuccess('订单已完成')
+        this.$emit('refresh')
+        this.fetchData()
+      } catch (error) {
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '操作失败')
         }
-      }).catch(() => {})
+      }
     },
     async handleCancel() {
       this.$prompt('请输入取消原因', '取消订单', {
@@ -470,11 +466,11 @@ export default {
       }).then(async ({ value }) => {
         try {
           await salesOrderAPI.cancel(this.orderId, { reason: value })
-          this.$message.success('订单已取消')
+          ErrorHandler.showSuccess('订单已取消')
           this.$emit('refresh')
           this.fetchData()
         } catch (error) {
-          this.$message.error('取消失败')
+          ErrorHandler.showMessage(error, '取消失败')
         }
       }).catch(() => {})
     },
