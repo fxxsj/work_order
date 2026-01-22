@@ -1,85 +1,76 @@
 <template>
   <div class="statement-container">
-    <div class="header">
-      <h2>对账管理</h2>
-      <div class="actions">
-        <el-button type="primary" icon="el-icon-plus" @click="handleCreate">
-          生成对账单
-        </el-button>
-        <el-button icon="el-icon-refresh" @click="fetchStatementList">
-          刷新
-        </el-button>
-      </div>
-    </div>
+    <!-- 统计卡片（与 TaskStats 样式一致） -->
+    <statement-stats :stats="stats" :loading="statsLoading" />
 
-    <div class="filter-section">
-      <el-form :inline="true" :model="filters" class="filter-form">
-        <el-form-item label="对账类型">
+    <!-- 主内容卡片 -->
+    <el-card>
+      <!-- 头部搜索栏（与 Board.vue 一致） -->
+      <div class="header-section">
+        <div class="filter-group">
           <el-select
             v-model="filters.statement_type"
-            placeholder="全部类型"
+            placeholder="对账类型"
             clearable
+            style="width: 120px; margin-right: 10px;"
             @change="handleSearch"
           >
             <el-option label="客户对账" value="customer" />
             <el-option label="供应商对账" value="supplier" />
           </el-select>
-        </el-form-item>
-        <el-form-item label="对方单位">
           <el-select
             v-model="filters.partner"
-            placeholder="全部单位"
+            placeholder="选择对方单位"
             clearable
             filterable
+            style="width: 160px; margin-right: 10px;"
+            @change="handleSearch"
           >
             <el-option
-              v-for="partner in partnerList"
-              :key="partner.id"
+              v-for="(partner, index) in partnerList"
+              :key="`filter-partner-${partner.type}-${partner.id}-${index}`"
               :label="partner.name"
               :value="partner.id"
             />
           </el-select>
-        </el-form-item>
-        <el-form-item label="对账期间">
-          <el-date-picker
-            v-model="filters.period_range"
-            type="monthrange"
-            range-separator="至"
-            start-placeholder="开始月份"
-            end-placeholder="结束月份"
-            clearable
-            @change="handleSearch"
-          />
-        </el-form-item>
-        <el-form-item label="状态">
           <el-select
             v-model="filters.status"
-            placeholder="全部状态"
+            placeholder="状态"
             clearable
+            style="width: 100px;"
             @change="handleSearch"
           >
             <el-option label="草稿" value="draft" />
             <el-option label="已确认" value="confirmed" />
             <el-option label="已作废" value="cancelled" />
           </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">
-            查询
+        </div>
+        <div class="action-group">
+          <el-button
+            :loading="loading"
+            icon="el-icon-refresh"
+            @click="loadData"
+          >
+            刷新
           </el-button>
-          <el-button @click="handleReset">
-            重置
+          <el-button
+            v-if="canCreate()"
+            type="primary"
+            icon="el-icon-plus"
+            @click="handleCreate"
+          >
+            生成对账单
           </el-button>
-        </el-form-item>
-      </el-form>
-    </div>
+        </div>
+      </div>
 
-    <div class="table-section">
+      <!-- 数据表格 -->
       <el-table
+        v-if="tableData.length > 0"
         v-loading="loading"
-        :data="statementList"
+        :data="tableData"
         border
-        style="width: 100%"
+        style="width: 100%; margin-top: 20px;"
       >
         <el-table-column prop="statement_number" label="对账单号" width="150" />
         <el-table-column prop="statement_type_display" label="对账类型" width="100" />
@@ -92,8 +83,8 @@
           width="120"
           align="right"
         >
-          <template #default="{ row }">
-            ¥{{ row.opening_balance ? row.opening_balance.toLocaleString() : '-' }}
+          <template slot-scope="scope">
+            ¥{{ scope.row.opening_balance ? scope.row.opening_balance.toLocaleString() : '-' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -102,8 +93,8 @@
           width="120"
           align="right"
         >
-          <template #default="{ row }">
-            ¥{{ row.debit_amount ? row.debit_amount.toLocaleString() : '-' }}
+          <template slot-scope="scope">
+            ¥{{ scope.row.debit_amount ? scope.row.debit_amount.toLocaleString() : '-' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -112,8 +103,8 @@
           width="120"
           align="right"
         >
-          <template #default="{ row }">
-            ¥{{ row.credit_amount ? row.credit_amount.toLocaleString() : '-' }}
+          <template slot-scope="scope">
+            ¥{{ scope.row.credit_amount ? scope.row.credit_amount.toLocaleString() : '-' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -122,48 +113,76 @@
           width="120"
           align="right"
         >
-          <template #default="{ row }">
-            <span style="font-weight: bold;">¥{{ row.closing_balance ? row.closing_balance.toLocaleString() : '-' }}</span>
+          <template slot-scope="scope">
+            <span style="font-weight: bold;">
+              ¥{{ scope.row.closing_balance ? scope.row.closing_balance.toLocaleString() : '-' }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column prop="status_display" label="状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">
-              {{ row.status_display }}
+          <template slot-scope="scope">
+            <el-tag :type="getStatusType(scope.row.status)">
+              {{ scope.row.status_display }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
-          <template #default="{ row }">
-            <el-button size="small" @click="handleView(row)">
+          <template slot-scope="scope">
+            <el-button type="text" size="small" @click="handleView(scope.row)">
               查看
-            </el-button><el-button
-              v-if="row.status === 'draft'"
+            </el-button>
+            <el-button
+              v-if="canEdit() && scope.row.status === 'draft'"
+              type="text"
               size="small"
-              type="primary"
-              @click="handleConfirm(row)"
+              style="color: #409EFF;"
+              @click="handleConfirm(scope.row)"
             >
               确认
-            </el-button><el-button size="small" type="success" @click="handleExport(row)">
+            </el-button>
+            <el-button
+              type="text"
+              size="small"
+              style="color: #67C23A;"
+              @click="handleExport(scope.row)"
+            >
               导出
             </el-button>
           </template>
         </el-table-column>
       </el-table>
 
+      <!-- 分页 -->
       <Pagination
+        v-if="total > 0"
         :current-page="currentPage"
         :page-size="pageSize"
         :total="total"
         @current-change="handlePageChange"
         @size-change="handleSizeChange"
       />
-    </div>
 
+      <!-- 空状态 -->
+      <el-empty
+        v-if="!loading && tableData.length === 0"
+        description="暂无对账单数据"
+        :image-size="200"
+        style="margin-top: 50px;"
+      >
+        <el-button v-if="hasFilters" type="primary" @click="handleReset">
+          重置筛选
+        </el-button>
+        <el-button v-else-if="canCreate()" type="primary" @click="handleCreate">
+          生成第一个对账单
+        </el-button>
+      </el-empty>
+    </el-card>
+
+    <!-- 对账单详情对话框 -->
     <el-dialog
       :visible.sync="detailDialogVisible"
       title="对账单详情"
-      width="1200px"
+      width="1000px"
       :close-on-click-modal="false"
     >
       <div v-if="currentStatement">
@@ -191,14 +210,15 @@
         </el-descriptions>
 
         <div class="balance-summary">
-          <h3>余额汇总</h3>
+          <h4>余额汇总</h4>
           <el-row :gutter="20" style="margin-top: 10px;">
             <el-col :span="6">
               <el-card>
                 <div class="balance-item">
                   <div class="balance-label">
                     期初余额
-                  </div><div class="balance-value">
+                  </div>
+                  <div class="balance-value">
                     ¥{{ currentStatement.opening_balance ? currentStatement.opening_balance.toLocaleString() : '-' }}
                   </div>
                 </div>
@@ -209,7 +229,8 @@
                 <div class="balance-item">
                   <div class="balance-label debit">
                     借方发生额
-                  </div><div class="balance-value">
+                  </div>
+                  <div class="balance-value">
                     ¥{{ currentStatement.debit_amount ? currentStatement.debit_amount.toLocaleString() : '-' }}
                   </div>
                 </div>
@@ -220,7 +241,8 @@
                 <div class="balance-item">
                   <div class="balance-label credit">
                     贷方发生额
-                  </div><div class="balance-value">
+                  </div>
+                  <div class="balance-value">
                     ¥{{ currentStatement.credit_amount ? currentStatement.credit_amount.toLocaleString() : '-' }}
                   </div>
                 </div>
@@ -231,7 +253,8 @@
                 <div class="balance-item">
                   <div class="balance-label closing">
                     期末余额
-                  </div><div class="balance-value">
+                  </div>
+                  <div class="balance-value">
                     ¥{{ currentStatement.closing_balance ? currentStatement.closing_balance.toLocaleString() : '-' }}
                   </div>
                 </div>
@@ -240,15 +263,18 @@
           </el-row>
         </div>
       </div>
-      <template #footer>
+
+      <template slot="footer">
         <el-button @click="detailDialogVisible = false">
           关闭
-        </el-button><el-button type="primary" @click="handlePrint">
+        </el-button>
+        <el-button type="primary" @click="handlePrint">
           打印
         </el-button>
       </template>
     </el-dialog>
 
+    <!-- 生成对账单对话框 -->
     <el-dialog
       :visible.sync="formDialogVisible"
       title="生成对账单"
@@ -256,13 +282,13 @@
       :close-on-click-modal="false"
     >
       <el-form
-        ref="statementFormRef"
-        :model="statementForm"
-        :rules="statementRules"
+        ref="formRef"
+        :model="form"
+        :rules="rules"
         label-width="100px"
       >
         <el-form-item label="对账类型" prop="statement_type">
-          <el-radio-group v-model="statementForm.statement_type">
+          <el-radio-group v-model="form.statement_type">
             <el-radio label="customer">
               客户对账
             </el-radio>
@@ -273,7 +299,7 @@
         </el-form-item>
         <el-form-item label="对方单位" prop="partner">
           <el-select
-            v-model="statementForm.partner"
+            v-model="form.partner"
             placeholder="请选择对方单位"
             filterable
             style="width: 100%;"
@@ -288,7 +314,7 @@
         </el-form-item>
         <el-form-item label="对账期间" prop="period">
           <el-date-picker
-            v-model="statementForm.period"
+            v-model="form.period"
             type="monthrange"
             range-separator="至"
             start-placeholder="开始月份"
@@ -298,30 +324,34 @@
         </el-form-item>
         <el-form-item label="对账日期" prop="statement_date">
           <el-date-picker
-            v-model="statementForm.statement_date"
+            v-model="form.statement_date"
             type="date"
             placeholder="请选择日期"
+            value-format="yyyy-MM-dd"
             style="width: 100%;"
           />
         </el-form-item>
         <el-form-item label="备注">
           <el-input
-            v-model="statementForm.notes"
+            v-model="form.notes"
             type="textarea"
             :rows="3"
             placeholder="请输入备注"
           />
         </el-form-item>
       </el-form>
-      <template #footer>
+
+      <template slot="footer">
         <el-button @click="formDialogVisible = false">
           取消
-        </el-button><el-button type="primary" @click="handleGenerate">
+        </el-button>
+        <el-button type="primary" :loading="submitting" @click="handleGenerate">
           生成
         </el-button>
       </template>
     </el-dialog>
 
+    <!-- 确认对账单对话框 -->
     <el-dialog
       :visible.sync="confirmDialogVisible"
       title="确认对账单"
@@ -338,10 +368,12 @@
           />
         </el-form-item>
       </el-form>
-      <template #footer>
+
+      <template slot="footer">
         <el-button @click="confirmDialogVisible = false">
           取消
-        </el-button><el-button type="primary" @click="handleSaveConfirm">
+        </el-button>
+        <el-button type="primary" :loading="confirming" @click="handleSaveConfirm">
           确认
         </el-button>
       </template>
@@ -350,143 +382,306 @@
 </template>
 
 <script>
-import { statementAPI } from '@/api/modules'
+import { statementAPI, customerAPI, supplierAPI } from '@/api/modules'
+import StatementStats from './components/StatementStats.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import ErrorHandler from '@/utils/errorHandler'
+
+// 表单初始值常量
+const FORM_INITIAL = {
+  statement_type: 'customer',
+  partner: null,
+  period: null,
+  statement_date: '',
+  notes: ''
+}
 
 export default {
   name: 'StatementList',
-  components: { Pagination },
+  components: {
+    StatementStats,
+    Pagination
+  },
   mixins: [listPageMixin, crudPermissionMixin],
+
   data() {
     return {
       // API 服务和权限配置
       apiService: statementAPI,
       permissionPrefix: 'statement',
 
-      loading: false,
-      statementList: [],
+      // 页面状态
+      statsLoading: false,
+      submitting: false,
+      confirming: false,
+
+      // 数据
       partnerList: [],
+      customerList: [],
+      supplierList: [],
       currentStatement: null,
+      stats: {},
+
+      // 对话框
       detailDialogVisible: false,
       formDialogVisible: false,
       confirmDialogVisible: false,
-      filters: { statement_type: '', partner: '', period_range: null, status: '' },
-      statementForm: { statement_type: 'customer', partner: null, period: null, statement_date: null, notes: '' },
-      statementRules: {
+
+      // 表单数据
+      form: { ...FORM_INITIAL },
+
+      // 表单验证规则
+      rules: {
         statement_type: [{ required: true, message: '请选择对账类型', trigger: 'change' }],
         partner: [{ required: true, message: '请选择对方单位', trigger: 'change' }],
         period: [{ required: true, message: '请选择对账期间', trigger: 'change' }],
         statement_date: [{ required: true, message: '请选择对账日期', trigger: 'change' }]
       },
-      confirmForm: { confirm_notes: '' }
+
+      // 确认表单
+      confirmForm: {
+        confirm_notes: ''
+      },
+
+      // 筛选条件
+      filters: {
+        statement_type: '',
+        partner: '',
+        status: ''
+      }
     }
   },
+
   computed: {
-    filteredPartnerList() { return this.partnerList }
+    hasFilters() {
+      return this.filters.statement_type || this.filters.partner || this.filters.status
+    },
+    filteredPartnerList() {
+      if (this.form.statement_type === 'customer') {
+        return this.customerList
+      } else if (this.form.statement_type === 'supplier') {
+        return this.supplierList
+      }
+      return this.partnerList
+    }
   },
+
   created() {
-    this.fetchStatementList()
+    this.loadData()
+    this.fetchStats()
     this.fetchPartners()
   },
+
   methods: {
     // 实现 fetchData 方法（listPageMixin 要求）
     async fetchData() {
       const params = {
         page: this.currentPage,
-        page_size: this.pageSize
-      }
-      if (this.filters.statement_type) params.statement_type = this.filters.statement_type
-      if (this.filters.partner) params.partner = this.filters.partner
-      if (this.filters.status) params.status = this.filters.status
-      if (this.filters.period_range && this.filters.period_range.length === 2) {
-        const formatDate = (date) => {
-          const d = new Date(date)
-          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-        }
-        params.period_start = formatDate(this.filters.period_range[0])
-        params.period_end = formatDate(this.filters.period_range[1])
+        page_size: this.pageSize,
+        ...(this.filters.statement_type && { statement_type: this.filters.statement_type }),
+        ...(this.filters.partner && { partner: this.filters.partner }),
+        ...(this.filters.status && { status: this.filters.status })
       }
       return await this.apiService.getList(params)
     },
 
-    async fetchStatementList() {
-      this.loading = true
+    async fetchStats() {
+      this.statsLoading = true
       try {
-        const response = await this.fetchData()
-        this.statementList = response.results || []
-        this.total = response.count || 0
+        // 基于本地数据计算统计
+        const response = await this.apiService.getList({ page_size: 1000 })
+        const list = response.results || []
+        this.stats = {
+          total_count: list.length,
+          draft_count: list.filter(s => s.status === 'draft').length,
+          confirmed_count: list.filter(s => s.status === 'confirmed').length,
+          total_balance: list.reduce((sum, s) => sum + (s.closing_balance || 0), 0)
+        }
       } catch (error) {
-        this.$message.error('获取对账单列表失败')
+        this.stats = {}
       } finally {
-        this.loading = false
+        this.statsLoading = false
       }
     },
+
     async fetchPartners() {
-      try { this.partnerList = [] } catch (error) { console.error('获取对方单位列表失败', error) }
+      try {
+        const [customerRes, supplierRes] = await Promise.all([
+          customerAPI.getList({ page_size: 1000 }),
+          supplierAPI.getList({ page_size: 1000 })
+        ])
+        this.customerList = (customerRes.results || []).map(c => ({ ...c, type: 'customer' }))
+        this.supplierList = (supplierRes.results || []).map(s => ({ ...s, type: 'supplier' }))
+        this.partnerList = [...this.customerList, ...this.supplierList]
+      } catch (error) {
+        // 静默处理
+      }
     },
-    handleSearch() { this.currentPage = 1; this.fetchStatementList() },
-    handleReset() {
-      this.filters = { statement_type: '', partner: '', period_range: null, status: '' }
+
+    handleSearch() {
       this.currentPage = 1
-      this.fetchStatementList()
+      this.loadData()
     },
-    handleSizeChange(size) { this.pageSize = size; this.currentPage = 1; this.fetchStatementList() },
-    handlePageChange(page) { this.currentPage = page; this.fetchStatementList() },
+
+    handleReset() {
+      this.filters = { statement_type: '', partner: '', status: '' }
+      this.currentPage = 1
+      this.loadData()
+    },
+
     async handleView(row) {
-      try { const response = await statementAPI.getDetail(row.id); this.currentStatement = response; this.detailDialogVisible = true } catch (error) { this.$message.error('获取对账单详情失败') }
+      try {
+        const response = await statementAPI.getDetail(row.id)
+        this.currentStatement = response
+        this.detailDialogVisible = true
+      } catch (error) {
+        ErrorHandler.showMessage(error, '获取对账单详情失败')
+      }
     },
+
     handleCreate() {
-      this.statementForm = { statement_type: 'customer', partner: null, period: null, statement_date: new Date(), notes: '' }
+      this.form = { ...FORM_INITIAL, statement_date: new Date() }
       this.formDialogVisible = true
     },
+
     async handleGenerate() {
-      this.$refs.statementFormRef.validate(async (valid) => {
+      this.$refs.formRef.validate(async (valid) => {
         if (!valid) return
+
+        this.submitting = true
         try {
-          const data = { statement_type: this.statementForm.statement_type, partner: this.statementForm.partner, period_start: this.statementForm.period[0], period_end: this.statementForm.period[1], statement_date: this.statementForm.statement_date, notes: this.statementForm.notes }
+          const data = {
+            statement_type: this.form.statement_type,
+            partner: this.form.partner,
+            period_start: this.form.period[0],
+            period_end: this.form.period[1],
+            statement_date: this.form.statement_date,
+            notes: this.form.notes
+          }
           await statementAPI.create(data)
-          this.$message.success('生成成功')
+          ErrorHandler.showSuccess('生成成功')
           this.formDialogVisible = false
-          this.fetchStatementList()
-        } catch (error) { this.$message.error('生成失败') }
+          this.loadData()
+          this.fetchStats()
+        } catch (error) {
+          ErrorHandler.showMessage(error, '生成失败')
+        } finally {
+          this.submitting = false
+        }
       })
     },
+
     handleConfirm(row) {
       this.currentStatement = row
       this.confirmForm.confirm_notes = ''
       this.confirmDialogVisible = true
     },
+
     async handleSaveConfirm() {
+      this.confirming = true
       try {
         await statementAPI.confirm(this.currentStatement.id, this.confirmForm)
-        this.$message.success('确认成功')
+        ErrorHandler.showSuccess('确认成功')
         this.confirmDialogVisible = false
-        this.fetchStatementList()
-      } catch (error) { this.$message.error('确认失败') }
+        this.loadData()
+        this.fetchStats()
+      } catch (error) {
+        ErrorHandler.showMessage(error, '确认失败')
+      } finally {
+        this.confirming = false
+      }
     },
-    // eslint-disable-next-line no-unused-vars
+
     handleExport(row) {
-      this.$message.info('导出功能开发中')
+      ErrorHandler.showInfo('导出功能开发中')
+      console.log('Export:', row.id)
     },
-    handlePrint() { window.print() },
-    getStatusType(status) { const typeMap = { draft: 'info', confirmed: 'success', cancelled: 'danger' }; return typeMap[status] || '' }
+
+    handlePrint() {
+      window.print()
+    },
+
+    getStatusType(status) {
+      const typeMap = {
+        draft: 'info',
+        confirmed: 'success',
+        cancelled: 'danger'
+      }
+      return typeMap[status] || ''
+    }
   }
 }
 </script>
 
 <style scoped>
-.statement-container { padding: 20px; }
-.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.filter-section { margin-bottom: 20px; padding: 20px; background: #f5f5f5; border-radius: 4px; }
-.filter-form { margin-bottom: 0; }
-.table-section { background: #fff; border-radius: 4px; padding: 20px; }
-.balance-summary { margin-top: 20px; }
-.balance-item { text-align: center; padding: 10px 0; }
-.balance-label { font-size: 14px; color: #909399; margin-bottom: 8px; }
-.balance-value { font-size: 20px; font-weight: bold; color: #303133; }
-.balance-value.debit { color: #67c23a; }
-.balance-value.credit { color: #f56c6c; }
-.balance-value.closing { color: #409eff; }
+.statement-container {
+  padding: 20px;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.el-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.balance-summary {
+  margin-top: 20px;
+}
+
+.balance-summary h4 {
+  margin: 0 0 10px 0;
+  color: #303133;
+  font-size: 16px;
+}
+
+.balance-item {
+  text-align: center;
+  padding: 10px 0;
+}
+
+.balance-label {
+  font-size: 14px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+
+.balance-label.debit {
+  color: #67c23a;
+}
+
+.balance-label.credit {
+  color: #f56c6c;
+}
+
+.balance-label.closing {
+  color: #409eff;
+}
+
+.balance-value {
+  font-size: 20px;
+  font-weight: bold;
+  color: #303133;
+}
 </style>
