@@ -291,6 +291,13 @@ export default {
       })
     },
 
+    // 编辑客户
+    handleEdit(row) {
+      this.dialogType = 'edit'
+      this.currentRow = row
+      this.dialogVisible = true
+    },
+
     // 删除客户（使用 ErrorHandler）
     async handleDelete(row) {
       try {
