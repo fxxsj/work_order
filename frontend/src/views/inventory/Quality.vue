@@ -1,44 +1,28 @@
 <template>
   <div class="quality-container">
-    <!-- 页面头部 -->
-    <div class="header">
-      <h2>质量检验</h2>
-      <div class="actions">
-        <el-button type="primary" icon="el-icon-plus" @click="handleCreate">
-          新建质检
-        </el-button>
-        <el-button icon="el-icon-refresh" @click="fetchQualityList">
-          刷新
-        </el-button>
-      </div>
-    </div>
+    <!-- 统计卡片（与 TaskStats 样式一致） -->
+    <quality-stats :stats="stats" :loading="statsLoading" />
 
-    <!-- 搜索和过滤 -->
-    <div class="filter-section">
-      <el-form :inline="true" :model="filters" class="filter-form">
-        <el-form-item label="检验单号">
-          <el-input v-model="filters.inspection_number" placeholder="检验单号" clearable />
-        </el-form-item>
-        <el-form-item label="产品">
-          <el-select
-            v-model="filters.product"
-            placeholder="全部产品"
+    <!-- 主内容卡片 -->
+    <el-card>
+      <!-- 头部搜索栏（与 Board.vue 一致） -->
+      <div class="header-section">
+        <div class="filter-group">
+          <el-input
+            v-model="filters.inspection_number"
+            placeholder="搜索检验单号"
+            style="width: 160px; margin-right: 10px;"
             clearable
-            filterable
+            @input="handleSearchDebounced"
+            @clear="handleSearch"
           >
-            <el-option
-              v-for="product in productList"
-              :key="product.id"
-              :label="product.name"
-              :value="product.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="检验类型">
+            <el-button slot="append" icon="el-icon-search" @click="handleSearch" />
+          </el-input>
           <el-select
             v-model="filters.inspection_type"
-            placeholder="全部类型"
+            placeholder="检验类型"
             clearable
+            style="width: 120px; margin-right: 10px;"
             @change="handleSearch"
           >
             <el-option label="入库检验" value="incoming" />
@@ -46,49 +30,55 @@
             <el-option label="最终检验" value="final" />
             <el-option label="出货检验" value="outgoing" />
           </el-select>
-        </el-form-item>
-        <el-form-item label="检验结果">
           <el-select
             v-model="filters.result"
-            placeholder="全部结果"
+            placeholder="检验结果"
             clearable
+            style="width: 120px; margin-right: 10px;"
             @change="handleSearch"
           >
             <el-option label="合格" value="passed" />
             <el-option label="不合格" value="failed" />
             <el-option label="条件接收" value="conditional" />
           </el-select>
-        </el-form-item>
-        <el-form-item label="状态">
           <el-select
             v-model="filters.status"
-            placeholder="全部状态"
+            placeholder="状态"
             clearable
+            style="width: 100px;"
             @change="handleSearch"
           >
             <el-option label="待检验" value="pending" />
             <el-option label="检验中" value="in_progress" />
             <el-option label="已完成" value="completed" />
           </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">
-            查询
+        </div>
+        <div class="action-group">
+          <el-button
+            :loading="loading"
+            icon="el-icon-refresh"
+            @click="loadData"
+          >
+            刷新
           </el-button>
-          <el-button @click="handleReset">
-            重置
+          <el-button
+            v-if="canCreate()"
+            type="primary"
+            icon="el-icon-plus"
+            @click="handleCreate"
+          >
+            新建质检
           </el-button>
-        </el-form-item>
-      </el-form>
-    </div>
+        </div>
+      </div>
 
-    <!-- 数据表格 -->
-    <div class="table-section">
+      <!-- 数据表格 -->
       <el-table
+        v-if="tableData.length > 0"
         v-loading="loading"
-        :data="qualityList"
+        :data="tableData"
         border
-        style="width: 100%"
+        style="width: 100%; margin-top: 20px;"
       >
         <el-table-column prop="inspection_number" label="检验单号" width="150" />
         <el-table-column prop="inspection_type_display" label="检验类型" width="100" />
@@ -125,42 +115,46 @@
           width="100"
           align="right"
         >
-          <template #default="{ row }">
-            <span :class="getDefectiveRateClass(row)">{{ row.defective_rate !== null ? row.defective_rate.toFixed(1) + '%' : '-' }}</span>
+          <template slot-scope="scope">
+            <span :class="getDefectiveRateClass(scope.row)">
+              {{ scope.row.defective_rate !== null ? scope.row.defective_rate.toFixed(1) + '%' : '-' }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column prop="result_display" label="检验结果" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getResultTagType(row.result)">
-              {{ row.result_display }}
+          <template slot-scope="scope">
+            <el-tag :type="getResultTagType(scope.row.result)">
+              {{ scope.row.result_display }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="status_display" label="状态" width="100">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">
-              {{ row.status_display }}
+          <template slot-scope="scope">
+            <el-tag :type="getStatusType(scope.row.status)">
+              {{ scope.row.status_display }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
-          <template #default="{ row }">
-            <el-button size="small" @click="handleView(row)">
+          <template slot-scope="scope">
+            <el-button type="text" size="small" @click="handleView(scope.row)">
               查看
             </el-button>
             <el-button
-              v-if="row.status === 'pending' || row.status === 'in_progress'"
+              v-if="canEdit() && (scope.row.status === 'pending' || scope.row.status === 'in_progress')"
+              type="text"
               size="small"
-              type="primary"
-              @click="handleInspect(row)"
+              style="color: #409EFF;"
+              @click="handleInspect(scope.row)"
             >
               检验
             </el-button>
             <el-button
-              v-if="row.status === 'in_progress'"
+              v-if="canEdit() && scope.row.status === 'in_progress'"
+              type="text"
               size="small"
-              type="success"
-              @click="handleComplete(row)"
+              style="color: #67C23A;"
+              @click="handleComplete(scope.row)"
             >
               完成
             </el-button>
@@ -170,13 +164,29 @@
 
       <!-- 分页 -->
       <Pagination
+        v-if="total > 0"
         :current-page="currentPage"
         :page-size="pageSize"
         :total="total"
         @current-change="handlePageChange"
         @size-change="handleSizeChange"
       />
-    </div>
+
+      <!-- 空状态 -->
+      <el-empty
+        v-if="!loading && tableData.length === 0"
+        description="暂无质检数据"
+        :image-size="200"
+        style="margin-top: 50px;"
+      >
+        <el-button v-if="hasFilters" type="primary" @click="handleReset">
+          重置筛选
+        </el-button>
+        <el-button v-else-if="canCreate()" type="primary" @click="handleCreate">
+          创建第一个质检单
+        </el-button>
+      </el-empty>
+    </el-card>
 
     <!-- 质检详情对话框 -->
     <el-dialog
@@ -221,14 +231,15 @@
         </el-descriptions>
 
         <div class="inspection-data">
-          <h3>检验数据</h3>
+          <h4>检验数据</h4>
           <el-row :gutter="20" style="margin-top: 10px;">
             <el-col :span="6">
               <el-card>
                 <div class="data-item">
                   <div class="data-label">
                     送检数量
-                  </div><div class="data-value">
+                  </div>
+                  <div class="data-value">
                     {{ currentQuality.inspection_quantity || '-' }}
                   </div>
                 </div>
@@ -239,7 +250,8 @@
                 <div class="data-item">
                   <div class="data-label">
                     抽样数量
-                  </div><div class="data-value">
+                  </div>
+                  <div class="data-value">
                     {{ currentQuality.sample_quantity || '-' }}
                   </div>
                 </div>
@@ -250,7 +262,8 @@
                 <div class="data-item">
                   <div class="data-label">
                     合格数量
-                  </div><div class="data-value success">
+                  </div>
+                  <div class="data-value success">
                     {{ currentQuality.qualified_quantity || '-' }}
                   </div>
                 </div>
@@ -261,7 +274,8 @@
                 <div class="data-item">
                   <div class="data-label">
                     不合格数量
-                  </div><div class="data-value danger">
+                  </div>
+                  <div class="data-value danger">
                     {{ currentQuality.defective_quantity || '-' }}
                   </div>
                 </div>
@@ -270,10 +284,12 @@
           </el-row>
         </div>
       </div>
-      <template #footer>
+
+      <template slot="footer">
         <el-button @click="detailDialogVisible = false">
           关闭
-        </el-button><el-button type="primary" @click="handlePrint">
+        </el-button>
+        <el-button type="primary" @click="handlePrint">
           打印
         </el-button>
       </template>
@@ -283,26 +299,26 @@
     <el-dialog
       :visible.sync="inspectDialogVisible"
       title="质量检验"
-      width="800px"
+      width="600px"
       :close-on-click-modal="false"
     >
       <el-form
-        ref="inspectFormRef"
-        :model="inspectForm"
-        :rules="inspectRules"
+        ref="formRef"
+        :model="form"
+        :rules="rules"
         label-width="100px"
       >
         <el-form-item label="抽样数量" prop="sample_quantity">
-          <el-input-number v-model="inspectForm.sample_quantity" :min="0" style="width: 100%;" />
+          <el-input-number v-model="form.sample_quantity" :min="0" style="width: 100%;" />
         </el-form-item>
         <el-form-item label="合格数量" prop="qualified_quantity">
-          <el-input-number v-model="inspectForm.qualified_quantity" :min="0" style="width: 100%;" />
+          <el-input-number v-model="form.qualified_quantity" :min="0" style="width: 100%;" />
         </el-form-item>
         <el-form-item label="不合格数量" prop="defective_quantity">
-          <el-input-number v-model="inspectForm.defective_quantity" :min="0" style="width: 100%;" />
+          <el-input-number v-model="form.defective_quantity" :min="0" style="width: 100%;" />
         </el-form-item>
         <el-form-item label="检验结果" prop="result">
-          <el-radio-group v-model="inspectForm.result">
+          <el-radio-group v-model="form.result">
             <el-radio label="passed">
               合格
             </el-radio>
@@ -316,17 +332,19 @@
         </el-form-item>
         <el-form-item label="检验备注">
           <el-input
-            v-model="inspectForm.inspection_notes"
+            v-model="form.inspection_notes"
             type="textarea"
             :rows="3"
             placeholder="请输入检验备注"
           />
         </el-form-item>
       </el-form>
-      <template #footer>
+
+      <template slot="footer">
         <el-button @click="inspectDialogVisible = false">
           取消
-        </el-button><el-button type="primary" @click="handleSaveInspect">
+        </el-button>
+        <el-button type="primary" :loading="submitting" @click="handleSaveInspect">
           保存
         </el-button>
       </template>
@@ -335,122 +353,321 @@
 </template>
 
 <script>
-import { qualityInspectionAPI } from '@/api/modules'
+import { qualityInspectionAPI, productAPI } from '@/api/modules'
+import QualityStats from './components/QualityStats.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import ErrorHandler from '@/utils/errorHandler'
+
+// 表单初始值常量
+const FORM_INITIAL = {
+  sample_quantity: null,
+  qualified_quantity: null,
+  defective_quantity: null,
+  result: 'passed',
+  inspection_notes: ''
+}
 
 export default {
   name: 'QualityList',
-  components: { Pagination },
+  components: {
+    QualityStats,
+    Pagination
+  },
   mixins: [listPageMixin, crudPermissionMixin],
+
   data() {
     return {
       // API 服务和权限配置
       apiService: qualityInspectionAPI,
       permissionPrefix: 'qualityinspection',
 
-      loading: false,
-      qualityList: [],
+      // 页面状态
+      statsLoading: false,
+      submitting: false,
+
+      // 数据
       productList: [],
       currentQuality: null,
+      stats: {},
+
+      // 对话框
       detailDialogVisible: false,
       inspectDialogVisible: false,
-      filters: { inspection_number: '', product: '', inspection_type: '', result: '', status: '' },
-      inspectForm: { sample_quantity: null, qualified_quantity: null, defective_quantity: null, result: 'passed', inspection_notes: '' },
-      inspectRules: {
+
+      // 表单数据
+      form: { ...FORM_INITIAL },
+
+      // 表单验证规则
+      rules: {
         sample_quantity: [{ required: true, message: '请输入抽样数量', trigger: 'blur' }],
         qualified_quantity: [{ required: true, message: '请输入合格数量', trigger: 'blur' }],
         defective_quantity: [{ required: true, message: '请输入不合格数量', trigger: 'blur' }],
         result: [{ required: true, message: '请选择检验结果', trigger: 'change' }]
-      }
+      },
+
+      // 筛选条件
+      filters: {
+        inspection_number: '',
+        product: '',
+        inspection_type: '',
+        result: '',
+        status: ''
+      },
+
+      // 搜索防抖定时器
+      searchTimer: null
     }
   },
+
+  computed: {
+    hasFilters() {
+      return this.filters.inspection_number || this.filters.product ||
+        this.filters.inspection_type || this.filters.result || this.filters.status
+    }
+  },
+
   created() {
-    this.fetchQualityList()
+    this.loadData()
+    this.fetchStats()
     this.fetchProducts()
   },
+
   methods: {
     // 实现 fetchData 方法（listPageMixin 要求）
     async fetchData() {
       const params = {
         page: this.currentPage,
-        page_size: this.pageSize
+        page_size: this.pageSize,
+        ...(this.filters.inspection_number && { inspection_number: this.filters.inspection_number }),
+        ...(this.filters.product && { product: this.filters.product }),
+        ...(this.filters.inspection_type && { inspection_type: this.filters.inspection_type }),
+        ...(this.filters.result && { result: this.filters.result }),
+        ...(this.filters.status && { status: this.filters.status })
       }
-      if (this.filters.inspection_number) params.inspection_number = this.filters.inspection_number
-      if (this.filters.product) params.product = this.filters.product
-      if (this.filters.inspection_type) params.inspection_type = this.filters.inspection_type
-      if (this.filters.result) params.result = this.filters.result
-      if (this.filters.status) params.status = this.filters.status
       return await this.apiService.getList(params)
     },
 
-    async fetchQualityList() {
-      this.loading = true
+    async fetchStats() {
+      this.statsLoading = true
       try {
-        const response = await this.fetchData()
-        this.qualityList = response.results || []
-        this.total = response.count || 0
+        // 基于本地数据计算统计
+        const response = await this.apiService.getList({ page_size: 1000 })
+        const list = response.results || []
+        this.stats = {
+          total_count: list.length,
+          pending_count: list.filter(q => q.status === 'pending').length,
+          passed_count: list.filter(q => q.result === 'passed' && q.status === 'completed').length,
+          failed_count: list.filter(q => q.result === 'failed' && q.status === 'completed').length
+        }
       } catch (error) {
-        this.$message.error('获取质检列表失败')
+        this.stats = {}
       } finally {
-        this.loading = false
+        this.statsLoading = false
       }
     },
+
     async fetchProducts() {
-      try { this.productList = [] } catch (error) { console.error('获取产品列表失败', error) }
+      try {
+        const response = await productAPI.getList({ page_size: 1000 })
+        this.productList = response.results || []
+      } catch (error) {
+        // 静默处理
+      }
     },
-    handleSearch() { this.currentPage = 1; this.fetchQualityList() },
-    handleReset() {
-      this.filters = { inspection_number: '', product: '', inspection_type: '', result: '', status: '' }
+
+    // 搜索防抖处理
+    handleSearchDebounced() {
+      if (this.searchTimer) {
+        clearTimeout(this.searchTimer)
+      }
+      this.searchTimer = setTimeout(() => {
+        this.handleSearch()
+      }, 300)
+    },
+
+    handleSearch() {
       this.currentPage = 1
-      this.fetchQualityList()
+      this.loadData()
     },
-    handleSizeChange(size) { this.pageSize = size; this.currentPage = 1; this.fetchQualityList() },
-    handlePageChange(page) { this.currentPage = page; this.fetchQualityList() },
-    handleCreate() { this.$message.info('新建质检功能开发中') },
+
+    handleReset() {
+      this.filters = {
+        inspection_number: '',
+        product: '',
+        inspection_type: '',
+        result: '',
+        status: ''
+      }
+      this.currentPage = 1
+      this.loadData()
+    },
+
+    handleCreate() {
+      ErrorHandler.showInfo('新建质检功能开发中')
+    },
+
     async handleView(row) {
-      try { const response = await qualityInspectionAPI.getDetail(row.id); this.currentQuality = response; this.detailDialogVisible = true } catch (error) { this.$message.error('获取质检详情失败') }
+      try {
+        const response = await qualityInspectionAPI.getDetail(row.id)
+        this.currentQuality = response
+        this.detailDialogVisible = true
+      } catch (error) {
+        ErrorHandler.showMessage(error, '获取质检详情失败')
+      }
     },
+
     handleInspect(row) {
       this.currentQuality = row
-      this.inspectForm = { sample_quantity: row.sample_quantity || 0, qualified_quantity: row.qualified_quantity || 0, defective_quantity: row.defective_quantity || 0, result: row.result || 'passed', inspection_notes: row.inspection_notes || '' }
+      this.form = {
+        sample_quantity: row.sample_quantity || 0,
+        qualified_quantity: row.qualified_quantity || 0,
+        defective_quantity: row.defective_quantity || 0,
+        result: row.result || 'passed',
+        inspection_notes: row.inspection_notes || ''
+      }
       this.inspectDialogVisible = true
     },
-    handleSaveInspect() {
-      this.$refs.inspectFormRef.validate(async (valid) => {
+
+    async handleSaveInspect() {
+      this.$refs.formRef.validate(async (valid) => {
         if (!valid) return
-        try { await qualityInspectionAPI.update(this.currentQuality.id, this.inspectForm); this.$message.success('保存成功'); this.inspectDialogVisible = false; this.fetchQualityList() } catch (error) { this.$message.error('保存失败') }
+
+        this.submitting = true
+        try {
+          await qualityInspectionAPI.update(this.currentQuality.id, this.form)
+          ErrorHandler.showSuccess('保存成功')
+          this.inspectDialogVisible = false
+          this.loadData()
+          this.fetchStats()
+        } catch (error) {
+          ErrorHandler.showMessage(error, '保存失败')
+        } finally {
+          this.submitting = false
+        }
       })
     },
-    handleComplete(row) {
-      this.$confirm('确认完成该质检单？', '提示').then(async () => { try { await qualityInspectionAPI.complete(row.id, {}); this.$message.success('完成成功'); this.fetchQualityList() } catch (error) { this.$message.error('完成失败') } })
+
+    async handleComplete(row) {
+      try {
+        await ErrorHandler.confirm('确认完成该质检单？')
+        await qualityInspectionAPI.complete(row.id, {})
+        ErrorHandler.showSuccess('完成成功')
+        this.loadData()
+        this.fetchStats()
+      } catch (error) {
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '完成失败')
+        }
+      }
     },
-    handlePrint() { window.print() },
+
+    handlePrint() {
+      window.print()
+    },
+
     getDefectiveRateClass(row) {
       if (row.defective_rate === null) return ''
       if (row.defective_rate > 5) return 'high-defective'
       if (row.defective_rate > 2) return 'medium-defective'
       return ''
     },
-    getResultTagType(result) { const typeMap = { passed: 'success', failed: 'danger', conditional: 'warning' }; return typeMap[result] || '' },
-    getStatusType(status) { const typeMap = { pending: 'info', in_progress: 'warning', completed: 'success' }; return typeMap[status] || '' }
+
+    getResultTagType(result) {
+      const typeMap = {
+        passed: 'success',
+        failed: 'danger',
+        conditional: 'warning'
+      }
+      return typeMap[result] || ''
+    },
+
+    getStatusType(status) {
+      const typeMap = {
+        pending: 'info',
+        in_progress: 'warning',
+        completed: 'success'
+      }
+      return typeMap[status] || ''
+    }
   }
 }
 </script>
 
 <style scoped>
-.quality-container { padding: 20px; }
-.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.filter-section { margin-bottom: 20px; padding: 20px; background: #f5f5f5; border-radius: 4px; }
-.filter-form { margin-bottom: 0; }
-.table-section { background: #fff; border-radius: 4px; padding: 20px; }
-.inspection-data { margin-top: 20px; }
-.data-item { text-align: center; padding: 10px 0; }
-.data-label { font-size: 14px; color: #909399; margin-bottom: 8px; }
-.data-value { font-size: 24px; font-weight: bold; color: #303133; }
-.data-value.success { color: #67c23a; }
-.data-value.danger { color: #f56c6c; }
-.high-defective { color: #f56c6c; font-weight: bold; }
-.medium-defective { color: #e6a23c; font-weight: bold; }
+.quality-container {
+  padding: 20px;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.el-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.inspection-data {
+  margin-top: 20px;
+}
+
+.inspection-data h4 {
+  margin: 0 0 10px 0;
+  color: #303133;
+  font-size: 16px;
+}
+
+.data-item {
+  text-align: center;
+  padding: 10px 0;
+}
+
+.data-label {
+  font-size: 14px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+
+.data-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #303133;
+}
+
+.data-value.success {
+  color: #67c23a;
+}
+
+.data-value.danger {
+  color: #f56c6c;
+}
+
+.high-defective {
+  color: #f56c6c;
+  font-weight: bold;
+}
+
+.medium-defective {
+  color: #e6a23c;
+  font-weight: bold;
+}
 </style>
