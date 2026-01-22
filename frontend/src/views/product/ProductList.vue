@@ -30,6 +30,22 @@
       >
         <el-table-column prop="code" label="产品编码" width="120" />
         <el-table-column prop="name" label="产品名称" width="200" />
+        <el-table-column label="产品类型" width="120">
+          <template slot-scope="scope">
+            <el-tag
+              :type="scope.row.product_type === 'single' ? '' : (scope.row.product_type === 'group_main' ? 'warning' : 'info')"
+              size="small"
+            >
+              {{ scope.row.product_type_display || getProductTypeLabel(scope.row.product_type) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="所属产品组" width="150" show-overflow-tooltip>
+          <template slot-scope="scope">
+            <span v-if="scope.row.product_group_name">{{ scope.row.product_group_name }}</span>
+            <span v-else style="color: #909399;">-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="specification" label="规格" min-width="150" />
         <el-table-column
           prop="unit"
@@ -125,13 +141,14 @@
       :loading="formLoading"
       :materials="materialList"
       :processes="allProcesses"
+      :product-groups="productGroupList"
       @confirm="handleFormConfirm"
     />
   </div>
 </template>
 
 <script>
-import { productAPI, processAPI, materialAPI, productMaterialAPI } from '@/api/modules'
+import { productAPI, processAPI, materialAPI, productMaterialAPI, productGroupAPI } from '@/api/modules'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 import ErrorHandler from '@/utils/errorHandler'
@@ -159,13 +176,15 @@ export default {
 
       // 选项数据
       allProcesses: [],
-      materialList: []
+      materialList: [],
+      productGroupList: []
     }
   },
   created() {
     this.loadData()
     this.loadAllProcesses()
     this.loadMaterialList()
+    this.loadProductGroupList()
   },
   methods: {
     // 实现 fetchData 方法（listPageMixin 要求）
@@ -216,6 +235,15 @@ export default {
         this.materialList = response.results || []
       } catch (error) {
         ErrorHandler.showMessage(error, '加载物料列表')
+      }
+    },
+
+    async loadProductGroupList() {
+      try {
+        const response = await productGroupAPI.getList({ page_size: 100, is_active: true })
+        this.productGroupList = response.results || []
+      } catch (error) {
+        ErrorHandler.showMessage(error, '加载产品组列表')
       }
     },
 
@@ -314,6 +342,15 @@ export default {
           }
         }
       }
+    },
+
+    getProductTypeLabel(type) {
+      const labels = {
+        single: '单品',
+        group_main: '套装主产品',
+        group_item: '套装子产品'
+      }
+      return labels[type] || '未知'
     }
   }
 }

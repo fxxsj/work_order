@@ -21,6 +21,47 @@
       <el-form-item label="产品名称" prop="name">
         <el-input v-model="form.name" placeholder="请输入产品名称" />
       </el-form-item>
+      <el-form-item label="产品类型" prop="product_type">
+        <el-select
+          v-model="form.product_type"
+          placeholder="请选择产品类型"
+          style="width: 100%;"
+          @change="handleProductTypeChange"
+        >
+          <el-option label="单品" value="single">
+            <span>单品</span>
+            <span style="color: #909399; font-size: 12px; margin-left: 8px;">独立产品，可单独销售</span>
+          </el-option>
+          <el-option label="套装主产品" value="group_main">
+            <span>套装主产品</span>
+            <span style="color: #909399; font-size: 12px; margin-left: 8px;">用于销售下单</span>
+          </el-option>
+          <el-option label="套装子产品" value="group_item">
+            <span>套装子产品</span>
+            <span style="color: #909399; font-size: 12px; margin-left: 8px;">用于生产制造</span>
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item
+        v-if="form.product_type !== 'single'"
+        label="所属产品组"
+        prop="product_group"
+        :rules="form.product_type !== 'single' ? [{ required: true, message: '请选择产品组', trigger: 'change' }] : []"
+      >
+        <el-select
+          v-model="form.product_group"
+          placeholder="请选择产品组"
+          filterable
+          style="width: 100%;"
+        >
+          <el-option
+            v-for="group in productGroups"
+            :key="group.id"
+            :label="`${group.code} - ${group.name}`"
+            :value="group.id"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item label="规格" prop="specification">
         <el-input v-model="form.specification" placeholder="请输入产品规格" />
       </el-form-item>
@@ -173,6 +214,8 @@
 const FORM_INITIAL = {
   code: '',
   name: '',
+  product_type: 'single',
+  product_group: null,
   specification: '',
   unit: '件',
   unit_price: 0,
@@ -207,6 +250,10 @@ export default {
       default: () => []
     },
     processes: {
+      type: Array,
+      default: () => []
+    },
+    productGroups: {
       type: Array,
       default: () => []
     }
@@ -268,6 +315,8 @@ export default {
       this.form = {
         code: this.product.code || '',
         name: this.product.name || '',
+        product_type: this.product.product_type || 'single',
+        product_group: this.product.product_group || null,
         specification: this.product.specification || '',
         unit: this.product.unit || '件',
         unit_price: parseFloat(this.product.unit_price) || 0,
@@ -303,6 +352,12 @@ export default {
       this.$nextTick(() => {
         this.$refs.formRef?.clearValidate()
       })
+    },
+    handleProductTypeChange(value) {
+      // 当切换为单品时，清空产品组
+      if (value === 'single') {
+        this.form.product_group = null
+      }
     },
     addMaterialItem() {
       this.materialItems.push({
