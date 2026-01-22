@@ -1,63 +1,196 @@
 <template>
   <div class="delivery-container">
-    <!-- 页面头部 -->
-    <div class="header">
-      <h2>发货管理</h2>
-      <div class="actions">
-        <el-button type="primary" icon="el-icon-plus" @click="handleCreate">
-          新建发货单
-        </el-button>
-        <el-button icon="el-icon-refresh" @click="fetchDeliveryOrders">
-          刷新
-        </el-button>
+    <!-- 统计卡片（与 TaskStats 样式一致） -->
+    <delivery-stats :stats="stats" :loading="statsLoading" />
+
+    <!-- 主内容卡片 -->
+    <el-card>
+      <!-- 头部搜索栏（与 Board.vue 一致） -->
+      <div class="header-section">
+        <div class="filter-group">
+          <el-select
+            v-model="filters.customer"
+            placeholder="选择客户"
+            clearable
+            filterable
+            style="width: 160px; margin-right: 10px;"
+            @change="handleSearch"
+          >
+            <el-option
+              v-for="customer in customerList"
+              :key="customer.id"
+              :label="customer.name"
+              :value="customer.id"
+            />
+          </el-select>
+          <el-select
+            v-model="filters.status"
+            placeholder="发货状态"
+            clearable
+            style="width: 120px; margin-right: 10px;"
+            @change="handleSearch"
+          >
+            <el-option label="待发货" value="pending" />
+            <el-option label="已发货" value="shipped" />
+            <el-option label="运输中" value="in_transit" />
+            <el-option label="已签收" value="received" />
+            <el-option label="拒收" value="rejected" />
+            <el-option label="已退货" value="returned" />
+          </el-select>
+          <el-input
+            v-model="filters.tracking_number"
+            placeholder="搜索物流单号"
+            style="width: 200px;"
+            clearable
+            @input="handleSearchDebounced"
+            @clear="handleSearch"
+          >
+            <el-button slot="append" icon="el-icon-search" @click="handleSearch" />
+          </el-input>
+        </div>
+        <div class="action-group">
+          <el-button
+            :loading="loading"
+            icon="el-icon-refresh"
+            @click="loadData"
+          >
+            刷新
+          </el-button>
+          <el-button
+            v-if="canCreate()"
+            type="primary"
+            icon="el-icon-plus"
+            @click="handleCreate"
+          >
+            新建发货单
+          </el-button>
+        </div>
       </div>
-    </div>
 
-    <!-- 搜索和过滤 -->
-    <DeliveryFilters
-      v-model="filters"
-      :customer-list="customerList"
-      @search="handleSearch"
-      @reset="handleReset"
-    />
+      <!-- 数据表格 -->
+      <el-table
+        v-if="tableData.length > 0"
+        v-loading="loading"
+        :data="tableData"
+        border
+        style="width: 100%; margin-top: 20px;"
+      >
+        <el-table-column prop="order_number" label="发货单号" width="150" />
+        <el-table-column prop="customer_name" label="客户名称" width="150" />
+        <el-table-column prop="sales_order_number" label="销售订单" width="150" />
+        <el-table-column prop="receiver_name" label="收货人" width="100" />
+        <el-table-column prop="receiver_phone" label="联系电话" width="120" />
+        <el-table-column
+          prop="delivery_address"
+          label="送货地址"
+          show-overflow-tooltip
+          min-width="150"
+        />
+        <el-table-column prop="logistics_company" label="物流公司" width="120" />
+        <el-table-column prop="tracking_number" label="物流单号" width="150">
+          <template slot-scope="scope">
+            <el-link
+              v-if="scope.row.tracking_number"
+              :href="getTrackingUrl(scope.row)"
+              target="_blank"
+            >
+              {{ scope.row.tracking_number }}
+            </el-link>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="delivery_date" label="发货日期" width="120" />
+        <el-table-column label="状态" width="100">
+          <template slot-scope="scope">
+            <el-tag :type="getStatusType(scope.row.status)">
+              {{ scope.row.status_display }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="200" fixed="right">
+          <template slot-scope="scope">
+            <el-button type="text" size="small" @click="handleView(scope.row)">
+              查看
+            </el-button>
+            <el-button
+              v-if="canEdit() && scope.row.status === 'pending'"
+              type="text"
+              size="small"
+              @click="handleEdit(scope.row)"
+            >
+              编辑
+            </el-button>
+            <el-button
+              v-if="canEdit() && scope.row.status === 'pending'"
+              type="text"
+              size="small"
+              style="color: #E6A23C;"
+              @click="handleShip(scope.row)"
+            >
+              发货
+            </el-button>
+            <el-button
+              v-if="canEdit() && (scope.row.status === 'shipped' || scope.row.status === 'in_transit')"
+              type="text"
+              size="small"
+              style="color: #67C23A;"
+              @click="handleReceive(scope.row)"
+            >
+              签收
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
 
-    <!-- 数据表格 -->
-    <DeliveryTable
-      :loading="loading"
-      :data="deliveryList"
-      :pagination="pagination"
-      @view="handleView"
-      @edit="handleEdit"
-      @ship="handleShip"
-      @receive="handleReceive"
-      @size-change="handleSizeChange"
-      @page-change="handleCurrentChange"
-    />
+      <!-- 分页 -->
+      <Pagination
+        v-if="total > 0"
+        :current-page="currentPage"
+        :page-size="pageSize"
+        :total="total"
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"
+      />
+
+      <!-- 空状态 -->
+      <el-empty
+        v-if="!loading && tableData.length === 0"
+        description="暂无发货单数据"
+        :image-size="200"
+        style="margin-top: 50px;"
+      >
+        <el-button v-if="hasFilters" type="primary" @click="handleReset">
+          重置筛选
+        </el-button>
+        <el-button v-else-if="canCreate()" type="primary" @click="handleCreate">
+          创建第一个发货单
+        </el-button>
+      </el-empty>
+    </el-card>
 
     <!-- 发货详情对话框 -->
     <DeliveryDetailDialog
-      :visible="detailDialogVisible"
+      :visible.sync="detailDialogVisible"
       :data="currentDelivery"
-      @close="detailDialogVisible = false"
     />
 
     <!-- 签收对话框 -->
     <DeliveryReceiveDialog
-      :visible="receiveDialogVisible"
-      @close="receiveDialogVisible = false"
+      :visible.sync="receiveDialogVisible"
+      :delivery="currentDelivery"
+      :loading="receiving"
       @confirm="handleConfirmReceive"
     />
 
     <!-- 新建/编辑发货单对话框 -->
     <DeliveryFormDialog
-      :visible="formDialogVisible"
+      :visible.sync="formDialogVisible"
       :is-edit="isEdit"
       :submitting="submitting"
       :form="form"
       :customer-list="customerList"
       :sales-order-list="salesOrderList"
       :product-list="productList"
-      @close="formDialogVisible = false"
       @submit="handleSubmit"
       @sales-order-change="handleSalesOrderChange"
       @customer-change="handleCustomerChange"
@@ -66,116 +199,139 @@
 </template>
 
 <script>
-import { deliveryOrderAPI, productStockAPI, salesOrderAPI } from '@/api/modules'
-import { getCustomerList } from '@/api/purchase'
-import { productAPI } from '@/api/workorder'
-import DeliveryFilters from './components/DeliveryFilters.vue'
-import DeliveryTable from './components/DeliveryTable.vue'
+import { deliveryOrderAPI, productStockAPI, salesOrderAPI, customerAPI } from '@/api/modules'
+import { productAPI } from '@/api/modules'
+import DeliveryStats from './components/DeliveryStats.vue'
+import Pagination from '@/components/common/Pagination.vue'
 import DeliveryDetailDialog from './components/DeliveryDetailDialog.vue'
 import DeliveryReceiveDialog from './components/DeliveryReceiveDialog.vue'
 import DeliveryFormDialog from './components/DeliveryFormDialog.vue'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
+import ErrorHandler from '@/utils/errorHandler'
+
+// 表单初始值常量
+const FORM_INITIAL = {
+  id: null,
+  sales_order: null,
+  customer: null,
+  delivery_date: '',
+  receiver_name: '',
+  receiver_phone: '',
+  delivery_address: '',
+  logistics_company: '',
+  tracking_number: '',
+  freight: 0,
+  package_count: 1,
+  package_weight: '',
+  notes: '',
+  items_data: []
+}
 
 export default {
   name: 'DeliveryList',
   components: {
-    DeliveryFilters,
-    DeliveryTable,
+    DeliveryStats,
+    Pagination,
     DeliveryDetailDialog,
     DeliveryReceiveDialog,
     DeliveryFormDialog
   },
   mixins: [listPageMixin, crudPermissionMixin],
+
   data() {
     return {
       // API 服务和权限配置
       apiService: deliveryOrderAPI,
       permissionPrefix: 'deliveryorder',
 
-      loading: false,
-      deliveryList: [],
+      // 页面状态
+      statsLoading: false,
+      submitting: false,
+      receiving: false,
+
+      // 数据
       customerList: [],
       salesOrderList: [],
       productList: [],
       stockList: [],
       currentDelivery: null,
+      stats: {},
+
+      // 对话框
       detailDialogVisible: false,
       formDialogVisible: false,
       receiveDialogVisible: false,
       isEdit: false,
-      submitting: false,
-      form: {
-        id: null,
-        sales_order: null,
-        customer: null,
-        delivery_date: '',
-        receiver_name: '',
-        receiver_phone: '',
-        delivery_address: '',
-        logistics_company: '',
-        tracking_number: '',
-        freight: 0,
-        package_count: 1,
-        package_weight: '',
-        notes: '',
-        items_data: []
-      },
+
+      // 表单数据
+      form: { ...FORM_INITIAL },
+
+      // 筛选条件
       filters: {
         status: '',
         customer: '',
         tracking_number: ''
-      }
+      },
+
+      // 搜索防抖定时器
+      searchTimer: null
     }
   },
+
+  computed: {
+    hasFilters() {
+      return this.filters.status || this.filters.customer || this.filters.tracking_number
+    }
+  },
+
   created() {
-    this.fetchDeliveryOrders()
+    this.loadData()
+    this.fetchStats()
     this.fetchCustomers()
     this.fetchSalesOrders()
     this.fetchProducts()
     this.fetchStocks()
   },
+
   methods: {
     // 实现 fetchData 方法（listPageMixin 要求）
     async fetchData() {
       const params = {
         page: this.currentPage,
-        page_size: this.pageSize
+        page_size: this.pageSize,
+        ...(this.filters.status && { status: this.filters.status }),
+        ...(this.filters.customer && { customer: this.filters.customer }),
+        ...(this.filters.tracking_number && { tracking_number: this.filters.tracking_number })
       }
-      if (this.filters.status) params.status = this.filters.status
-      if (this.filters.customer) params.customer = this.filters.customer
-      if (this.filters.tracking_number) params.tracking_number = this.filters.tracking_number
       return await this.apiService.getList(params)
     },
 
-    async fetchDeliveryOrders() {
-      this.loading = true
+    async fetchStats() {
+      this.statsLoading = true
       try {
-        const response = await this.fetchData()
-        this.deliveryList = response.results || []
-        this.total = response.count || 0
+        // 基于本地数据计算统计
+        const response = await this.apiService.getList({ page_size: 1000 })
+        const list = response.results || []
+        this.stats = {
+          total: list.length,
+          pending: list.filter(d => d.status === 'pending').length,
+          in_transit: list.filter(d => d.status === 'shipped' || d.status === 'in_transit').length,
+          received: list.filter(d => d.status === 'received').length
+        }
       } catch (error) {
-        let errorMessage = '获取发货单列表失败'
-        if (error.response) {
-          const status = error.response.status
-          if (status === 401) errorMessage = '登录已过期，请重新登录'
-          else if (status === 403) errorMessage = '您没有权限访问此功能'
-          else if (status >= 500) errorMessage = '服务器错误，请稍后重试'
-          else if (error.response.data?.detail) errorMessage = `获取发货单列表失败: ${error.response.data.detail}`
-        } else if (error.message) errorMessage = `网络错误: ${error.message}`
-        this.$message.error(errorMessage)
-        console.error('获取发货单列表失败:', error)
+        this.stats = {}
       } finally {
-        this.loading = false
+        this.statsLoading = false
       }
     },
 
     async fetchCustomers() {
       try {
-        const response = await getCustomerList({ page_size: 1000 })
+        const response = await customerAPI.getList({ page_size: 1000 })
         this.customerList = response.results || []
       } catch (error) {
-        console.error('获取客户列表失败', error)
+        // 静默处理
       }
     },
 
@@ -184,7 +340,7 @@ export default {
         const response = await salesOrderAPI.getList({ status: 'approved', page_size: 1000 })
         this.salesOrderList = response.results || []
       } catch (error) {
-        console.error('获取销售订单列表失败', error)
+        // 静默处理
       }
     },
 
@@ -193,7 +349,7 @@ export default {
         const response = await productAPI.getList({ page_size: 1000 })
         this.productList = response.results || []
       } catch (error) {
-        console.error('获取产品列表失败', error)
+        // 静默处理
       }
     },
 
@@ -202,19 +358,29 @@ export default {
         const response = await productStockAPI.getList({ page_size: 1000 })
         this.stockList = response.results || []
       } catch (error) {
-        console.error('获取库存列表失败', error)
+        // 静默处理
       }
+    },
+
+    // 搜索防抖处理
+    handleSearchDebounced() {
+      if (this.searchTimer) {
+        clearTimeout(this.searchTimer)
+      }
+      this.searchTimer = setTimeout(() => {
+        this.handleSearch()
+      }, 300)
     },
 
     handleSearch() {
       this.currentPage = 1
-      this.fetchDeliveryOrders()
+      this.loadData()
     },
 
     handleReset() {
       this.filters = { status: '', customer: '', tracking_number: '' }
       this.currentPage = 1
-      this.fetchDeliveryOrders()
+      this.loadData()
     },
 
     handleView(row) {
@@ -256,22 +422,7 @@ export default {
     },
 
     resetForm() {
-      this.form = {
-        id: null,
-        sales_order: null,
-        customer: null,
-        delivery_date: '',
-        receiver_name: '',
-        receiver_phone: '',
-        delivery_address: '',
-        logistics_company: '',
-        tracking_number: '',
-        freight: 0,
-        package_count: 1,
-        package_weight: '',
-        notes: '',
-        items_data: []
-      }
+      this.form = { ...FORM_INITIAL, items_data: [] }
     },
 
     async handleSalesOrderChange(value) {
@@ -304,76 +455,74 @@ export default {
 
         if (this.isEdit) {
           await deliveryOrderAPI.update(this.form.id, data)
-          this.$message.success('发货单更新成功')
+          ErrorHandler.showSuccess('发货单更新成功')
         } else {
           await deliveryOrderAPI.create(data)
-          this.$message.success('发货单创建成功')
+          ErrorHandler.showSuccess('发货单创建成功')
         }
 
         this.formDialogVisible = false
-        this.fetchDeliveryOrders()
+        this.loadData()
+        this.fetchStats()
       } catch (error) {
-        let errorMessage = this.isEdit ? '更新发货单失败' : '创建发货单失败'
-        if (error.response?.data) {
-          const errors = error.response.data
-          if (typeof errors === 'string') errorMessage = errors
-          else if (errors.detail) errorMessage = errors.detail
-          else {
-            const errorFields = Object.keys(errors)
-            if (errorFields.length > 0) {
-              const firstError = errorFields[0]
-              errorMessage = `${firstError}: ${Array.isArray(errors[firstError]) ? errors[firstError][0] : errors[firstError]}`
-            }
-          }
-        } else if (error.message) errorMessage = `网络错误: ${error.message}`
-        this.$message.error(errorMessage)
-        console.error('提交失败:', error)
+        ErrorHandler.showMessage(error, this.isEdit ? '更新发货单失败' : '创建发货单失败')
       } finally {
         this.submitting = false
       }
     },
 
-    handleShip(row) {
-      this.$confirm('确认发货该订单？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消'
-      }).then(async () => {
-        try {
-          await deliveryOrderAPI.ship(row.id, {})
-          this.$message.success('发货成功')
-          this.fetchDeliveryOrders()
-        } catch (error) {
-          this.$message.error('发货失败')
-          console.error(error)
-        }
-      })
-    },
-
-    handleReceive() {
-      this.receiveDialogVisible = true
-    },
-
-    async handleConfirmReceive(form) {
+    async handleShip(row) {
       try {
-        await deliveryOrderAPI.receive(form.delivery_id, form)
-        this.$message.success('签收成功')
-        this.receiveDialogVisible = false
-        this.fetchDeliveryOrders()
+        await ErrorHandler.confirm('确认发货该订单？')
+        await deliveryOrderAPI.ship(row.id, {})
+        ErrorHandler.showSuccess('发货成功')
+        this.loadData()
+        this.fetchStats()
       } catch (error) {
-        this.$message.error('签收失败')
-        console.error(error)
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '发货失败')
+        }
       }
     },
 
-    handleSizeChange(val) {
-      this.pageSize = val
-      this.currentPage = 1
-      this.fetchDeliveryOrders()
+    handleReceive(row) {
+      this.currentDelivery = row
+      this.receiveDialogVisible = true
     },
 
-    handleCurrentChange(val) {
-      this.currentPage = val
-      this.fetchDeliveryOrders()
+    async handleConfirmReceive(formData) {
+      this.receiving = true
+      try {
+        await deliveryOrderAPI.receive(this.currentDelivery.id, formData)
+        ErrorHandler.showSuccess('签收成功')
+        this.receiveDialogVisible = false
+        this.loadData()
+        this.fetchStats()
+      } catch (error) {
+        ErrorHandler.showMessage(error, '签收失败')
+      } finally {
+        this.receiving = false
+      }
+    },
+
+    getStatusType(status) {
+      const typeMap = {
+        pending: 'info',
+        shipped: 'warning',
+        in_transit: 'primary',
+        received: 'success',
+        rejected: 'danger',
+        returned: 'info'
+      }
+      return typeMap[status] || ''
+    },
+
+    getTrackingUrl(delivery) {
+      // 可以根据物流公司返回不同的查询链接
+      if (delivery.logistics_company && delivery.tracking_number) {
+        return `https://www.kuaidi100.com/chaxun?com=${delivery.logistics_company}&nu=${delivery.tracking_number}`
+      }
+      return '#'
     }
   }
 }
@@ -384,10 +533,29 @@ export default {
   padding: 20px;
 }
 
-.header {
+.header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.el-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
 </style>

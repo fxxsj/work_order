@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    :visible="localVisible"
+    :visible.sync="dialogVisible"
     :title="isEdit ? '编辑发货单' : '新建发货单'"
     width="900px"
     :close-on-click-modal="false"
@@ -10,7 +10,7 @@
       ref="formRef"
       :model="localForm"
       :rules="rules"
-      label-width="120px"
+      label-width="100px"
     >
       <h4 class="form-section-title">
         基本信息
@@ -137,7 +137,7 @@
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="总重量（kg）">
+          <el-form-item label="总重量(kg)">
             <el-input-number
               v-model="localForm.package_weight"
               :precision="2"
@@ -230,7 +230,7 @@
       </el-form-item>
     </el-form>
 
-    <template #footer>
+    <template slot="footer">
       <el-button @click="handleClose">
         取消
       </el-button>
@@ -242,12 +242,33 @@
 </template>
 
 <script>
+import ErrorHandler from '@/utils/errorHandler'
+
+// 明细项初始值
+const ITEM_INITIAL = {
+  product: null,
+  quantity: 1,
+  unit: '件',
+  unit_price: 0,
+  notes: ''
+}
+
 export default {
   name: 'DeliveryFormDialog',
+
   props: {
-    visible: Boolean,
-    isEdit: Boolean,
-    submitting: Boolean,
+    visible: {
+      type: Boolean,
+      default: false
+    },
+    isEdit: {
+      type: Boolean,
+      default: false
+    },
+    submitting: {
+      type: Boolean,
+      default: false
+    },
     form: {
       type: Object,
       default: () => ({})
@@ -265,6 +286,7 @@ export default {
       default: () => []
     }
   },
+
   data() {
     return {
       rules: {
@@ -284,57 +306,89 @@ export default {
       }
     }
   },
+
   computed: {
-    localVisible: {
-      get() { return this.visible },
-      set() { this.$emit('close') }
+    dialogVisible: {
+      get() {
+        return this.visible
+      },
+      set(val) {
+        this.$emit('update:visible', val)
+      }
     },
     localForm: {
-      get() { return this.form },
-      set() {} // Ignore setter
+      get() {
+        return this.form
+      },
+      set() {
+        // Ignore setter
+      }
     }
   },
+
+  watch: {
+    visible(val) {
+      if (val) {
+        this.$nextTick(() => {
+          if (this.$refs.formRef) {
+            this.$refs.formRef.clearValidate()
+          }
+        })
+      }
+    }
+  },
+
   methods: {
     handleClose() {
-      this.$emit('close')
+      this.dialogVisible = false
     },
+
     handleSalesOrderChange(value) {
       this.$emit('sales-order-change', value)
     },
+
     handleCustomerChange(value) {
       this.$emit('customer-change', value)
     },
+
     addItem() {
-      this.$emit('add-item')
+      if (!this.localForm.items_data) {
+        this.$set(this.localForm, 'items_data', [])
+      }
+      this.localForm.items_data.push({ ...ITEM_INITIAL })
     },
+
     removeItem(index) {
       this.localForm.items_data.splice(index, 1)
     },
+
     calculateSubtotal(item) {
       return (item.quantity || 0) * (item.unit_price || 0)
     },
+
     validateItems() {
-      if (this.localForm.items_data.length === 0) {
-        this.$message.warning('请至少添加一条发货明细')
+      if (!this.localForm.items_data || this.localForm.items_data.length === 0) {
+        ErrorHandler.showWarning('请至少添加一条发货明细')
         return false
       }
       for (let i = 0; i < this.localForm.items_data.length; i++) {
         const item = this.localForm.items_data[i]
         if (!item.product) {
-          this.$message.error(`第${i + 1}行：请选择产品`)
+          ErrorHandler.showError(`第${i + 1}行：请选择产品`)
           return false
         }
         if (!item.quantity || item.quantity <= 0) {
-          this.$message.error(`第${i + 1}行：请输入有效的发货数量`)
+          ErrorHandler.showError(`第${i + 1}行：请输入有效的发货数量`)
           return false
         }
-        if (!item.unit_price || item.unit_price < 0) {
-          this.$message.error(`第${i + 1}行：请输入有效的单价`)
+        if (item.unit_price === null || item.unit_price === undefined || item.unit_price < 0) {
+          ErrorHandler.showError(`第${i + 1}行：请输入有效的单价`)
           return false
         }
       }
       return true
     },
+
     handleSubmit() {
       this.$refs.formRef.validate((valid) => {
         if (!valid) return
