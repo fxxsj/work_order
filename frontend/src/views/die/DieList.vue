@@ -55,8 +55,18 @@
       >
         <el-table-column prop="code" label="刀模编码" width="150" />
         <el-table-column prop="name" label="刀模名称" width="200" />
-        <el-table-column prop="size" label="尺寸" width="180" />
-        <el-table-column prop="material" label="材质" width="120" />
+        <el-table-column label="刀模类型" width="120">
+          <template slot-scope="scope">
+            <el-tag
+              :type="getDieTypeTagType(scope.row.die_type)"
+              size="small"
+            >
+              {{ scope.row.die_type_display || getDieTypeLabel(scope.row.die_type) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="size" label="尺寸" width="150" />
+        <el-table-column prop="material" label="材质" width="100" />
         <el-table-column prop="thickness" label="厚度" width="100" />
         <el-table-column label="确认状态" width="120">
           <template slot-scope="scope">
@@ -68,14 +78,16 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="包含产品" min-width="200">
+        <el-table-column label="包含产品" min-width="250">
           <template slot-scope="scope">
             <el-tag
               v-for="product in scope.row.products"
               :key="product.id"
+              :type="product.relation_type === 'imposition' ? 'warning' : ''"
               style="margin-right: 5px; margin-bottom: 5px;"
             >
-              {{ product.product_name }} ({{ product.quantity }}个)
+              {{ product.product_name }} ({{ product.quantity }}拼)
+              <span v-if="product.relation_type === 'imposition'" style="font-size: 10px;">拼</span>
             </el-tag>
             <span v-if="!scope.row.products || scope.row.products.length === 0" style="color: #909399;">-</span>
           </template>
@@ -268,6 +280,26 @@ export default {
       } catch (error) {
         ErrorHandler.showMessage(error, '删除刀模')
       }
+    },
+
+    // 获取刀模类型标签类型
+    getDieTypeTagType(dieType) {
+      const typeMap = {
+        combined: 'warning',
+        dedicated: 'primary',
+        universal: 'success'
+      }
+      return typeMap[dieType] || 'info'
+    },
+
+    // 获取刀模类型显示文本
+    getDieTypeLabel(dieType) {
+      const labelMap = {
+        combined: '拼版刀模',
+        dedicated: '专用刀模',
+        universal: '通用刀模'
+      }
+      return labelMap[dieType] || dieType
     }
   }
 }

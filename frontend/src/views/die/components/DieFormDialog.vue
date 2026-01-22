@@ -30,6 +30,27 @@
           :disabled="isEdit && initialData && initialData.confirmed"
         />
       </el-form-item>
+      <el-form-item label="刀模类型" prop="die_type">
+        <el-select
+          v-model="form.die_type"
+          placeholder="请选择刀模类型"
+          style="width: 100%;"
+          :disabled="isEdit && initialData && initialData.confirmed"
+        >
+          <el-option
+            v-for="option in dieTypeOptions"
+            :key="option.value"
+            :label="option.label"
+            :value="option.value"
+          >
+            <span>{{ option.label }}</span>
+            <span style="float: right; color: #8492a6; font-size: 12px;">{{ option.description }}</span>
+          </el-option>
+        </el-select>
+        <div style="font-size: 12px; color: #909399; margin-top: 5px;">
+          拼版刀模：多产品同时切割 | 专用刀模：单产品专用 | 通用刀模：多产品可共用
+        </div>
+      </el-form-item>
       <el-row :gutter="20">
         <el-col :span="12">
           <el-form-item label="尺寸" prop="size">
@@ -67,17 +88,21 @@
           type="primary"
           size="small"
           icon="el-icon-plus"
+          :disabled="!canAddMoreProducts"
           @click="addProductItem"
         >
           添加产品
         </el-button>
+        <div style="font-size: 12px; color: #909399; margin-top: 5px;">
+          {{ productListHint }}
+        </div>
         <div style="margin-top: 15px;">
           <el-table
             :data="productItems"
             border
             style="width: 100%"
           >
-            <el-table-column label="产品名称" width="250">
+            <el-table-column label="产品名称" min-width="250">
               <template slot-scope="scope">
                 <el-select
                   v-model="scope.row.product"
@@ -94,7 +119,7 @@
                 </el-select>
               </template>
             </el-table-column>
-            <el-table-column label="数量" width="150">
+            <el-table-column label="拼版个数" width="120">
               <template slot-scope="scope">
                 <el-input-number
                   v-model="scope.row.quantity"
@@ -104,7 +129,7 @@
                 />
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="100" align="center">
+            <el-table-column label="操作" width="80" align="center">
               <template slot-scope="scope">
                 <el-button
                   type="danger"
@@ -143,11 +168,19 @@
 const FORM_INITIAL_VALUES = {
   code: '',
   name: '',
+  die_type: 'dedicated',
   size: '',
   material: '',
   thickness: '',
   notes: ''
 }
+
+// 刀模类型选项
+const DIE_TYPE_OPTIONS = [
+  { value: 'combined', label: '拼版刀模', description: '多产品同时切割，一次模切产出多种产品' },
+  { value: 'dedicated', label: '专用刀模', description: '单产品专用，只能切割一种产品' },
+  { value: 'universal', label: '通用刀模', description: '多产品可共用，但每次只切一种产品' }
+]
 
 export default {
   name: 'DieFormDialog',
@@ -178,6 +211,7 @@ export default {
     return {
       form: { ...FORM_INITIAL_VALUES },
       productItems: [],
+      dieTypeOptions: DIE_TYPE_OPTIONS,
       rules: {
         name: [
           { required: true, message: '请输入刀模名称', trigger: 'blur' },
@@ -185,6 +219,9 @@ export default {
         ],
         code: [
           { max: 50, message: '刀模编码不能超过50个字符', trigger: 'blur' }
+        ],
+        die_type: [
+          { required: true, message: '请选择刀模类型', trigger: 'change' }
         ],
         size: [
           { max: 100, message: '尺寸不能超过100个字符', trigger: 'blur' }
@@ -212,12 +249,42 @@ export default {
     },
     isEdit() {
       return this.dialogType === 'edit'
+    },
+    // 是否可以添加多个产品（专用刀模只能添加1个产品）
+    canAddMoreProducts() {
+      if (this.form.die_type === 'dedicated') {
+        return this.productItems.length < 1
+      }
+      return true
+    },
+    // 产品列表提示文字
+    productListHint() {
+      const hints = {
+        combined: '拼版刀模：可添加多个产品，一次模切同时产出所有产品',
+        dedicated: '专用刀模：只能添加1个产品，此刀模专属该产品使用',
+        universal: '通用刀模：可添加多个产品，每次模切只产出其中一种'
+      }
+      return hints[this.form.die_type] || ''
     }
   },
   watch: {
     visible(val) {
       if (val) {
         this.initForm()
+      }
+    },
+    // 监听刀模类型变化，专用刀模时只保留第一个产品
+    'form.die_type'(newType) {
+      if (newType === 'dedicated' && this.productItems.length > 1) {
+        this.$confirm('专用刀模只能关联1个产品，是否只保留第一个产品？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.productItems = this.productItems.slice(0, 1)
+        }).catch(() => {
+          // 用户取消，恢复为之前的类型不做处理
+        })
       }
     }
   },
@@ -227,6 +294,7 @@ export default {
         this.form = {
           code: this.initialData.code || '',
           name: this.initialData.name || '',
+          die_type: this.initialData.die_type || 'dedicated',
           size: this.initialData.size || '',
           material: this.initialData.material || '',
           thickness: this.initialData.thickness || '',
@@ -258,6 +326,11 @@ export default {
     },
 
     addProductItem() {
+      // 专用刀模只能添加1个产品
+      if (!this.canAddMoreProducts) {
+        this.$message.warning('专用刀模只能添加1个产品')
+        return
+      }
       this.productItems.push({
         product: null,
         quantity: 1,
@@ -282,11 +355,16 @@ export default {
           delete data.code
         }
 
+        // 根据刀模类型自动设置关联类型
+        // 拼版刀模 -> imposition，其他 -> exclusive
+        const relationTypeByDieType = this.form.die_type === 'combined' ? 'imposition' : 'exclusive'
+
         const productsData = this.productItems
           .filter(item => item.product)
           .map(item => ({
             product: item.product,
-            quantity: item.quantity || 1
+            quantity: item.quantity || 1,
+            relation_type: relationTypeByDieType
           }))
 
         data.products_data = productsData
