@@ -1,34 +1,17 @@
 <template>
-  <el-row :gutter="20" class="invoice-stats">
+  <el-row :gutter="20" class="payment-stats">
     <el-col :span="6">
       <el-card class="stat-card" :class="{ 'is-loading': loading }">
         <div class="stat-content">
           <div class="stat-icon" style="background-color: #409EFF;">
-            <i class="el-icon-document"></i>
+            <i class="el-icon-money"></i>
           </div>
           <div class="stat-info">
             <div class="stat-value">
-              {{ stats.total_count || 0 }}
+              ¥{{ formatAmount(stats.total_amount) }}
             </div>
             <div class="stat-label">
-              发票总数
-            </div>
-          </div>
-        </div>
-      </el-card>
-    </el-col>
-    <el-col :span="6">
-      <el-card class="stat-card" :class="{ 'is-loading': loading }">
-        <div class="stat-content">
-          <div class="stat-icon" style="background-color: #E6A23C;">
-            <i class="el-icon-edit-outline"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">
-              {{ stats.draft_count || 0 }}
-            </div>
-            <div class="stat-label">
-              待开具
+              总收款金额
             </div>
           </div>
         </div>
@@ -42,10 +25,27 @@
           </div>
           <div class="stat-info">
             <div class="stat-value">
-              ¥{{ formatAmount(stats.received_amount) }}
+              ¥{{ formatAmount(stats.applied_amount) }}
             </div>
             <div class="stat-label">
-              已收款
+              已核销金额
+            </div>
+          </div>
+        </div>
+      </el-card>
+    </el-col>
+    <el-col :span="6">
+      <el-card class="stat-card" :class="{ 'is-loading': loading }">
+        <div class="stat-content">
+          <div class="stat-icon" style="background-color: #E6A23C;">
+            <i class="el-icon-time"></i>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">
+              ¥{{ formatAmount(stats.unapplied_amount) }}
+            </div>
+            <div class="stat-label">
+              未核销金额
             </div>
           </div>
         </div>
@@ -55,14 +55,14 @@
       <el-card class="stat-card" :class="{ 'is-loading': loading }">
         <div class="stat-content">
           <div class="stat-icon" style="background-color: #909399;">
-            <i class="el-icon-time"></i>
+            <i class="el-icon-document"></i>
           </div>
           <div class="stat-info">
             <div class="stat-value">
-              ¥{{ formatAmount(stats.pending_amount) }}
+              {{ stats.total_count || 0 }}
             </div>
             <div class="stat-label">
-              待收款
+              收款笔数
             </div>
           </div>
         </div>
@@ -73,15 +73,15 @@
 
 <script>
 export default {
-  name: 'InvoiceStats',
+  name: 'PaymentStats',
   props: {
     stats: {
       type: Object,
       default: () => ({
-        total_count: 0,
-        draft_count: 0,
-        received_amount: 0,
-        pending_amount: 0
+        total_amount: 0,
+        applied_amount: 0,
+        unapplied_amount: 0,
+        total_count: 0
       })
     },
     loading: {
@@ -102,7 +102,7 @@ export default {
 </script>
 
 <style scoped>
-.invoice-stats {
+.payment-stats {
   margin-bottom: 20px;
 }
 

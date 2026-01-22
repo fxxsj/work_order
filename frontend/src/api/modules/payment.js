@@ -16,7 +16,7 @@ class PaymentAPI extends BaseAPI {
    */
   getSummary() {
     return this.request({
-      url: `${this.baseURL}summary/`,
+      url: `${this.baseUrl}summary/`,
       method: 'get'
     })
   }
