@@ -13,6 +13,7 @@
         active-text-color="#409EFF"
         router
       >
+        <!-- ========== 核心业务区 ========== -->
         <el-menu-item index="/dashboard">
           <i class="el-icon-s-home"></i>
           <span>工作台</span>
@@ -21,6 +22,8 @@
           <i class="el-icon-document"></i>
           <span>施工单</span>
         </el-menu-item>
+
+        <!-- ========== 任务管理（日常操作） ========== -->
         <el-submenu index="/tasks">
           <template slot="title">
             <i class="el-icon-s-order"></i>
@@ -42,47 +45,25 @@
             <i class="el-icon-time"></i>
             <span>分派历史</span>
           </el-menu-item>
-          <el-menu-item index="/tasks/assignment-rules">
-            <i class="el-icon-setting"></i>
-            <span>分派规则配置</span>
-          </el-menu-item>
         </el-submenu>
-        <el-menu-item v-if="canViewCustomer" index="/customers">
-          <i class="el-icon-user"></i>
-          <span>客户管理</span>
-        </el-menu-item>
-        <el-menu-item v-if="canViewDepartment" index="/departments">
-          <i class="el-icon-menu"></i>
-          <span>部门管理</span>
-        </el-menu-item>
-        <el-menu-item v-if="canViewProcess" index="/processes">
-          <i class="el-icon-setting"></i>
-          <span>工序管理</span>
-        </el-menu-item>
-        <el-menu-item v-if="canViewProduct" index="/products">
-          <i class="el-icon-shopping-bag-2"></i>
-          <span>产品管理</span>
-        </el-menu-item>
-        <el-menu-item v-if="canViewMaterial" index="/materials">
-          <i class="el-icon-goods"></i>
-          <span>物料管理</span>
-        </el-menu-item>
-        <el-submenu v-if="canViewSupplier || canViewPurchaseOrder || canViewSalesOrder" index="/purchase">
+
+        <!-- ========== 业务数据区 ========== -->
+        <el-submenu v-if="canViewProduct || canViewMaterial || canViewProductGroup" index="/product-material">
           <template slot="title">
-            <i class="el-icon-shopping-cart-2"></i>
-            <span>采购销售管理</span>
+            <i class="el-icon-shopping-bag-2"></i>
+            <span>产品物料</span>
           </template>
-          <el-menu-item v-if="canViewSupplier" index="/suppliers">
-            <i class="el-icon-s-custom"></i>
-            <span>供应商管理</span>
+          <el-menu-item v-if="canViewProduct" index="/products">
+            <i class="el-icon-shopping-bag-1"></i>
+            <span>产品管理</span>
           </el-menu-item>
-          <el-menu-item v-if="canViewPurchaseOrder" index="/purchase-orders">
-            <i class="el-icon-document"></i>
-            <span>采购单管理</span>
+          <el-menu-item v-if="canViewMaterial" index="/materials">
+            <i class="el-icon-goods"></i>
+            <span>物料管理</span>
           </el-menu-item>
-          <el-menu-item v-if="canViewSalesOrder" index="/sales-orders">
-            <i class="el-icon-sold-out"></i>
-            <span>销售订单管理</span>
+          <el-menu-item v-if="canViewProductGroup" index="/product-groups">
+            <i class="el-icon-collection"></i>
+            <span>产品组管理</span>
           </el-menu-item>
         </el-submenu>
         <el-submenu v-if="canViewArtwork || canViewDie || canViewFoilingPlate || canViewEmbossingPlate" index="/plate-making">
@@ -107,10 +88,22 @@
             <span>压凸版管理</span>
           </el-menu-item>
         </el-submenu>
-        <el-menu-item v-if="canViewProductGroup" index="/product-groups">
-          <i class="el-icon-collection"></i>
-          <span>产品组管理</span>
-        </el-menu-item>
+        <el-submenu v-if="canViewPurchaseOrder || canViewSalesOrder" index="/purchase">
+          <template slot="title">
+            <i class="el-icon-shopping-cart-2"></i>
+            <span>采购销售</span>
+          </template>
+          <el-menu-item v-if="canViewPurchaseOrder" index="/purchase-orders">
+            <i class="el-icon-document"></i>
+            <span>采购单管理</span>
+          </el-menu-item>
+          <el-menu-item v-if="canViewSalesOrder" index="/sales-orders">
+            <i class="el-icon-sold-out"></i>
+            <span>销售订单</span>
+          </el-menu-item>
+        </el-submenu>
+
+        <!-- ========== 仓储财务区 ========== -->
         <el-submenu index="/inventory">
           <template slot="title">
             <i class="el-icon-box"></i>
@@ -135,7 +128,7 @@
             <span>财务管理</span>
           </template>
           <el-menu-item index="/finance/invoices">
-            <i class="el-icon-ticket"></i>
+            <i class="el-icon-s-ticket"></i>
             <span>发票管理</span>
           </el-menu-item>
           <el-menu-item index="/finance/payments">
@@ -149,6 +142,34 @@
           <el-menu-item index="/finance/statements">
             <i class="el-icon-s-finance"></i>
             <span>对账管理</span>
+          </el-menu-item>
+        </el-submenu>
+
+        <!-- ========== 系统设置（高权限，低频使用） ========== -->
+        <el-submenu v-if="canViewCustomer || canViewSupplier || canViewDepartment || canViewProcess" index="/system">
+          <template slot="title">
+            <i class="el-icon-setting"></i>
+            <span>系统设置</span>
+          </template>
+          <el-menu-item v-if="canViewCustomer" index="/customers">
+            <i class="el-icon-user"></i>
+            <span>客户管理</span>
+          </el-menu-item>
+          <el-menu-item v-if="canViewSupplier" index="/suppliers">
+            <i class="el-icon-s-custom"></i>
+            <span>供应商管理</span>
+          </el-menu-item>
+          <el-menu-item v-if="canViewDepartment" index="/departments">
+            <i class="el-icon-menu"></i>
+            <span>部门管理</span>
+          </el-menu-item>
+          <el-menu-item v-if="canViewProcess" index="/processes">
+            <i class="el-icon-s-tools"></i>
+            <span>工序管理</span>
+          </el-menu-item>
+          <el-menu-item index="/tasks/assignment-rules">
+            <i class="el-icon-s-operation"></i>
+            <span>分派规则配置</span>
           </el-menu-item>
         </el-submenu>
       </el-menu>
