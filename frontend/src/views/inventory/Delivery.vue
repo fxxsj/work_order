@@ -138,6 +138,24 @@
             >
               签收
             </el-button>
+            <el-button
+              v-if="canEdit() && (scope.row.status === 'shipped' || scope.row.status === 'in_transit')"
+              type="text"
+              size="small"
+              style="color: #E6A23C;"
+              @click="handleReject(scope.row)"
+            >
+              拒收
+            </el-button>
+            <el-button
+              v-if="canDelete() && scope.row.status === 'pending'"
+              type="text"
+              size="small"
+              style="color: #F56C6C;"
+              @click="handleDelete(scope.row)"
+            >
+              删除
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -310,17 +328,28 @@ export default {
     async fetchStats() {
       this.statsLoading = true
       try {
-        // 基于本地数据计算统计
-        const response = await this.apiService.getList({ page_size: 1000 })
-        const list = response.results || []
+        // 使用后端 summary 接口获取统计数据
+        const response = await this.apiService.getSummary()
         this.stats = {
-          total: list.length,
-          pending: list.filter(d => d.status === 'pending').length,
-          in_transit: list.filter(d => d.status === 'shipped' || d.status === 'in_transit').length,
-          received: list.filter(d => d.status === 'received').length
+          total: response.summary?.total_count || 0,
+          pending: response.summary?.pending_count || 0,
+          in_transit: (response.summary?.shipped_count || 0) + (response.summary?.in_transit_count || 0),
+          received: response.summary?.received_count || 0
         }
       } catch (error) {
-        this.stats = {}
+        // 降级：基于本地数据计算统计
+        try {
+          const response = await this.apiService.getList({ page_size: 1000 })
+          const list = response.results || []
+          this.stats = {
+            total: list.length,
+            pending: list.filter(d => d.status === 'pending').length,
+            in_transit: list.filter(d => d.status === 'shipped' || d.status === 'in_transit').length,
+            received: list.filter(d => d.status === 'received').length
+          }
+        } catch (e) {
+          this.stats = {}
+        }
       } finally {
         this.statsLoading = false
       }
@@ -337,8 +366,24 @@ export default {
 
     async fetchSalesOrders() {
       try {
-        const response = await salesOrderAPI.getList({ status: 'approved', page_size: 1000 })
-        this.salesOrderList = response.results || []
+        // 获取可用于发货的销售订单（已审核、生产中状态）
+        const response = await salesOrderAPI.getList({
+          page_size: 1000
+        })
+        // 去重处理：按 id 去重（确保唯一）
+        const seen = new Set()
+        this.salesOrderList = (response.results || []).filter(so => {
+          // 只显示已审核或生产中的订单
+          if (!['approved', 'in_production'].includes(so.status)) {
+            return false
+          }
+          // 按 ID 去重
+          if (seen.has(so.id)) {
+            return false
+          }
+          seen.add(so.id)
+          return true
+        })
       } catch (error) {
         // 静默处理
       }
@@ -428,12 +473,37 @@ export default {
     async handleSalesOrderChange(value) {
       const salesOrder = this.salesOrderList.find(so => so.id === value)
       if (salesOrder && salesOrder.customer) {
+        // 1. 自动填充客户信息
         this.form.customer = salesOrder.customer
         const customer = this.customerList.find(c => c.id === salesOrder.customer)
         if (customer) {
           this.form.receiver_name = customer.contact_person || ''
           this.form.receiver_phone = customer.contact_phone || ''
           this.form.delivery_address = customer.address || ''
+        }
+
+        // 2. 自动填充销售订单中的产品明细
+        try {
+          // 获取销售订单详情（包含 items）
+          const orderDetail = await salesOrderAPI.getDetail(value)
+          if (orderDetail && orderDetail.items && orderDetail.items.length > 0) {
+            // 将销售订单明细转换为发货明细
+            this.form.items_data = orderDetail.items.map(item => ({
+              product: item.product,
+              sales_order_item: item.id, // 关联销售订单明细
+              quantity: item.quantity - (item.delivered_quantity || 0), // 待发货数量
+              unit: item.unit || '件',
+              unit_price: item.unit_price || 0,
+              notes: ''
+            })).filter(item => item.quantity > 0) // 只显示待发货的产品
+
+            // 如果没有待发货的产品，提示用户
+            if (this.form.items_data.length === 0) {
+              this.$message.warning('该销售订单的所有产品已全部发货')
+            }
+          }
+        } catch (error) {
+          console.error('获取销售订单详情失败:', error)
         }
       }
     },
@@ -485,6 +555,39 @@ export default {
       }
     },
 
+    async handleDelete(row) {
+      try {
+        await ErrorHandler.confirm('确定要删除此发货单吗？删除后无法恢复。')
+        await deliveryOrderAPI.delete(row.id)
+        ErrorHandler.showSuccess('删除成功')
+        this.loadData()
+        this.fetchStats()
+      } catch (error) {
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '删除失败')
+        }
+      }
+    },
+
+    async handleReject(row) {
+      try {
+        const { value } = await this.$prompt('请输入拒收原因', '拒收确认', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          inputPattern: /\S+/,
+          inputErrorMessage: '拒收原因不能为空'
+        })
+        await deliveryOrderAPI.reject(row.id, { reject_reason: value })
+        ErrorHandler.showSuccess('拒收处理成功，库存已回退')
+        this.loadData()
+        this.fetchStats()
+      } catch (error) {
+        if (error !== 'cancel' && error !== 'close') {
+          ErrorHandler.showMessage(error, '拒收处理失败')
+        }
+      }
+    },
+
     handleReceive(row) {
       this.currentDelivery = row
       this.receiveDialogVisible = true
@@ -518,9 +621,28 @@ export default {
     },
 
     getTrackingUrl(delivery) {
-      // 可以根据物流公司返回不同的查询链接
+      // 物流公司代码映射
+      const companyMap = {
+        顺丰速运: 'shunfeng',
+        顺丰: 'shunfeng',
+        中通快递: 'zhongtong',
+        中通: 'zhongtong',
+        圆通速递: 'yuantong',
+        圆通: 'yuantong',
+        申通快递: 'shentong',
+        申通: 'shentong',
+        韵达快递: 'yunda',
+        韵达: 'yunda',
+        德邦物流: 'debangwuliu',
+        德邦: 'debangwuliu',
+        京东物流: 'jd',
+        京东: 'jd',
+        EMS: 'ems',
+        邮政: 'youzhengguonei'
+      }
       if (delivery.logistics_company && delivery.tracking_number) {
-        return `https://www.kuaidi100.com/chaxun?com=${delivery.logistics_company}&nu=${delivery.tracking_number}`
+        const code = companyMap[delivery.logistics_company] || 'auto'
+        return `https://www.kuaidi100.com/chaxun?com=${code}&nu=${delivery.tracking_number}`
       }
       return '#'
     }

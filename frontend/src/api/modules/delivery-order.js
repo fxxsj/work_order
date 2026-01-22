@@ -18,7 +18,7 @@ class DeliveryOrderAPI extends BaseAPI {
    */
   ship(id, data) {
     return this.request({
-      url: `${this.baseURL}${id}/ship/`,
+      url: `${this.baseUrl}${id}/ship/`,
       method: 'post',
       data
     })
@@ -32,7 +32,21 @@ class DeliveryOrderAPI extends BaseAPI {
    */
   receive(id, data) {
     return this.request({
-      url: `${this.baseURL}${id}/receive/`,
+      url: `${this.baseUrl}${id}/receive/`,
+      method: 'post',
+      data
+    })
+  }
+
+  /**
+   * 拒收
+   * @param {number} id - 发货单ID
+   * @param {Object} data - 拒收信息（包含 reject_reason）
+   * @returns {Promise} 拒收结果
+   */
+  reject(id, data) {
+    return this.request({
+      url: `${this.baseUrl}${id}/reject/`,
       method: 'post',
       data
     })
@@ -44,7 +58,7 @@ class DeliveryOrderAPI extends BaseAPI {
    */
   getSummary() {
     return this.request({
-      url: `${this.baseURL}summary/`,
+      url: `${this.baseUrl}summary/`,
       method: 'get'
     })
   }
