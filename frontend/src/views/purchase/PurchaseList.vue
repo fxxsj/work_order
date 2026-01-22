@@ -134,6 +134,9 @@
                 <el-dropdown-item v-if="scope.row.status === 'ordered'" command="receive">
                   收货
                 </el-dropdown-item>
+                <el-dropdown-item v-if="scope.row.status === 'ordered'" command="inspection">
+                  质检
+                </el-dropdown-item>
                 <el-dropdown-item
                   v-if="['draft', 'submitted', 'approved'].includes(scope.row.status)"
                   command="cancel"
@@ -186,6 +189,20 @@
       :visible.sync="lowStockDialogVisible"
       @create-purchase="handleCreateFromLowStock"
     />
+
+    <!-- 收货对话框组件 -->
+    <ReceiveDialog
+      :visible.sync="receiveDialogVisible"
+      :purchase-order="currentPurchaseOrder"
+      @success="handleReceiveSuccess"
+    />
+
+    <!-- 质检对话框组件 -->
+    <InspectionDialog
+      :visible.sync="inspectionDialogVisible"
+      :purchase-order-id="currentPurchaseId"
+      @updated="loadData"
+    />
   </div>
 </template>
 
@@ -198,7 +215,9 @@ import ErrorHandler from '@/utils/errorHandler'
 import {
   PurchaseFormDialog,
   PurchaseDetailDialog,
-  LowStockAlertDialog
+  LowStockAlertDialog,
+  ReceiveDialog,
+  InspectionDialog
 } from './components'
 
 // 表单初始值常量
@@ -226,7 +245,9 @@ export default {
     Pagination,
     PurchaseFormDialog,
     PurchaseDetailDialog,
-    LowStockAlertDialog
+    LowStockAlertDialog,
+    ReceiveDialog,
+    InspectionDialog
   },
 
   mixins: [listPageMixin, crudPermissionMixin],
@@ -250,7 +271,14 @@ export default {
       currentPurchaseId: null,
 
       // 库存预警对话框
-      lowStockDialogVisible: false
+      lowStockDialogVisible: false,
+
+      // 收货对话框
+      receiveDialogVisible: false,
+      currentPurchaseOrder: {},
+
+      // 质检对话框
+      inspectionDialogVisible: false
     }
   },
 
@@ -374,6 +402,7 @@ export default {
         reject: this.handleReject,
         placeOrder: this.handlePlaceOrder,
         receive: this.handleReceive,
+        inspection: this.showInspectionDialog,
         cancel: this.handleCancel
       }
       const action = actionMap[command]
@@ -454,23 +483,30 @@ export default {
     },
 
     /**
-     * 收货
+     * 收货 - 打开收货对话框
      */
-    async handleReceive(row) {
-      try {
-        await ErrorHandler.confirm(`确定要收货采购单"${row.order_number}"吗？`)
-        const items = (row.items || []).map(item => ({
-          id: item.id,
-          received_quantity: item.quantity
-        }))
-        await this.apiService.receive(row.id, { items })
-        ErrorHandler.showSuccess('收货成功')
-        await this.loadData()
-      } catch (error) {
-        if (error !== 'cancel') {
-          ErrorHandler.showMessage(error, '收货')
-        }
-      }
+    handleReceive(row) {
+      this.currentPurchaseOrder = row
+      this.currentPurchaseId = row.id
+      this.receiveDialogVisible = true
+    },
+
+    /**
+     * 收货成功后的回调
+     */
+    async handleReceiveSuccess() {
+      await this.loadData()
+      // 收货成功后自动打开质检对话框
+      this.inspectionDialogVisible = true
+    },
+
+    /**
+     * 打开质检对话框
+     */
+    showInspectionDialog(row) {
+      this.currentPurchaseId = row.id
+      this.currentPurchaseOrder = row
+      this.inspectionDialogVisible = true
     },
 
     /**
