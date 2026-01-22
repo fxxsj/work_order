@@ -296,7 +296,7 @@
           />
         </el-form-item>
       </el-form>
-      
+
       <template slot="footer">
         <el-button @click="formDialogVisible = false">
           取消
@@ -336,7 +336,7 @@ export default {
     Pagination
   },
   mixins: [listPageMixin, crudPermissionMixin],
-  
+
   data() {
     return {
       // API 服务和权限配置
@@ -359,7 +359,7 @@ export default {
 
       // 表单数据
       form: { ...FORM_INITIAL },
-      
+
       // 表单验证规则
       rules: {
         customer: [{ required: true, message: '请选择客户', trigger: 'change' }],
@@ -390,7 +390,7 @@ export default {
     this.fetchStats()
     this.fetchCustomers()
   },
-  
+
   methods: {
     // 实现 fetchData 方法（listPageMixin 要求）
     async fetchData() {

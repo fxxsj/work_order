@@ -4,7 +4,7 @@
       <el-card class="stats-card" shadow="hover">
         <div class="stats-content">
           <div class="stats-icon primary">
-            <i class="el-icon-document" />
+            <i class="el-icon-document"></i>
           </div>
           <div class="stats-info">
             <div class="stats-value">
@@ -21,7 +21,7 @@
       <el-card class="stats-card" shadow="hover">
         <div class="stats-content">
           <div class="stats-icon warning">
-            <i class="el-icon-edit-outline" />
+            <i class="el-icon-edit-outline"></i>
           </div>
           <div class="stats-info">
             <div class="stats-value">
@@ -38,7 +38,7 @@
       <el-card class="stats-card" shadow="hover">
         <div class="stats-content">
           <div class="stats-icon success">
-            <i class="el-icon-check" />
+            <i class="el-icon-check"></i>
           </div>
           <div class="stats-info">
             <div class="stats-value">
@@ -55,7 +55,7 @@
       <el-card class="stats-card" shadow="hover">
         <div class="stats-content">
           <div class="stats-icon info">
-            <i class="el-icon-coin" />
+            <i class="el-icon-coin"></i>
           </div>
           <div class="stats-info">
             <div class="stats-value">
