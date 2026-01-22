@@ -225,13 +225,25 @@
 
       <!-- 分页 -->
       <Pagination
-        v-if="viewMode === 'table'"
+        v-if="viewMode === 'table' && total > 0"
         :current-page="currentPage"
         :page-size="pageSize"
         :total="total"
         @current-change="handlePageChange"
         @size-change="handleSizeChange"
       />
+
+      <!-- 空状态（完善版） -->
+      <el-empty
+        v-if="!loading && tableData.length === 0"
+        :description="hasFilters ? '未找到匹配的任务' : '暂无任务数据'"
+        :image-size="200"
+        style="margin-top: 50px;"
+      >
+        <el-button v-if="hasFilters" type="primary" @click="resetFilters">
+          重置筛选
+        </el-button>
+      </el-empty>
     </el-card>
 
     <!-- 完成任务对话框 -->
@@ -368,6 +380,17 @@ export default {
      */
     taskTypeOptions() {
       return this.taskService.getTaskTypeOptions()
+    },
+
+    /**
+     * 是否有筛选条件
+     */
+    hasFilters() {
+      return this.searchText ||
+             this.filters.status ||
+             this.filters.task_type ||
+             this.filters.assigned_department ||
+             this.filters.work_order_process
     }
   },
 

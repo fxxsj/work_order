@@ -17,7 +17,7 @@ class ProductStockAPI extends BaseAPI {
    */
   getLowStock(params) {
     return this.request({
-      url: `${this.baseURL}low_stock/`,
+      url: `${this.baseUrl}low_stock/`,
       method: 'get',
       params
     })
@@ -30,7 +30,7 @@ class ProductStockAPI extends BaseAPI {
    */
   getExpired(params) {
     return this.request({
-      url: `${this.baseURL}expired/`,
+      url: `${this.baseUrl}expired/`,
       method: 'get',
       params
     })
@@ -43,7 +43,7 @@ class ProductStockAPI extends BaseAPI {
    */
   getExpiringSoon(params) {
     return this.request({
-      url: `${this.baseURL}expiring_soon/`,
+      url: `${this.baseUrl}expiring_soon/`,
       method: 'get',
       params
     })
@@ -55,8 +55,22 @@ class ProductStockAPI extends BaseAPI {
    */
   getSummary() {
     return this.request({
-      url: `${this.baseURL}summary/`,
+      url: `${this.baseUrl}summary/`,
       method: 'get'
+    })
+  }
+
+  /**
+   * 库存调整
+   * @param {number} id - 库存ID
+   * @param {Object} data - 调整数据 { adjust_type, quantity, reason }
+   * @returns {Promise} 调整结果
+   */
+  adjust(id, data) {
+    return this.request({
+      url: `${this.baseUrl}${id}/adjust/`,
+      method: 'post',
+      data
     })
   }
 }
