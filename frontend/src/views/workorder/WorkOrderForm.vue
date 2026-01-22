@@ -122,103 +122,98 @@
         <!-- 产品信息 -->
         <el-divider content-position="left">
           产品信息
+          <el-button
+            type="primary"
+            size="mini"
+            icon="el-icon-plus"
+            style="margin-left: 10px;"
+            :disabled="isApproved"
+            @click="addProduct"
+          >
+            添加产品
+          </el-button>
         </el-divider>
 
-        <el-form-item label="产品列表" required>
-          <div class="product-list">
-            <div v-for="(item, index) in form.products" :key="index" class="product-item">
-              <el-row :gutter="10" type="flex" align="middle">
-                <el-col :span="8">
-                  <el-select
-                    v-model="item.product"
-                    placeholder="请选择产品"
-                    filterable
-                    style="width: 100%;"
-                    :disabled="isApproved"
-                    @change="handleProductChange(index, item.product)"
+        <el-form-item v-if="form.products.length > 0" label="产品列表" required>
+          <el-table :data="form.products" border style="width: 100%">
+            <el-table-column label="产品名称" min-width="200">
+              <template slot-scope="scope">
+                <el-select
+                  v-model="scope.row.product"
+                  placeholder="请选择产品"
+                  filterable
+                  style="width: 100%;"
+                  :disabled="isApproved"
+                  @change="handleProductChange(scope.$index, scope.row.product)"
+                >
+                  <el-option
+                    v-for="product in productList"
+                    :key="product.id"
+                    :label="`${product.name} (${product.code})`"
+                    :value="product.id"
                   >
-                    <el-option
-                      v-for="product in productList"
-                      :key="product.id"
-                      :label="`${product.name} (${product.code})`"
-                      :value="product.id"
-                    >
-                      <span style="float: left">{{ product.name }}</span>
-                      <span style="float: right; color: #8492a6; font-size: 13px">{{ product.code }}</span>
-                    </el-option>
-                  </el-select>
-                </el-col>
-                <el-col :span="5">
-                  <el-input
-                    :value="getProductSpecification(item.product)"
-                    placeholder="规格"
-                    disabled
-                  />
-                </el-col>
-                <el-col :span="4">
-                  <el-input-number
-                    v-model="item.imposition_quantity"
-                    :min="1"
-                    :max="100"
-                    style="width: 100%;"
-                    :disabled="isApproved"
-                    controls-position="right"
-                  />
-                  <div class="field-hint">
-                    拼版数
-                  </div>
-                </el-col>
-                <el-col :span="4">
-                  <el-input-number
-                    v-model="item.quantity"
-                    :min="1"
-                    style="width: 100%;"
-                    :disabled="isApproved"
-                    controls-position="right"
-                    @change="calculateTotalQuantity"
-                  />
-                  <div class="field-hint">
-                    数量
-                  </div>
-                </el-col>
-                <el-col :span="3" style="text-align: right;">
-                  <el-button
-                    v-if="form.products.length > 1"
-                    type="danger"
-                    size="mini"
-                    icon="el-icon-delete"
-                    circle
-                    :disabled="isApproved"
-                    @click="removeProduct(index)"
-                  />
-                  <el-button
-                    v-if="index === form.products.length - 1"
-                    type="primary"
-                    size="mini"
-                    icon="el-icon-plus"
-                    circle
-                    :disabled="isApproved"
-                    @click="addProduct"
-                  />
-                </el-col>
-              </el-row>
-            </div>
-
-            <div v-if="form.products.length === 0" class="empty-state">
-              <el-button
-                type="primary"
-                icon="el-icon-plus"
-                :disabled="isApproved"
-                @click="addProduct"
-              >
-                添加产品
-              </el-button>
-            </div>
-          </div>
+                    <span style="float: left">{{ product.name }}</span>
+                    <span style="float: right; color: #8492a6; font-size: 13px">{{ product.code }}</span>
+                  </el-option>
+                </el-select>
+              </template>
+            </el-table-column>
+            <el-table-column label="规格" width="150">
+              <template slot-scope="scope">
+                <el-input
+                  :value="getProductSpecification(scope.row.product)"
+                  placeholder="规格"
+                  size="small"
+                  disabled
+                />
+              </template>
+            </el-table-column>
+            <el-table-column label="拼版数" width="120" align="center">
+              <template slot-scope="scope">
+                <el-input-number
+                  v-model="scope.row.imposition_quantity"
+                  :min="1"
+                  :max="100"
+                  size="small"
+                  style="width: 100%;"
+                  :disabled="isApproved"
+                  controls-position="right"
+                />
+              </template>
+            </el-table-column>
+            <el-table-column label="数量" width="120" align="center">
+              <template slot-scope="scope">
+                <el-input-number
+                  v-model="scope.row.quantity"
+                  :min="1"
+                  size="small"
+                  style="width: 100%;"
+                  :disabled="isApproved"
+                  controls-position="right"
+                  @change="calculateTotalQuantity"
+                />
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="80" align="center">
+              <template slot-scope="scope">
+                <el-button
+                  type="danger"
+                  size="mini"
+                  icon="el-icon-delete"
+                  :disabled="isApproved || form.products.length <= 1"
+                  @click="removeProduct(scope.$index)"
+                />
+              </template>
+            </el-table-column>
+          </el-table>
           <div class="hint-text">
             选择产品后将自动加载该产品的默认工序和物料配置
           </div>
         </el-form-item>
+
+        <div v-else class="empty-product-hint">
+          <i class="el-icon-info"></i> 暂无产品信息，请点击上方按钮添加产品
+        </div>
 
         <!-- 图稿和刀模 -->
         <el-divider content-position="left">
@@ -1115,35 +1110,14 @@ export default {
   max-width: 1000px;
 }
 
-/* 产品列表样式 */
-.product-list {
+/* 产品列表空状态样式 */
+.empty-product-hint {
   background: #f5f7fa;
-  padding: 15px;
-  border-radius: 4px;
-}
-
-.product-item {
-  background: white;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 10px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.product-item:last-child {
-  margin-bottom: 0;
-}
-
-.empty-state {
-  text-align: center;
   padding: 20px;
-}
-
-.field-hint {
-  font-size: 12px;
-  color: #909399;
   text-align: center;
-  margin-top: 2px;
+  color: #909399;
+  border-radius: 4px;
+  margin-bottom: 20px;
 }
 
 .hint-text {
