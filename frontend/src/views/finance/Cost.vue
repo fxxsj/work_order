@@ -1,28 +1,20 @@
 <template>
   <div class="cost-container">
-    <div class="header">
-      <h2>成本核算</h2>
-      <div class="actions">
-        <el-button icon="el-icon-refresh" @click="fetchCostList">
-          刷新
-        </el-button>
-        <el-button icon="el-icon-data-analysis" @click="handleStats">
-          成本统计
-        </el-button>
-      </div>
-    </div>
+    <!-- 统计卡片（与 TaskStats 样式一致） -->
+    <cost-stats :stats="stats" :loading="statsLoading" />
 
-    <!-- 统计卡片 -->
-    <stats-cards :items="statsItems" />
-
-    <div class="filter-section">
-      <el-form :inline="true" :model="filters" class="filter-form">
-        <el-form-item label="施工单">
+    <!-- 主内容卡片 -->
+    <el-card>
+      <!-- 头部搜索栏（与 Board.vue 一致） -->
+      <div class="header-section">
+        <div class="filter-group">
           <el-select
             v-model="filters.work_order"
-            placeholder="全部施工单"
+            placeholder="选择施工单"
             clearable
             filterable
+            style="width: 180px; margin-right: 10px;"
+            @change="handleSearch"
           >
             <el-option
               v-for="order in workOrderList"
@@ -31,9 +23,13 @@
               :value="order.id"
             />
           </el-select>
-        </el-form-item>
-        <el-form-item label="成本中心">
-          <el-select v-model="filters.cost_center" placeholder="全部中心" clearable>
+          <el-select
+            v-model="filters.cost_center"
+            placeholder="成本中心"
+            clearable
+            style="width: 140px;"
+            @change="handleSearch"
+          >
             <el-option
               v-for="center in costCenterList"
               :key="center.id"
@@ -41,24 +37,32 @@
               :value="center.id"
             />
           </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">
-            查询
+        </div>
+        <div class="action-group">
+          <el-button
+            :loading="loading"
+            icon="el-icon-refresh"
+            @click="loadData"
+          >
+            刷新
           </el-button>
-          <el-button @click="handleReset">
-            重置
+          <el-button
+            icon="el-icon-data-analysis"
+            type="primary"
+            @click="handleStats"
+          >
+            成本统计
           </el-button>
-        </el-form-item>
-      </el-form>
-    </div>
+        </div>
+      </div>
 
-    <div class="table-section">
+      <!-- 数据表格 -->
       <el-table
+        v-if="tableData.length > 0"
         v-loading="loading"
-        :data="costList"
+        :data="tableData"
         border
-        style="width: 100%"
+        style="width: 100%; margin-top: 20px;"
       >
         <el-table-column prop="work_order_number" label="施工单号" width="150" />
         <el-table-column
@@ -73,8 +77,8 @@
           width="100"
           align="right"
         >
-          <template #default="{ row }">
-            ¥{{ row.material_cost ? row.material_cost.toLocaleString() : '-' }}
+          <template slot-scope="scope">
+            ¥{{ scope.row.material_cost ? scope.row.material_cost.toLocaleString() : '-' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -83,8 +87,8 @@
           width="100"
           align="right"
         >
-          <template #default="{ row }">
-            ¥{{ row.labor_cost ? row.labor_cost.toLocaleString() : '-' }}
+          <template slot-scope="scope">
+            ¥{{ scope.row.labor_cost ? scope.row.labor_cost.toLocaleString() : '-' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -93,8 +97,8 @@
           width="100"
           align="right"
         >
-          <template #default="{ row }">
-            ¥{{ row.equipment_cost ? row.equipment_cost.toLocaleString() : '-' }}
+          <template slot-scope="scope">
+            ¥{{ scope.row.equipment_cost ? scope.row.equipment_cost.toLocaleString() : '-' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -103,8 +107,8 @@
           width="100"
           align="right"
         >
-          <template #default="{ row }">
-            ¥{{ row.overhead_cost ? row.overhead_cost.toLocaleString() : '-' }}
+          <template slot-scope="scope">
+            ¥{{ scope.row.overhead_cost ? scope.row.overhead_cost.toLocaleString() : '-' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -113,8 +117,10 @@
           width="120"
           align="right"
         >
-          <template #default="{ row }">
-            <span style="font-weight: bold;">¥{{ row.actual_cost ? row.actual_cost.toLocaleString() : '-' }}</span>
+          <template slot-scope="scope">
+            <span style="font-weight: bold;">
+              ¥{{ scope.row.actual_cost ? scope.row.actual_cost.toLocaleString() : '-' }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column
@@ -123,8 +129,8 @@
           width="120"
           align="right"
         >
-          <template #default="{ row }">
-            ¥{{ row.standard_cost ? row.standard_cost.toLocaleString() : '-' }}
+          <template slot-scope="scope">
+            ¥{{ scope.row.standard_cost ? scope.row.standard_cost.toLocaleString() : '-' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -133,8 +139,10 @@
           width="120"
           align="right"
         >
-          <template #default="{ row }">
-            <span :class="getVarianceClass(row)">¥{{ row.variance !== null ? row.variance.toLocaleString() : '-' }}</span>
+          <template slot-scope="scope">
+            <span :class="getVarianceClass(scope.row)">
+              ¥{{ scope.row.variance !== null ? scope.row.variance.toLocaleString() : '-' }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column
@@ -143,32 +151,63 @@
           width="100"
           align="right"
         >
-          <template #default="{ row }">
-            <span :class="getVarianceClass(row)">{{ row.variance_rate !== null ? row.variance_rate.toFixed(1) + '%' : '-' }}</span>
+          <template slot-scope="scope">
+            <span :class="getVarianceClass(scope.row)">
+              {{ scope.row.variance_rate !== null ? scope.row.variance_rate.toFixed(1) + '%' : '-' }}
+            </span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="250" fixed="right">
-          <template #default="{ row }">
-            <el-button size="small" @click="handleView(row)">
+        <el-table-column label="操作" width="200" fixed="right">
+          <template slot-scope="scope">
+            <el-button type="text" size="small" @click="handleView(scope.row)">
               查看
-            </el-button><el-button size="small" type="primary" @click="handleCalculate(row)">
+            </el-button>
+            <el-button
+              v-if="canEdit()"
+              type="text"
+              size="small"
+              style="color: #409EFF;"
+              @click="handleCalculate(scope.row)"
+            >
               计算
-            </el-button><el-button size="small" type="warning" @click="handleEdit(row)">
+            </el-button>
+            <el-button
+              v-if="canEdit()"
+              type="text"
+              size="small"
+              style="color: #E6A23C;"
+              @click="handleEdit(scope.row)"
+            >
               调整
             </el-button>
           </template>
         </el-table-column>
       </el-table>
 
+      <!-- 分页 -->
       <Pagination
+        v-if="total > 0"
         :current-page="currentPage"
         :page-size="pageSize"
         :total="total"
         @current-change="handlePageChange"
         @size-change="handleSizeChange"
       />
-    </div>
 
+      <!-- 空状态 -->
+      <el-empty
+        v-if="!loading && tableData.length === 0"
+        description="暂无成本数据"
+        :image-size="200"
+        style="margin-top: 50px;"
+      >
+        <el-button v-if="hasFilters" type="primary" @click="handleReset">
+          重置筛选
+        </el-button>
+      </el-empty>
+    </el-card>
+
+    <!-- 成本详情对话框 -->
     <el-dialog
       :visible.sync="detailDialogVisible"
       title="成本详情"
@@ -192,7 +231,7 @@
         </el-descriptions>
 
         <div class="cost-breakdown">
-          <h3>成本构成</h3>
+          <h4>成本构成</h4>
           <el-table :data="getCostBreakdown(currentCost)" border style="width: 100%; margin-top: 10px;">
             <el-table-column prop="item" label="成本项目" width="150" />
             <el-table-column
@@ -201,8 +240,8 @@
               width="150"
               align="right"
             >
-              <template #default="{ row }">
-                ¥{{ row.amount ? row.amount.toLocaleString() : '-' }}
+              <template slot-scope="scope">
+                ¥{{ scope.row.amount ? scope.row.amount.toLocaleString() : '-' }}
               </template>
             </el-table-column>
             <el-table-column
@@ -211,8 +250,8 @@
               width="100"
               align="right"
             >
-              <template #default="{ row }">
-                {{ row.proportion ? row.proportion.toFixed(1) + '%' : '-' }}
+              <template slot-scope="scope">
+                {{ scope.row.proportion ? scope.row.proportion.toFixed(1) + '%' : '-' }}
               </template>
             </el-table-column>
             <el-table-column prop="description" label="说明" />
@@ -220,14 +259,15 @@
         </div>
 
         <div v-if="currentCost.standard_cost" class="cost-comparison">
-          <h3>成本对比</h3>
+          <h4>成本对比</h4>
           <el-row :gutter="20" style="margin-top: 10px;">
             <el-col :span="12">
               <el-card>
                 <div class="comparison-item">
                   <div class="comparison-label">
                     标准成本
-                  </div><div class="comparison-value">
+                  </div>
+                  <div class="comparison-value">
                     ¥{{ currentCost.standard_cost ? currentCost.standard_cost.toLocaleString() : '-' }}
                   </div>
                 </div>
@@ -238,7 +278,8 @@
                 <div class="comparison-item">
                   <div class="comparison-label">
                     实际成本
-                  </div><div class="comparison-value">
+                  </div>
+                  <div class="comparison-value">
                     ¥{{ currentCost.actual_cost ? currentCost.actual_cost.toLocaleString() : '-' }}
                   </div>
                 </div>
@@ -247,13 +288,15 @@
           </el-row>
         </div>
       </div>
-      <template #footer>
+
+      <template slot="footer">
         <el-button @click="detailDialogVisible = false">
           关闭
         </el-button>
       </template>
     </el-dialog>
 
+    <!-- 成本调整对话框 -->
     <el-dialog
       :visible.sync="adjustDialogVisible"
       title="成本调整"
@@ -261,14 +304,14 @@
       :close-on-click-modal="false"
     >
       <el-form
-        ref="adjustFormRef"
-        :model="adjustForm"
-        :rules="adjustRules"
-        label-width="120px"
+        ref="formRef"
+        :model="form"
+        :rules="rules"
+        label-width="100px"
       >
         <el-form-item label="材料成本" prop="material_cost">
           <el-input-number
-            v-model="adjustForm.material_cost"
+            v-model="form.material_cost"
             :min="0"
             :precision="2"
             style="width: 100%;"
@@ -276,7 +319,7 @@
         </el-form-item>
         <el-form-item label="人工成本" prop="labor_cost">
           <el-input-number
-            v-model="adjustForm.labor_cost"
+            v-model="form.labor_cost"
             :min="0"
             :precision="2"
             style="width: 100%;"
@@ -284,7 +327,7 @@
         </el-form-item>
         <el-form-item label="设备成本" prop="equipment_cost">
           <el-input-number
-            v-model="adjustForm.equipment_cost"
+            v-model="form.equipment_cost"
             :min="0"
             :precision="2"
             style="width: 100%;"
@@ -292,7 +335,7 @@
         </el-form-item>
         <el-form-item label="制造费用" prop="overhead_cost">
           <el-input-number
-            v-model="adjustForm.overhead_cost"
+            v-model="form.overhead_cost"
             :min="0"
             :precision="2"
             style="width: 100%;"
@@ -300,17 +343,19 @@
         </el-form-item>
         <el-form-item label="调整原因" prop="adjust_reason">
           <el-input
-            v-model="adjustForm.adjust_reason"
+            v-model="form.adjust_reason"
             type="textarea"
             :rows="3"
             placeholder="请输入调整原因"
           />
         </el-form-item>
       </el-form>
-      <template #footer>
+
+      <template slot="footer">
         <el-button @click="adjustDialogVisible = false">
           取消
-        </el-button><el-button type="primary" @click="handleSaveAdjust">
+        </el-button>
+        <el-button type="primary" :loading="submitting" @click="handleSaveAdjust">
           保存
         </el-button>
       </template>
@@ -319,52 +364,79 @@
 </template>
 
 <script>
-import { productionCostAPI } from '@/api/modules'
-import StatsCards from '@/components/common/StatsCards.vue'
+import { productionCostAPI, workOrderAPI } from '@/api/modules'
+import CostStats from './components/CostStats.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
-import statisticsMixin from '@/mixins/statisticsMixin'
+import ErrorHandler from '@/utils/errorHandler'
+
+// 表单初始值常量
+const FORM_INITIAL = {
+  id: null,
+  material_cost: null,
+  labor_cost: null,
+  equipment_cost: null,
+  overhead_cost: null,
+  adjust_reason: ''
+}
 
 export default {
   name: 'CostList',
-  components: { Pagination, StatsCards },
-  mixins: [listPageMixin, crudPermissionMixin, statisticsMixin],
+  components: {
+    CostStats,
+    Pagination
+  },
+  mixins: [listPageMixin, crudPermissionMixin],
+
   data() {
     return {
       // API 服务和权限配置
       apiService: productionCostAPI,
       permissionPrefix: 'productioncost',
 
-      loading: false,
-      costList: [],
+      // 页面状态
+      statsLoading: false,
+      submitting: false,
+
+      // 数据
       workOrderList: [],
       costCenterList: [],
       currentCost: null,
+      stats: {},
+
+      // 对话框
       detailDialogVisible: false,
       adjustDialogVisible: false,
-      stats: {},
-      filters: { work_order: '', cost_center: '' },
-      adjustForm: { id: null, material_cost: null, labor_cost: null, equipment_cost: null, overhead_cost: null, adjust_reason: '' },
-      adjustRules: { adjust_reason: [{ required: true, message: '请输入调整原因', trigger: 'blur' }] }
+
+      // 表单数据
+      form: { ...FORM_INITIAL },
+
+      // 表单验证规则
+      rules: {
+        adjust_reason: [{ required: true, message: '请输入调整原因', trigger: 'blur' }]
+      },
+
+      // 筛选条件
+      filters: {
+        work_order: '',
+        cost_center: ''
+      }
     }
   },
+
   computed: {
-    statsItems() {
-      return [
-        { label: '订单数量', value: this.stats.total_orders || 0, type: 'primary' },
-        { label: '平均材料成本', value: ((this.stats.avg_material_cost || 0) / 1000).toFixed(1), suffix: 'k', prefix: '¥', type: 'info' },
-        { label: '平均人工成本', value: ((this.stats.avg_labor_cost || 0) / 1000).toFixed(1), suffix: 'k', prefix: '¥', type: 'info' },
-        { label: '平均总成本', value: ((this.stats.avg_total_cost || 0) / 1000).toFixed(1), suffix: 'k', prefix: '¥', type: 'success' }
-      ]
+    hasFilters() {
+      return this.filters.work_order || this.filters.cost_center
     }
   },
+
   created() {
-    this.fetchCostList()
-    this.fetchCostStats()
+    this.loadData()
+    this.fetchStats()
     this.fetchWorkOrders()
-    this.fetchCostCenters()
   },
+
   methods: {
     // 实现 fetchData 方法（listPageMixin 要求）
     async fetchData() {
@@ -377,56 +449,103 @@ export default {
       return await this.apiService.getList(params)
     },
 
-    async fetchCostList() {
-      this.loading = true
+    async fetchStats() {
+      this.statsLoading = true
       try {
-        const response = await this.fetchData()
-        this.costList = response.results || []
-        this.total = response.count || 0
+        const response = await productionCostAPI.getStats()
+        this.stats = response || {}
       } catch (error) {
-        this.$message.error('获取成本列表失败')
+        this.stats = {}
       } finally {
-        this.loading = false
+        this.statsLoading = false
       }
     },
-    async fetchCostStats() {
-      try { const response = await productionCostAPI.getStats(); this.stats = response || {} } catch (error) { console.error('获取成本统计失败', error) }
-    },
+
     async fetchWorkOrders() {
-      try { this.workOrderList = [] } catch (error) { console.error('获取施工单列表失败', error) }
+      try {
+        const response = await workOrderAPI.getList({ page_size: 1000 })
+        this.workOrderList = response.results || []
+      } catch (error) {
+        // 静默处理
+      }
     },
-    async fetchCostCenters() {
-      try { this.costCenterList = [] } catch (error) { console.error('获取成本中心列表失败', error) }
+
+    handleSearch() {
+      this.currentPage = 1
+      this.loadData()
     },
-    handleSearch() { this.currentPage = 1; this.fetchCostList() },
+
     handleReset() {
       this.filters = { work_order: '', cost_center: '' }
       this.currentPage = 1
-      this.fetchCostList()
+      this.loadData()
     },
-    handleSizeChange(size) { this.pageSize = size; this.currentPage = 1; this.fetchCostList() },
-    handlePageChange(page) { this.currentPage = page; this.fetchCostList() },
+
     async handleView(row) {
-      try { const response = await productionCostAPI.getDetail(row.id); this.currentCost = response; this.detailDialogVisible = true } catch (error) { this.$message.error('获取成本详情失败') }
+      try {
+        const response = await productionCostAPI.getDetail(row.id)
+        this.currentCost = response
+        this.detailDialogVisible = true
+      } catch (error) {
+        ErrorHandler.showMessage(error, '获取成本详情失败')
+      }
     },
+
     async handleCalculate(row) {
-      this.$confirm('确认重新计算该订单成本？', '提示').then(async () => { try { await productionCostAPI.calculateTotal(row.id); this.$message.success('计算成功'); this.fetchCostList() } catch (error) { this.$message.error('计算失败') } })
+      try {
+        await ErrorHandler.confirm('确认重新计算该订单成本？')
+        await productionCostAPI.calculateTotal(row.id)
+        ErrorHandler.showSuccess('计算成功')
+        this.loadData()
+        this.fetchStats()
+      } catch (error) {
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '计算失败')
+        }
+      }
     },
+
     handleEdit(row) {
-      this.adjustForm = { id: row.id, material_cost: row.material_cost, labor_cost: row.labor_cost, equipment_cost: row.equipment_cost, overhead_cost: row.overhead_cost, adjust_reason: '' }
+      this.form = {
+        id: row.id,
+        material_cost: row.material_cost,
+        labor_cost: row.labor_cost,
+        equipment_cost: row.equipment_cost,
+        overhead_cost: row.overhead_cost,
+        adjust_reason: ''
+      }
       this.adjustDialogVisible = true
     },
+
     async handleSaveAdjust() {
-      this.$refs.adjustFormRef.validate(async (valid) => {
+      this.$refs.formRef.validate(async (valid) => {
         if (!valid) return
-        try { await productionCostAPI.update(this.adjustForm.id, this.adjustForm); this.$message.success('调整成功'); this.adjustDialogVisible = false; this.fetchCostList() } catch (error) { this.$message.error('调整失败') }
+
+        this.submitting = true
+        try {
+          await productionCostAPI.update(this.form.id, this.form)
+          ErrorHandler.showSuccess('调整成功')
+          this.adjustDialogVisible = false
+          this.loadData()
+          this.fetchStats()
+        } catch (error) {
+          ErrorHandler.showMessage(error, '调整失败')
+        } finally {
+          this.submitting = false
+        }
       })
     },
+
     async handleStats() {
-      await this.fetchCostStats()
-      this.$message.success('统计数据已更新')
+      await this.fetchStats()
+      ErrorHandler.showSuccess('统计数据已更新')
     },
-    getVarianceClass(row) { if (!row.variance) return ''; return row.variance > 0 ? 'variance-positive' : 'variance-negative' },
+
+    getVarianceClass(row) {
+      if (!row.variance) return ''
+      return row.variance > 0 ? 'variance-positive' : 'variance-negative'
+    },
+
     getCostBreakdown(cost) {
       const total = cost.actual_cost || 1
       return [
@@ -442,20 +561,72 @@ export default {
 </script>
 
 <style scoped>
-.cost-container { padding: 20px; }
-.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.stats-cards { margin-bottom: 20px; }
-.stat-card { border-radius: 4px; }
-.stat-item { text-align: center; padding: 10px 0; }
-.stat-label { font-size: 14px; color: #909399; margin-bottom: 8px; }
-.stat-value { font-size: 24px; font-weight: bold; color: #303133; }
-.filter-section { margin-bottom: 20px; padding: 20px; background: #f5f5f5; border-radius: 4px; }
-.filter-form { margin-bottom: 0; }
-.table-section { background: #fff; border-radius: 4px; padding: 20px; }
-.cost-breakdown, .cost-comparison { margin-top: 20px; }
-.comparison-item { text-align: center; padding: 10px 0; }
-.comparison-label { font-size: 14px; color: #909399; margin-bottom: 8px; }
-.comparison-value { font-size: 20px; font-weight: bold; color: #303133; }
-.variance-positive { color: #f56c6c; font-weight: bold; }
-.variance-negative { color: #67c23a; font-weight: bold; }
+.cost-container {
+  padding: 20px;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.el-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.cost-breakdown,
+.cost-comparison {
+  margin-top: 20px;
+}
+
+.cost-breakdown h4,
+.cost-comparison h4 {
+  margin: 0 0 10px 0;
+  color: #303133;
+  font-size: 16px;
+}
+
+.comparison-item {
+  text-align: center;
+  padding: 10px 0;
+}
+
+.comparison-label {
+  font-size: 14px;
+  color: #909399;
+  margin-bottom: 8px;
+}
+
+.comparison-value {
+  font-size: 20px;
+  font-weight: bold;
+  color: #303133;
+}
+
+.variance-positive {
+  color: #f56c6c;
+  font-weight: bold;
+}
+
+.variance-negative {
+  color: #67c23a;
+  font-weight: bold;
+}
 </style>

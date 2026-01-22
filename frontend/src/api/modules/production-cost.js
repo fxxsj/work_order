@@ -17,7 +17,7 @@ class ProductionCostAPI extends BaseAPI {
    */
   calculateMaterial(id) {
     return this.request({
-      url: `${this.baseURL}${id}/calculate_material/`,
+      url: `${this.baseUrl}${id}/calculate_material/`,
       method: 'post'
     })
   }
@@ -29,7 +29,7 @@ class ProductionCostAPI extends BaseAPI {
    */
   calculateTotal(id) {
     return this.request({
-      url: `${this.baseURL}${id}/calculate_total/`,
+      url: `${this.baseUrl}${id}/calculate_total/`,
       method: 'post'
     })
   }
@@ -41,7 +41,7 @@ class ProductionCostAPI extends BaseAPI {
    */
   getStats(params) {
     return this.request({
-      url: `${this.baseURL}stats/`,
+      url: `${this.baseUrl}stats/`,
       method: 'get',
       params
     })
