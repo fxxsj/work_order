@@ -237,11 +237,11 @@
         <div slot="header" class="card-header">
           <span class="title">关联施工单 ({{ (detailData.work_order_numbers || []).length }})</span>
         </div>
-        <el-table v-if="detailData.work_order_numbers && detailData.work_order_numbers.length > 0" :data="detailData.work_order_numbers" border>
+        <el-table v-if="detailData.work_order_numbers && detailData.work_order_numbers.length > 0" :data="detailData.work_order_numbers.map(n => ({ order_number: n }))" border>
           <el-table-column prop="order_number" label="施工单号" width="150" />
           <el-table-column label="操作" width="150">
             <template slot-scope="scope">
-              <el-button size="mini" type="primary" @click="viewWorkOrder(scope.row)">
+              <el-button size="mini" type="primary" @click="viewWorkOrder(scope.row.order_number)">
                 查看
               </el-button>
             </template>
@@ -418,7 +418,7 @@ export default {
         inputErrorMessage: '请输入拒绝原因'
       }).then(async ({ value }) => {
         try {
-          await salesOrderAPI.cancel(this.orderId, { reason: value })
+          await salesOrderAPI.reject(this.orderId, { reason: value })
           ErrorHandler.showSuccess('已拒绝该订单')
           this.$emit('refresh')
           this.fetchData()

@@ -17,7 +17,7 @@ class SalesOrderAPI extends BaseAPI {
    */
   submit(id) {
     return this.request({
-      url: `${this.baseURL}${id}/submit/`,
+      url: `${this.baseUrl}${id}/submit/`,
       method: 'post'
     })
   }
@@ -30,7 +30,7 @@ class SalesOrderAPI extends BaseAPI {
    */
   approve(id, data) {
     return this.request({
-      url: `${this.baseURL}${id}/approve/`,
+      url: `${this.baseUrl}${id}/approve/`,
       method: 'post',
       data
     })
@@ -44,7 +44,7 @@ class SalesOrderAPI extends BaseAPI {
    */
   reject(id, data) {
     return this.request({
-      url: `${this.baseURL}${id}/reject/`,
+      url: `${this.baseUrl}${id}/reject/`,
       method: 'post',
       data
     })
@@ -57,7 +57,7 @@ class SalesOrderAPI extends BaseAPI {
    */
   startProduction(id) {
     return this.request({
-      url: `${this.baseURL}${id}/start_production/`,
+      url: `${this.baseUrl}${id}/start_production/`,
       method: 'post'
     })
   }
@@ -69,7 +69,7 @@ class SalesOrderAPI extends BaseAPI {
    */
   complete(id) {
     return this.request({
-      url: `${this.baseURL}${id}/complete/`,
+      url: `${this.baseUrl}${id}/complete/`,
       method: 'post'
     })
   }
@@ -82,7 +82,7 @@ class SalesOrderAPI extends BaseAPI {
    */
   cancel(id, data) {
     return this.request({
-      url: `${this.baseURL}${id}/cancel/`,
+      url: `${this.baseUrl}${id}/cancel/`,
       method: 'post',
       data
     })
@@ -96,7 +96,7 @@ class SalesOrderAPI extends BaseAPI {
    */
   updatePayment(id, data) {
     return this.request({
-      url: `${this.baseURL}${id}/update_payment/`,
+      url: `${this.baseUrl}${id}/update_payment/`,
       method: 'post',
       data
     })

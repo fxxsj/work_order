@@ -327,8 +327,7 @@ export default {
       submitForm: null,
       submitErrors: [],
       approveForm: {
-        approval_comment: '',
-        approveErrors: []
+        approval_comment: ''
       },
       approveErrors: [],
       approveVisible: false,
@@ -496,7 +495,7 @@ export default {
     },
     async confirmReject() {
       try {
-        await salesOrderAPI.cancel(this.approveOrder.id, { reason: this.approveForm.approval_comment })
+        await salesOrderAPI.reject(this.approveOrder.id, { reason: this.approveForm.approval_comment })
         ErrorHandler.showSuccess('已拒绝')
         this.approveVisible = false
         await this.loadData()
