@@ -327,13 +327,19 @@ export default {
   },
 
   watch: {
-    visible(val) {
-      if (val) {
-        this.$nextTick(() => {
-          if (this.$refs.formRef) {
-            this.$refs.formRef.clearValidate()
-          }
-        })
+    visible: {
+      immediate: false,
+      handler(val) {
+        if (val) {
+          // 使用双层 nextTick 确保在 DOM 更新和表单初始化完成后清除验证
+          this.$nextTick(() => {
+            this.$nextTick(() => {
+              if (this.$refs.formRef) {
+                this.$refs.formRef.clearValidate()
+              }
+            })
+          })
+        }
       }
     }
   },
