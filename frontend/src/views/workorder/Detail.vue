@@ -1859,7 +1859,8 @@
 
 <script>
 import Vue from 'vue'
-import { workOrderAPI, processAPI, materialAPI, workOrderProcessAPI, workOrderMaterialAPI, workOrderTaskAPI, departmentAPI, artworkAPI, dieAPI } from '@/api/workorder'
+import { workOrderAPI, materialAPI, workOrderProcessAPI, workOrderMaterialAPI, workOrderTaskAPI, departmentAPI, artworkAPI, dieAPI } from '@/api/workorder'
+import { processAPI } from '@/api/modules'
 import { getUsersByDepartment } from '@/api/auth'
 import ProcessFlowChart from '@/components/ProcessFlowChart.vue'
 import TimelineView from '@/components/TimelineView.vue'
