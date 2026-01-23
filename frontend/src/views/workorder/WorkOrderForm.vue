@@ -8,6 +8,7 @@
             取消
           </el-button>
           <el-button
+            v-if="!isEdit"
             type="info"
             size="small"
             :loading="saving"
@@ -119,6 +120,46 @@
           </el-col>
         </el-row>
 
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="生产数量" prop="production_quantity">
+              <el-input-number
+                v-model="form.production_quantity"
+                :min="1"
+                style="width: 100%;"
+                :disabled="isApproved"
+                controls-position="right"
+                @change="calculateProductQuantities"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="预损数量">
+              <el-input-number
+                v-model="form.defective_quantity"
+                :min="0"
+                style="width: 100%;"
+                :disabled="isApproved"
+                controls-position="right"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item v-if="isEdit" label="实际交货日期">
+              <el-date-picker
+                v-model="form.actual_delivery_date"
+                type="date"
+                placeholder="选择日期"
+                style="width: 100%;"
+                value-format="yyyy-MM-dd"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
         <!-- 产品信息 -->
         <el-divider content-position="left">
           产品信息
@@ -134,7 +175,7 @@
           </el-button>
         </el-divider>
 
-        <el-form-item v-if="form.products.length > 0" label="产品列表" required>
+        <div v-if="form.products.length > 0" class="product-table-wrapper">
           <el-table :data="form.products" border style="width: 100%">
             <el-table-column label="产品名称" min-width="200">
               <template slot-scope="scope">
@@ -178,6 +219,7 @@
                   style="width: 100%;"
                   :disabled="isApproved"
                   controls-position="right"
+                  @change="calculateProductQuantities"
                 />
               </template>
             </el-table-column>
@@ -209,7 +251,7 @@
           <div class="hint-text">
             选择产品后将自动加载该产品的默认工序和物料配置
           </div>
-        </el-form-item>
+        </div>
 
         <div v-else class="empty-product-hint">
           <i class="el-icon-info"></i> 暂无产品信息，请点击上方按钮添加产品
@@ -224,12 +266,14 @@
           <el-col :span="12">
             <el-form-item label="图稿（CTP版）">
               <el-select
-                v-model="form.artwork"
+                v-model="form.artworks"
                 placeholder="请选择图稿"
                 filterable
                 clearable
+                multiple
                 style="width: 100%;"
                 :disabled="isApproved"
+                @change="handleArtworksChange"
               >
                 <el-option
                   v-for="artwork in artworkList"
@@ -243,10 +287,11 @@
           <el-col :span="12">
             <el-form-item label="刀模">
               <el-select
-                v-model="form.die"
+                v-model="form.dies"
                 placeholder="请选择刀模"
                 filterable
                 clearable
+                multiple
                 style="width: 100%;"
                 :disabled="isApproved"
               >
@@ -265,10 +310,11 @@
           <el-col :span="12">
             <el-form-item label="烫金版">
               <el-select
-                v-model="form.foiling_plate"
+                v-model="form.foiling_plates"
                 placeholder="请选择烫金版"
                 filterable
                 clearable
+                multiple
                 style="width: 100%;"
                 :disabled="isApproved"
               >
@@ -284,10 +330,11 @@
           <el-col :span="12">
             <el-form-item label="击凸版">
               <el-select
-                v-model="form.embossing_plate"
+                v-model="form.embossing_plates"
                 placeholder="请选择击凸版"
                 filterable
                 clearable
+                multiple
                 style="width: 100%;"
                 :disabled="isApproved"
               >
@@ -296,6 +343,65 @@
                   :key="plate.id"
                   :label="`${plate.code} - ${plate.name}`"
                   :value="plate.id"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <!-- 印刷信息 -->
+        <el-divider content-position="left">
+          印刷信息
+        </el-divider>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="印刷形式">
+              <el-select
+                v-model="form.printing_type"
+                placeholder="请选择印刷形式"
+                style="width: 100%;"
+                :disabled="isApproved"
+              >
+                <el-option
+                  v-for="item in printingTypeOptions"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="CMYK颜色">
+              <el-checkbox-group v-model="form.printing_cmyk_colors" :disabled="isApproved">
+                <el-checkbox label="C">C</el-checkbox>
+                <el-checkbox label="M">M</el-checkbox>
+                <el-checkbox label="Y">Y</el-checkbox>
+                <el-checkbox label="K">K</el-checkbox>
+              </el-checkbox-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="其他颜色">
+              <el-select
+                v-model="form.printing_other_colors"
+                placeholder="输入专色编号，回车添加"
+                multiple
+                filterable
+                allow-create
+                default-first-option
+                style="width: 100%;"
+                :disabled="isApproved"
+              >
+                <el-option
+                  v-for="color in commonSpotColors"
+                  :key="color"
+                  :label="color"
+                  :value="color"
                 />
               </el-select>
             </el-form-item>
@@ -315,7 +421,7 @@
           </el-tag>
         </el-divider>
 
-        <el-form-item label="选择工序" required>
+        <div class="process-wrapper">
           <el-checkbox-group v-model="selectedProcessIds" :disabled="isApproved" class="process-checkbox-group">
             <el-checkbox
               v-for="process in allProcesses"
@@ -324,15 +430,12 @@
               class="process-checkbox"
             >
               {{ process.name }}
-              <el-tag v-if="process.code" size="mini" type="info">
-                {{ process.code }}
-              </el-tag>
             </el-checkbox>
           </el-checkbox-group>
           <div v-if="allProcesses.length === 0" class="no-process-hint">
             <i class="el-icon-warning"></i> 暂无可用工序，请先在工序管理中添加工序
           </div>
-        </el-form-item>
+        </div>
 
         <!-- 物料信息 -->
         <el-divider content-position="left">
@@ -349,7 +452,7 @@
           </el-button>
         </el-divider>
 
-        <el-form-item v-if="form.materials.length > 0" label="物料列表">
+        <div v-if="form.materials.length > 0" class="material-table-wrapper">
           <el-table :data="form.materials" border style="width: 100%">
             <el-table-column label="物料名称" width="200">
               <template slot-scope="scope">
@@ -416,7 +519,7 @@
               </template>
             </el-table-column>
           </el-table>
-        </el-form-item>
+        </div>
 
         <div v-else class="empty-material-hint">
           <i class="el-icon-info"></i> 暂无物料信息，选择产品后将自动加载默认物料，或点击上方按钮手动添加
@@ -426,33 +529,6 @@
         <el-divider content-position="left">
           其他信息
         </el-divider>
-
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="生产数量">
-              <el-input-number
-                v-model="form.production_quantity"
-                :min="0"
-                style="width: 100%;"
-                disabled
-              />
-              <div class="field-hint">
-                根据产品数量自动计算
-              </div>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item v-if="isEdit" label="实际交货日期">
-              <el-date-picker
-                v-model="form.actual_delivery_date"
-                type="date"
-                placeholder="选择日期"
-                style="width: 100%;"
-                value-format="yyyy-MM-dd"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
 
         <el-form-item label="备注">
           <el-input
@@ -469,7 +545,12 @@
           <el-button @click="handleCancel">
             取消
           </el-button>
-          <el-button type="info" :loading="saving" @click="saveDraft">
+          <el-button
+            v-if="!isEdit"
+            type="info"
+            :loading="saving"
+            @click="saveDraft"
+          >
             <i class="el-icon-document"></i> 保存草稿
           </el-button>
           <el-button
@@ -575,11 +656,17 @@ export default {
         approval_status: 'pending',
         // 产品列表
         products: [],
-        // 图稿和刀模
-        artwork: null,
-        die: null,
-        foiling_plate: null,
-        embossing_plate: null,
+        // 图稿和刀模（多选）
+        artworks: [],
+        dies: [],
+        foiling_plates: [],
+        embossing_plates: [],
+        // 印刷信息
+        printing_type: 'none',
+        printing_cmyk_colors: [],
+        printing_other_colors: [],
+        // 预损数量
+        defective_quantity: null,
         // 物料列表
         materials: []
       },
@@ -606,6 +693,22 @@ export default {
         { label: '普通', value: 'normal', color: '#409EFF' },
         { label: '高', value: 'high', color: '#E6A23C' },
         { label: '紧急', value: 'urgent', color: '#F56C6C' }
+      ],
+
+      // 印刷形式选项
+      printingTypeOptions: [
+        { label: '不需要印刷', value: 'none' },
+        { label: '正面印刷', value: 'front' },
+        { label: '背面印刷', value: 'back' },
+        { label: '自反印刷', value: 'self_reverse' },
+        { label: '反咬口印刷', value: 'reverse_gripper' },
+        { label: '套版印刷', value: 'register' }
+      ],
+
+      // 常用专色列表
+      commonSpotColors: [
+        '528C', '485C', '186C', '032C', '021C',
+        '金色', '银色', '珠光', '荧光绿', '荧光橙'
       ],
 
       // 防抖保存草稿函数
@@ -724,12 +827,18 @@ export default {
           delivery_date: data.delivery_date,
           actual_delivery_date: data.actual_delivery_date || '',
           production_quantity: data.production_quantity || 0,
+          defective_quantity: data.defective_quantity || null,
           notes: data.notes || '',
           approval_status: data.approval_status || 'pending',
-          artwork: data.artwork || null,
-          die: data.die || null,
-          foiling_plate: data.foiling_plate || null,
-          embossing_plate: data.embossing_plate || null
+          // 图稿和刀模（多选）
+          artworks: data.artworks || [],
+          dies: data.dies || [],
+          foiling_plates: data.foiling_plates || [],
+          embossing_plates: data.embossing_plates || [],
+          // 印刷信息
+          printing_type: data.printing_type || 'none',
+          printing_cmyk_colors: data.printing_cmyk_colors || [],
+          printing_other_colors: data.printing_other_colors || []
         }
 
         // 填充产品列表
@@ -867,6 +976,84 @@ export default {
       )
     },
 
+    calculateProductQuantities() {
+      // 根据生产数量和拼版数计算每个产品的数量
+      // 公式：产品数量 = 生产数量 * 拼版数
+      const productionQty = this.form.production_quantity || 0
+      this.form.products.forEach(p => {
+        const impositionQty = p.imposition_quantity || 1
+        p.quantity = productionQty * impositionQty
+      })
+    },
+
+    // ==================== 图稿相关 ====================
+
+    async handleArtworksChange(artworkIds) {
+      if (!artworkIds || artworkIds.length === 0) return
+
+      try {
+        // 获取所有选中图稿的详情
+        for (const artworkId of artworkIds) {
+          const artwork = this.artworkList.find(a => a.id === artworkId)
+          if (!artwork) continue
+
+          // 如果图稿有 CMYK 颜色，自动填充（合并不重复）
+          if (artwork.cmyk_colors && artwork.cmyk_colors.length > 0) {
+            artwork.cmyk_colors.forEach(color => {
+              if (!this.form.printing_cmyk_colors.includes(color)) {
+                this.form.printing_cmyk_colors.push(color)
+              }
+            })
+          }
+
+          // 如果图稿有其他颜色，自动填充（合并不重复）
+          if (artwork.other_colors && artwork.other_colors.length > 0) {
+            artwork.other_colors.forEach(color => {
+              if (!this.form.printing_other_colors.includes(color)) {
+                this.form.printing_other_colors.push(color)
+              }
+            })
+          }
+
+          // 如果图稿有关联刀模，自动填充（合并不重复）
+          if (artwork.dies && artwork.dies.length > 0) {
+            artwork.dies.forEach(dieId => {
+              if (!this.form.dies.includes(dieId)) {
+                this.form.dies.push(dieId)
+              }
+            })
+          }
+
+          // 如果图稿有关联烫金版，自动填充（合并不重复）
+          if (artwork.foiling_plates && artwork.foiling_plates.length > 0) {
+            artwork.foiling_plates.forEach(plateId => {
+              if (!this.form.foiling_plates.includes(plateId)) {
+                this.form.foiling_plates.push(plateId)
+              }
+            })
+          }
+
+          // 如果图稿有关联压凸版，自动填充（合并不重复）
+          if (artwork.embossing_plates && artwork.embossing_plates.length > 0) {
+            artwork.embossing_plates.forEach(plateId => {
+              if (!this.form.embossing_plates.includes(plateId)) {
+                this.form.embossing_plates.push(plateId)
+              }
+            })
+          }
+        }
+
+        // 如果选择了图稿且印刷形式为"不需要印刷"，自动改为"正面印刷"
+        if (this.form.printing_type === 'none' && artworkIds.length > 0) {
+          this.form.printing_type = 'front'
+        }
+
+        this.$message.success('已自动加载图稿关联信息')
+      } catch (error) {
+        console.warn('加载图稿信息失败:', error)
+      }
+    },
+
     // ==================== 物料相关 ====================
 
     addMaterialItem() {
@@ -899,6 +1086,9 @@ export default {
     },
 
     restoreDraftFromLocalStorage() {
+      // 只在新建模式下恢复草稿，编辑模式不恢复
+      if (this.isEdit) return
+
       try {
         const draftStr = localStorage.getItem('workorder_draft')
         if (!draftStr) return
@@ -971,12 +1161,17 @@ export default {
         delivery_date: this.form.delivery_date,
         actual_delivery_date: this.form.actual_delivery_date || null,
         production_quantity: this.form.production_quantity,
+        defective_quantity: this.form.defective_quantity || null,
         notes: this.form.notes || '',
-        // 图稿和刀模
-        artwork: this.form.artwork || null,
-        die: this.form.die || null,
-        foiling_plate: this.form.foiling_plate || null,
-        embossing_plate: this.form.embossing_plate || null,
+        // 图稿和刀模（多选）
+        artworks: this.form.artworks || [],
+        dies: this.form.dies || [],
+        foiling_plates: this.form.foiling_plates || [],
+        embossing_plates: this.form.embossing_plates || [],
+        // 印刷信息
+        printing_type: this.form.printing_type || 'none',
+        printing_cmyk_colors: this.form.printing_cmyk_colors || [],
+        printing_other_colors: this.form.printing_other_colors || [],
         // 状态覆盖
         ...(options.status && { status: options.status }),
         ...(options.approval_status && { approval_status: options.approval_status }),
@@ -1110,6 +1305,24 @@ export default {
   max-width: 1000px;
 }
 
+/* 产品表格容器 */
+.product-table-wrapper {
+  margin-bottom: 20px;
+  margin-left: 40px;
+}
+
+/* 工序选择容器 */
+.process-wrapper {
+  margin-bottom: 20px;
+  margin-left: 40px;
+}
+
+/* 物料表格容器 */
+.material-table-wrapper {
+  margin-bottom: 20px;
+  margin-left: 40px;
+}
+
 /* 产品列表空状态样式 */
 .empty-product-hint {
   background: #f5f7fa;
@@ -1127,6 +1340,17 @@ export default {
 }
 
 /* 工序选择样式 */
+.process-checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.process-checkbox {
+  width: 150px;
+  margin-right: 20px;
+  margin-bottom: 15px;
+}
+
 .process-section {
   background: #f5f7fa;
   padding: 15px;

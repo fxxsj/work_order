@@ -55,6 +55,7 @@ const routes = [
         path: 'workorders/:id/edit',
         name: 'WorkOrderEdit',
         component: () => import(/* webpackChunkName: "workorder-form" */ '@/views/workorder/WorkOrderForm.vue'),
+        props: true,
         meta: { title: '编辑施工单', requiresAuth: true }
       },
 
