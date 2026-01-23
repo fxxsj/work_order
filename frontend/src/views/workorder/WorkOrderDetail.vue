@@ -207,8 +207,8 @@ export default {
           this.loadAvailableData()
         ])
 
-        if (detailResult.data) {
-          this.workOrder = detailResult.data
+        if (detailResult) {
+          this.workOrder = detailResult
           // 提取工序和物料列表
           this.processList = this.workOrder.processes || []
           this.materialList = this.workOrder.materials || []
@@ -226,9 +226,9 @@ export default {
       try {
         // 加载可用工序、物料、图稿
         const [processesRes, materialsRes, artworksRes] = await Promise.all([
-          processAPI.list({ page_size: 1000 }),
-          materialAPI.list({ page_size: 1000 }),
-          artworkAPI.list({ page_size: 1000, work_order: this.workOrderId })
+          processAPI.getList({ page_size: 1000 }),
+          materialAPI.getList({ page_size: 1000 }),
+          artworkAPI.getList({ page_size: 1000, work_order: this.workOrderId })
         ])
 
         this.availableProcesses = processesRes.data?.results || []

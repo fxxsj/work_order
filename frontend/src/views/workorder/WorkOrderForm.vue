@@ -375,10 +375,18 @@
           <el-col :span="12">
             <el-form-item label="CMYK颜色">
               <el-checkbox-group v-model="form.printing_cmyk_colors" :disabled="isApproved">
-                <el-checkbox label="C">C</el-checkbox>
-                <el-checkbox label="M">M</el-checkbox>
-                <el-checkbox label="Y">Y</el-checkbox>
-                <el-checkbox label="K">K</el-checkbox>
+                <el-checkbox label="C">
+                  C
+                </el-checkbox>
+                <el-checkbox label="M">
+                  M
+                </el-checkbox>
+                <el-checkbox label="Y">
+                  Y
+                </el-checkbox>
+                <el-checkbox label="K">
+                  K
+                </el-checkbox>
               </el-checkbox-group>
             </el-form-item>
           </el-col>

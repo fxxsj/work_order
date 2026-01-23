@@ -116,7 +116,9 @@
     </div>
 
     <div slot="footer" class="dialog-footer">
-      <el-button @click="handleClose">取消</el-button>
+      <el-button @click="handleClose">
+        取消
+      </el-button>
       <el-button
         type="primary"
         :loading="submitting"

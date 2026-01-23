@@ -48,7 +48,7 @@ const routes = [
       {
         path: 'workorders/:id',
         name: 'WorkOrderDetail',
-        component: () => import(/* webpackChunkName: "workorder-detail" */ /* webpackPrefetch: true */ '@/views/workorder/WorkOrderDetail.vue'),
+        component: () => import(/* webpackChunkName: "workorder-detail" */ /* webpackPrefetch: true */ '@/views/workorder/Detail.vue'),
         meta: { title: '施工单详情', requiresAuth: true }
       },
       {
