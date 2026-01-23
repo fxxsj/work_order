@@ -14,6 +14,7 @@
               placeholder="请选择客户"
               filterable
               style="width: 100%"
+              @change="handleCustomerChange"
             >
               <el-option
                 v-for="item in customerOptions"
@@ -314,6 +315,15 @@ export default {
         this.productOptions = response.results || []
       } catch (error) {
         ErrorHandler.showMessage(error, '获取产品列表失败')
+      }
+    },
+    handleCustomerChange(customerId) {
+      // 根据选择的客户自动填充联系人、电话、地址信息
+      const customer = this.customerOptions.find(c => c.id === customerId)
+      if (customer) {
+        this.form.contact_person = customer.contact_person || ''
+        this.form.contact_phone = customer.phone || customer.contact_phone || ''
+        this.form.shipping_address = customer.address || ''
       }
     },
     handleProductChange(row) {
