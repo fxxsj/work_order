@@ -99,9 +99,9 @@
 </template>
 
 <script>
-import { workOrderAPI, materialAPI, artworkAPI } from '@/api/workorder'
-import { processAPI } from '@/api/modules'
+import { workOrderAPI, materialAPI, artworkAPI, processAPI } from '@/api/modules'
 import { workOrderService, permissionService } from '@/services'
+import ErrorHandler from '@/utils/errorHandler'
 import WorkOrderBasicInfo from './components/WorkOrderBasicInfo.vue'
 import WorkOrderProducts from './components/WorkOrderProducts.vue'
 import ArtworkAndDieInfo from './components/ArtworkAndDieInfo.vue'
@@ -217,7 +217,7 @@ export default {
           this.workOrder = workOrderService.formatWorkOrderForDisplay(this.workOrder)
         }
       } catch (error) {
-        this.$message.error('加载施工单详情失败：' + (error.message || '未知错误'))
+        ErrorHandler.showMessage(error, '加载施工单详情')
       } finally {
         this.loading = false
       }
@@ -235,7 +235,7 @@ export default {
         this.availableMaterials = materialsRes.data?.results || []
         this.availableArtworks = artworksRes.data?.results || []
       } catch (error) {
-        console.error('加载可用数据失败:', error)
+        ErrorHandler.showMessage(error, '加载可用数据')
       }
     },
     handleEdit() {
@@ -252,66 +252,66 @@ export default {
       try {
         const result = await workOrderAPI.updateStatus(this.workOrderId, { status })
         if (result.data) {
-          this.$message.success('状态更新成功')
+          ErrorHandler.showSuccess('状态更新成功')
           await this.loadData()
         }
       } catch (error) {
-        this.$message.error('状态更新失败：' + (error.message || '未知错误'))
+        ErrorHandler.showMessage(error, '状态更新')
       }
     },
     async handleApprove(data) {
       try {
         const result = await workOrderAPI.review(this.workOrderId, data)
         if (result.data) {
-          this.$message.success(data.status === 'approved' ? '审核通过' : '已拒绝')
+          ErrorHandler.showSuccess(data.status === 'approved' ? '审核通过' : '已拒绝')
           await this.loadData()
         }
       } catch (error) {
-        this.$message.error('审核操作失败：' + (error.message || '未知错误'))
+        ErrorHandler.showMessage(error, '审核操作')
       }
     },
     async handleResubmit(data) {
       try {
         const result = await workOrderAPI.resubmit(this.workOrderId, data)
         if (result.data) {
-          this.$message.success('重新提交成功')
+          ErrorHandler.showSuccess('重新提交成功')
           await this.loadData()
         }
       } catch (error) {
-        this.$message.error('重新提交失败：' + (error.message || '未知错误'))
+        ErrorHandler.showMessage(error, '重新提交')
       }
     },
     async handleRequestReapproval(data) {
       try {
         const result = await workOrderAPI.requestReapproval(this.workOrderId, data)
         if (result.data) {
-          this.$message.success('已请求重新审核')
+          ErrorHandler.showSuccess('已请求重新审核')
           await this.loadData()
         }
       } catch (error) {
-        this.$message.error('请求重新审核失败：' + (error.message || '未知错误'))
+        ErrorHandler.showMessage(error, '请求重新审核')
       }
     },
     async handleAddProcess(data) {
       try {
         const result = await workOrderAPI.addProcess(this.workOrderId, data)
         if (result.data) {
-          this.$message.success('添加工序成功')
+          ErrorHandler.showSuccess('添加工序成功')
           await this.loadData()
         }
       } catch (error) {
-        this.$message.error('添加工序失败：' + (error.message || '未知错误'))
+        ErrorHandler.showMessage(error, '添加工序')
       }
     },
     async handleCompleteProcess(data) {
       try {
         const result = await workOrderAPI.completeProcess(this.workOrderId, data.processId, data.data)
         if (result.data) {
-          this.$message.success('工序完成成功')
+          ErrorHandler.showSuccess('工序完成成功')
           await this.loadData()
         }
       } catch (error) {
-        this.$message.error('工序完成失败：' + (error.message || '未知错误'))
+        ErrorHandler.showMessage(error, '工序完成')
       }
     },
     async handleReassignProcess(process) {
@@ -325,11 +325,11 @@ export default {
             department: value
           })
           if (result.data) {
-            this.$message.success('重新分派成功')
+            ErrorHandler.showSuccess('重新分派成功')
             await this.loadData()
           }
         } catch (error) {
-          this.$message.error('重新分派失败：' + (error.message || '未知错误'))
+          ErrorHandler.showMessage(error, '重新分派')
         }
       }).catch(() => {})
     },
@@ -337,11 +337,11 @@ export default {
       try {
         const result = await workOrderAPI.addMaterial(this.workOrderId, data)
         if (result.data) {
-          this.$message.success('添加物料成功')
+          ErrorHandler.showSuccess('添加物料成功')
           await this.loadData()
         }
       } catch (error) {
-        this.$message.error('添加物料失败：' + (error.message || '未知错误'))
+        ErrorHandler.showMessage(error, '添加物料')
       }
     },
     async handleUpdateMaterialStatus(data) {
@@ -352,33 +352,33 @@ export default {
           data.data
         )
         if (result.data) {
-          this.$message.success('物料状态更新成功')
+          ErrorHandler.showSuccess('物料状态更新成功')
           await this.loadData()
         }
       } catch (error) {
-        this.$message.error('物料状态更新失败：' + (error.message || '未知错误'))
+        ErrorHandler.showMessage(error, '物料状态更新')
       }
     },
     async handleCompleteTask(data) {
       try {
         const result = await workOrderAPI.completeTask(this.workOrderId, data.taskId, data.data)
         if (result.data) {
-          this.$message.success('任务完成成功')
+          ErrorHandler.showSuccess('任务完成成功')
           await this.loadData()
         }
       } catch (error) {
-        this.$message.error('任务完成失败：' + (error.message || '未知错误'))
+        ErrorHandler.showMessage(error, '任务完成')
       }
     },
     async handleUpdateTask(data) {
       try {
         const result = await workOrderAPI.updateTask(this.workOrderId, data.taskId, data.data)
         if (result.data) {
-          this.$message.success('任务更新成功')
+          ErrorHandler.showSuccess('任务更新成功')
           await this.loadData()
         }
       } catch (error) {
-        this.$message.error('任务更新失败：' + (error.message || '未知错误'))
+        ErrorHandler.showMessage(error, '任务更新')
       }
     },
     handleAssignTask(task) {
@@ -392,11 +392,11 @@ export default {
             operator: value
           })
           if (result.data) {
-            this.$message.success('任务分派成功')
+            ErrorHandler.showSuccess('任务分派成功')
             await this.loadData()
           }
         } catch (error) {
-          this.$message.error('任务分派失败：' + (error.message || '未知错误'))
+          ErrorHandler.showMessage(error, '任务分派')
         }
       }).catch(() => {})
     },
@@ -420,11 +420,11 @@ export default {
             split_quantity: parseInt(value)
           })
           if (result.data) {
-            this.$message.success('任务拆分成功')
+            ErrorHandler.showSuccess('任务拆分成功')
             await this.loadData()
           }
         } catch (error) {
-          this.$message.error('任务拆分失败：' + (error.message || '未知错误'))
+          ErrorHandler.showMessage(error, '任务拆分')
         }
       }).catch(() => {})
     }

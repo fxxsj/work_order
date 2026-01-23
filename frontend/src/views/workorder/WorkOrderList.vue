@@ -219,6 +219,7 @@ import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 import exportMixin from '@/mixins/exportMixin'
 import { debounce } from '@/utils/debounce'
+import ErrorHandler from '@/utils/errorHandler'
 import SkeletonLoader from '@/components/SkeletonLoader.vue'
 import Pagination from '@/components/common/Pagination.vue'
 
@@ -300,7 +301,7 @@ export default {
       try {
         this.salespersons = await authAPI.getSalespersons() || []
       } catch (error) {
-        console.error('加载业务员列表失败:', error)
+        ErrorHandler.showMessage(error, '加载业务员列表')
         this.salespersons = []
       }
     },
@@ -328,7 +329,7 @@ export default {
     handleView(row) { this.$router.push(`/workorders/${row.id}`) },
     handleEdit(row) { if (row.approval_status === 'approved') { this.$confirm('该施工单已审核通过。核心字段（产品、工序、版选择等）不能修改，非核心字段（备注、交货日期等）可以修改。确定要继续编辑吗？', '编辑已审核的施工单', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }).then(() => { this.$router.push(`/workorders/${row.id}/edit`) }).catch(() => {}) } else { this.$router.push(`/workorders/${row.id}/edit`) } },
     handleRowClick(row) { this.handleView(row) },
-    handleDelete(row) { this.$confirm(`确定要删除施工单 ${row.order_number} 吗？`, '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }).then(async () => { try { await workOrderAPI.delete(row.id); this.$message.success('删除成功'); this.loadData() } catch { this.$message.error('删除失败') } }).catch(() => {}) },
+    handleDelete(row) { this.$confirm(`确定要删除施工单 ${row.order_number} 吗？`, '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }).then(async () => { try { await workOrderAPI.delete(row.id); ErrorHandler.showSuccess('删除成功'); this.loadData() } catch (error) { ErrorHandler.showMessage(error, '删除施工单') } }).catch(() => {}) },
     getDeliveryDateStyle(date, status) {
       if (status === 'completed' || status === 'cancelled') return {}
       const diffDays = Math.ceil((new Date(date) - new Date()) / (1000 * 60 * 60 * 24))
@@ -360,14 +361,13 @@ export default {
         link.click()
         document.body.removeChild(link)
         window.URL.revokeObjectURL(url)
-        this.$message.success('导出成功')
+        ErrorHandler.showSuccess('导出成功')
       } catch (error) {
-        console.error('导出失败:', error)
         if (error.response && error.response.data) {
           const reader = new FileReader()
-          reader.onload = () => { this.$message.error(reader.result) }
+          reader.onload = () => { ErrorHandler.showMessage({ message: reader.result }, '导出') }
           reader.readAsText(error.response.data)
-        } else { this.$message.error('导出失败：' + (error.message || '未知错误')) }
+        } else { ErrorHandler.showMessage(error, '导出') }
       } finally { this.exporting = false }
     }
   }

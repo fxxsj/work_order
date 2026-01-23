@@ -589,28 +589,9 @@ import { artworkAPI } from '@/api/modules/artwork'
 import { dieAPI } from '@/api/modules/die'
 import { foilingPlateAPI } from '@/api/modules/foiling-plate'
 import { embossingPlateAPI } from '@/api/modules/embossing-plate'
-// 导入错误处理工具
+// 导入错误处理工具和 debounce
 import ErrorHandler from '@/utils/errorHandler'
-
-/**
- * 防抖函数
- */
-function debounce(fn, delay) {
-  let timer = null
-  const debouncedFn = function (...args) {
-    if (timer) clearTimeout(timer)
-    timer = setTimeout(() => {
-      fn.apply(this, args)
-    }, delay)
-  }
-  debouncedFn.cancel = function () {
-    if (timer) {
-      clearTimeout(timer)
-      timer = null
-    }
-  }
-  return debouncedFn
-}
+import { debounce } from '@/utils/debounce'
 
 export default {
   name: 'WorkOrderForm',
@@ -973,7 +954,10 @@ export default {
 
         this.calculateTotalQuantity()
       } catch (error) {
-        console.warn('加载产品默认信息失败:', error)
+        // 加载产品默认信息失败时静默处理，不影响用户操作
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('加载产品默认信息失败:', error)
+        }
       }
     },
 
@@ -1058,7 +1042,10 @@ export default {
 
         this.$message.success('已自动加载图稿关联信息')
       } catch (error) {
-        console.warn('加载图稿信息失败:', error)
+        // 加载图稿信息失败时静默处理
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('加载图稿信息失败:', error)
+        }
       }
     },
 
@@ -1089,7 +1076,10 @@ export default {
         }
         localStorage.setItem('workorder_draft', JSON.stringify(draft))
       } catch (error) {
-        console.error('保存草稿失败:', error)
+        // 保存草稿失败时静默处理
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('保存草稿失败:', error)
+        }
       }
     },
 
@@ -1120,7 +1110,10 @@ export default {
 
         this.$message.info('已恢复上次的草稿数据')
       } catch (error) {
-        console.error('恢复草稿失败:', error)
+        // 恢复草稿失败时静默处理并清除损坏的草稿
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('恢复草稿失败:', error)
+        }
         localStorage.removeItem('workorder_draft')
       }
     },
