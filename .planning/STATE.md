@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 1 of 10 (Draft Task Foundation)
-Plan: 0 of 3 in current phase
-Status: Ready to plan
-Last activity: 2026-01-30 — Roadmap created with 10 phases covering 49 requirements
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-01-30 — Completed 01-01: Draft task status foundation (DRAFT constant, model support, manager filtering, serializer field)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░░] 33%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: 0 hours
+- Total plans completed: 1
+- Average duration: 1 min
+- Total execution time: 0.02 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-draft-task-foundation | 1 of 3 | 1 min | - |
 
 **Recent Trend:**
-- Last 5 plans: -
-- Trend: -
+- Last 5 plans: 01-01 (1min)
+- Trend: Starting phase 1
 
 *Updated after each plan completion*
 
@@ -42,7 +42,11 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-None yet.
+**From 01-01 (Draft task status foundation):**
+- Draft status placed first in CHOICES to indicate it's the initial state
+- Default status remains 'pending' - draft is only explicitly set during generation
+- operational() method uses exclude() for clean query composition
+- is_draft is a computed field to avoid schema changes
 
 ### Pending Todos
 
@@ -58,6 +62,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-30 Initial roadmap creation
-Stopped at: Roadmap files written (ROADMAP.md, STATE.md), ready to begin Phase 1 planning
+Last session: 2026-01-30 10:28 UTC
+Stopped at: Completed 01-01 (Draft task status foundation), all 4 tasks committed, SUMMARY.md created
 Resume file: None
