@@ -67,8 +67,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: Build differential update algorithm to sync tasks with process changes
-- [ ] 02-02: Implement bulk edit and bulk delete operations for draft tasks
+- [ ] 02-01-PLAN.md — Build differential update algorithm to sync tasks with process changes (Wave 1)
+- [ ] 02-02-PLAN.md — Implement bulk edit and bulk delete operations for draft tasks (Wave 1)
 
 ### Phase 3: Dispatch Configuration
 
