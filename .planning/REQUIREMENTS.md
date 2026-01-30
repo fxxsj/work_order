@@ -163,30 +163,30 @@
 | SUP-03 | Phase 7 | Pending |
 | SUP-04 | Phase 7 | Pending |
 | SUP-05 | Phase 7 | Pending |
-| OP-01 | Phase 8 | Pending |
-| OP-02 | Phase 8 | Pending |
-| OP-03 | Phase 8 | Pending |
-| OP-04 | Phase 8 | Pending |
-| OP-05 | Phase 8 | Pending |
-| NOTIF-01 | Phase 9 | Pending |
-| NOTIF-02 | Phase 9 | Pending |
-| NOTIF-03 | Phase 9 | Pending |
-| NOTIF-04 | Phase 9 | Pending |
+| OP-01 | Phase 7 | Pending |
+| OP-02 | Phase 7 | Pending |
+| OP-03 | Phase 7 | Pending |
+| OP-04 | Phase 7 | Pending |
+| OP-05 | Phase 7 | Pending |
+| NOTIF-01 | Phase 8 | Pending |
+| NOTIF-02 | Phase 8 | Pending |
+| NOTIF-03 | Phase 8 | Pending |
+| NOTIF-04 | Phase 8 | Pending |
 | CFG-01 | Phase 3 | Pending |
 | CFG-02 | Phase 3 | Pending |
 | CFG-03 | Phase 3 | Pending |
 | CFG-04 | Phase 3 | Pending |
 | PERF-01 | Phase 1 | Pending |
-| PERF-02 | Phase 10 | Pending |
+| PERF-02 | Phase 9 | Pending |
 | PERF-03 | Phase 5 | Pending |
-| PERF-04 | Phase 10 | Pending |
+| PERF-04 | Phase 9 | Pending |
 | PERF-05 | Phase 5 | Pending |
 | CONS-01 | Phase 4 | Pending |
 | CONS-02 | Phase 2 | Pending |
 | CONS-03 | Phase 1 | Pending |
 | CONS-04 | Phase 1 | Pending |
 | AUTH-01 | Phase 5 | Pending |
-| AUTH-02 | Phase 8 | Pending |
+| AUTH-02 | Phase 7 | Pending |
 | AUTH-03 | Phase 7 | Pending |
 | AUTH-04 | Phase 6 | Pending |
 
@@ -197,4 +197,4 @@
 
 ---
 *Requirements defined: 2026-01-30*
-*Last updated: 2026-01-30 after initial definition*
+*Last updated: 2026-01-30 after roadmap creation*
