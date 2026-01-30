@@ -62,7 +62,15 @@
 </template>
 
 <script>
-import { workOrderAPI, workOrderTaskAPI, notificationAPI, artworkAPI, dieAPI, foilingPlateAPI, embossingPlateAPI } from '@/api/workorder'
+import {
+  workOrderAPI,
+  workOrderTaskAPI,
+  notificationAPI,
+  artworkAPI,
+  dieAPI,
+  foilingPlateAPI,
+  embossingPlateAPI
+} from '@/api/modules'
 import { hasRole, hasAnyRole } from '@/utils/userRole'
 import NotificationAlerts from './dashboard/components/NotificationAlerts.vue'
 import WorkOrderStatistics from './dashboard/components/WorkOrderStatistics.vue'

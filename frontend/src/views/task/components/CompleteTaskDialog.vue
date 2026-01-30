@@ -135,7 +135,7 @@
 </template>
 
 <script>
-import { artworkAPI, dieAPI } from '@/api/workorder'
+import { artworkAPI, dieAPI } from '@/api/modules'
 
 export default {
   name: 'CompleteTaskDialog',

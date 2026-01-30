@@ -129,7 +129,7 @@
 </template>
 
 <script>
-import { notificationAPI } from '@/api/workorder'
+import { notificationAPI } from '@/api/modules'
 
 export default {
   name: 'Notification',
