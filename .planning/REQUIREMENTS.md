@@ -131,12 +131,12 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TASK-01 | Phase 1 | Pending |
-| TASK-02 | Phase 1 | Pending |
+| TASK-01 | Phase 1 | Complete |
+| TASK-02 | Phase 1 | Complete |
 | TASK-03 | Phase 2 | Pending |
 | TASK-04 | Phase 2 | Pending |
-| TASK-05 | Phase 1 | Pending |
-| TASK-06 | Phase 1 | Pending |
+| TASK-05 | Phase 1 | Complete |
+| TASK-06 | Phase 1 | Complete |
 | DISP-01 | Phase 3 | Pending |
 | DISP-02 | Phase 3 | Pending |
 | DISP-03 | Phase 4 | Pending |
@@ -176,15 +176,15 @@
 | CFG-02 | Phase 3 | Pending |
 | CFG-03 | Phase 3 | Pending |
 | CFG-04 | Phase 3 | Pending |
-| PERF-01 | Phase 1 | Pending |
+| PERF-01 | Phase 1 | Complete |
 | PERF-02 | Phase 9 | Pending |
 | PERF-03 | Phase 5 | Pending |
 | PERF-04 | Phase 9 | Pending |
 | PERF-05 | Phase 5 | Pending |
 | CONS-01 | Phase 4 | Pending |
 | CONS-02 | Phase 2 | Pending |
-| CONS-03 | Phase 1 | Pending |
-| CONS-04 | Phase 1 | Pending |
+| CONS-03 | Phase 1 | Complete |
+| CONS-04 | Phase 1 | Complete |
 | AUTH-01 | Phase 5 | Pending |
 | AUTH-02 | Phase 7 | Pending |
 | AUTH-03 | Phase 7 | Pending |
