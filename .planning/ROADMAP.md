@@ -43,9 +43,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: Add draft status field and update task model with draft constraints
-- [ ] 01-02: Implement draft task generation service with bulk_create optimization
-- [ ] 01-03: Build approval workflow with draft-to-formal conversion and cascade deletion
+- [ ] 01-01-PLAN.md — Add draft status field and update task model with draft constraints (Wave 1)
+- [ ] 01-02-PLAN.md — Implement draft task generation service with bulk_create optimization (Wave 1)
+- [ ] 01-03-PLAN.md — Build approval workflow with draft-to-formal conversion and cascade deletion (Wave 2)
 
 ### Phase 2: Task Data Consistency
 
