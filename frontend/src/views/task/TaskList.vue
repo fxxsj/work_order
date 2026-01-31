@@ -127,13 +127,20 @@
       <!-- 任务列表 -->
       <el-table
         v-if="viewMode === 'table'"
+        ref="taskTable"
         v-loading="loading && tableData.length > 0"
         :data="tableData"
         border
         style="width: 100%; margin-top: 20px;"
         :row-key="getRowKey"
         @sort-change="handleSortChange"
+        @selection-change="handleSelectionChange"
       >
+        <el-table-column
+          type="selection"
+          width="55"
+          :selectable="checkRowSelectable"
+        />
         <el-table-column type="expand" width="50">
           <template slot-scope="scope">
             <TaskLogs :task="scope.row" />
@@ -306,6 +313,9 @@ import CompleteTaskDialog from './components/CompleteTaskDialog.vue'
 import UpdateTaskDialog from './components/UpdateTaskDialog.vue'
 import AssignTaskDialog from './components/AssignTaskDialog.vue'
 import SplitTaskDialog from './components/SplitTaskDialog.vue'
+import BatchActionBar from './components/BatchActionBar.vue'
+import BatchAssignDialog from './components/BatchAssignDialog.vue'
+import VirtualTable from '@/components/VirtualTable.vue'
 
 export default {
   name: 'TaskList',
@@ -320,7 +330,10 @@ export default {
     CompleteTaskDialog,
     UpdateTaskDialog,
     AssignTaskDialog,
-    SplitTaskDialog
+    SplitTaskDialog,
+    BatchActionBar,
+    BatchAssignDialog,
+    VirtualTable
   },
 
   mixins: [listPageMixin, crudPermissionMixin, exportMixin],
@@ -363,7 +376,12 @@ export default {
       currentSplitTask: null,
 
       // 导出状态
-      exporting: false
+      exporting: false,
+
+      // 批量操作
+      selectedTasks: [],
+      batchOperationLoading: false,
+      batchAssignDialogVisible: false
     }
   },
 
@@ -495,6 +513,36 @@ export default {
      */
     getRowKey(row) {
       return row.id
+    },
+
+    /**
+     * 表格选择变化
+     */
+    handleSelectionChange(selection) {
+      this.selectedTasks = selection
+    },
+
+    /**
+     * 检查行是否可选择
+     */
+    checkRowSelectable(row) {
+      // 草稿任务和已取消任务不允许批量操作
+      if (row.status === 'cancelled') {
+        return false
+      }
+      // 操作员只能选择自己的任务
+      if (!this.$store.getters['auth/hasPermission']('workorder.change_workorder')) {
+        return row.assigned_operator === this.$store.getters['auth/currentUser'].id
+      }
+      return true
+    },
+
+    /**
+     * 清空选择
+     */
+    clearSelection() {
+      this.$refs.taskTable.clearSelection()
+      this.selectedTasks = []
     },
 
     /**
