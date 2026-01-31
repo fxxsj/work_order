@@ -42,21 +42,30 @@
               <OperatorTaskList
                 :tasks="myTasks"
                 :empty-text="'暂无任务'"
+                :show-update-buttons="true"
                 @task-click="handleTaskClick"
+                @update="showUpdateDialog"
+                @complete="showCompleteDialog"
               />
             </el-tab-pane>
             <el-tab-pane label="待开始" name="pending">
               <OperatorTaskList
                 :tasks="myTasksByStatus('pending')"
                 :empty-text="'暂无待开始任务'"
+                :show-update-buttons="true"
                 @task-click="handleTaskClick"
+                @update="showUpdateDialog"
+                @complete="showCompleteDialog"
               />
             </el-tab-pane>
             <el-tab-pane label="进行中" name="in_progress">
               <OperatorTaskList
                 :tasks="myTasksByStatus('in_progress')"
                 :empty-text="'暂无进行中任务'"
+                :show-update-buttons="true"
                 @task-click="handleTaskClick"
+                @update="showUpdateDialog"
+                @complete="showCompleteDialog"
               />
             </el-tab-pane>
           </el-tabs>
@@ -81,6 +90,13 @@
         </el-card>
       </el-col>
     </el-row>
+
+    <!-- Task Update Dialog -->
+    <OperatorTaskUpdateDialog
+      :visible.sync="updateDialogVisible"
+      :task="currentTask"
+      @success="handleUpdateSuccess"
+    />
   </div>
 </template>
 
@@ -88,12 +104,14 @@
 import { workOrderTaskAPI } from '@/api/modules'
 import ErrorHandler from '@/utils/errorHandler'
 import OperatorTaskList from './components/OperatorTaskList.vue'
+import OperatorTaskUpdateDialog from './components/OperatorTaskUpdateDialog.vue'
 
 export default {
   name: 'OperatorCenter',
 
   components: {
-    OperatorTaskList
+    OperatorTaskList,
+    OperatorTaskUpdateDialog
   },
 
   data() {
@@ -103,7 +121,9 @@ export default {
       claimableTasks: [],
       summary: {},
       myTasksActiveTab: 'all',
-      claimingTaskId: null
+      claimingTaskId: null,
+      updateDialogVisible: false,
+      currentTask: null
     }
   },
 
@@ -113,6 +133,9 @@ export default {
     },
     myTasksByStatus() {
       return (status) => this.myTasks.filter(t => t.status === status)
+    },
+    currentUser() {
+      return this.$store.getters['user/currentUser']
     }
   },
 
@@ -155,6 +178,36 @@ export default {
 
     handleTaskClick(task) {
       this.$router.push(`/tasks?task=${task.id}`)
+    },
+
+    showUpdateDialog(task) {
+      this.currentTask = { ...task }
+      this.updateDialogVisible = true
+    },
+
+    showCompleteDialog(task) {
+      this.currentTask = { ...task }
+      this.updateDialogVisible = true
+      // Set complete mode after dialog opens
+      this.$nextTick(() => {
+        // Find the dialog component and set its mode
+        const dialog = this.$children.find(c => c.$options.name === 'OperatorTaskUpdateDialog')
+        if (dialog) {
+          dialog.updateMode = 'complete'
+        }
+      })
+    },
+
+    async handleUpdateSuccess() {
+      await this.loadData()
+    },
+
+    isMyTask(task) {
+      return task.assigned_operator === this.currentUser?.id
+    },
+
+    canComplete(task) {
+      return this.isMyTask(task) && ['pending', 'in_progress'].includes(task.status)
     },
 
     getPoolType(pool) {

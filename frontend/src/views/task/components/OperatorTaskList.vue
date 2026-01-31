@@ -27,6 +27,7 @@
           />
           <span class="progress-text">{{ task.quantity_completed }}/{{ task.production_quantity }}</span>
         </div>
+        <!-- Claim button (for claimable tasks) -->
         <div class="task-actions" v-if="showClaimButton && !task.assigned_operator">
           <el-button
             type="primary"
@@ -36,6 +37,27 @@
           >
             认领
           </el-button>
+        </div>
+        <!-- Update/Complete buttons (for my tasks) -->
+        <div class="task-actions" v-if="showUpdateButtons && isMyTask(task)">
+          <el-button-group>
+            <el-button
+              size="mini"
+              icon="el-icon-edit"
+              @click.stop="$emit('update', task)"
+            >
+              更新
+            </el-button>
+            <el-button
+              v-if="canComplete(task)"
+              size="mini"
+              type="success"
+              icon="el-icon-check"
+              @click.stop="$emit('complete', task)"
+            >
+              完成
+            </el-button>
+          </el-button-group>
         </div>
       </div>
     </el-scrollbar>
@@ -58,6 +80,10 @@ export default {
       type: Boolean,
       default: false
     },
+    showUpdateButtons: {
+      type: Boolean,
+      default: false
+    },
     claimingTaskId: {
       type: Number,
       default: null
@@ -68,12 +94,24 @@ export default {
     }
   },
 
+  computed: {
+    currentUser() {
+      return this.$store.getters['user/currentUser']
+    }
+  },
+
   methods: {
     getStatusType(status) {
       return taskService.getStatusType(status)
     },
     getProgress(task) {
       return taskService.calculateProgress(task)
+    },
+    isMyTask(task) {
+      return task.assigned_operator === this.currentUser?.id
+    },
+    canComplete(task) {
+      return this.isMyTask(task) && ['pending', 'in_progress'].includes(task.status)
     }
   }
 }
