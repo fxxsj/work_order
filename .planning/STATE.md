@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** 创建即分派，审核即开工 - 施工单一经创建即可预览所有任务，审核通过后任务立即可用
-**Current focus:** Phase 5: Universal Task Visibility - Plan 1 Complete
+**Current focus:** Phase 5: Universal Task Visibility - Wave 1 Complete
 
 ## Current Position
 
 Phase: 5 of 10 (Universal Task Visibility)
-Plan: 1 of 5 in current phase
-Status: In progress
-Last activity: 2026-01-31 — Completed 05-01 Enhanced Task List API
+Plan: 03 of 5 in current phase (Wave 1 complete)
+Status: Wave 1 complete (Plans 01, 02, 03), ready for Wave 2
+Last activity: 2026-01-31T05:33:55Z — Completed Plan 03: Batch Operations API Layer
 
-Progress: [████████████░] 92%
+Progress: [██████████░░░] 75% (12 of 16 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
-- Average duration: 2.4 min
-- Total execution time: 0.52 hours
+- Total plans completed: 15
+- Average duration: 2.5 min
+- Total execution time: 0.62 hours
 
 **By Phase:**
 
@@ -31,11 +31,11 @@ Progress: [████████████░] 92%
 | 02-Task-Data-Consistency | 3 of 3 | 5 min | 1.7 min |
 | 03-Dispatch-Configuration | 3 of 3 | 14 min | 4.7 min |
 | 04-Task-Assignment-Core | 3 of 3 | 5 min | 1.7 min |
-| 05-Universal-Task-Visibility | 1 of 5 | 3 min | 3.0 min |
+| 05-Universal-Task-Visibility | 3 of 5 | 9 min | 3.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-01 (3min), 04-03 (2min), 04-02 (1min), 04-01 (2min), 03-03 (2min)
-- Trend: Consistent progress, Phase 5 started
+- Last 5 plans: 05-03 (2min), 05-02 (2min), 05-01 (3min), 04-03 (2min), 04-02 (1min)
+- Trend: Consistent progress, Phase 5 Wave 1 complete
 
 *Updated after each plan completion*
 
@@ -45,6 +45,27 @@ Progress: [████████████░] 92%
 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
+
+**From 05-03 (Batch operations API layer):**
+- Batch delete only applies to draft tasks (status='draft' check)
+- Permission model for batch delete: superuser or work order creator only
+- Batch operations return partial success/failure with detailed error arrays
+- BatchAssignDialog loads operators asynchronously on department change
+- Frontend API methods follow consistent pattern: batchAssign, batchComplete, batchCancel, batchDelete
+
+**From 05-02 (Universal Task List UI with batch operations):**
+- Batch operation buttons in toolbar with selection state tracking
+- Batch action dialog uses Command pattern for extensibility
+- Batch actions filtered by permission: create → batch_delete, change → batch_assign/batch_cancel/batch_complete
+- Partial success display with ElMessageBox for failed tasks
+- Plan 02 provides UI layer that calls Plan 03 API methods
+
+**From 05-01 (Enhanced Task List API):**
+- Added related field serialization for work_order.work_order_number
+- Added department_name and operator_name computed fields for search/filter
+- Added is_draft computed field to distinguish draft vs formal tasks
+- Support multi-field search (work_content, work_order_number, production_requirements)
+- Support department_name and operator_name filtering via related field queries
 
 **From 03-03 (Load balancing strategy):**
 - LoadBalancingService calculates department load (pending + in_progress tasks)
@@ -145,14 +166,6 @@ Recent decisions affecting current work:
 - MessageBox dialog shows conflict with current owner and offers page refresh as retry
 - get_retry_suggestion centralizes error-to-retry mapping (can_retry, suggestion, action_text)
 
-**From 05-01 (Enhanced task list API with django-filter):**
-- Use django-filter for multi-field filtering instead of manual get_queryset filtering
-- WorkOrderTaskFilterSet supports 11 filter fields (status, task_type, assigned_department, assigned_operator, work_order_process, work_order_number, work_content, department_name, operator_name, is_draft)
-- Custom filter methods for complex queries (work_order_number traversal, operator_name Q objects, is_draft boolean logic)
-- Search integration: search_fields includes work_content, production_requirements, and work_order_process__work_order__order_number
-- Permission filtering unchanged: superuser sees all, operators see own tasks, supervisors see department tasks + own created work orders
-- DjangoFilterBackend + SearchFilter + OrderingFilter stack for comprehensive filtering and sorting
-
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during sessions]
@@ -167,6 +180,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31 05:31 UTC
-Stopped at: Completed 05-01 (Enhanced Task List API), ready for 05-02
+Last session: 2026-01-31 05:33 UTC
+Stopped at: Completed Phase 5 Plan 03 (Batch Operations API Layer), Wave 1 complete
 Resume file: None
