@@ -4,7 +4,7 @@
       <!-- 页面头部：部门选择器 -->
       <div slot="header" class="header-section">
         <div class="header-title">
-          <i class="el-icon-s-data" />
+          <i class="el-icon-s-data"></i>
           <span>主管看板</span>
         </div>
         <div class="header-actions">
@@ -41,7 +41,9 @@
               拖拽分派
             </el-button>
           </el-button-group>
-          <el-button icon="el-icon-refresh" @click="loadWorkloadData">刷新</el-button>
+          <el-button icon="el-icon-refresh" @click="loadWorkloadData">
+            刷新
+          </el-button>
         </div>
       </div>
 
@@ -81,11 +83,15 @@
             <el-card shadow="hover" class="summary-card">
               <div class="stat-item">
                 <div class="stat-icon total">
-                  <i class="el-icon-document" />
+                  <i class="el-icon-document"></i>
                 </div>
                 <div class="stat-content">
-                  <div class="stat-value">{{ workloadData.summary.total_tasks }}</div>
-                  <div class="stat-label">总任务数</div>
+                  <div class="stat-value">
+                    {{ workloadData.summary.total_tasks }}
+                  </div>
+                  <div class="stat-label">
+                    总任务数
+                  </div>
                 </div>
               </div>
             </el-card>
@@ -94,11 +100,15 @@
             <el-card shadow="hover" class="summary-card">
               <div class="stat-item">
                 <div class="stat-icon pending">
-                  <i class="el-icon-time" />
+                  <i class="el-icon-time"></i>
                 </div>
                 <div class="stat-content">
-                  <div class="stat-value">{{ workloadData.summary.pending_tasks }}</div>
-                  <div class="stat-label">待处理</div>
+                  <div class="stat-value">
+                    {{ workloadData.summary.pending_tasks }}
+                  </div>
+                  <div class="stat-label">
+                    待处理
+                  </div>
                 </div>
               </div>
             </el-card>
@@ -107,11 +117,15 @@
             <el-card shadow="hover" class="summary-card">
               <div class="stat-item">
                 <div class="stat-icon progress">
-                  <i class="el-icon-loading" />
+                  <i class="el-icon-loading"></i>
                 </div>
                 <div class="stat-content">
-                  <div class="stat-value">{{ workloadData.summary.in_progress_tasks }}</div>
-                  <div class="stat-label">进行中</div>
+                  <div class="stat-value">
+                    {{ workloadData.summary.in_progress_tasks }}
+                  </div>
+                  <div class="stat-label">
+                    进行中
+                  </div>
                 </div>
               </div>
             </el-card>
@@ -120,11 +134,15 @@
             <el-card shadow="hover" class="summary-card">
               <div class="stat-item">
                 <div class="stat-icon completed">
-                  <i class="el-icon-circle-check" />
+                  <i class="el-icon-circle-check"></i>
                 </div>
                 <div class="stat-content">
-                  <div class="stat-value">{{ workloadData.summary.completed_tasks }}</div>
-                  <div class="stat-label">已完成</div>
+                  <div class="stat-value">
+                    {{ workloadData.summary.completed_tasks }}
+                  </div>
+                  <div class="stat-label">
+                    已完成
+                  </div>
                 </div>
               </div>
             </el-card>
@@ -160,19 +178,27 @@
               <div class="priority-distribution">
                 <div class="priority-item">
                   <span class="priority-label">紧急</span>
-                  <el-tag size="small" type="danger">{{ workloadData.priority_distribution.urgent }}</el-tag>
+                  <el-tag size="small" type="danger">
+                    {{ workloadData.priority_distribution.urgent }}
+                  </el-tag>
                 </div>
                 <div class="priority-item">
                   <span class="priority-label">高</span>
-                  <el-tag size="small" type="warning">{{ workloadData.priority_distribution.high }}</el-tag>
+                  <el-tag size="small" type="warning">
+                    {{ workloadData.priority_distribution.high }}
+                  </el-tag>
                 </div>
                 <div class="priority-item">
                   <span class="priority-label">普通</span>
-                  <el-tag size="small" type="info">{{ workloadData.priority_distribution.normal }}</el-tag>
+                  <el-tag size="small" type="info">
+                    {{ workloadData.priority_distribution.normal }}
+                  </el-tag>
                 </div>
                 <div class="priority-item">
                   <span class="priority-label">低</span>
-                  <el-tag size="small">{{ workloadData.priority_distribution.low }}</el-tag>
+                  <el-tag size="small">
+                    {{ workloadData.priority_distribution.low }}
+                  </el-tag>
                 </div>
               </div>
             </el-card>
@@ -199,25 +225,35 @@
               <el-card shadow="hover" class="operator-card" @click.native="handleOperatorClick(operator.operator_id)">
                 <div class="operator-header">
                   <div class="operator-avatar">
-                    <i class="el-icon-user" />
+                    <i class="el-icon-user"></i>
                   </div>
                   <div class="operator-info">
-                    <div class="operator-name">{{ operator.operator_name }}</div>
-                    <div class="operator-total">共 {{ operator.total_count }} 个任务</div>
+                    <div class="operator-name">
+                      {{ operator.operator_name }}
+                    </div>
+                    <div class="operator-total">
+                      共 {{ operator.total_count }} 个任务
+                    </div>
                   </div>
                 </div>
                 <div class="operator-stats">
                   <div class="stat-row">
                     <span class="stat-label">待处理:</span>
-                    <el-tag size="mini" type="warning">{{ operator.pending_count }}</el-tag>
+                    <el-tag size="mini" type="warning">
+                      {{ operator.pending_count }}
+                    </el-tag>
                   </div>
                   <div class="stat-row">
                     <span class="stat-label">进行中:</span>
-                    <el-tag size="mini" type="primary">{{ operator.in_progress_count }}</el-tag>
+                    <el-tag size="mini" type="primary">
+                      {{ operator.in_progress_count }}
+                    </el-tag>
                   </div>
                   <div class="stat-row">
                     <span class="stat-label">已完成:</span>
-                    <el-tag size="mini" type="success">{{ operator.completed_count }}</el-tag>
+                    <el-tag size="mini" type="success">
+                      {{ operator.completed_count }}
+                    </el-tag>
                   </div>
                 </div>
                 <div class="operator-progress">
@@ -226,7 +262,9 @@
                     :color="getProgressColor(operator.completion_rate)"
                     :stroke-width="8"
                   />
-                  <div class="progress-label">完成率: {{ operator.completion_rate }}%</div>
+                  <div class="progress-label">
+                    完成率: {{ operator.completion_rate }}%
+                  </div>
                 </div>
               </el-card>
             </el-col>

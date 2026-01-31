@@ -1,7 +1,7 @@
 <template>
   <div class="batch-action-bar">
     <div class="batch-info">
-      <i class="el-icon-check" />
+      <i class="el-icon-check"></i>
       <span>已选择 <strong>{{ selectedCount }}</strong> 项</span>
     </div>
     <div class="batch-actions">
@@ -14,7 +14,7 @@
         :disabled="loading"
         @click="$emit('batch-assign')"
       >
-        <i class="el-icon-user" /> 批量分派
+        <i class="el-icon-user"></i> 批量分派
       </el-button>
 
       <!-- 批量完成 -->
@@ -26,7 +26,7 @@
         :disabled="loading"
         @click="$emit('batch-complete')"
       >
-        <i class="el-icon-circle-check" /> 批量完成
+        <i class="el-icon-circle-check"></i> 批量完成
       </el-button>
 
       <!-- 批量删除 (仅草稿任务) -->
@@ -38,7 +38,7 @@
         :disabled="loading"
         @click="handleBatchDelete"
       >
-        <i class="el-icon-delete" /> 批量删除
+        <i class="el-icon-delete"></i> 批量删除
       </el-button>
 
       <!-- 批量取消 -->
@@ -50,7 +50,7 @@
         :disabled="loading"
         @click="$emit('batch-cancel')"
       >
-        <i class="el-icon-circle-close" /> 批量取消
+        <i class="el-icon-circle-close"></i> 批量取消
       </el-button>
 
       <!-- 清空选择 -->

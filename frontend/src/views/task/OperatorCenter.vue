@@ -4,26 +4,42 @@
     <el-row :gutter="20" class="summary-row">
       <el-col :span="6">
         <el-card class="summary-card">
-          <div class="stat-value">{{ summary.my_total || 0 }}</div>
-          <div class="stat-label">我的任务</div>
+          <div class="stat-value">
+            {{ summary.my_total || 0 }}
+          </div>
+          <div class="stat-label">
+            我的任务
+          </div>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card class="summary-card pending">
-          <div class="stat-value">{{ summary.my_pending || 0 }}</div>
-          <div class="stat-label">待开始</div>
+          <div class="stat-value">
+            {{ summary.my_pending || 0 }}
+          </div>
+          <div class="stat-label">
+            待开始
+          </div>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card class="summary-card progress">
-          <div class="stat-value">{{ summary.my_in_progress || 0 }}</div>
-          <div class="stat-label">进行中</div>
+          <div class="stat-value">
+            {{ summary.my_in_progress || 0 }}
+          </div>
+          <div class="stat-label">
+            进行中
+          </div>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card class="summary-card claimable">
-          <div class="stat-value">{{ summary.claimable_count || 0 }}</div>
-          <div class="stat-label">可认领</div>
+          <div class="stat-value">
+            {{ summary.claimable_count || 0 }}
+          </div>
+          <div class="stat-label">
+            可认领
+          </div>
         </el-card>
       </el-col>
     </el-row>
@@ -35,7 +51,9 @@
         <el-card class="task-pool-card">
           <div slot="header" class="card-header">
             <span>我的任务</span>
-            <el-tag :type="getPoolType('my')">{{ summary.my_total || 0 }}</el-tag>
+            <el-tag :type="getPoolType('my')">
+              {{ summary.my_total || 0 }}
+            </el-tag>
           </div>
           <el-tabs v-model="myTasksActiveTab">
             <el-tab-pane label="全部" name="all">
@@ -77,7 +95,9 @@
         <el-card class="task-pool-card">
           <div slot="header" class="card-header">
             <span>可认领任务</span>
-            <el-tag type="warning">{{ summary.claimable_count || 0 }}</el-tag>
+            <el-tag type="warning">
+              {{ summary.claimable_count || 0 }}
+            </el-tag>
           </div>
           <OperatorTaskList
             :tasks="claimableTasks"

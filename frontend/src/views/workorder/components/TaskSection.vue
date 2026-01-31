@@ -1,63 +1,86 @@
 <template>
-  <div class="task-section" v-loading="loading">
+  <div v-loading="loading" class="task-section">
     <!-- 统计头部 -->
     <div class="task-stats">
       <el-row :gutter="20" align="middle">
         <el-col :span="5">
           <div class="stat-item">
-            <div class="stat-value">{{ taskStats.total }}</div>
-            <div class="stat-label">全部任务</div>
+            <div class="stat-value">
+              {{ taskStats.total }}
+            </div>
+            <div class="stat-label">
+              全部任务
+            </div>
           </div>
         </el-col>
         <el-col :span="5">
           <div class="stat-item draft">
-            <div class="stat-value">{{ taskStats.draft }}</div>
-            <div class="stat-label">草稿</div>
+            <div class="stat-value">
+              {{ taskStats.draft }}
+            </div>
+            <div class="stat-label">
+              草稿
+            </div>
           </div>
         </el-col>
         <el-col :span="5">
           <div class="stat-item pending">
-            <div class="stat-value">{{ taskStats.pending }}</div>
-            <div class="stat-label">待处理</div>
+            <div class="stat-value">
+              {{ taskStats.pending }}
+            </div>
+            <div class="stat-label">
+              待处理
+            </div>
           </div>
         </el-col>
         <el-col :span="5">
           <div class="stat-item completed">
-            <div class="stat-value">{{ taskStats.completed }}</div>
-            <div class="stat-label">已完成</div>
+            <div class="stat-value">
+              {{ taskStats.completed }}
+            </div>
+            <div class="stat-label">
+              已完成
+            </div>
           </div>
         </el-col>
         <el-col :span="4">
           <div class="progress-display">
-            <div class="progress-label">完成进度</div>
-            <el-progress 
-              :percentage="taskStats.progressPercentage" 
+            <div class="progress-label">
+              完成进度
+            </div>
+            <el-progress
+              :percentage="taskStats.progressPercentage"
               :stroke-width="8"
-              :status="taskStats.progressPercentage === 100 ? 'success' : ''"
-            ></el-progress>
+              :status="taskStats.progressPercentage === 100 ? 'success' : undefined"
+            />
           </div>
         </el-col>
       </el-row>
       <!-- 操作按钮 -->
-      <div class="task-actions" v-if="editable && workOrderId">
-        <el-button type="primary" size="small" icon="el-icon-plus" @click="showAddTaskDialog">
+      <div v-if="editable && workOrderId" class="task-actions">
+        <el-button
+          type="primary"
+          size="small"
+          icon="el-icon-plus"
+          @click="showAddTaskDialog"
+        >
           添加任务
         </el-button>
-        <el-button 
-          v-if="canEditDraftTasks && draftTasks.length > 0" 
-          type="success" 
-          size="small" 
+        <el-button
+          v-if="canEditDraftTasks && draftTasks.length > 0"
+          type="success"
+          size="small"
           icon="el-icon-edit"
-          @click="handleBulkEdit"
           :disabled="selectedTasks.length === 0"
+          @click="handleBulkEdit"
         >
           批量编辑 ({{ selectedTasks.length }})
         </el-button>
-        <el-checkbox 
-          v-if="canEditDraftTasks && draftTasks.length > 0" 
-          v-model="selectAllDraft" 
-          @change="handleSelectAllDraft"
+        <el-checkbox
+          v-if="canEditDraftTasks && draftTasks.length > 0"
+          v-model="selectAllDraft"
           class="select-all-checkbox"
+          @change="handleSelectAllDraft"
         >
           全选草稿
         </el-checkbox>
@@ -142,7 +165,12 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column v-if="canEditTask" label="操作" width="100" align="center">
+        <el-table-column
+          v-if="canEditTask"
+          label="操作"
+          width="100"
+          align="center"
+        >
           <template slot-scope="scope">
             <el-button
               v-if="canEditSingleTask(scope.row)"
@@ -177,10 +205,15 @@
       width="500px"
       :close-on-click-modal="false"
     >
-      <el-form :model="newTask" :rules="addTaskRules" ref="addTaskForm" label-width="100px">
+      <el-form
+        ref="addTaskForm"
+        :model="newTask"
+        :rules="addTaskRules"
+        label-width="100px"
+      >
         <el-form-item label="工序" prop="work_order_process">
-          <el-select 
-            v-model="newTask.work_order_process" 
+          <el-select
+            v-model="newTask.work_order_process"
             placeholder="请选择工序"
             style="width: 100%"
             filterable
@@ -199,8 +232,8 @@
           </el-select>
         </el-form-item>
         <el-form-item label="任务类型" prop="task_type">
-          <el-select 
-            v-model="newTask.task_type" 
+          <el-select
+            v-model="newTask.task_type"
             placeholder="请选择任务类型"
             style="width: 100%"
           >
@@ -216,9 +249,9 @@
           </el-select>
         </el-form-item>
         <el-form-item label="数量" prop="production_quantity">
-          <el-input-number 
-            v-model="newTask.production_quantity" 
-            :min="1" 
+          <el-input-number
+            v-model="newTask.production_quantity"
+            :min="1"
             :max="999999"
             controls-position="right"
             style="width: 100%"
@@ -234,16 +267,18 @@
         </el-form-item>
         <el-form-item label="生产要求" prop="production_requirements">
           <el-input
-            type="textarea"
             v-model="newTask.production_requirements"
+            type="textarea"
             :rows="3"
             placeholder="请输入生产要求"
           />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="addTaskDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="createTask" :loading="creatingTask">
+        <el-button @click="addTaskDialogVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" :loading="creatingTask" @click="createTask">
           {{ creatingTask ? '创建中...' : '确定' }}
         </el-button>
       </div>
@@ -289,7 +324,9 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="editDialogVisible = false">取消</el-button>
+        <el-button @click="editDialogVisible = false">
+          取消
+        </el-button>
         <el-button type="primary" :loading="editLoading" @click="handleSaveEdit">
           保存
         </el-button>
@@ -330,7 +367,9 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="bulkEditDialogVisible = false">取消</el-button>
+        <el-button @click="bulkEditDialogVisible = false">
+          取消
+        </el-button>
         <el-button type="primary" :loading="bulkEditLoading" @click="handleSaveBulkEdit">
           保存
         </el-button>
@@ -466,8 +505,8 @@ export default {
       const editableGroups = ['makers', 'sales staff', '业务员']
 
       // 检查是否有任何可编辑的用户组
-      const hasEditableGroup = editableGroups.some(group => 
-        userGroups.some(userGroup => 
+      const hasEditableGroup = editableGroups.some(group =>
+        userGroups.some(userGroup =>
           userGroup.toLowerCase().includes(group.toLowerCase()) ||
           userGroup === group
         )
@@ -549,8 +588,8 @@ export default {
     async handleSaveBulkEdit() {
       try {
         // 验证是否至少修改了一个字段
-        if (!this.bulkEditForm.production_quantity && 
-            !this.bulkEditForm.priority && 
+        if (!this.bulkEditForm.production_quantity &&
+            !this.bulkEditForm.priority &&
             !this.bulkEditForm.production_requirements) {
           ErrorHandler.showWarning('请至少修改一个字段')
           return
@@ -580,7 +619,7 @@ export default {
         ErrorHandler.showMessage('请先保存施工单后再添加任务')
         return
       }
-      
+
       // Reset form
       this.newTask = {
         work_order: this.workOrderId,
@@ -590,19 +629,19 @@ export default {
         priority: 'normal',
         production_requirements: ''
       }
-      
+
       // Load available processes
       this.loadAvailableProcesses()
       this.addTaskDialogVisible = true
     },
-    
+
     async loadAvailableProcesses() {
       try {
         const response = await processAPI.getList({
           page_size: 100,
           status: 'active'
         })
-        
+
         if (response.data && response.data.results) {
           this.availableProcesses = response.data.results
         } else {
@@ -613,16 +652,16 @@ export default {
         ErrorHandler.showMessage('加载工序列表失败')
       }
     },
-    
+
     async createTask() {
       try {
         await this.$refs.addTaskForm.validate()
       } catch (error) {
         return // Validation failed
       }
-      
+
       this.creatingTask = true
-      
+
       try {
         const taskData = {
           work_order: this.workOrderId,
@@ -632,17 +671,17 @@ export default {
           priority: this.newTask.priority,
           production_requirements: this.newTask.production_requirements
         }
-        
+
         const response = await workOrderTaskAPI.create(taskData)
-        
+
         ErrorHandler.showSuccess('任务创建成功')
-        
+
         // Emit event to refresh tasks
         this.$emit('task-created', response.data)
-        
+
         // Close dialog
         this.addTaskDialogVisible = false
-        
+
       } catch (error) {
         console.error('创建任务失败:', error)
         ErrorHandler.showMessage(error, '创建任务失败')
@@ -650,42 +689,42 @@ export default {
         this.creatingTask = false
       }
     },
-    
+
     getStatusType(status) {
       const statusMap = {
-        'draft': 'info',
-        'pending': 'warning',
-        'in_progress': 'primary',
-        'completed': 'success',
-        'cancelled': 'danger'
+        draft: 'info',
+        pending: 'warning',
+        in_progress: 'primary',
+        completed: 'success',
+        cancelled: 'danger'
       }
       return statusMap[status] || 'info'
     },
     getStatusText(status) {
       const statusTextMap = {
-        'draft': '草稿',
-        'pending': '待处理',
-        'in_progress': '进行中',
-        'completed': '已完成',
-        'cancelled': '已取消'
+        draft: '草稿',
+        pending: '待处理',
+        in_progress: '进行中',
+        completed: '已完成',
+        cancelled: '已取消'
       }
       return statusTextMap[status] || status
     },
     getPriorityType(priority) {
       const priorityMap = {
-        'low': 'info',
-        'normal': '',
-        'high': 'warning',
-        'urgent': 'danger'
+        low: 'info',
+        normal: '',
+        high: 'warning',
+        urgent: 'danger'
       }
       return priorityMap[priority] || ''
     },
     getPriorityText(priority) {
       const priorityTextMap = {
-        'low': '低',
-        'normal': '普通',
-        'high': '高',
-        'urgent': '紧急'
+        low: '低',
+        normal: '普通',
+        high: '高',
+        urgent: '紧急'
       }
       return priorityTextMap[priority] || priority
     }

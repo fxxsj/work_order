@@ -12,14 +12,18 @@
           <el-tag :type="getStatusType(task.status)" size="small">
             {{ task.status_display }}
           </el-tag>
-          <el-tag v-if="task.priority === 'urgent'" type="danger" size="small">紧急</el-tag>
+          <el-tag v-if="task.priority === 'urgent'" type="danger" size="small">
+            紧急
+          </el-tag>
         </div>
-        <div class="task-content">{{ task.work_content }}</div>
+        <div class="task-content">
+          {{ task.work_content }}
+        </div>
         <div class="task-meta">
           <span>{{ task.work_order_process_info?.work_order?.order_number || '-' }}</span>
           <span>{{ task.work_order_process_info?.process?.name || '-' }}</span>
         </div>
-        <div class="task-progress" v-if="task.production_quantity">
+        <div v-if="task.production_quantity" class="task-progress">
           <el-progress
             :percentage="getProgress(task)"
             :stroke-width="6"
@@ -28,7 +32,7 @@
           <span class="progress-text">{{ task.quantity_completed }}/{{ task.production_quantity }}</span>
         </div>
         <!-- Claim button (for claimable tasks) -->
-        <div class="task-actions" v-if="showClaimButton && !task.assigned_operator">
+        <div v-if="showClaimButton && !task.assigned_operator" class="task-actions">
           <el-button
             type="primary"
             size="small"
@@ -39,7 +43,7 @@
           </el-button>
         </div>
         <!-- Update/Complete buttons (for my tasks) -->
-        <div class="task-actions" v-if="showUpdateButtons && isMyTask(task)">
+        <div v-if="showUpdateButtons && isMyTask(task)" class="task-actions">
           <el-button-group>
             <el-button
               size="mini"

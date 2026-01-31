@@ -678,8 +678,8 @@ export default {
         return false
       }
       // 操作员只能选择自己的任务
-      if (!this.$store.getters['auth/hasPermission']('workorder.change_workorder')) {
-        return row.assigned_operator === this.$store.getters['auth/currentUser'].id
+      if (!this.$store.getters['user/hasPermission']('workorder.change_workorder')) {
+        return row.assigned_operator === this.$store.getters['user/currentUser'].id
       }
       return true
     },

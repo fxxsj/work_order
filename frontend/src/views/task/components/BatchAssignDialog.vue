@@ -5,7 +5,12 @@
     width="500px"
     @close="handleClose"
   >
-    <el-form ref="form" :model="form" :rules="rules" label-width="100px">
+    <el-form
+      ref="form"
+      :model="form"
+      :rules="rules"
+      label-width="100px"
+    >
       <!-- 分派部门 -->
       <el-form-item label="分派部门" prop="assigned_department">
         <el-select
@@ -42,7 +47,9 @@
             :value="operator.id"
           />
         </el-select>
-        <div class="form-tip">留空则只分派部门，不分派具体操作员</div>
+        <div class="form-tip">
+          留空则只分派部门，不分派具体操作员
+        </div>
       </el-form-item>
 
       <!-- 调整原因 -->
@@ -67,7 +74,9 @@
     </el-form>
 
     <div slot="footer" class="dialog-footer">
-      <el-button @click="handleClose">取消</el-button>
+      <el-button @click="handleClose">
+        取消
+      </el-button>
       <el-button type="primary" :loading="submitting" @click="handleSubmit">
         确定分派
       </el-button>

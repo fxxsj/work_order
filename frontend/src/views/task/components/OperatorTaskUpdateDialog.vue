@@ -5,10 +5,17 @@
     width="500px"
     @close="handleClose"
   >
-    <el-form ref="form" :model="form" :rules="rules" label-width="100px">
+    <el-form
+      ref="form"
+      :model="form"
+      :rules="rules"
+      label-width="100px"
+    >
       <!-- Task info display -->
       <el-form-item label="任务内容">
-        <div class="task-info">{{ task.work_content }}</div>
+        <div class="task-info">
+          {{ task.work_content }}
+        </div>
       </el-form-item>
 
       <!-- Current progress -->
@@ -24,8 +31,12 @@
 
       <!-- Update mode toggle -->
       <el-radio-group v-model="updateMode" style="margin-bottom: 20px;">
-        <el-radio-button label="increment">增量更新</el-radio-button>
-        <el-radio-button label="complete">直接完成</el-radio-button>
+        <el-radio-button label="increment">
+          增量更新
+        </el-radio-button>
+        <el-radio-button label="complete">
+          直接完成
+        </el-radio-button>
       </el-radio-group>
 
       <!-- Increment mode -->
@@ -39,7 +50,9 @@
             controls-position="right"
             style="width: 100%;"
           />
-          <div class="hint">更新后进度: {{ projectedCompleted }} / {{ task.production_quantity }}</div>
+          <div class="hint">
+            更新后进度: {{ projectedCompleted }} / {{ task.production_quantity }}
+          </div>
         </el-form-item>
 
         <el-form-item label="不良品数量" prop="quantity_defective">
