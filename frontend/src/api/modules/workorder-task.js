@@ -82,6 +82,15 @@ class WorkOrderTaskAPI extends BaseAPI {
     })
   }
 
+  // 获取操作员任务中心数据（我的任务 + 可认领任务）
+  getOperatorCenterData(params) {
+    return this.request({
+      url: `${this.baseUrl}operator_center/`,
+      method: 'get',
+      params
+    })
+  }
+
   // 分割任务
   split(id, data) {
     return this.customAction(`${this.baseUrl}${id}/split/`, 'post', data)
@@ -114,12 +123,38 @@ class WorkOrderTaskAPI extends BaseAPI {
     })
   }
 
-  // 导出任务列表
+  // 导出任务列表（旧方法，保留兼容性）
   export(params) {
     return this.request({
       url: `${this.baseUrl}export/`,
       method: 'get',
       params,
+      responseType: 'blob'
+    })
+  }
+
+  /**
+   * 导出任务列表到Excel（新方法，支持批量导出和筛选）
+   * @param {Object} options
+   * @param {Array<number>} options.task_ids - 指定导出的任务ID列表（可选）
+   * @param {Object} options.filters - 筛选条件（可选）
+   * @param {Array<string>} options.columns - 指定导出的列（可选）
+   * @returns {Promise} Blob响应
+   */
+  exportExcel(options = {}) {
+    return this.request({
+      url: `${this.baseUrl}export/`,
+      method: 'post',
+      data: {
+        task_ids: options.task_ids || [],
+        filters: options.filters || {},
+        columns: options.columns || [
+          'id', 'work_order_number', 'process_name', 'task_type',
+          'work_content', 'assigned_department', 'assigned_operator',
+          'production_quantity', 'quantity_completed', 'progress',
+          'priority', 'status', 'created_at', 'updated_at'
+        ]
+      },
       responseType: 'blob'
     })
   }
