@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Draft Task Foundation** - Implement draft task generation and approval workflow (Completed 2026-01-30)
 - [x] **Phase 2: Task Data Consistency** (Completed 2026-01-31) - Ensure tasks stay synchronized with process changes
-- [ ] **Phase 3: Dispatch Configuration** - Build priority-based department dispatch system
+- [x] **Phase 3: Dispatch Configuration** - Build priority-based department dispatch system (Completed 2026-01-31)
 - [ ] **Phase 4: Task Assignment Core** - Implement supervisor assignment and operator claiming
 - [ ] **Phase 5: Universal Task Visibility** - Global task listing with filtering and search
 - [ ] **Phase 6: Work Order Task Integration** - Embed task management in work order pages
@@ -90,10 +90,12 @@ Plans:
 
 **Plans**: 3 plans
 
+**Status**: ✓ Complete (2026-01-31)
+
 Plans:
-- [ ] 03-01-PLAN.md — Build dispatch preview service and dual-column configuration UI with drag-and-drop
-- [ ] 03-02-PLAN.md — Implement auto-dispatch service with priority-based selection and global toggle
-- [ ] 03-03-PLAN.md — Add workload balancing strategy (least-tasks department selection)
+- [x] 03-01-PLAN.md — Build dispatch preview service and dual-column configuration UI with drag-and-drop (Wave 1)
+- [x] 03-02-PLAN.md — Implement auto-dispatch service with priority-based selection and global toggle (Wave 2)
+- [x] 03-03-PLAN.md — Add workload balancing strategy (least-tasks department selection) (Wave 3)
 
 ### Phase 4: Task Assignment Core
 
@@ -259,7 +261,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|----------------|--------|-----------|
 | 1. Draft Task Foundation | 3/3 | Complete | 2026-01-30 |
 | 2. Task Data Consistency | 3/3 | Complete | 2026-01-31 |
-| 3. Dispatch Configuration | 0/3 | Ready for execution | - |
+| 3. Dispatch Configuration | 3/3 | Complete | 2026-01-31 |
 | 4. Task Assignment Core | 0/3 | Not started | - |
 | 5. Universal Task Visibility | 0/4 | Not started | - |
 | 6. Work Order Task Integration | 0/3 | Not started | - |
