@@ -42,6 +42,22 @@ class WorkOrderTaskAPI extends BaseAPI {
     })
   }
 
+  // 操作员认领任务
+  claimTask(id, data) {
+    return this.customAction(`${this.baseUrl}${id}/claim/`, 'post', {
+      notes: data.notes || ''
+    })
+  }
+
+  // 获取当前用户可认领的任务列表
+  getClaimableTasks(params) {
+    return this.request({
+      url: `${this.baseUrl}claimable/`,
+      method: 'get',
+      params
+    })
+  }
+
   // 分割任务
   split(id, data) {
     return this.customAction(`${this.baseUrl}${id}/split/`, 'post', data)
