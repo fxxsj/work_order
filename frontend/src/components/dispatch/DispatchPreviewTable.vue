@@ -53,8 +53,12 @@
         </template>
       </el-table-column>
 
-      <el-table-column prop="priority" label="优先级" width="100"
-        align="center">
+      <el-table-column
+        prop="priority"
+        label="优先级"
+        width="100"
+        align="center"
+      >
         <template slot-scope="scope">
           <el-tag :type="getPriorityTagType(scope.row.priority)">
             {{ scope.row.priority }}
