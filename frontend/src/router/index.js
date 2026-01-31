@@ -171,6 +171,12 @@ const routes = [
         meta: { title: '任务管理', requiresAuth: true }
       },
       {
+        path: 'tasks/operator',
+        name: 'OperatorCenter',
+        component: () => import(/* webpackChunkName: "task-operator" */ '@/views/task/OperatorCenter.vue'),
+        meta: { title: '操作员任务中心', requiresAuth: true }
+      },
+      {
         path: 'tasks/board',
         name: 'TaskBoard',
         component: () => import(/* webpackChunkName: "task-board" */ '@/views/task/Board.vue'),
