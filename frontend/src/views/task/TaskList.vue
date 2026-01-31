@@ -253,6 +253,22 @@
       </el-empty>
     </el-card>
 
+    <!-- 批量操作栏 -->
+    <BatchActionBar
+      v-if="selectedTasks.length > 0"
+      :selected-count="selectedTasks.length"
+      :loading="batchOperationLoading"
+      :can-batch-assign="canBatchAssign()"
+      :can-batch-complete="canBatchComplete()"
+      :can-batch-delete="canBatchDelete()"
+      :can-batch-cancel="canBatchCancel()"
+      @batch-assign="handleBatchAssign"
+      @batch-complete="handleBatchComplete"
+      @batch-delete="handleBatchDelete"
+      @batch-cancel="handleBatchCancel"
+      @clear-selection="clearSelection"
+    />
+
     <!-- 完成任务对话框 -->
     <CompleteTaskDialog
       :visible.sync="completeTaskDialogVisible"
@@ -288,6 +304,14 @@
       :loading-departments="loadingDepartments"
       :loading-users="loadingUsers"
       @confirm="handleSplitTask"
+    />
+
+    <!-- 批量分派对话框 -->
+    <BatchAssignDialog
+      :visible.sync="batchAssignDialogVisible"
+      :task-count="selectedTasks.length"
+      :department-list="departmentList"
+      @confirm="handleConfirmBatchAssign"
     />
   </div>
 </template>
