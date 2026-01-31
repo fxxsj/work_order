@@ -114,6 +114,15 @@ class WorkOrderTaskAPI extends BaseAPI {
     })
   }
 
+  // 获取部门工作负载统计（主管看板）
+  getDepartmentWorkload(params) {
+    return this.request({
+      url: `${this.baseUrl}department_workload/`,
+      method: 'get',
+      params  // { department_id, start_date, end_date }
+    })
+  }
+
   // 获取分派历史记录
   getAssignmentHistory(params) {
     return this.request({
