@@ -9,7 +9,7 @@
 export function debounce(func, wait = 300, immediate = false) {
   let timeout
 
-  const executedFunction = function(...args) {
+  const executedFunction = function (...args) {
     const context = this
 
     const later = () => {
