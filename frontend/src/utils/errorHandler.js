@@ -6,6 +6,120 @@ import { Message, MessageBox } from 'element-ui'
 
 export class ErrorHandler {
   /**
+   * 判断是否为任务冲突错误
+   * @param {Object} error - 错误对象
+   * @returns {Boolean}
+   */
+  static isConflictError(error) {
+    if (!error) return false
+
+    // 检查响应状态码
+    if (error.response?.status === 409) {
+      return true
+    }
+
+    // 检查错误代码
+    if (error.response?.data?.code === 'task_conflict') {
+      return true
+    }
+
+    return false
+  }
+
+  /**
+   * 判断是否为权限错误
+   * @param {Object} error - 错误对象
+   * @returns {Boolean}
+   */
+  static isPermissionError(error) {
+    if (!error) return false
+    return error.response?.status === 403
+  }
+
+  /**
+   * 处理任务分配/认领错误
+   * @param {Object} error - 错误对象
+   * @param {Object} options - 选项
+   * @returns {Object} 处理后的错误信息
+   */
+  static handleTaskError(error, options = {}) {
+    const { onConflict = null, onPermission = null, onOther = null } = options
+
+    if (this.isConflictError(error)) {
+      const conflictData = {
+        type: 'conflict',
+        message: error.response?.data?.detail || '该任务正在被其他用户操作',
+        currentOwner: error.response?.data?.current_owner,
+        taskId: error.response?.data?.task_id,
+        retry: error.response?.data?.retry
+      }
+
+      if (onConflict) {
+        onConflict(conflictData)
+      } else {
+        this.showConflictMessage(conflictData)
+      }
+
+      return conflictData
+    }
+
+    if (this.isPermissionError(error)) {
+      const permData = {
+        type: 'permission',
+        message: error.response?.data?.detail || '您没有权限执行此操作'
+      }
+
+      if (onPermission) {
+        onPermission(permData)
+      } else {
+        this.showMessage(permData.message, 'error')
+      }
+
+      return permData
+    }
+
+    // 其他错误
+    const otherData = {
+      type: 'other',
+      message: error.response?.data?.detail || error.message || '操作失败'
+    }
+
+    if (onOther) {
+      onOther(otherData)
+    } else {
+      this.showMessage(otherData.message, 'error')
+    }
+
+    return otherData
+  }
+
+  /**
+   * 显示冲突错误消息（带重试选项）
+   * @param {Object} conflictData - 冲突数据
+   */
+  static showConflictMessage(conflictData) {
+    // 使用 Element UI 的 MessageBox 显示冲突和重试选项
+    const { currentOwner, retry } = conflictData
+
+    let message = conflictData.message
+    if (currentOwner) {
+      message += `\n\n当前操作人：${currentOwner}`
+    }
+
+    // 显示确认对话框
+    MessageBox.confirm(message, '任务冲突', {
+      confirmButtonText: retry?.action_text || '刷新页面',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }).then(() => {
+      // 用户点击重试 - 刷新页面
+      location.reload()
+    }).catch(() => {
+      // 用户取消
+    })
+  }
+
+  /**
    * 处理错误
    * @param {Error} error - 错误对象
    * @param {string} context - 错误上下文
@@ -24,6 +138,8 @@ export class ErrorHandler {
         message = error.response.data.error
       } else if (error.response?.data?.message) {
         message = error.response.data.message
+      } else if (error.response?.data?.detail) {
+        message = error.response.data.detail
       } else if (error.message) {
         message = error.message
       }

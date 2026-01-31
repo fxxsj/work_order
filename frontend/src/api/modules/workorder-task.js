@@ -4,6 +4,7 @@
  */
 import request from '@/api/index'
 import { BaseAPI } from '@/api/base/BaseAPI'
+import ErrorHandler from '@/utils/errorHandler'
 
 class WorkOrderTaskAPI extends BaseAPI {
   constructor() {
@@ -121,6 +122,39 @@ class WorkOrderTaskAPI extends BaseAPI {
       method: 'post',
       data: { task_ids: taskIds }
     })
+  }
+
+  // 带错误处理的任务认领
+  async claimTaskWithErrorHandling(id, data) {
+    try {
+      const response = await this.claimTask(id, data)
+      ErrorHandler.showSuccess('任务认领成功')
+      return response
+    } catch (error) {
+      const handled = ErrorHandler.handleTaskError(error, {
+        onConflict: (conflictData) => {
+          // 自定义冲突处理
+          ErrorHandler.showConflictMessage(conflictData)
+        }
+      })
+      throw handled // 重新抛出以便调用者处理
+    }
+  }
+
+  // 带错误处理的任务分配
+  async assignToOperatorWithErrorHandling(id, data) {
+    try {
+      const response = await this.assignToOperator(id, data)
+      ErrorHandler.showSuccess('任务分配成功')
+      return response
+    } catch (error) {
+      const handled = ErrorHandler.handleTaskError(error, {
+        onConflict: (conflictData) => {
+          ErrorHandler.showConflictMessage(conflictData)
+        }
+      })
+      throw handled
+    }
   }
 }
 
