@@ -2,26 +2,26 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-01-30)
+See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** 创建即分派，审核即开工 - 施工单一经创建即可预览所有任务，审核通过后任务立即可用
-**Current focus:** Phase 2: Task Data Consistency
+**Current focus:** Phase 3: Dispatch Configuration
 
 ## Current Position
 
-Phase: 2 of 10 (Task Data Consistency)
-Plan: 3 of 3 in current phase
+Phase: 3 of 10 (Dispatch Configuration)
+Plan: 2 of 3 in current phase
 Status: Complete (awaiting verification)
-Last activity: 2026-01-31 — Completed 02-03: Frontend sync integration
+Last activity: 2026-01-31 — Completed 03-02: Auto-dispatch service integration
 
-Progress: [██████████░] 67%
+Progress: [█████████░░] 72%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 1.7 min
-- Total execution time: 0.17 hours
+- Total plans completed: 8
+- Average duration: 2.4 min
+- Total execution time: 0.32 hours
 
 **By Phase:**
 
@@ -29,10 +29,11 @@ Progress: [██████████░] 67%
 |-------|-------|-------|----------|
 | 01-draft-task-foundation | 3 of 3 | 5 min | 1.7 min |
 | 02-Task-Data-Consistency | 3 of 3 | 5 min | 1.7 min |
+| 03-Dispatch-Configuration | 2 of 3 | 14 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-03 (1min), 02-02 (2min), 02-01 (2min), 01-03 (1min), 01-02 (3min)
-- Trend: Steady progress, phase 2 complete
+- Last 5 plans: 03-02 (7min), 03-01 (7min), 02-03 (1min), 02-02 (2min), 02-01 (2min)
+- Trend: Phase 3 in progress (dispatch configuration)
 
 *Updated after each plan completion*
 
@@ -42,6 +43,22 @@ Progress: [██████████░] 67%
 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
+
+**From 03-02 (Auto-dispatch service integration):**
+- Global dispatch defaults to FALSE (disabled) for safe rollout
+- Use Django cache for global toggle (cache key 'dispatch_global_enabled', no timeout)
+- AutoDispatchService returns None when disabled (caller uses fallback logic)
+- Auto-dispatch happens during draft-to-formal conversion (approval workflow)
+- Frontend uses localStorage as fallback if API call fails
+- Service layer pattern: AutoDispatchService encapsulates all dispatch logic
+- Priority-based selection: order_by('-priority') iteration with department availability validation
+
+**From 03-01 (Dispatch preview and configuration UI):**
+- Dual-column layout for rule configuration (process list + department priority panel)
+- DispatchPreviewService generates read-only preview of dispatch configuration
+- Preview-confirm pattern: show effects before applying configuration changes
+- Component separation: ProcessList, DepartmentPriorityPanel, DispatchPreviewTable
+- localStorage for global dispatch toggle persistence (front-end only initially)
 
 **From 02-03 (Frontend sync integration):**
 - Automatic sync check after process changes rather than manual trigger
@@ -102,6 +119,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31 01:43 UTC
-Stopped at: Completed 02-03 (Frontend sync integration), all 3 tasks committed, SUMMARY.md created, awaiting human verification checkpoint
+Last session: 2026-01-31 02:56 UTC
+Stopped at: Completed 03-02 (Auto-dispatch service integration), all 7 tasks committed, SUMMARY.md created, awaiting human verification checkpoint
 Resume file: None
