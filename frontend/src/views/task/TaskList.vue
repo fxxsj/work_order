@@ -433,6 +433,13 @@ export default {
              this.filters.task_type ||
              this.filters.assigned_department ||
              this.filters.work_order_process
+    },
+
+    /**
+     * 是否启用虚拟滚动（总数超过100条时启用）
+     */
+    shouldUseVirtualScroll() {
+      return this.total > 100
     }
   },
 
@@ -567,6 +574,25 @@ export default {
     clearSelection() {
       this.$refs.taskTable.clearSelection()
       this.selectedTasks = []
+    },
+
+    /**
+     * 检查虚拟表格行是否选中
+     */
+    isRowSelected(row) {
+      return this.selectedTasks.some(t => t.id === row.id)
+    },
+
+    /**
+     * 切换虚拟表格行选择
+     */
+    toggleRowSelection(row) {
+      const index = this.selectedTasks.findIndex(t => t.id === row.id)
+      if (index > -1) {
+        this.selectedTasks.splice(index, 1)
+      } else {
+        this.selectedTasks.push(row)
+      }
     },
 
     /**
