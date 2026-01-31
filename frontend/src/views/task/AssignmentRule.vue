@@ -416,10 +416,10 @@ export default {
     /**
      * 处理切换启用状态
      */
-    async handleToggleActive({ id, is_active }) {
+    async handleToggleActive({ id, is_active: isActive }) {
       try {
-        await this.apiService.update(id, { is_active })
-        ErrorHandler.showSuccess(is_active ? '已启用' : '已禁用')
+        await this.apiService.update(id, { is_active: isActive })
+        ErrorHandler.showSuccess(isActive ? '已启用' : '已禁用')
         // 刷新部门规则和预览
         if (this.selectedProcess) {
           await this.loadDepartmentPriorities(this.selectedProcess.id)

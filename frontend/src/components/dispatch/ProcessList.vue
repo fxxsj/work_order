@@ -24,7 +24,7 @@
             <div class="process-name">{{ process.name }}</div>
             <div class="process-code">{{ process.code }}</div>
           </div>
-          <i v-if="isSelected(process)" class="el-icon-check selected-icon" />
+          <i v-if="isSelected(process)" class="el-icon-check selected-icon"></i>
         </div>
 
         <el-skeleton

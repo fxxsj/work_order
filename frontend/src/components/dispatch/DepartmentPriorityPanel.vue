@@ -54,7 +54,7 @@
           </div>
 
           <!-- 拖拽手柄 -->
-          <i class="el-icon-rank drag-handle" />
+          <i class="el-icon-rank drag-handle"></i>
 
           <!-- 部门信息 -->
           <div class="dept-info">
@@ -74,9 +74,9 @@
           <!-- 操作按钮 -->
           <div class="dept-actions">
             <el-switch
+              :disabled="!canEdit"
               :value="dept.is_active"
               @change="handleToggleActive(dept)"
-              :disabled="!canEdit"
             />
             <el-button
               v-if="canEdit"
