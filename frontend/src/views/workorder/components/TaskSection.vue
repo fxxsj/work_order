@@ -43,6 +43,24 @@
         <el-button type="primary" size="small" icon="el-icon-plus" @click="showAddTaskDialog">
           添加任务
         </el-button>
+        <el-button 
+          v-if="canEditDraftTasks && draftTasks.length > 0" 
+          type="success" 
+          size="small" 
+          icon="el-icon-edit"
+          @click="handleBulkEdit"
+          :disabled="selectedTasks.length === 0"
+        >
+          批量编辑 ({{ selectedTasks.length }})
+        </el-button>
+        <el-checkbox 
+          v-if="canEditDraftTasks && draftTasks.length > 0" 
+          v-model="selectAllDraft" 
+          @change="handleSelectAllDraft"
+          class="select-all-checkbox"
+        >
+          全选草稿
+        </el-checkbox>
       </div>
     </div>
 
@@ -53,7 +71,15 @@
         border
         style="width: 100%"
         size="small"
+        @selection-change="handleSelectionChange"
       >
+        <el-table-column
+          v-if="canEditDraftTasks"
+          type="selection"
+          width="50"
+          align="center"
+          :selectable="isDraftTaskSelectable"
+        />
         <el-table-column
           prop="id"
           label="ID"
@@ -104,6 +130,30 @@
         <el-table-column label="数量" width="120" align="center">
           <template slot-scope="scope">
             {{ scope.row.quantity_completed || 0 }} / {{ scope.row.production_quantity || 0 }}
+          </template>
+        </el-table-column>
+        <el-table-column label="优先级" width="80" align="center">
+          <template slot-scope="scope">
+            <el-tag
+              :type="getPriorityType(scope.row.priority)"
+              size="small"
+            >
+              {{ getPriorityText(scope.row.priority) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column v-if="canEditTask" label="操作" width="100" align="center">
+          <template slot-scope="scope">
+            <el-button
+              v-if="canEditSingleTask(scope.row)"
+              type="text"
+              size="mini"
+              icon="el-icon-edit"
+              @click="handleEditTask(scope.row)"
+            >
+              编辑
+            </el-button>
+            <span v-else class="disabled-text">-</span>
           </template>
         </el-table-column>
       </el-table>
@@ -198,16 +248,106 @@
         </el-button>
       </div>
     </el-dialog>
+
+    <!-- 单任务编辑对话框 -->
+    <el-dialog
+      title="编辑任务"
+      :visible.sync="editDialogVisible"
+      width="500px"
+      append-to-body
+    >
+      <el-form :model="editForm" label-width="80px">
+        <el-form-item label="工序">
+          <span>{{ editForm.process_name }}</span>
+        </el-form-item>
+        <el-form-item label="数量">
+          <el-input-number v-model="editForm.production_quantity" :min="1" :max="999999" />
+        </el-form-item>
+        <el-form-item label="优先级">
+          <el-select v-model="editForm.priority">
+            <el-option label="低" value="low" />
+            <el-option label="普通" value="normal" />
+            <el-option label="高" value="high" />
+            <el-option label="紧急" value="urgent" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="生产要求">
+          <el-input
+            v-model="editForm.production_requirements"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入生产要求"
+          />
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input
+            v-model="editForm.notes"
+            type="textarea"
+            :rows="2"
+            placeholder="请输入备注"
+          />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="editDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="editLoading" @click="handleSaveEdit">
+          保存
+        </el-button>
+      </div>
+    </el-dialog>
+
+    <!-- 批量编辑对话框 -->
+    <el-dialog
+      title="批量编辑任务"
+      :visible.sync="bulkEditDialogVisible"
+      width="500px"
+      append-to-body
+    >
+      <el-form :model="bulkEditForm" label-width="100px">
+        <el-form-item label="已选择任务">
+          <span>{{ selectedTasks.length }} 个</span>
+        </el-form-item>
+        <el-form-item label="数量">
+          <el-input-number v-model="bulkEditForm.production_quantity" :min="1" :max="999999" />
+          <span class="form-tip">（留空则不修改）</span>
+        </el-form-item>
+        <el-form-item label="优先级">
+          <el-select v-model="bulkEditForm.priority" placeholder="请选择优先级">
+            <el-option label="低" value="low" />
+            <el-option label="普通" value="normal" />
+            <el-option label="高" value="high" />
+            <el-option label="紧急" value="urgent" />
+          </el-select>
+          <span class="form-tip">（留空则不修改）</span>
+        </el-form-item>
+        <el-form-item label="生产要求">
+          <el-input
+            v-model="bulkEditForm.production_requirements"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入生产要求（留空则不修改）"
+          />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="bulkEditDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="bulkEditLoading" @click="handleSaveBulkEdit">
+          保存
+        </el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { workOrderTaskAPI } from '@/api/modules/workorder-task'
 import { processAPI } from '@/api/modules'
+import permissionMixin from '@/mixins/permissionMixin'
 import ErrorHandler from '@/utils/errorHandler'
 
 export default {
   name: 'TaskSection',
+  mixins: [permissionMixin],
   props: {
     workOrderId: {
       type: [String, Number],
@@ -228,6 +368,27 @@ export default {
   },
   data() {
     return {
+      // Edit functionality data
+      selectAllDraft: false,
+      selectedTasks: [],
+      editDialogVisible: false,
+      editLoading: false,
+      editForm: {
+        id: null,
+        process_name: '',
+        production_quantity: 1,
+        priority: 'normal',
+        production_requirements: '',
+        notes: ''
+      },
+      bulkEditDialogVisible: false,
+      bulkEditLoading: false,
+      bulkEditForm: {
+        production_quantity: null,
+        priority: '',
+        production_requirements: ''
+      },
+      // Add task data
       addTaskDialogVisible: false,
       creatingTask: false,
       availableProcesses: [],
@@ -251,6 +412,12 @@ export default {
     }
   },
   computed: {
+    draftTasks() {
+      return this.tasks.filter(task => task.status === 'draft' || task.is_draft)
+    },
+    canEditTask() {
+      return this.canEditDraftTasks()
+    },
     taskStats() {
       const stats = {
         total: 0,
@@ -286,6 +453,128 @@ export default {
     }
   },
   methods: {
+    canEditDraftTasks() {
+      // 检查用户角色是否为 makers 或 sales staff
+      const userInfo = this.$store.getters['user/currentUser']
+      if (!userInfo) return false
+
+      // 超级用户可以编辑
+      if (userInfo.is_superuser) return true
+
+      // 检查用户组
+      const userGroups = userInfo.groups || []
+      const editableGroups = ['makers', 'sales staff', '业务员']
+
+      // 检查是否有任何可编辑的用户组
+      const hasEditableGroup = editableGroups.some(group => 
+        userGroups.some(userGroup => 
+          userGroup.toLowerCase().includes(group.toLowerCase()) ||
+          userGroup === group
+        )
+      )
+
+      if (!hasEditableGroup) return false
+
+      // 检查是否有工作单编辑权限
+      return this.hasPermission('workorder.change_workorder')
+    },
+    canEditSingleTask(task) {
+      // 只有草稿任务可以编辑
+      if (task.status !== 'draft' && !task.is_draft) {
+        return false
+      }
+      return this.canEditDraftTasks()
+    },
+    isDraftTaskSelectable(row) {
+      // 只有草稿任务可以被选择
+      return row.status === 'draft' || row.is_draft
+    },
+    handleSelectionChange(selection) {
+      this.selectedTasks = selection
+      // 更新全选复选框状态
+      if (this.draftTasks.length > 0) {
+        this.selectAllDraft = selection.length === this.draftTasks.length
+      }
+    },
+    handleSelectAllDraft(val) {
+      if (val) {
+        // 全选所有草稿任务
+        this.selectedTasks = [...this.draftTasks]
+      } else {
+        this.selectedTasks = []
+      }
+    },
+    handleEditTask(task) {
+      this.editForm = {
+        id: task.id,
+        process_name: task.process_name || task.work_order_process_name || '',
+        production_quantity: task.production_quantity || 1,
+        priority: task.priority || 'normal',
+        production_requirements: task.production_requirements || '',
+        notes: task.notes || ''
+      }
+      this.editDialogVisible = true
+    },
+    async handleSaveEdit() {
+      try {
+        this.editLoading = true
+        await workOrderTaskAPI.update(this.editForm.id, {
+          production_quantity: this.editForm.production_quantity,
+          priority: this.editForm.priority,
+          production_requirements: this.editForm.production_requirements,
+          notes: this.editForm.notes
+        })
+        ErrorHandler.showSuccess('任务编辑成功')
+        this.editDialogVisible = false
+        this.$emit('task-updated')
+      } catch (error) {
+        ErrorHandler.showMessage(error, '编辑任务')
+      } finally {
+        this.editLoading = false
+      }
+    },
+    handleBulkEdit() {
+      if (this.selectedTasks.length === 0) {
+        ErrorHandler.showWarning('请先选择要编辑的任务')
+        return
+      }
+      // 重置批量编辑表单
+      this.bulkEditForm = {
+        production_quantity: null,
+        priority: '',
+        production_requirements: ''
+      }
+      this.bulkEditDialogVisible = true
+    },
+    async handleSaveBulkEdit() {
+      try {
+        // 验证是否至少修改了一个字段
+        if (!this.bulkEditForm.production_quantity && 
+            !this.bulkEditForm.priority && 
+            !this.bulkEditForm.production_requirements) {
+          ErrorHandler.showWarning('请至少修改一个字段')
+          return
+        }
+
+        this.bulkEditLoading = true
+        const taskIds = this.selectedTasks.map(task => task.id)
+        await workOrderTaskAPI.bulkUpdate({
+          task_ids: taskIds,
+          production_quantity: this.bulkEditForm.production_quantity,
+          priority: this.bulkEditForm.priority,
+          production_requirements: this.bulkEditForm.production_requirements
+        })
+        ErrorHandler.showSuccess(`成功编辑 ${taskIds.length} 个任务`)
+        this.bulkEditDialogVisible = false
+        this.selectedTasks = []
+        this.selectAllDraft = false
+        this.$emit('task-updated')
+      } catch (error) {
+        ErrorHandler.showMessage(error, '批量编辑任务')
+      } finally {
+        this.bulkEditLoading = false
+      }
+    },
     showAddTaskDialog() {
       if (!this.workOrderId) {
         ErrorHandler.showMessage('请先保存施工单后再添加任务')
@@ -381,6 +670,24 @@ export default {
         'cancelled': '已取消'
       }
       return statusTextMap[status] || status
+    },
+    getPriorityType(priority) {
+      const priorityMap = {
+        'low': 'info',
+        'normal': '',
+        'high': 'warning',
+        'urgent': 'danger'
+      }
+      return priorityMap[priority] || ''
+    },
+    getPriorityText(priority) {
+      const priorityTextMap = {
+        'low': '低',
+        'normal': '普通',
+        'high': '高',
+        'urgent': '紧急'
+      }
+      return priorityTextMap[priority] || priority
     }
   }
 }
@@ -454,5 +761,20 @@ export default {
 
 .el-table {
   margin-top: 0;
+}
+
+.select-all-checkbox {
+  margin-left: auto;
+}
+
+.disabled-text {
+  color: #c0c4cc;
+  font-size: 12px;
+}
+
+.form-tip {
+  margin-left: 10px;
+  color: #909399;
+  font-size: 12px;
 }
 </style>
