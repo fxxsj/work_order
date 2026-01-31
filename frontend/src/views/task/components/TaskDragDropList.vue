@@ -8,28 +8,30 @@
       </div>
       <div
         class="column-content"
+        :class="{ 'drag-over': dragOverColumn === 'unassigned' }"
         @dragover.prevent
         @dragenter="handleDragEnterUnassigned"
         @dragleave="handleDragLeave"
-        :class="{ 'drag-over': dragOverColumn === 'unassigned' }"
       >
         <draggable
           v-model="unassignedTasks"
           :group="{ name: 'tasks', pull: true, put: true }"
-          @end="onDragEnd"
           item-key="id"
           class="task-list"
           :class="{ 'empty': unassignedTasks.length === 0 }"
+          @end="onDragEnd"
         >
           <template #item="{ element: task }">
             <div
               class="task-card"
               draggable="true"
-              @dragstart="onDragStart(task, $event)"
               :class="getPriorityClass(task)"
+              @dragstart="onDragStart(task, $event)"
             >
               <div class="card-header">
-                <div class="card-title">{{ task.work_content }}</div>
+                <div class="card-title">
+                  {{ task.work_content }}
+                </div>
                 <el-tag
                   v-if="task.work_order__priority"
                   :type="getPriorityType(task.work_order__priority)"
@@ -40,15 +42,15 @@
               </div>
               <div class="card-body">
                 <div class="info-item">
-                  <i class="el-icon-document" />
+                  <i class="el-icon-document"></i>
                   <span>{{ task.work_order__order_number || '-' }}</span>
                 </div>
                 <div class="info-item">
-                  <i class="el-icon-setting" />
+                  <i class="el-icon-setting"></i>
                   <span>{{ task.process_name || '-' }}</span>
                 </div>
                 <div class="info-item">
-                  <i class="el-icon-tickets" />
+                  <i class="el-icon-tickets"></i>
                   <span>数量: {{ task.production_quantity }}</span>
                 </div>
               </div>
@@ -73,11 +75,11 @@
       v-for="operator in operators"
       :key="operator.id"
       class="column operator-column"
+      :class="{ 'drag-over': dragOverOperator === operator.id }"
       @drop="handleDropOperator(operator, $event)"
       @dragover.prevent
       @dragenter="handleDragEnterOperator(operator)"
       @dragleave="handleDragLeave"
-      :class="{ 'drag-over': dragOverOperator === operator.id }"
     >
       <div class="column-header">
         <span class="column-title">{{ operator.name }}</span>
@@ -87,10 +89,10 @@
         <draggable
           v-model="operatorTasks[operator.id]"
           :group="{ name: 'tasks', pull: true, put: true }"
-          @end="onDragEnd"
           item-key="id"
           class="task-list"
           :class="{ 'empty': !operatorTasks[operator.id] || operatorTasks[operator.id].length === 0 }"
+          @end="onDragEnd"
         >
           <template #item="{ element: task }">
             <div
@@ -98,7 +100,9 @@
               :class="getPriorityClass(task)"
             >
               <div class="card-header">
-                <div class="card-title">{{ task.work_content }}</div>
+                <div class="card-title">
+                  {{ task.work_content }}
+                </div>
                 <el-tag
                   v-if="task.work_order__priority"
                   :type="getPriorityType(task.work_order__priority)"
@@ -109,15 +113,15 @@
               </div>
               <div class="card-body">
                 <div class="info-item">
-                  <i class="el-icon-document" />
+                  <i class="el-icon-document"></i>
                   <span>{{ task.work_order__order_number || '-' }}</span>
                 </div>
                 <div class="info-item">
-                  <i class="el-icon-setting" />
+                  <i class="el-icon-setting"></i>
                   <span>{{ task.process_name || '-' }}</span>
                 </div>
                 <div class="info-item">
-                  <i class="el-icon-tickets" />
+                  <i class="el-icon-tickets"></i>
                   <span>数量: {{ task.production_quantity }}</span>
                 </div>
               </div>
@@ -169,7 +173,7 @@ export default {
   },
   watch: {
     tasks: {
-      handler(newTasks) {
+      handler() {
         this.organizeTasks()
       },
       immediate: true,
