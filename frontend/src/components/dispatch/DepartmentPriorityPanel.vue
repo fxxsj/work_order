@@ -58,9 +58,25 @@
 
           <!-- 部门信息 -->
           <div class="dept-info">
-            <div class="dept-name">{{ dept.department_name }}</div>
+            <div class="dept-name">
+              {{ dept.department_name }}
+              <el-tag
+                v-if="isRecommendedDept(dept)"
+                size="mini"
+                type="success"
+                effect="dark"
+                style="margin-left: 8px;"
+              >
+                推荐选择
+              </el-tag>
+            </div>
             <div class="dept-stats">
-              <span>当前负载: {{ dept.current_load || 0 }} 个任务</span>
+              <span
+                :class="getLoadClass(dept.current_load || 0)"
+                class="load-text"
+              >
+                当前负载: {{ dept.current_load || 0 }} 个任务
+              </span>
               <el-divider direction="vertical" />
               <span>优先级: {{ dept.priority }}</span>
             </div>
@@ -301,6 +317,41 @@ export default {
         first_available: '首个可用'
       }
       return strategyMap[strategy] || strategy
+    },
+
+    /**
+     * 获取负载颜色类名
+     */
+    getLoadClass(load) {
+      if (load >= 16) return 'load-high'
+      if (load >= 6) return 'load-medium'
+      return 'load-low'
+    },
+
+    /**
+     * 判断是否为推荐部门
+     * 当同优先级部门中负载最低时推荐
+     */
+    isRecommendedDept(dept) {
+      if (!this.departmentList || this.departmentList.length === 0) {
+        return false
+      }
+
+      // 找到所有相同优先级的部门
+      const samePriorityDepts = this.departmentList.filter(
+        d => d.priority === dept.priority && d.is_active
+      )
+
+      // 如果只有1个相同优先级的部门，不显示推荐
+      if (samePriorityDepts.length <= 1) {
+        return false
+      }
+
+      // 找到负载最低的部门
+      const minLoad = Math.min(...samePriorityDepts.map(d => d.current_load || 0))
+
+      // 当前部门是负载最低的之一
+      return (dept.current_load || 0) === minLoad
     },
 
     /**
@@ -572,6 +623,22 @@ export default {
   font-size: 12px;
   color: #909399;
   margin-bottom: 6px;
+}
+
+.dept-stats .load-text {
+  font-weight: 500;
+}
+
+.dept-stats .load-low {
+  color: #67C23A;
+}
+
+.dept-stats .load-medium {
+  color: #E6A23C;
+}
+
+.dept-stats .load-high {
+  color: #F56C6C;
 }
 
 .dept-strategy {
