@@ -138,11 +138,13 @@ Plans:
 
 **Plans**: 4 plans
 
+Status: In Planning
+
 Plans:
-- [ ] 05-01: Build task list API with filtering, search, and permission-based querysets
-- [ ] 05-02: Create TaskList.vue component with virtual scrolling and bulk selection
-- [ ] 05-03: Implement batch operation APIs (bulk assign, bulk delete, bulk status update)
-- [ ] 05-04: Add task export functionality with filtered data
+- [ ] 05-01-PLAN.md — Build task list API with filtering, search, and permission-based querysets (Wave 1)
+- [ ] 05-02-PLAN.md — Create TaskList.vue component with virtual scrolling and bulk selection (Wave 2)
+- [ ] 05-03-PLAN.md — Implement batch operation APIs (bulk assign, bulk delete, bulk status update) (Wave 2)
+- [ ] 05-04-PLAN.md — Add task export functionality with filtered data (Wave 3)
 
 ### Phase 6: Work Order Task Integration
 
