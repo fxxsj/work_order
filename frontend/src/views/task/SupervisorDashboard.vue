@@ -25,6 +25,22 @@
           <el-tag v-else-if="departmentList.length === 1" type="info">
             {{ departmentList[0].name }}
           </el-tag>
+          <el-button-group style="margin-left: 10px;">
+            <el-button
+              :type="viewMode === 'dashboard' ? 'primary' : ''"
+              icon="el-icon-s-data"
+              @click="viewMode = 'dashboard'"
+            >
+              统计视图
+            </el-button>
+            <el-button
+              :type="viewMode === 'dragdrop' ? 'primary' : ''"
+              icon="el-icon-rank"
+              @click="viewMode = 'dragdrop'"
+            >
+              拖拽分派
+            </el-button>
+          </el-button-group>
           <el-button icon="el-icon-refresh" @click="loadWorkloadData">刷新</el-button>
         </div>
       </div>
@@ -40,8 +56,25 @@
         style="margin-bottom: 20px;"
       />
 
+      <!-- 拖拽分派视图 -->
+      <div v-else-if="viewMode === 'dragdrop'">
+        <task-drag-drop-list
+          v-if="!loading && departmentTasks.length > 0"
+          :tasks="departmentTasks"
+          :operators="operators"
+          @task-assigned="handleTaskAssigned"
+          @task-reassigned="handleTaskReassigned"
+          @task-unassigned="handleTaskUnassigned"
+        />
+        <el-empty
+          v-else-if="!loading && departmentTasks.length === 0"
+          description="暂无任务数据"
+          :image-size="200"
+        />
+      </div>
+
       <!-- 数据内容 -->
-      <div v-else-if="workloadData">
+      <div v-else-if="viewMode === 'dashboard' && workloadData">
         <!-- 汇总统计卡片 -->
         <el-row :gutter="20" class="summary-cards">
           <el-col :span="6">
@@ -212,18 +245,25 @@
 </template>
 
 <script>
-import { workOrderTaskAPI, departmentAPI } from '@/api/modules'
+import { workOrderTaskAPI, departmentAPI, authAPI } from '@/api/modules'
 import ErrorHandler from '@/utils/errorHandler'
+import TaskDragDropList from './components/TaskDragDropList.vue'
 
 export default {
   name: 'SupervisorDashboard',
+  components: {
+    TaskDragDropList
+  },
 
   data() {
     return {
       loading: false,
+      viewMode: 'dashboard', // dashboard or dragdrop
       departmentList: [],
       selectedDepartment: null,
-      workloadData: null
+      workloadData: null,
+      departmentTasks: [],
+      operators: []
     }
   },
 
@@ -282,10 +322,17 @@ export default {
 
       this.loading = true
       try {
+        // 加载工作负载统计数据
         const response = await workOrderTaskAPI.getDepartmentWorkload({
           department_id: this.selectedDepartment
         })
         this.workloadData = response
+
+        // 加载部门任务列表（用于拖拽视图）
+        await this.loadDepartmentTasks()
+
+        // 加载操作员列表
+        await this.loadOperators()
       } catch (error) {
         ErrorHandler.showMessage(error, '加载工作负载数据')
       } finally {
@@ -294,10 +341,136 @@ export default {
     },
 
     /**
+     * 加载部门任务列表
+     */
+    async loadDepartmentTasks() {
+      if (!this.selectedDepartment) return
+
+      try {
+        const response = await workOrderTaskAPI.getList({
+          assigned_department: this.selectedDepartment,
+          page_size: 1000,
+          ordering: '-created_at'
+        })
+        // 展开任务数据以包含关联字段
+        this.departmentTasks = (response.results || []).map(task => ({
+          ...task,
+          work_order__order_number: task.work_order?.order_number,
+          work_order__priority: task.work_order?.priority,
+          process_name: task.work_order_process_info?.process?.name
+        }))
+      } catch (error) {
+        ErrorHandler.showMessage(error, '加载任务列表')
+      }
+    },
+
+    /**
+     * 加载部门操作员列表
+     */
+    async loadOperators() {
+      if (!this.selectedDepartment) return
+
+      try {
+        const response = await authAPI.getUsersByDepartment(this.selectedDepartment)
+        const users = response.data || response || []
+        this.operators = users.map(user => ({
+          id: user.id,
+          name: `${user.first_name}${user.last_name}`.trim() || user.username
+        }))
+      } catch (error) {
+        ErrorHandler.showMessage(error, '加载操作员列表')
+      }
+    },
+
+    /**
      * 部门变化处理
      */
     handleDepartmentChange() {
       this.loadWorkloadData()
+    },
+
+    /**
+     * 处理任务分配
+     */
+    async handleTaskAssigned({ task, operator }) {
+      try {
+        await this.$confirm(
+          `将任务 "${task.work_content}" 分派给 ${operator.name}?`,
+          '确认分派',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        )
+
+        await workOrderTaskAPI.assign(task.id, {
+          operator_id: operator.id
+        })
+
+        this.$message.success('分派成功')
+        await this.loadWorkloadData()
+      } catch (error) {
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '任务分派')
+        }
+      }
+    },
+
+    /**
+     * 处理任务重新分配
+     */
+    async handleTaskReassigned({ task, fromOperator, toOperator }) {
+      try {
+        await this.$confirm(
+          `将任务从 ${fromOperator.name} 转派给 ${toOperator.name}?`,
+          '确认转派',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        )
+
+        await workOrderTaskAPI.assign(task.id, {
+          operator_id: toOperator.id
+        })
+
+        this.$message.success('转派成功')
+        await this.loadWorkloadData()
+      } catch (error) {
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '任务转派')
+        }
+      }
+    },
+
+    /**
+     * 处理取消任务分配
+     */
+    async handleTaskUnassigned({ task, fromOperator }) {
+      try {
+        await this.$confirm(
+          `取消将任务 "${task.work_content}" 分派给 ${fromOperator.name}?`,
+          '确认取消分配',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        )
+
+        await workOrderTaskAPI.assign(task.id, {
+          operator_id: null
+        })
+
+        this.$message.success('取消分配成功')
+        await this.loadWorkloadData()
+      } catch (error) {
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '取消任务分配')
+        }
+      }
     },
 
     /**
