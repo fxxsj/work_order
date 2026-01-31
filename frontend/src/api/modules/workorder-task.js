@@ -25,6 +25,23 @@ class WorkOrderTaskAPI extends BaseAPI {
     return this.customAction(`${this.baseUrl}${id}/assign/`, 'post', data)
   }
 
+  // 分配任务给指定操作员（主管分配）
+  assignToOperator(id, data) {
+    return this.customAction(`${this.baseUrl}${id}/assign/`, 'post', {
+      operator_id: data.operator_id,
+      notes: data.notes || ''
+    })
+  }
+
+  // 获取部门操作员列表
+  getDepartmentOperators(departmentId) {
+    return this.request({
+      url: `${this.baseUrl}department-operators/`,
+      method: 'get',
+      params: { department_id: departmentId }
+    })
+  }
+
   // 分割任务
   split(id, data) {
     return this.customAction(`${this.baseUrl}${id}/split/`, 'post', data)
