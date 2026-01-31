@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** 创建即分派，审核即开工 - 施工单一经创建即可预览所有任务，审核通过后任务立即可用
-**Current focus:** Phase 4: Task Assignment Core (2/3 complete)
+**Current focus:** Phase 4: Task Assignment Core (3/3 complete)
 
 ## Current Position
 
 Phase: 4 of 10 (Task Assignment Core)
-Plan: 2 of 3 in current phase (04-02 complete)
-Status: Executing Wave 2
-Last activity: 2026-01-31 04:03 UTC — Completed operator self-claiming API
+Plan: 3 of 3 in current phase (04-03 complete)
+Status: Phase complete
+Last activity: 2026-01-31 04:07 UTC — Completed conflict detection and error handling
 
-Progress: [█████████████] 85%
+Progress: [████████████] 90%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
+- Total plans completed: 12
 - Average duration: 2.3 min
-- Total execution time: 0.42 hours
+- Total execution time: 0.45 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [█████████████] 85%
 | 01-draft-task-foundation | 3 of 3 | 5 min | 1.7 min |
 | 02-Task-Data-Consistency | 3 of 3 | 5 min | 1.7 min |
 | 03-Dispatch-Configuration | 3 of 3 | 14 min | 4.7 min |
-| 04-Task-Assignment-Core | 2 of 3 | 3 min | 1.5 min |
+| 04-Task-Assignment-Core | 3 of 3 | 5 min | 1.7 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-02 (1min), 04-01 (2min), 03-03 (2min), 03-02 (3min), 03-01 (3min)
-- Trend: Maintaining consistent velocity across phases
+- Last 5 plans: 04-03 (2min), 04-02 (1min), 04-01 (2min), 03-03 (2min), 03-02 (3min)
+- Trend: Accelerating progress, Phase 4 complete
 
 *Updated after each plan completion*
 
@@ -129,6 +129,14 @@ Recent decisions affecting current work:
 - Notification created on successful claim with work order reference
 - Claimable tasks endpoint filters by user department, unassigned status, and pending status
 
+**From 04-03 (Concurrency conflict detection):**
+- TaskConflictError exception extends ConflictError with current_owner and task_id attributes
+- 409 HTTP status code for concurrency conflicts (distinct from 403 permission, 400 business logic)
+- Error response enrichment includes current_owner, task_id, and retry suggestion fields
+- Frontend conflict detection via status code (409) or error code (task_conflict)
+- MessageBox dialog shows conflict with current owner and offers page refresh as retry
+- get_retry_suggestion centralizes error-to-retry mapping (can_retry, suggestion, action_text)
+
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during sessions]
@@ -143,6 +151,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31 04:03 UTC
-Stopped at: Completed 04-02 (Operator Self-Claiming API), 3 tasks committed
+Last session: 2026-01-31 04:07 UTC
+Stopped at: Completed 04-03 (Concurrency Conflict Detection), 3 tasks committed
 Resume file: None
