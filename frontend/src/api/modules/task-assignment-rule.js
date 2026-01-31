@@ -23,6 +23,30 @@ class TaskAssignmentRuleAPI extends BaseAPI {
       params
     })
   }
+
+  /**
+   * 获取全局自动分派启用状态
+   * @returns {Promise} { enabled: boolean }
+   */
+  getGlobalState() {
+    return this.request({
+      url: `${this.baseURL}global_state/`,
+      method: 'get'
+    })
+  }
+
+  /**
+   * 设置全局自动分派启用状态
+   * @param {boolean} enabled - 是否启用
+   * @returns {Promise} { enabled: boolean }
+   */
+  setGlobalState(enabled) {
+    return this.request({
+      url: `${this.baseURL}set_global_state/`,
+      method: 'post',
+      data: { enabled }
+    })
+  }
 }
 
 export const taskAssignmentRuleAPI = new TaskAssignmentRuleAPI()
