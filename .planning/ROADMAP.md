@@ -91,9 +91,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: Build department-process priority configuration model and admin interface
-- [ ] 03-02: Implement auto-dispatch service with priority-based selection
-- [ ] 03-03: Add workload balancing strategy (least-tasks department selection)
+- [ ] 03-01-PLAN.md — Build dispatch preview service and dual-column configuration UI with drag-and-drop
+- [ ] 03-02-PLAN.md — Implement auto-dispatch service with priority-based selection and global toggle
+- [ ] 03-03-PLAN.md — Add workload balancing strategy (least-tasks department selection)
 
 ### Phase 4: Task Assignment Core
 
@@ -257,9 +257,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Draft Task Foundation | 3/3 | ✓ Complete | 2026-01-30 |
-| 2. Task Data Consistency | 2/3 | In progress (gap closure) | - |
-| 3. Dispatch Configuration | 0/3 | Not started | - |
+| 1. Draft Task Foundation | 3/3 | Complete | 2026-01-30 |
+| 2. Task Data Consistency | 3/3 | Complete | 2026-01-31 |
+| 3. Dispatch Configuration | 0/3 | Ready for execution | - |
 | 4. Task Assignment Core | 0/3 | Not started | - |
 | 5. Universal Task Visibility | 0/4 | Not started | - |
 | 6. Work Order Task Integration | 0/3 | Not started | - |
