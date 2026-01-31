@@ -5,22 +5,22 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** 创建即分派，审核即开工 - 施工单一经创建即可预览所有任务，审核通过后任务立即可用
-**Current focus:** Phase 4: Task Assignment Core (Planning Complete)
+**Current focus:** Phase 4: Task Assignment Core (2/3 complete)
 
 ## Current Position
 
 Phase: 4 of 10 (Task Assignment Core)
-Plan: 1 of 3 in current phase (In Progress)
-Status: Plan 04-01 complete
-Last activity: 2026-01-31 04:00 UTC — Completed supervisor assignment API
+Plan: 2 of 3 in current phase (04-02 complete)
+Status: Executing Wave 2
+Last activity: 2026-01-31 04:03 UTC — Completed operator self-claiming API
 
-Progress: [████████████░] 81%
+Progress: [█████████████] 85%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
-- Average duration: 2.5 min
+- Total plans completed: 11
+- Average duration: 2.3 min
 - Total execution time: 0.42 hours
 
 **By Phase:**
@@ -30,11 +30,11 @@ Progress: [████████████░] 81%
 | 01-draft-task-foundation | 3 of 3 | 5 min | 1.7 min |
 | 02-Task-Data-Consistency | 3 of 3 | 5 min | 1.7 min |
 | 03-Dispatch-Configuration | 3 of 3 | 14 min | 4.7 min |
-| 04-Task-Assignment-Core | 1 of 3 | 2 min | 2.0 min |
+| 04-Task-Assignment-Core | 2 of 3 | 3 min | 1.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-01 (2min), 03-03 (2min), 03-02 (3min), 03-01 (3min), 02-03 (1min)
-- Trend: Phase 4 started, maintaining steady progress
+- Last 5 plans: 04-02 (1min), 04-01 (2min), 03-03 (2min), 03-02 (3min), 03-01 (3min)
+- Trend: Maintaining consistent velocity across phases
 
 *Updated after each plan completion*
 
@@ -121,6 +121,14 @@ Recent decisions affecting current work:
 - Row locking with select_for_update() prevents race conditions during assignment
 - Notification on assignment includes previous operator info and optional notes
 
+**From 04-02 (Operator self-claiming API):**
+- Concurrency control: select_for_update() row-level locking serializes concurrent claims
+- Self-service claiming: operators can claim unassigned tasks within their department
+- Idempotent claim operation: returns already_claimed=True when claiming own task
+- Validation chain: department membership → task capacity → task status → existing operator check
+- Notification created on successful claim with work order reference
+- Claimable tasks endpoint filters by user department, unassigned status, and pending status
+
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during sessions]
@@ -135,6 +143,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31 04:00 UTC
-Stopped at: Completed 04-01 (Supervisor Assignment API), 3 tasks committed
+Last session: 2026-01-31 04:03 UTC
+Stopped at: Completed 04-02 (Operator Self-Claiming API), 3 tasks committed
 Resume file: None
