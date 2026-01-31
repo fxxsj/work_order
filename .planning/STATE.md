@@ -5,33 +5,34 @@
 See: .planning/PROJECT.md (updated 2026-01-30)
 
 **Core value:** 创建即分派，审核即开工 - 施工单一经创建即可预览所有任务，审核通过后任务立即可用
-**Current focus:** Phase 1: Draft Task Foundation
+**Current focus:** Phase 2: Task Data Consistency
 
 ## Current Position
 
-Phase: 1 of 10 (Draft Task Foundation)
-Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-01-30 — Completed 01-03: Approval workflow with draft-to-formal conversion
+Phase: 2 of 10 (Task Data Consistency)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-01-31 — Completed 02-01: Differential sync algorithm with preview-confirm pattern
 
-Progress: [██████████░░] 100%
+Progress: [█████████░░] 30%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 1.7 min
-- Total execution time: 0.08 hours
+- Total plans completed: 4
+- Average duration: 1.8 min
+- Total execution time: 0.12 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-draft-task-foundation | 3 of 3 | 5 min | 1.7 min |
+| 02-Task-Data-Consistency | 1 of 3 | 2 min | 2.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-03 (1min), 01-02 (3min), 01-01 (1min)
-- Trend: Steady progress, phase 1 complete
+- Last 5 plans: 02-01 (2min), 01-03 (1min), 01-02 (3min), 01-01 (1min)
+- Trend: Steady progress, phase 2 started
 
 *Updated after each plan completion*
 
@@ -41,6 +42,15 @@ Progress: [██████████░░] 100%
 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
+
+**From 02-01 (Differential sync algorithm with preview-confirm pattern):**
+- Two-step sync process (preview + confirm) prevents accidental data loss
+- Set operations for O(1) difference calculation performance
+- select_for_update() locking prevents race conditions during sync
+- Only draft tasks affected by sync operations (formal tasks untouched)
+- Reused DraftTaskGenerationService.build_task_objects for consistency
+- Preview-confirm pattern: read-only preview before atomic execution
+- Service layer separation: TaskSyncService encapsulates sync logic
 
 **From 01-03 (Approval workflow with draft-to-formal conversion):**
 - Use bulk_update for task conversion performance (batch_size=100)
@@ -77,6 +87,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-30 10:33 UTC
-Stopped at: Completed 01-03 (Approval workflow with draft-to-formal conversion), all 4 tasks committed, SUMMARY.md created
+Last session: 2026-01-31 01:10 UTC
+Stopped at: Completed 02-01 (Differential sync algorithm with preview-confirm pattern), all 4 tasks committed, SUMMARY.md created
 Resume file: None
