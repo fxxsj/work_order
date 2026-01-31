@@ -11,6 +11,29 @@ class WorkOrderTaskAPI extends BaseAPI {
     super('/workorder-tasks/', request)
   }
 
+  /**
+   * 获取任务列表（带高级筛选）
+   * @param {Object} params - 筛选参数
+   * @param {number} params.page - 页码
+   * @param {number} params.page_size - 每页数量
+   * @param {string} params.search - 搜索关键词（任务内容、生产要求、施工单号）
+   * @param {string} params.status - 任务状态（draft/pending/in_progress/completed/cancelled）
+   * @param {string} params.task_type - 任务类型（plate_making/cutting/printing/foiling/embossing/die_cutting/packaging/general）
+   * @param {number} params.assigned_department - 分派部门ID
+   * @param {number} params.assigned_operator - 分派操作员ID
+   * @param {number} params.work_order_process - 工序ID
+   * @param {string} params.work_order_number - 施工单号（模糊搜索）
+   * @param {string} params.work_content - 任务内容（模糊搜索）
+   * @param {string} params.department_name - 部门名称（模糊搜索）
+   * @param {string} params.operator_name - 操作员姓名（模糊搜索）
+   * @param {string} params.is_draft - 是否草稿任务（true/false）
+   * @param {string} params.ordering - 排序字段（created_at/-created_at/updated_at/-updated_at等）
+   * @returns {Promise} API响应
+   */
+  getList(params) {
+    return super.getList(params)
+  }
+
   // 完成任务（支持设计图稿任务时选择图稿）
   complete(id, data) {
     return this.customAction(`${this.baseUrl}${id}/complete/`, 'post', data)
