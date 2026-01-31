@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** 创建即分派，审核即开工 - 施工单一经创建即可预览所有任务，审核通过后任务立即可用
-**Current focus:** Phase 3: Dispatch Configuration
+**Current focus:** Phase 4: Task Assignment Core (Planning Complete)
 
 ## Current Position
 
-Phase: 3 of 10 (Dispatch Configuration)
-Plan: 3 of 3 in current phase
-Status: Complete (verified 2026-01-31)
-Last activity: 2026-01-31 — Completed 03-03: Load balancing strategy
+Phase: 4 of 10 (Task Assignment Core)
+Plan: 1 of 3 in current phase (In Progress)
+Status: Plan 04-01 complete
+Last activity: 2026-01-31 04:00 UTC — Completed supervisor assignment API
 
-Progress: [████████████░] 78%
+Progress: [████████████░] 81%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: 2.6 min
-- Total execution time: 0.39 hours
+- Total plans completed: 10
+- Average duration: 2.5 min
+- Total execution time: 0.42 hours
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [████████████░] 78%
 | 01-draft-task-foundation | 3 of 3 | 5 min | 1.7 min |
 | 02-Task-Data-Consistency | 3 of 3 | 5 min | 1.7 min |
 | 03-Dispatch-Configuration | 3 of 3 | 14 min | 4.7 min |
+| 04-Task-Assignment-Core | 1 of 3 | 2 min | 2.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-03 (2min), 03-02 (3min), 03-01 (3min), 02-03 (1min), 02-02 (2min)
-- Trend: Phase 3 complete, steady progress maintained
+- Last 5 plans: 04-01 (2min), 03-03 (2min), 03-02 (3min), 03-01 (3min), 02-03 (1min)
+- Trend: Phase 4 started, maintaining steady progress
 
 *Updated after each plan completion*
 
@@ -113,6 +114,13 @@ Recent decisions affecting current work:
 - operational() method uses exclude() for clean query composition
 - is_draft is a computed field to avoid schema changes
 
+**From 04-01 (Supervisor assignment API):**
+- Operator capacity limit: Default maximum of 10 active tasks per operator
+- Permission hierarchy: Superuser > Work order creator > Department supervisor with change_workorder permission
+- Task eligibility: Only pending and in_progress tasks can be assigned
+- Row locking with select_for_update() prevents race conditions during assignment
+- Notification on assignment includes previous operator info and optional notes
+
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during sessions]
@@ -127,6 +135,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31 03:23 UTC
-Stopped at: Phase 3 complete (all 3 plans executed and verified), ready for Phase 4
+Last session: 2026-01-31 04:00 UTC
+Stopped at: Completed 04-01 (Supervisor Assignment API), 3 tasks committed
 Resume file: None
