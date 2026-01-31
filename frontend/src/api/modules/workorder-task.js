@@ -66,6 +66,29 @@ class WorkOrderTaskAPI extends BaseAPI {
       responseType: 'blob'
     })
   }
+
+  // 批量更新草稿任务
+  bulkUpdate(data) {
+    return this.request({
+      url: `${this.baseUrl}bulk_update/`,
+      method: 'post',
+      data: {
+        task_ids: data.task_ids,
+        production_quantity: data.production_quantity,
+        priority: data.priority,
+        production_requirements: data.production_requirements
+      }
+    })
+  }
+
+  // 批量删除草稿任务
+  bulkDelete(taskIds) {
+    return this.request({
+      url: `${this.baseUrl}bulk_delete/`,
+      method: 'post',
+      data: { task_ids: taskIds }
+    })
+  }
 }
 
 export const workOrderTaskAPI = new WorkOrderTaskAPI()
