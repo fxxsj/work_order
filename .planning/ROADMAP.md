@@ -138,13 +138,15 @@ Plans:
 
 **Plans**: 4 plans
 
-Status: In Planning
+Status: ✓ Complete (2026-01-31)
 
 Plans:
-- [ ] 05-01-PLAN.md — Build task list API with filtering, search, and permission-based querysets (Wave 1)
-- [ ] 05-02-PLAN.md — Create TaskList.vue component with virtual scrolling and bulk selection (Wave 2)
-- [ ] 05-03-PLAN.md — Implement batch operation APIs (bulk assign, bulk delete, bulk status update) (Wave 2)
-- [ ] 05-04-PLAN.md — Add task export functionality with filtered data (Wave 3)
+- [x] 05-01-PLAN.md — Build task list API with filtering, search, and permission-based querysets (Wave 1)
+- [x] 05-02-PLAN.md — Create TaskList.vue component with virtual scrolling and bulk selection (Wave 2)
+- [x] 05-03-PLAN.md — Implement batch operation APIs (bulk assign, bulk delete, bulk status update) (Wave 2)
+- [x] 05-04-PLAN.md — Add task export functionality with filtered data (Wave 3)
+- [x] 05-05-PLAN.md — Priority filter integration (Wave 3)
+- [x] 05-06-PLAN.md — Virtual scroll performance optimization (Wave 3)
 
 ### Phase 6: Work Order Task Integration
 
@@ -163,10 +165,12 @@ Plans:
 
 **Plans**: 3 plans
 
+Status: In Planning
+
 Plans:
-- [ ] 06-01: Integrate task display section into work order create/edit forms
-- [ ] 06-02: Add inline task editing controls for draft tasks
-- [ ] 06-03: Implement task statistics display and manual task addition
+- [ ] 06-01-PLAN.md — Integrate task display section into work order create/edit forms
+- [ ] 06-02-PLAN.md — Add inline task editing controls for draft tasks
+- [ ] 06-03-PLAN.md — Implement task statistics display and manual task addition
 
 ### Phase 7: Role-Based Task Centers
 
