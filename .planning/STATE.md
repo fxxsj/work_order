@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** 创建即分派，审核即开工 - 施工单一经创建即可预览所有任务，审核通过后任务立即可用
-**Current focus:** Phase 4: Task Assignment Core (3/3 complete)
+**Current focus:** Phase 4: Task Assignment Core - Phase Complete, Verified
 
 ## Current Position
 
-Phase: 4 of 10 (Task Assignment Core)
-Plan: 3 of 3 in current phase (04-03 complete)
-Status: Phase complete
-Last activity: 2026-01-31 04:07 UTC — Completed conflict detection and error handling
+Phase: 4 of 10 (Task Assignment Core) - COMPLETE
+Plan: 3 of 3 in current phase (all complete)
+Status: Phase verified, ready for Phase 5
+Last activity: 2026-01-31 — Phase 4 execution and verification complete
 
-Progress: [████████████] 90%
+Progress: [████████████░] 90%
 
 ## Performance Metrics
 
@@ -34,7 +34,7 @@ Progress: [████████████] 90%
 
 **Recent Trend:**
 - Last 5 plans: 04-03 (2min), 04-02 (1min), 04-01 (2min), 03-03 (2min), 03-02 (3min)
-- Trend: Accelerating progress, Phase 4 complete
+- Trend: Consistent progress, Phase 4 complete and verified
 
 *Updated after each plan completion*
 
@@ -117,9 +117,16 @@ Recent decisions affecting current work:
 **From 04-01 (Supervisor assignment API):**
 - Operator capacity limit: Default maximum of 10 active tasks per operator
 - Permission hierarchy: Superuser > Work order creator > Department supervisor with change_workorder permission
-- Task eligibility: Only pending and in_progress tasks can be assigned
-- Row locking with select_for_update() prevents race conditions during assignment
-- Notification on assignment includes previous operator info and optional notes
+- Task eligibility: Only pending and in_progress tasks can be assigned; draft, completed, cancelled tasks are rejected
+- Row locking: Use select_for_update() to prevent race conditions during assignment
+- Notification content: Include previous operator info for reassignments, support optional notes field
+
+**From 04-02 (Operator self-claiming):**
+- Concurrency control: select_for_update() prevents race conditions in multi-user scenarios
+- Idempotent claim operation: Return already_claimed=True when operator claims task they already own
+- Reused TaskAssignmentService.validate_operator_task_capacity for consistent capacity checks
+- Department membership validation via PermissionCache.is_user_in_department
+- Notification on claim: Created task_assigned notification to inform operator of successful claim
 
 **From 04-02 (Operator self-claiming API):**
 - Concurrency control: select_for_update() row-level locking serializes concurrent claims
@@ -151,6 +158,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31 04:07 UTC
-Stopped at: Completed 04-03 (Concurrency Conflict Detection), 3 tasks committed
+Last session: 2026-01-31 04:15 UTC
+Stopped at: Phase 4 complete (all 3 plans executed and verified), ready for Phase 5
 Resume file: None

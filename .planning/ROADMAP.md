@@ -114,10 +114,12 @@ Plans:
 
 **Plans**: 3 plans
 
+**Status**: ✓ Complete (2026-01-31)
+
 Plans:
-- [ ] 04-01: Implement supervisor assignment API with permission validation
-- [ ] 04-02: Build operator self-claiming API with optimistic locking (select_for_update)
-- [ ] 04-03: Add concurrency conflict detection and user-friendly error handling
+- [x] 04-01-PLAN.md — Implement supervisor assignment API with permission validation (Wave 1)
+- [x] 04-02-PLAN.md — Build operator self-claiming API with optimistic locking (select_for_update) (Wave 2)
+- [x] 04-03-PLAN.md — Add concurrency conflict detection and user-friendly error handling (Wave 3)
 
 ### Phase 5: Universal Task Visibility
 
@@ -262,7 +264,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 1. Draft Task Foundation | 3/3 | Complete | 2026-01-30 |
 | 2. Task Data Consistency | 3/3 | Complete | 2026-01-31 |
 | 3. Dispatch Configuration | 3/3 | Complete | 2026-01-31 |
-| 4. Task Assignment Core | 0/3 | Not started | - |
+| 4. Task Assignment Core | 3/3 | Complete | 2026-01-31 |
 | 5. Universal Task Visibility | 0/4 | Not started | - |
 | 6. Work Order Task Integration | 0/3 | Not started | - |
 | 7. Role-Based Task Centers | 0/4 | Not started | - |
