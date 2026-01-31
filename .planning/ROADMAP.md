@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Dispatch Configuration** - Build priority-based department dispatch system (Completed 2026-01-31)
 - [ ] **Phase 4: Task Assignment Core** - Implement supervisor assignment and operator claiming
 - [ ] **Phase 5: Universal Task Visibility** - Global task listing with filtering and search
-- [ ] **Phase 6: Work Order Task Integration** - Embed task management in work order pages
+- [x] **Phase 6: Work Order Task Integration** - Embed task management in work order pages
 - [ ] **Phase 7: Role-Based Task Centers** - Dedicated supervisor and operator interfaces
 - [ ] **Phase 8: Real-time Notifications** - WebSocket-powered task event notifications
 - [ ] **Phase 9: Performance Optimization** - Database indexes, caching, and query optimization
@@ -165,12 +165,12 @@ Plans:
 
 **Plans**: 3 plans
 
-Status: In Planning
+Status: ✓ Complete (2026-01-31)
 
 Plans:
-- [ ] 06-01-PLAN.md — Integrate task display section into work order create/edit forms
-- [ ] 06-02-PLAN.md — Add inline task editing controls for draft tasks
-- [ ] 06-03-PLAN.md — Implement task statistics display and manual task addition
+- [x] 06-01-PLAN.md — Integrate task display section into work order create/edit forms
+- [x] 06-02-PLAN.md — Add inline task editing controls for draft tasks
+- [x] 06-03-PLAN.md — Implement task statistics display and manual task addition
 
 ### Phase 7: Role-Based Task Centers
 
@@ -272,7 +272,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 3. Dispatch Configuration | 3/3 | Complete | 2026-01-31 |
 | 4. Task Assignment Core | 3/3 | Complete | 2026-01-31 |
 | 5. Universal Task Visibility | 0/4 | Not started | - |
-| 6. Work Order Task Integration | 0/3 | Not started | - |
+| 6. Work Order Task Integration | 3/3 | ✓ Complete | 2026-01-31 |
 | 7. Role-Based Task Centers | 0/4 | Not started | - |
 | 8. Real-time Notifications | 0/3 | Not started | - |
 | 9. Performance Optimization | 0/3 | Not started | - |

@@ -148,11 +148,11 @@
 | VIS-03 | Phase 5 | Pending |
 | VIS-04 | Phase 5 | Pending |
 | VIS-05 | Phase 5 | Pending |
-| WO-01 | Phase 6 | Pending |
-| WO-02 | Phase 6 | Pending |
-| WO-03 | Phase 6 | Pending |
-| WO-04 | Phase 6 | Pending |
-| WO-05 | Phase 6 | Pending |
+| WO-01 | Phase 6 | Complete |
+| WO-02 | Phase 6 | Complete |
+| WO-03 | Phase 6 | Complete |
+| WO-04 | Phase 6 | Complete |
+| WO-05 | Phase 6 | Complete |
 | PAGE-01 | Phase 5 | Pending |
 | PAGE-02 | Phase 5 | Pending |
 | PAGE-03 | Phase 5 | Pending |
@@ -188,7 +188,7 @@
 | AUTH-01 | Phase 5 | Pending |
 | AUTH-02 | Phase 7 | Pending |
 | AUTH-03 | Phase 7 | Pending |
-| AUTH-04 | Phase 6 | Pending |
+| AUTH-04 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 49 total
