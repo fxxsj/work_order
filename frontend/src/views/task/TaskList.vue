@@ -63,6 +63,21 @@
           </el-col>
           <el-col :span="3">
             <el-select
+              v-model="filters.priority"
+              placeholder="优先级"
+              clearable
+              @change="handleSearchDebounced"
+            >
+              <el-option
+                v-for="p in priorityOptions"
+                :key="p.value"
+                :label="p.label"
+                :value="p.value"
+              />
+            </el-select>
+          </el-col>
+          <el-col :span="3">
+            <el-select
               v-model="filters.work_order_process"
               placeholder="工序"
               clearable
@@ -378,7 +393,8 @@ export default {
       filters: {
         task_type: '',
         work_order_process: '',
-        assigned_department: ''
+        assigned_department: '',
+        priority: ''
       },
 
       // 选项数据
@@ -425,6 +441,18 @@ export default {
     },
 
     /**
+     * 优先级选项
+     */
+    priorityOptions() {
+      return [
+        { value: 'low', label: '低' },
+        { value: 'normal', label: '普通' },
+        { value: 'high', label: '高' },
+        { value: 'urgent', label: '紧急' }
+      ]
+    },
+
+    /**
      * 是否有筛选条件
      */
     hasFilters() {
@@ -432,7 +460,8 @@ export default {
              this.filters.status ||
              this.filters.task_type ||
              this.filters.assigned_department ||
-             this.filters.work_order_process
+             this.filters.work_order_process ||
+             this.filters.priority
     },
 
     /**
@@ -471,7 +500,8 @@ export default {
         status: this.filters.status || undefined,
         task_type: this.filters.task_type || undefined,
         work_order_process: this.filters.work_order_process || undefined,
-        assigned_department: this.filters.assigned_department || undefined
+        assigned_department: this.filters.assigned_department || undefined,
+        priority: this.filters.priority || undefined
       }
       return await this.apiService.getList(params)
     },
@@ -883,40 +913,44 @@ export default {
       try {
         this.exporting = true
 
-        // 获取所有符合筛选条件的数据
-        const response = await this.apiService.getList({
-          search: this.searchText || undefined,
-          status: this.filters.status || undefined,
-          task_type: this.filters.task_type || undefined,
-          work_order_process: this.filters.work_order_process || undefined,
-          assigned_department: this.filters.assigned_department || undefined,
-          page_size: 9999,
-          ordering: this.ordering
+        // 如果有选中任务，只导出选中的
+        const taskIds = this.selectedTasks.length > 0
+          ? this.selectedTasks.map(t => t.id)
+          : []
+
+        // 调用后端导出API
+        const response = await this.apiService.exportExcel({
+          task_ids: taskIds,
+          columns: [
+            'id', 'work_order_number', 'process_name', 'task_type',
+            'work_content', 'assigned_department', 'assigned_operator',
+            'production_quantity', 'quantity_completed', 'progress',
+            'priority', 'status', 'created_at', 'updated_at'
+          ]
         })
 
-        const tasks = response.results || []
+        // 从响应中获取文件名
+        const contentDisposition = response.headers['content-disposition']
+        let filename = '任务列表.xlsx'
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="(.+)"/)
+          if (filenameMatch) {
+            filename = decodeURIComponent(filenameMatch[1])
+          }
+        }
 
-        // 准备导出数据
-        const exportData = tasks.map(task => ({
-          ID: task.id,
-          施工单号: task.work_order_process_info?.work_order?.order_number || '-',
-          工序: task.work_order_process_info?.process?.name || '-',
-          任务内容: task.work_content,
-          分派部门: task.assigned_department_name || '-',
-          分派操作员: task.assigned_operator_name || '-',
-          生产数量: task.production_quantity,
-          完成数量: task.quantity_completed,
-          进度: `${this.taskService.calculateProgress(task)}%`,
-          状态: task.status_display
-        }))
-
-        // 使用 exportMixin 的方法导出
-        this.exportExcel(
-          exportData,
-          Object.keys(exportData[0] || {}),
-          Object.keys(exportData[0] || {}),
-          '任务列表.xlsx'
-        )
+        // 创建下载链接
+        const blob = new Blob([response], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        })
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = filename
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
 
         ErrorHandler.showSuccess('导出成功')
       } catch (error) {
