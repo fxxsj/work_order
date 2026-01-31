@@ -55,6 +55,12 @@
         @request-reapproval="handleRequestReapproval"
       />
 
+      <!-- 草稿任务管理 -->
+      <draft-task-management
+        :work-order="workOrder"
+        @refresh="fetchWorkOrderDetail"
+      />
+
       <!-- 图稿和刀模信息 -->
       <artwork-and-die-info :work-order="workOrder" />
 
@@ -106,6 +112,7 @@ import WorkOrderBasicInfo from './components/WorkOrderBasicInfo.vue'
 import WorkOrderProducts from './components/WorkOrderProducts.vue'
 import ArtworkAndDieInfo from './components/ArtworkAndDieInfo.vue'
 import ApprovalWorkflow from './components/ApprovalWorkflow.vue'
+import DraftTaskManagement from './components/DraftTaskManagement.vue'
 import MaterialManagement from './components/MaterialManagement.vue'
 import ProcessManagement from './components/ProcessManagement.vue'
 import WorkOrderPrint from './components/WorkOrderPrint.vue'
@@ -117,6 +124,7 @@ export default {
     WorkOrderProducts,
     ArtworkAndDieInfo,
     ApprovalWorkflow,
+    DraftTaskManagement,
     MaterialManagement,
     ProcessManagement,
     WorkOrderPrint
