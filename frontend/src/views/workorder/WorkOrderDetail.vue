@@ -100,6 +100,15 @@
       >
         <work-order-print :work-order="workOrder" />
       </el-dialog>
+
+      <!-- 任务同步确认对话框 -->
+      <sync-task-prompt
+        :visible="syncPromptDialog"
+        :work-order-id="workOrderId"
+        :process-ids="pendingProcessIds"
+        @synced="handleSyncComplete"
+        @close="syncPromptDialog = false"
+      />
     </div>
   </div>
 </template>
@@ -116,6 +125,7 @@ import DraftTaskManagement from './components/DraftTaskManagement.vue'
 import MaterialManagement from './components/MaterialManagement.vue'
 import ProcessManagement from './components/ProcessManagement.vue'
 import WorkOrderPrint from './components/WorkOrderPrint.vue'
+import SyncTaskPrompt from './components/SyncTaskPrompt.vue'
 
 export default {
   name: 'WorkOrderDetailRefactored',
@@ -127,7 +137,8 @@ export default {
     DraftTaskManagement,
     MaterialManagement,
     ProcessManagement,
-    WorkOrderPrint
+    WorkOrderPrint,
+    SyncTaskPrompt
   },
   data() {
     return {
@@ -138,7 +149,9 @@ export default {
       availableProcesses: [],
       availableMaterials: [],
       availableArtworks: [],
-      printDialogVisible: false
+      printDialogVisible: false,
+      syncPromptDialog: false,
+      pendingProcessIds: []
     }
   },
   computed: {
@@ -306,6 +319,8 @@ export default {
         if (result.data) {
           ErrorHandler.showSuccess('添加工序成功')
           await this.loadData()
+          // Check if sync is needed after process change
+          await this.checkAndPromptSync()
         }
       } catch (error) {
         ErrorHandler.showMessage(error, '添加工序')
@@ -435,6 +450,47 @@ export default {
           ErrorHandler.showMessage(error, '任务拆分')
         }
       }).catch(() => {})
+    },
+    async checkAndPromptSync() {
+      try {
+        // Get current process IDs from the process list
+        const currentProcessIds = this.processList.map(p => p.process_id || p.id)
+
+        if (currentProcessIds.length === 0) {
+          return
+        }
+
+        const result = await workOrderAPI.checkSyncNeeded(this.workOrderId, currentProcessIds)
+        if (result.data && result.data.sync_needed) {
+          // Prompt user to sync
+          ErrorHandler.confirm(
+            '检测到工序变化，需要同步任务。查看变更？',
+            '任务同步提示',
+            {
+              confirmButtonText: '查看变更',
+              cancelButtonText: '稍后',
+              type: 'info'
+            }
+          ).then(() => {
+            this.handleSyncPrompt(currentProcessIds)
+          }).catch(() => {
+            // User chose to sync later
+          })
+        }
+      } catch (error) {
+        // Silently fail - sync check is not critical
+        console.warn('Sync check failed:', error)
+      }
+    },
+    handleSyncPrompt(processIds) {
+      this.pendingProcessIds = processIds
+      this.syncPromptDialog = true
+    },
+    async handleSyncComplete() {
+      this.syncPromptDialog = false
+      this.pendingProcessIds = []
+      // Reload data to show updated tasks
+      await this.loadData()
     }
   }
 }

@@ -328,7 +328,8 @@ export default {
     handleConfirmAddProcess() {
       this.$refs.addProcessFormRef.validate((valid) => {
         if (valid) {
-          this.$emit('add-process', { ...this.addProcessForm })
+          const processData = { ...this.addProcessForm }
+          this.$emit('add-process', processData)
           this.addProcessDialogVisible = false
         }
       })
