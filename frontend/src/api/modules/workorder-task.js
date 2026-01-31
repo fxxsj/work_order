@@ -179,6 +179,88 @@ class WorkOrderTaskAPI extends BaseAPI {
       throw handled
     }
   }
+
+  /**
+   * 批量分派任务
+   * @param {Object} data
+   * @param {Array<number>} data.task_ids - 任务ID列表
+   * @param {number} data.assigned_department - 分派部门ID
+   * @param {number} data.assigned_operator - 分派操作员ID（可选）
+   * @param {string} data.reason - 调整原因（可选）
+   * @param {string} data.notes - 备注（可选）
+   * @returns {Promise}
+   */
+  batchAssign(data) {
+    return this.request({
+      url: `${this.baseUrl}batch_assign/`,
+      method: 'post',
+      data: {
+        task_ids: data.task_ids,
+        assigned_department: data.assigned_department,
+        assigned_operator: data.assigned_operator,
+        reason: data.reason,
+        notes: data.notes
+      }
+    })
+  }
+
+  /**
+   * 批量完成任务
+   * @param {Object} data
+   * @param {Array<number>} data.task_ids - 任务ID列表
+   * @param {string} data.completion_reason - 完成理由（可选）
+   * @param {string} data.notes - 备注（可选）
+   * @returns {Promise}
+   */
+  batchComplete(data) {
+    return this.request({
+      url: `${this.baseUrl}batch_complete/`,
+      method: 'post',
+      data: {
+        task_ids: data.task_ids,
+        completion_reason: data.completion_reason || '',
+        notes: data.notes || ''
+      }
+    })
+  }
+
+  /**
+   * 批量取消任务
+   * @param {Object} data
+   * @param {Array<number>} data.task_ids - 任务ID列表
+   * @param {string} data.cancellation_reason - 取消原因（必填）
+   * @param {string} data.notes - 备注（可选）
+   * @returns {Promise}
+   */
+  batchCancel(data) {
+    return this.request({
+      url: `${this.baseUrl}batch_cancel/`,
+      method: 'post',
+      data: {
+        task_ids: data.task_ids,
+        cancellation_reason: data.cancellation_reason,
+        notes: data.notes || ''
+      }
+    })
+  }
+
+  /**
+   * 批量删除任务（仅草稿任务）
+   * @param {Object} data
+   * @param {Array<number>} data.task_ids - 任务ID列表
+   * @param {string} data.reason - 删除原因（可选）
+   * @returns {Promise}
+   */
+  batchDelete(data) {
+    return this.request({
+      url: `${this.baseUrl}batch-delete/`,
+      method: 'post',
+      data: {
+        task_ids: data.task_ids,
+        reason: data.reason || '批量删除'
+      }
+    })
+  }
 }
 
 export const workOrderTaskAPI = new WorkOrderTaskAPI()
