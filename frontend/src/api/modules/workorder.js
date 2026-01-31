@@ -54,6 +54,29 @@ class WorkOrderAPI extends BaseAPI {
       responseType: 'blob'
     })
   }
+
+  // 检查是否需要同步任务
+  checkSyncNeeded(id, processIds) {
+    const params = processIds && processIds.length > 0
+      ? { process_ids: processIds.join(',') }
+      : {}
+    return this.customAction(`${this.baseUrl}${id}/check_sync_needed/`, 'get', null, params)
+  }
+
+  // 预览任务同步变更
+  syncTasksPreview(id, processIds) {
+    return this.customAction(`${this.baseUrl}${id}/sync_tasks_preview/`, 'post', {
+      process_ids: processIds
+    })
+  }
+
+  // 执行任务同步
+  syncTasksExecute(id, processIds) {
+    return this.customAction(`${this.baseUrl}${id}/sync_tasks_execute/`, 'post', {
+      process_ids: processIds,
+      confirmed: true
+    })
+  }
 }
 
 export const workOrderAPI = new WorkOrderAPI()
