@@ -66,6 +66,17 @@
 
       <!-- 分派预览表格 -->
       <div class="preview-section">
+        <!-- 禁用警告横幅 -->
+        <el-alert
+          v-if="!globalDispatchEnabled"
+          title="自动分派已禁用"
+          type="warning"
+          description="当前自动分派功能已禁用，仅显示预览信息。任务不会实际分派到部门。"
+          :closable="false"
+          show-icon
+          style="margin-bottom: 16px;"
+        />
+
         <div class="preview-header">
           <h4>分派效果预览</h4>
           <el-button
@@ -275,9 +286,9 @@ export default {
     }
   },
   mounted() {
-    this.loadGlobalDispatchState()
     this.loadProcessList()
-    this.loadDepartmentList()
+    this.loadGlobalState()
+    this.loadData()
     this.generatePreview()
   },
   methods: {
@@ -291,28 +302,46 @@ export default {
     },
 
     /**
-     * 加载全局分派开关状态
+     * 加载全局分派开关状态（从后端 API）
      */
-    loadGlobalDispatchState() {
-      const saved = localStorage.getItem(DISPATCH_GLOBAL_ENABLED_KEY)
-      this.globalDispatchEnabled = saved === 'true'
+    async loadGlobalState() {
+      try {
+        const response = await this.apiService.getGlobalState()
+        this.globalDispatchEnabled = response.enabled
+        // 同步到 localStorage 作为本地备份
+        localStorage.setItem(DISPATCH_GLOBAL_ENABLED_KEY, String(response.enabled))
+      } catch (error) {
+        // 如果 API 调用失败，使用 localStorage 作为兜底
+        const saved = localStorage.getItem(DISPATCH_GLOBAL_ENABLED_KEY)
+        this.globalDispatchEnabled = saved === 'true'
+        ErrorHandler.showMessage(error, '加载全局分派状态', false)
+      }
     },
 
     /**
-     * 保存全局分派开关状态
+     * 保存全局分派开关状态到 localStorage（本地备份）
      */
     saveGlobalDispatchState() {
       localStorage.setItem(DISPATCH_GLOBAL_ENABLED_KEY, String(this.globalDispatchEnabled))
     },
 
     /**
-     * 处理全局分派开关切换
+     * 处理全局分派开关切换（同步到后端）
      */
-    handleGlobalToggle(value) {
-      this.saveGlobalDispatchState()
-      ErrorHandler.showSuccess(value ? '已启用自动分派' : '已禁用自动分派')
-      // 刷新预览
-      this.generatePreview()
+    async handleGlobalToggle(value) {
+      try {
+        await this.apiService.setGlobalState(value)
+        this.globalDispatchEnabled = value
+        // 保存到 localStorage 作为本地备份
+        localStorage.setItem(DISPATCH_GLOBAL_ENABLED_KEY, String(value))
+        ErrorHandler.showSuccess(value ? '自动分派已启用' : '自动分派已禁用')
+        // 刷新预览
+        await this.generatePreview()
+      } catch (error) {
+        // 如果 API 调用失败，恢复开关状态
+        this.globalDispatchEnabled = !value
+        ErrorHandler.showMessage(error, '更新分派状态')
+      }
     },
 
     /**
