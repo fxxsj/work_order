@@ -177,6 +177,12 @@ const routes = [
         meta: { title: '操作员任务中心', requiresAuth: true }
       },
       {
+        path: 'tasks/supervisor',
+        name: 'SupervisorDashboard',
+        component: () => import(/* webpackChunkName: "task-supervisor" */ '@/views/task/SupervisorDashboard.vue'),
+        meta: { title: '主管看板', requiresAuth: true }
+      },
+      {
         path: 'tasks/board',
         name: 'TaskBoard',
         component: () => import(/* webpackChunkName: "task-board" */ '@/views/task/Board.vue'),
