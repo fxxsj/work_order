@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** 创建即分派，审核即开工 - 施工单一经创建即可预览所有任务，审核通过后任务立即可用
-**Current focus:** Phase 7: Role-Based Task Centers - In progress
+**Current focus:** Phase 7: Role-Based Task Centers - Complete
 
 ## Current Position
 
 Phase: 7 of 10 (Role-Based Task Centers)
-Plan: 04 of 06 in current phase
-Status: In progress
+Plan: 04 of 04 in current phase (All complete)
+Status: Phase complete
 Last activity: 2026-01-31T10:31:46Z — Completed Plan 07-04: Operator Task Progress Update
 
-Progress: [█████████████████░] 90% (18 of 20 plans complete)
+Progress: [████████████████░] 91% (21 of 23 plans complete)
 
 ## Performance Metrics
 
@@ -111,6 +111,35 @@ Recent decisions affecting current work:
 - Assignment status unified in single column with department/operator format
 - Manual tasks created with draft status for consistency with auto-generated tasks
 - Color-coded tags: green for assigned, gray for "未分派"
+
+**From 07-01 (Supervisor Dashboard):**
+- Department workload API aggregates tasks by operator with completion rate calculation
+- Query optimization using select_related for assigned_department, assigned_operator
+- Circular progress component using SVG with stroke-dasharray animation
+- Permission check: requires workorder.change_workorder for supervisor access
+- Auto-detects user's department if department_id not provided
+
+**From 07-02 (Drag-Drop Assignment):**
+- vuedraggable@2.24.3 used for drag-and-drop functionality
+- Task cards have priority-colored left borders (red=urgent, orange=high, yellow=normal, gray=low)
+- Confirmation dialogs for all assignment operations (assign, reassign, unassign)
+- Event-driven architecture: child emits events, parent handles API calls
+- Visual feedback: dashed blue border on drag-over columns
+
+**From 07-03 (Operator Center):**
+- operator_center API returns combined data: my_tasks + claimable_tasks + summary
+- Limits: max 100 assigned tasks, max 50 claimable tasks to prevent overfetching
+- Role-based access control: non-operators redirected to /tasks
+- Two-pool layout: My Tasks (tabbed) | Claimable Tasks (list)
+- One-click claim with immediate data refresh
+
+**From 07-04 (Operator Progress Updates):**
+- OperatorTaskUpdateDialog combines increment and complete modes in one component
+- Increment mode: quantity input with max validation (remaining quantity)
+- Complete mode: completion reason textarea + defective quantity input
+- Progress bar color coding: green ≥100%, blue 50-99%, orange 0-49%
+- Version-based concurrency control with 409 conflict handling
+- Permission-aware UI: update/complete buttons only on user's own tasks
 
 **From 05-05 (Priority Filter Integration):**
 - Added priority filter to Task List API targeting work_order__priority
@@ -254,6 +283,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-31 10:31 UTC
-Stopped at: Completed Plan 07-04 - Operator Task Progress Update
-Next plan: Phase 7, Plan 05 (07-05-PLAN.md) - Pending execution
+Stopped at: Completed Phase 7 - All plans implemented and verified
+Next plan: Phase 8 (Pending - Real-time Notifications)
 Resume file: None
