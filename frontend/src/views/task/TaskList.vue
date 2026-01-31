@@ -688,6 +688,145 @@ export default {
     },
 
     /**
+     * 批量分派
+     */
+    async handleBatchAssign() {
+      this.batchAssignDialogVisible = true
+    },
+
+    /**
+     * 批量完成
+     */
+    async handleBatchComplete() {
+      try {
+        await this.$confirm('确定要完成选中的任务吗？', '批量完成确认', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+
+        this.batchOperationLoading = true
+        const taskIds = this.selectedTasks.map(t => t.id)
+        await this.apiService.batchComplete({
+          task_ids: taskIds,
+          completion_reason: '批量完成'
+        })
+        ErrorHandler.showSuccess(`成功完成 ${taskIds.length} 个任务`)
+        this.clearSelection()
+        await this.loadData()
+      } catch (error) {
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '批量完成')
+        }
+      } finally {
+        this.batchOperationLoading = false
+      }
+    },
+
+    /**
+     * 批量删除
+     */
+    async handleBatchDelete() {
+      try {
+        this.batchOperationLoading = true
+        const taskIds = this.selectedTasks.map(t => t.id)
+        await this.apiService.batchDelete({
+          task_ids: taskIds
+        })
+        ErrorHandler.showSuccess(`成功删除 ${taskIds.length} 个任务`)
+        this.clearSelection()
+        await this.loadData()
+      } catch (error) {
+        ErrorHandler.showMessage(error, '批量删除')
+      } finally {
+        this.batchOperationLoading = false
+      }
+    },
+
+    /**
+     * 批量取消
+     */
+    async handleBatchCancel() {
+      try {
+        const { value } = await this.$prompt('请输入取消原因', '批量取消', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          inputPattern: /\S+/,
+          inputErrorMessage: '取消原因不能为空'
+        })
+
+        this.batchOperationLoading = true
+        const taskIds = this.selectedTasks.map(t => t.id)
+        await this.apiService.batchCancel({
+          task_ids: taskIds,
+          cancellation_reason: value
+        })
+        ErrorHandler.showSuccess(`成功取消 ${taskIds.length} 个任务`)
+        this.clearSelection()
+        await this.loadData()
+      } catch (error) {
+        if (error !== 'cancel') {
+          ErrorHandler.showMessage(error, '批量取消')
+        }
+      } finally {
+        this.batchOperationLoading = false
+      }
+    },
+
+    /**
+     * 检查是否可以批量分派
+     */
+    canBatchAssign() {
+      return this.selectedTasks.length > 0 && this.$store.getters['auth/hasPermission']('workorder.change_workorder')
+    },
+
+    /**
+     * 检查是否可以批量完成
+     */
+    canBatchComplete() {
+      return this.selectedTasks.length > 0
+    },
+
+    /**
+     * 检查是否可以批量删除（仅草稿任务）
+     */
+    canBatchDelete() {
+      return this.selectedTasks.length > 0 && this.selectedTasks.every(t => t.status === 'draft')
+    },
+
+    /**
+     * 检查是否可以批量取消
+     */
+    canBatchCancel() {
+      return this.selectedTasks.length > 0 && this.selectedTasks.every(t => !['completed', 'cancelled'].includes(t.status))
+    },
+
+    /**
+     * 确认批量分派（从 BatchAssignDialog 调用）
+     */
+    async handleConfirmBatchAssign(data) {
+      try {
+        this.batchOperationLoading = true
+        const taskIds = this.selectedTasks.map(t => t.id)
+        await this.apiService.batchAssign({
+          task_ids: taskIds,
+          assigned_department: data.assigned_department,
+          assigned_operator: data.assigned_operator || null,
+          reason: data.reason,
+          notes: data.notes
+        })
+        ErrorHandler.showSuccess(`成功分派 ${taskIds.length} 个任务`)
+        this.batchAssignDialogVisible = false
+        this.clearSelection()
+        await this.loadData()
+      } catch (error) {
+        ErrorHandler.showMessage(error, '批量分派')
+      } finally {
+        this.batchOperationLoading = false
+      }
+    },
+
+    /**
      * 导出任务列表
      */
     async handleExport() {
