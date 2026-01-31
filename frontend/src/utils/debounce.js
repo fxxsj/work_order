@@ -9,7 +9,7 @@
 export function debounce(func, wait = 300, immediate = false) {
   let timeout
 
-  return function executedFunction(...args) {
+  const executedFunction = function(...args) {
     const context = this
 
     const later = () => {
@@ -24,6 +24,16 @@ export function debounce(func, wait = 300, immediate = false) {
 
     if (callNow) func.apply(context, args)
   }
+
+  // 添加 cancel 方法用于取消待执行的函数
+  executedFunction.cancel = () => {
+    if (timeout) {
+      clearTimeout(timeout)
+      timeout = null
+    }
+  }
+
+  return executedFunction
 }
 
 /**
