@@ -533,6 +533,18 @@
           <i class="el-icon-info"></i> 暂无物料信息，选择产品后将自动加载默认物料，或点击上方按钮手动添加
         </div>
 
+        <!-- 任务信息 -->
+        <el-divider content-position="left">
+          任务信息
+        </el-divider>
+
+        <TaskSection
+          :work-order-id="id"
+          :tasks="tasks"
+          :editable="!isApproved"
+          :loading="tasksLoading"
+        />
+
         <!-- 其他信息 -->
         <el-divider content-position="left">
           其他信息
@@ -589,12 +601,19 @@ import { artworkAPI } from '@/api/modules/artwork'
 import { dieAPI } from '@/api/modules/die'
 import { foilingPlateAPI } from '@/api/modules/foiling-plate'
 import { embossingPlateAPI } from '@/api/modules/embossing-plate'
+import { workOrderTaskAPI } from '@/api/modules/workorder-task'
 // 导入错误处理工具和 debounce
 import ErrorHandler from '@/utils/errorHandler'
 import { debounce } from '@/utils/debounce'
 
+// 导入子组件
+import TaskSection from './components/TaskSection.vue'
+
 export default {
   name: 'WorkOrderForm',
+  components: {
+    TaskSection
+  },
   props: {
     id: {
       type: [String, Number],
@@ -699,6 +718,10 @@ export default {
         '528C', '485C', '186C', '032C', '021C',
         '金色', '银色', '珠光', '荧光绿', '荧光橙'
       ],
+
+      // 任务相关数据
+      tasks: [],
+      tasksLoading: false,
 
       // 防抖保存草稿函数
       debouncedSaveDraft: null
@@ -858,10 +881,34 @@ export default {
         if (data.processes && data.processes.length > 0) {
           this.selectedProcessIds = [...data.processes]
         }
+
+        // 加载关联任务
+        await this.loadTasks()
       } catch (error) {
         ErrorHandler.showMessage(error, '加载施工单')
       } finally {
         this.pageLoading = false
+      }
+    },
+
+    async loadTasks() {
+      if (!this.id) return
+
+      this.tasksLoading = true
+      try {
+        const response = await workOrderTaskAPI.getList({
+          work_order: this.id,
+          page_size: 1000
+        })
+        this.tasks = response.results || response || []
+      } catch (error) {
+        // 加载任务失败时静默处理
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('加载任务失败:', error)
+        }
+        this.tasks = []
+      } finally {
+        this.tasksLoading = false
       }
     },
 
