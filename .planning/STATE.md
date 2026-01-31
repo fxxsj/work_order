@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** 创建即分派，审核即开工 - 施工单一经创建即可预览所有任务，审核通过后任务立即可用
-**Current focus:** Phase 6: Work Order Task Integration - Plan 01 in progress
+**Current focus:** Phase 6: Work Order Task Integration - Plan 02 in progress
 
 ## Current Position
 
 Phase: 6 of 10 (Work Order Task Integration)
-Plan: 03 of 03 in current phase (Plan 03 complete)
-Status: Phase complete
-Last activity: 2026-01-31T06:02:00Z — Completed Plan 06-03: Task Statistics and Manual Addition
+Plan: 02 of 03 in current phase (Plan 02 complete)
+Status: In progress
+Last activity: 2026-01-31T07:56:05Z — Completed Plan 06-02: Inline Task Editing
 
-Progress: [████░░░░░░░░░] 20% (16 of 16 plans complete)
+Progress: [███░░░░░░░░░░] 18% (18 of 16 plans complete)
 
 ## Performance Metrics
 
@@ -51,6 +51,13 @@ Recent decisions affecting current work:
 - VirtualTable updated to support both `data` and `items` props for API compatibility
 - VirtualTable modified to pass through el-table-column children directly
 - Implementation pattern: duplicate column definitions for both table modes
+
+**From 06-02 (Inline Task Editing):**
+- Role-based permission: only makers/sales staff can edit draft tasks
+- Superuser bypass for full access
+- Only draft tasks (status='draft') are editable via inline edit
+- Bulk edit null values mean "don't update field" for partial updates
+- Permission check requires: makers/sales group + workorder.change_workorder permission
 
 **From 06-03 (Task Statistics and Manual Addition):**
 - Progress percentage = (completed tasks / total tasks) × 100 using existing status field
@@ -199,7 +206,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31 06:02 UTC
-Stopped at: Completed Phase 6 Plan 03 - Task Statistics and Manual Addition
+Last session: 2026-01-31 07:56 UTC
+Stopped at: Completed Plan 06-02: Inline Task Editing - Added edit controls, permission checks, and bulk edit functionality
+Next plan: Phase 6 Plan 03 (Pending)
 Next plan: Phase 7 Plan 01 (Pending - to be determined)
 Resume file: None
