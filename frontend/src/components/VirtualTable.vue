@@ -1,42 +1,48 @@
 <template>
   <div class="virtual-table-container">
-    <!-- 表头 -->
     <div class="virtual-table-header">
-      <slot name="header">
-        <el-table
-          :data="[]"
-          border
-          style="width: 100%"
-          :header-row-class-name="headerRowClassName"
-        >
+      <el-table
+        :data="displayData"
+        border
+        style="width: 100%"
+        :header-row-class-name="headerRowClassName"
+      >
+        <slot>
           <slot name="columns"></slot>
-        </el-table>
-      </slot>
+        </slot>
+      </el-table>
     </div>
 
-    <!-- 虚拟滚动列表 -->
     <RecycleScroller
-      v-if="items.length > 0"
+      v-if="displayData.length > 0"
       class="virtual-table-body"
-      :items="items"
+      :items="displayData"
       :item-size="itemSize"
       key-field="id"
       :buffer="buffer"
       v-slot="{ item, index }"
     >
       <div :class="['virtual-table-row', rowClassName]">
-        <slot name="row" :item="item" :index="index"></slot>
+        <el-table
+          :data="[item]"
+          border
+          style="width: 100%"
+          :row-class-name="rowClassName"
+          :show-header="false"
+        >
+          <slot>
+            <slot name="columns" :item="item" :index="index"></slot>
+          </slot>
+        </el-table>
       </div>
     </RecycleScroller>
 
-    <!-- 空状态 -->
     <div v-else class="virtual-table-empty">
       <slot name="empty">
         <el-empty description="暂无数据" />
       </slot>
     </div>
 
-    <!-- 分页 -->
     <div v-if="showPagination" class="virtual-table-pagination">
       <el-pagination
         :current-page="currentPage"
@@ -63,55 +69,55 @@ export default {
   },
 
   props: {
-    // 数据列表
+    data: {
+      type: Array,
+      default: () => []
+    },
     items: {
       type: Array,
       default: () => []
     },
-    // 每行高度（px）
     itemSize: {
       type: Number,
       default: 50
     },
-    // 缓冲区大小（额外渲染的行数）
     buffer: {
       type: Number,
       default: 200
     },
-    // 行类名
     rowClassName: {
       type: String,
       default: ''
     },
-    // 表头行类名
     headerRowClassName: {
       type: String,
       default: ''
     },
-    // 是否显示分页
     showPagination: {
       type: Boolean,
       default: true
     },
-    // 当前页码
     currentPage: {
       type: Number,
       default: 1
     },
-    // 每页数量
     pageSize: {
       type: Number,
       default: 20
     },
-    // 总数量
     total: {
       type: Number,
       default: 0
     },
-    // 分页大小选项
     pageSizes: {
       type: Array,
       default: () => [10, 20, 50, 100, 200]
+    }
+  },
+
+  computed: {
+    displayData() {
+      return this.data.length > 0 ? this.data : this.items
     }
   },
 
@@ -167,7 +173,6 @@ export default {
   text-align: right;
 }
 
-/* 滚动条样式 */
 .virtual-table-body::-webkit-scrollbar {
   width: 8px;
   height: 8px;

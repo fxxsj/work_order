@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** 创建即分派，审核即开工 - 施工单一经创建即可预览所有任务，审核通过后任务立即可用
-**Current focus:** Phase 5: Universal Task Visibility - Wave 1 Complete
+**Current focus:** Phase 5: Universal Task Visibility - Wave 2 in progress
 
 ## Current Position
 
 Phase: 5 of 10 (Universal Task Visibility)
-Plan: 03 of 5 in current phase (Wave 1 complete)
-Status: Wave 1 complete (Plans 01, 02, 03), ready for Wave 2
-Last activity: 2026-01-31T05:33:55Z — Completed Plan 03: Batch Operations API Layer
+Plan: 06 of 06 in current phase (Wave 2 complete)
+Status: All plans in Phase 5 complete
+Last activity: 2026-01-31T06:00:00Z — Completed Plan 05-06: Virtual Scroll Implementation
 
-Progress: [██████████░░░] 75% (12 of 16 plans complete)
+Progress: [████████████░░] 100% (14 of 16 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 15
+- Total plans completed: 17
 - Average duration: 2.5 min
-- Total execution time: 0.62 hours
+- Total execution time: 0.71 hours
 
 **By Phase:**
 
@@ -31,11 +31,11 @@ Progress: [██████████░░░] 75% (12 of 16 plans complete
 | 02-Task-Data-Consistency | 3 of 3 | 5 min | 1.7 min |
 | 03-Dispatch-Configuration | 3 of 3 | 14 min | 4.7 min |
 | 04-Task-Assignment-Core | 3 of 3 | 5 min | 1.7 min |
-| 05-Universal-Task-Visibility | 3 of 5 | 9 min | 3.0 min |
+| 05-Universal-Task-Visibility | 6 of 6 | 14 min | 2.3 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-03 (2min), 05-02 (2min), 05-01 (3min), 04-03 (2min), 04-02 (1min)
-- Trend: Consistent progress, Phase 5 Wave 1 complete
+- Last 5 plans: 05-06 (2min), 05-05 (2min), 05-03 (2min), 05-02 (2min), 05-01 (3min)
+- Phase 5 complete - All tasks implemented and verified
 
 *Updated after each plan completion*
 
@@ -45,6 +45,19 @@ Progress: [██████████░░░] 75% (12 of 16 plans complete
 
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
+
+**From 05-06 (Virtual Scroll Implementation):**
+- Added conditional rendering: standard el-table for <=100 items, VirtualTable for >100 items
+- VirtualTable updated to support both `data` and `items` props for API compatibility
+- VirtualTable modified to pass through el-table-column children directly
+- Implementation pattern: duplicate column definitions for both table modes
+
+**From 05-05 (Priority Filter Integration):**
+- Added priority filter to Task List API targeting work_order__priority
+- Frontend dropdown options: low, normal, high, urgent
+
+**From 05-04 (skipped):**
+- Batch operations UI was already integrated in 05-02
 
 **From 05-03 (Batch operations API layer):**
 - Batch delete only applies to draft tasks (status='draft' check)
@@ -69,7 +82,7 @@ Recent decisions affecting current work:
 
 **From 03-03 (Load balancing strategy):**
 - LoadBalancingService calculates department load (pending + in_progress tasks)
-- select_department_by_load() selects least-loaded department among equal-priority options
+- select_departments_by_load() selects least-loaded department among equal-priority options
 - Hybrid dispatch mode: priority first, load balancing as tiebreaker
 - Preview returns all_departments array with load information for all configured departments
 - Color-coded load display: green (0-5), yellow (6-15), red (16+)
@@ -180,6 +193,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31 05:33 UTC
-Stopped at: Completed Phase 5 Plan 03 (Batch Operations API Layer), Wave 1 complete
+Last session: 2026-01-31 06:00 UTC
+Stopped at: Completed Phase 5 - All plans implemented
+Next plan: Phase 6 (Pending - to be determined)
 Resume file: None

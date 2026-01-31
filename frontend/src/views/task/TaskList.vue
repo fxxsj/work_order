@@ -140,110 +140,196 @@
       />
 
       <!-- 任务列表 -->
-      <el-table
-        v-if="viewMode === 'table'"
-        ref="taskTable"
-        v-loading="loading && tableData.length > 0"
-        :data="tableData"
-        border
-        style="width: 100%; margin-top: 20px;"
-        :row-key="getRowKey"
-        @sort-change="handleSortChange"
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column
-          type="selection"
-          width="55"
-          :selectable="checkRowSelectable"
-        />
-        <el-table-column type="expand" width="50">
-          <template slot-scope="scope">
-            <TaskLogs :task="scope.row" />
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="id"
-          label="ID"
-          width="80"
-          sortable="custom"
-        />
-        <el-table-column label="施工单号" width="150">
-          <template slot-scope="scope">
-            <el-link
-              v-if="scope.row.work_order_process_info?.work_order?.id"
-              type="primary"
-              @click="goToWorkOrderDetail(scope.row.work_order_process_info.work_order)"
-            >
-              {{ scope.row.work_order_process_info.work_order.order_number || '-' }}
-            </el-link>
-            <span v-else>-</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="工序" width="120">
-          <template slot-scope="scope">
-            {{ scope.row.work_order_process_info?.process?.name || '-' }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="work_content"
-          label="任务内容"
-          min-width="200"
-          show-overflow-tooltip
-        />
-        <el-table-column label="分派部门" width="120">
-          <template slot-scope="scope">
-            {{ scope.row.assigned_department_name || '-' }}
-          </template>
-        </el-table-column>
-        <el-table-column label="分派操作员" width="120">
-          <template slot-scope="scope">
-            {{ scope.row.assigned_operator_name || '-' }}
-          </template>
-        </el-table-column>
-        <el-table-column label="关联对象" width="150">
-          <template slot-scope="scope">
-            <TaskRelatedInfo :task="scope.row" />
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="production_quantity"
-          label="生产数量"
-          width="100"
-          align="right"
-        />
-        <el-table-column
-          prop="quantity_completed"
-          label="完成数量"
-          width="100"
-          align="right"
-        />
-        <el-table-column label="进度" width="80" align="right">
-          <template slot-scope="scope">
-            {{ taskService.calculateProgress(scope.row) }}%
-          </template>
-        </el-table-column>
-        <el-table-column prop="status_display" label="状态" width="100">
-          <template slot-scope="scope">
-            <el-tag
-              :type="taskService.getStatusType(scope.row.status)"
-              size="small"
-            >
-              {{ scope.row.status_display }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="280" fixed="right">
-          <template slot-scope="scope">
-            <TaskActions
-              :task="scope.row"
-              @complete="handleCompleteTask"
-              @update="showUpdateDialog"
-              @assign="showAssignDialog"
-              @split="showSplitDialog"
-            />
-          </template>
-        </el-table-column>
-      </el-table>
+      <template v-if="viewMode === 'table'">
+        <!-- 标准表格 -->
+        <el-table
+          v-if="!shouldUseVirtualScroll"
+          ref="taskTable"
+          v-loading="loading && tableData.length > 0"
+          :data="tableData"
+          border
+          style="width: 100%; margin-top: 20px;"
+          :row-key="getRowKey"
+          @sort-change="handleSortChange"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="55" :selectable="checkRowSelectable" />
+          <el-table-column type="expand" width="50">
+            <template slot-scope="scope">
+              <TaskLogs :task="scope.row" />
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="id"
+            label="ID"
+            width="80"
+            sortable="custom"
+          />
+          <el-table-column label="施工单号" width="150">
+            <template slot-scope="scope">
+              <el-link v-if="scope.row.work_order_process_info?.work_order?.id" type="primary" @click="goToWorkOrderDetail(scope.row.work_order_process_info.work_order)">
+                {{ scope.row.work_order_process_info.work_order.order_number || '-' }}
+              </el-link>
+              <span v-else>-</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="工序" width="120">
+            <template slot-scope="scope">
+              {{ scope.row.work_order_process_info?.process?.name || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="work_content"
+            label="任务内容"
+            min-width="200"
+            show-overflow-tooltip
+          />
+          <el-table-column label="分派部门" width="120">
+            <template slot-scope="scope">
+              {{ scope.row.assigned_department_name || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column label="分派操作员" width="120">
+            <template slot-scope="scope">
+              {{ scope.row.assigned_operator_name || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column label="关联对象" width="150">
+            <template slot-scope="scope">
+              <TaskRelatedInfo :task="scope.row" />
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="production_quantity"
+            label="生产数量"
+            width="100"
+            align="right"
+          />
+          <el-table-column
+            prop="quantity_completed"
+            label="完成数量"
+            width="100"
+            align="right"
+          />
+          <el-table-column label="进度" width="80" align="right">
+            <template slot-scope="scope">
+              {{ taskService.calculateProgress(scope.row) }}%
+            </template>
+          </el-table-column>
+          <el-table-column prop="status_display" label="状态" width="100">
+            <template slot-scope="scope">
+              <el-tag :type="taskService.getStatusType(scope.row.status)" size="small">
+                {{ scope.row.status_display }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="280" fixed="right">
+            <template slot-scope="scope">
+              <TaskActions
+                :task="scope.row"
+                @complete="handleCompleteTask"
+                @update="showUpdateDialog"
+                @assign="showAssignDialog"
+                @split="showSplitDialog"
+              />
+            </template>
+          </el-table-column>
+        </el-table>
+
+        <!-- 虚拟滚动表格 -->
+        <VirtualTable
+          v-if="shouldUseVirtualScroll"
+          ref="virtualTaskTable"
+          v-loading="loading && tableData.length > 0"
+          :data="tableData"
+          :item-height="60"
+          style="width: 100%; margin-top: 20px;"
+          :row-key="getRowKey"
+          @sort-change="handleSortChange"
+        >
+          <el-table-column type="selection" width="55" :selectable="checkRowSelectable" />
+          <el-table-column type="expand" width="50">
+            <template slot-scope="scope">
+              <TaskLogs :task="scope.row" />
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="id"
+            label="ID"
+            width="80"
+            sortable="custom"
+          />
+          <el-table-column label="施工单号" width="150">
+            <template slot-scope="scope">
+              <el-link v-if="scope.row.work_order_process_info?.work_order?.id" type="primary" @click="goToWorkOrderDetail(scope.row.work_order_process_info.work_order)">
+                {{ scope.row.work_order_process_info.work_order.order_number || '-' }}
+              </el-link>
+              <span v-else>-</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="工序" width="120">
+            <template slot-scope="scope">
+              {{ scope.row.work_order_process_info?.process?.name || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="work_content"
+            label="任务内容"
+            min-width="200"
+            show-overflow-tooltip
+          />
+          <el-table-column label="分派部门" width="120">
+            <template slot-scope="scope">
+              {{ scope.row.assigned_department_name || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column label="分派操作员" width="120">
+            <template slot-scope="scope">
+              {{ scope.row.assigned_operator_name || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column label="关联对象" width="150">
+            <template slot-scope="scope">
+              <TaskRelatedInfo :task="scope.row" />
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="production_quantity"
+            label="生产数量"
+            width="100"
+            align="right"
+          />
+          <el-table-column
+            prop="quantity_completed"
+            label="完成数量"
+            width="100"
+            align="right"
+          />
+          <el-table-column label="进度" width="80" align="right">
+            <template slot-scope="scope">
+              {{ taskService.calculateProgress(scope.row) }}%
+            </template>
+          </el-table-column>
+          <el-table-column prop="status_display" label="状态" width="100">
+            <template slot-scope="scope">
+              <el-tag :type="taskService.getStatusType(scope.row.status)" size="small">
+                {{ scope.row.status_display }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="280" fixed="right">
+            <template slot-scope="scope">
+              <TaskActions
+                :task="scope.row"
+                @complete="handleCompleteTask"
+                @update="showUpdateDialog"
+                @assign="showAssignDialog"
+                @split="showSplitDialog"
+              />
+            </template>
+          </el-table-column>
+        </VirtualTable>
+      </template>
 
       <!-- 分页 -->
       <Pagination
