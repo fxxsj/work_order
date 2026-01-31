@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** 创建即分派，审核即开工 - 施工单一经创建即可预览所有任务，审核通过后任务立即可用
-**Current focus:** Phase 4: Task Assignment Core - Phase Complete, Verified
+**Current focus:** Phase 5: Universal Task Visibility - Plan 1 Complete
 
 ## Current Position
 
-Phase: 4 of 10 (Task Assignment Core) - COMPLETE
-Plan: 3 of 3 in current phase (all complete)
-Status: Phase verified, ready for Phase 5
-Last activity: 2026-01-31 — Phase 4 execution and verification complete
+Phase: 5 of 10 (Universal Task Visibility)
+Plan: 1 of 5 in current phase
+Status: In progress
+Last activity: 2026-01-31 — Completed 05-01 Enhanced Task List API
 
-Progress: [████████████░] 90%
+Progress: [████████████░] 92%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
-- Average duration: 2.3 min
-- Total execution time: 0.45 hours
+- Total plans completed: 13
+- Average duration: 2.4 min
+- Total execution time: 0.52 hours
 
 **By Phase:**
 
@@ -31,10 +31,11 @@ Progress: [████████████░] 90%
 | 02-Task-Data-Consistency | 3 of 3 | 5 min | 1.7 min |
 | 03-Dispatch-Configuration | 3 of 3 | 14 min | 4.7 min |
 | 04-Task-Assignment-Core | 3 of 3 | 5 min | 1.7 min |
+| 05-Universal-Task-Visibility | 1 of 5 | 3 min | 3.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-03 (2min), 04-02 (1min), 04-01 (2min), 03-03 (2min), 03-02 (3min)
-- Trend: Consistent progress, Phase 4 complete and verified
+- Last 5 plans: 05-01 (3min), 04-03 (2min), 04-02 (1min), 04-01 (2min), 03-03 (2min)
+- Trend: Consistent progress, Phase 5 started
 
 *Updated after each plan completion*
 
@@ -144,6 +145,14 @@ Recent decisions affecting current work:
 - MessageBox dialog shows conflict with current owner and offers page refresh as retry
 - get_retry_suggestion centralizes error-to-retry mapping (can_retry, suggestion, action_text)
 
+**From 05-01 (Enhanced task list API with django-filter):**
+- Use django-filter for multi-field filtering instead of manual get_queryset filtering
+- WorkOrderTaskFilterSet supports 11 filter fields (status, task_type, assigned_department, assigned_operator, work_order_process, work_order_number, work_content, department_name, operator_name, is_draft)
+- Custom filter methods for complex queries (work_order_number traversal, operator_name Q objects, is_draft boolean logic)
+- Search integration: search_fields includes work_content, production_requirements, and work_order_process__work_order__order_number
+- Permission filtering unchanged: superuser sees all, operators see own tasks, supervisors see department tasks + own created work orders
+- DjangoFilterBackend + SearchFilter + OrderingFilter stack for comprehensive filtering and sorting
+
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during sessions]
@@ -158,6 +167,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31 04:15 UTC
-Stopped at: Phase 4 complete (all 3 plans executed and verified), ready for Phase 5
+Last session: 2026-01-31 05:31 UTC
+Stopped at: Completed 05-01 (Enhanced Task List API), ready for 05-02
 Resume file: None
