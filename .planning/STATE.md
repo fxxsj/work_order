@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 ## Current Position
 
 Phase: 6 of 10 (Work Order Task Integration)
-Plan: 01 of 03 in current phase (Plan 01 complete)
-Status: In progress
-Last activity: 2026-01-31T06:00:00Z — Completed Plan 06-01: TaskSection Integration
+Plan: 03 of 03 in current phase (Plan 03 complete)
+Status: Phase complete
+Last activity: 2026-01-31T06:02:00Z — Completed Plan 06-03: Task Statistics and Manual Addition
 
-Progress: [██░░░░░░░░░░] 17% (15 of 16 plans complete)
+Progress: [████░░░░░░░░░] 20% (16 of 16 plans complete)
 
 ## Performance Metrics
 
@@ -52,13 +52,11 @@ Recent decisions affecting current work:
 - VirtualTable modified to pass through el-table-column children directly
 - Implementation pattern: duplicate column definitions for both table modes
 
-**From 06-01 (TaskSection Integration):**
-- Created TaskSection component with props: workOrderId, tasks, editable, loading
-- Statistics header shows: total, draft, pending, completed task counts
-- Task table displays: ID, process name, work content, department, operator, status, progress
-- Integrated into WorkOrderForm.vue after materials section
-- Tasks automatically fetched when editing existing work order (isEdit=true)
-- Uses workOrderTaskAPI.getList() with work_order filter
+**From 06-03 (Task Statistics and Manual Addition):**
+- Progress percentage = (completed tasks / total tasks) × 100 using existing status field
+- Assignment status unified in single column with department/operator format
+- Manual tasks created with draft status for consistency with auto-generated tasks
+- Color-coded tags: green for assigned, gray for "未分派"
 
 **From 05-05 (Priority Filter Integration):**
 - Added priority filter to Task List API targeting work_order__priority
@@ -201,7 +199,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31 06:00 UTC
-Stopped at: Completed Phase 6 Plan 01 - TaskSection Integration
-Next plan: Phase 6 Plan 02 (Pending - to be determined)
+Last session: 2026-01-31 06:02 UTC
+Stopped at: Completed Phase 6 Plan 03 - Task Statistics and Manual Addition
+Next plan: Phase 7 Plan 01 (Pending - to be determined)
 Resume file: None
