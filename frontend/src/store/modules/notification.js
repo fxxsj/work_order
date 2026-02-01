@@ -106,9 +106,9 @@ export default {
     async fetchNotifications({ commit }, params = {}) {
       commit('SET_LOADING', true)
       try {
-        const response = await notificationAPI.getList(params)
-        commit('SET_NOTIFICATIONS', response.data.results || response.data)
-        return response.data
+        const data = await notificationAPI.getList(params)
+        commit('SET_NOTIFICATIONS', data.results || data)
+        return data
       } catch (error) {
         commit('SET_ERROR', error.message)
         throw error
@@ -119,9 +119,9 @@ export default {
 
     async fetchUnreadCount({ commit }) {
       try {
-        const response = await notificationAPI.getUnreadCount()
-        commit('SET_UNREAD_COUNT', response.data.unread_count)
-        return response.data.unread_count
+        const data = await notificationAPI.getUnreadCount()
+        commit('SET_UNREAD_COUNT', data.unread_count)
+        return data.unread_count
       } catch (error) {
         console.error('Failed to fetch unread count:', error)
       }
