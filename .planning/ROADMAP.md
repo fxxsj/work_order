@@ -207,18 +207,22 @@ Plans:
 
 **Success Criteria** (what must be TRUE):
 1. Operator receives browser notification when task is assigned to them
-2. Supervisor receives notification when operator claims or completes task
+2. Supervisor receives notification when operator completes task
 3. Notifications appear in real-time without page refresh
-4. User accesses notification history showing all past task events
+4. User accesses notification history showing all past task events (30-day retention)
 
-**Plans**: 3 plans
+**Plans**: 7 plans
 
 Status: Ready for execution
 
 Plans:
-- [ ] 08-01-PLAN.md — Set up Django Channels with Redis for WebSocket support (Wave 1)
-- [ ] 08-02-PLAN.md — Build WebSocket consumers for task event broadcasting (Wave 2)
-- [ ] 08-03-PLAN.md — Create frontend notification component with WebSocket integration (Wave 2)
+- [ ] 08-01A-PLAN.md — Install Channels packages and configure Django settings (Wave 1)
+- [ ] 08-01B-PLAN.md — Create ASGI application with WebSocket routing (Wave 1)
+- [ ] 08-02A-PLAN.md — Implement Notification model and WebSocket consumer (Wave 2)
+- [ ] 08-02B-PLAN.md — Build notification broadcasting service and signal handlers (Wave 2)
+- [ ] 08-03A-PLAN.md — Create notification API, WebSocket composable, and Vuex store (Wave 2)
+- [ ] 08-03B-PLAN.md — Build NotificationCenter component and integrate into Layout (Wave 3)
+- [ ] 08-04-PLAN.md — Implement 30-day notification retention with admin cleanup (Wave 3)
 
 ### Phase 9: Performance Optimization
 
@@ -278,6 +282,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 5. Universal Task Visibility | 6/6 | Complete | 2026-01-31 |
 | 6. Work Order Task Integration | 3/3 | Complete | 2026-01-31 |
 | 7. Role-Based Task Centers | 4/4 | Complete | 2026-01-31 |
-| 8. Real-time Notifications | 0/3 | Ready for execution | - |
+| 8. Real-time Notifications | 0/7 | Ready for execution | - |
 | 9. Performance Optimization | 0/3 | Not started | - |
 | 10. Production Hardening | 0/3 | Not started | - |
