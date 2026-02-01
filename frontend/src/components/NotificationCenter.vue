@@ -227,12 +227,14 @@ export default {
   },
 
   mounted() {
-    this.setupWebSocket(this)
-    this.loadNotifications()
-    this.$store.dispatch('notification/fetchUnreadCount')
-    this.refreshInterval = setInterval(() => {
-      this.$store.dispatch('notification/fetchUnreadCount')
-    }, 60000)
+    // 暂时禁用通知加载，避免阻塞页面
+    // TODO: 修复超时问题后重新启用
+    // this.setupWebSocket(this)
+    // this.loadNotifications()
+    // this.$store.dispatch('notification/fetchUnreadCount')
+    // this.refreshInterval = setInterval(() => {
+    //   this.$store.dispatch('notification/fetchUnreadCount')
+    // }, 60000)
   },
 
   beforeDestroy() {
