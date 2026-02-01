@@ -349,8 +349,8 @@ Output: Working notification API module, WebSocket composable with exponential b
     - Only connects when user is authenticated
     - Heartbeat every 30 seconds
   </action>
-  <verify>grep -E "useWebSocket|BroadcastChannel|scheduleReconnect|exponential|reconnect" frontend/src/composables/useWebSocket.js</verify>
-  <done>useWebSocket composable manages connection with exponential backoff reconnection, BroadcastChannel sync, and heartbeat</done>
+  <verify>grep -E "useWebSocket|BroadcastChannel|scheduleReconnect|exponential|reconnect" frontend/src/composables/useWebSocket.js && grep -q "store\.dispatch.*notification/addNotification" frontend/src/composables/useWebSocket.js</verify>
+  <done>useWebSocket composable manages connection with exponential backoff reconnection, BroadcastChannel sync, heartbeat, and calls store.dispatch for notification actions</done>
 </task>
 
 <task type="auto">

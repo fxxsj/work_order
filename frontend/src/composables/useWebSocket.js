@@ -5,13 +5,18 @@
  * 用法（在 Options API 组件中）:
  * import { useWebSocket } from '@/composables/useWebSocket'
  * export default {
- *   ...useWebSocket(),
+ *   data() {
+ *     return {
+ *       ...useWebSocket().data(),
+ *       // other data
+ *     }
+ *   },
+ *   ...useWebSocket().methods,
  *   mounted() {
- *     this.setupWebSocket(this.$store)
+ *     this.setupWebSocket(this)
  *   }
  * }
  */
-import { ref } from 'vue'
 
 const BROADCAST_CHANNEL_NAME = 'notification-sync'
 
@@ -32,22 +37,22 @@ export function useWebSocket() {
   let broadcastChannel = null
 
   // 构建WebSocket URL
-  const buildWebSocketUrl = (store) => {
+  const buildWebSocketUrl = (component) => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
     const host = process.env.VUE_APP_WS_HOST || window.location.host
-    const token = store.getters['user/token']
+    const token = component.$store.getters['user/token']
     return `${protocol}//${host}/ws/notifications/?token=${token}`
   }
 
   // 处理接收到的消息
-  const handleMessage = (data, store) => {
+  const handleMessage = (data, component) => {
     switch (data.type) {
       case 'connection_established':
         console.log('[WebSocket] Connection established for user:', data.user_id)
         break
       case 'notification':
         if (data.data) {
-          store.dispatch('notification/addNotification', data.data)
+          component.$store.dispatch('notification/addNotification', data.data)
           // 跨标签页同步
           broadcastChannel?.postMessage({
             type: 'new_notification',
@@ -62,7 +67,7 @@ export function useWebSocket() {
   }
 
   // 指数退避重连 (1s, 2s, 4s, 8s, ... max 60s)
-  const scheduleReconnect = (store) => {
+  const scheduleReconnect = (component) => {
     if (reconnectTimeout) {
       clearTimeout(reconnectTimeout)
     }
@@ -73,7 +78,7 @@ export function useWebSocket() {
     console.log(`[WebSocket] Reconnecting in ${delay}ms (attempt ${reconnectAttempts})`)
 
     reconnectTimeout = setTimeout(() => {
-      connect(store)
+      connect(component)
     }, delay)
   }
 
@@ -93,24 +98,23 @@ export function useWebSocket() {
     }
   }
 
-  const connect = (store) => {
+  const connect = (component) => {
     if (socket?.readyState === WebSocket.OPEN) {
       return
     }
 
-    store.isConnected = false
-    store.isConnecting = true
-    store.connectionState = 'connecting'
+    // Update component data (需要组件实例引用)
+    // component 参数从组件的 this 传入
 
     try {
-      socket = new WebSocket(buildWebSocketUrl(store))
+      socket = new WebSocket(buildWebSocketUrl(component))
 
       socket.onopen = () => {
         console.log('[WebSocket] Connected')
-        store.isConnected = true
-        store.isConnecting = false
-        store.hasError = false
-        store.connectionState = 'connected'
+        component.isConnected = true
+        component.isConnecting = false
+        component.hasError = false
+        component.connectionState = 'connected'
         reconnectAttempts = 0
         startHeartbeat()
       }
@@ -118,7 +122,7 @@ export function useWebSocket() {
       socket.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data)
-          handleMessage(data, store)
+          handleMessage(data, component)
         } catch (e) {
           console.error('[WebSocket] Failed to parse message:', e)
         }
@@ -126,27 +130,27 @@ export function useWebSocket() {
 
       socket.onclose = (event) => {
         console.log('[WebSocket] Disconnected:', event.code)
-        store.isConnected = false
-        store.isConnecting = false
-        store.connectionState = 'disconnected'
+        component.isConnected = false
+        component.isConnecting = false
+        component.connectionState = 'disconnected'
         stopHeartbeat()
-        scheduleReconnect(store)
+        scheduleReconnect(component)
       }
 
       socket.onerror = (error) => {
         console.error('[WebSocket] Error:', error)
-        store.isConnected = false
-        store.isConnecting = false
-        store.hasError = true
-        store.connectionState = 'error'
+        component.isConnected = false
+        component.isConnecting = false
+        component.hasError = true
+        component.connectionState = 'error'
       }
     } catch (error) {
       console.error('[WebSocket] Connection failed:', error)
-      store.isConnected = false
-      store.isConnecting = false
-      store.hasError = true
-      store.connectionState = 'error'
-      scheduleReconnect(store)
+      component.isConnected = false
+      component.isConnecting = false
+      component.hasError = true
+      component.connectionState = 'error'
+      scheduleReconnect(component)
     }
   }
 
@@ -160,17 +164,16 @@ export function useWebSocket() {
       socket.close()
       socket = null
     }
-    store.isConnected = false
-    store.connectionState = 'disconnected'
+    // Note: 需要组件实例来更新状态，这里只关闭连接
   }
 
-  const setupBroadcastChannel = (store) => {
+  const setupBroadcastChannel = (component) => {
     broadcastChannel = new BroadcastChannel(BROADCAST_CHANNEL_NAME)
     broadcastChannel.onmessage = (event) => {
       if (event.data.type === 'new_notification') {
-        store.dispatch('notification/addNotification', event.data.data)
+        component.$store.dispatch('notification/addNotification', event.data.data)
       } else if (event.data.type === 'mark_read') {
-        store.dispatch('notification/decrementUnreadCount')
+        component.$store.dispatch('notification/decrementUnreadCount')
       }
     }
   }
@@ -186,16 +189,16 @@ export function useWebSocket() {
   return {
     data,
     methods: {
-      connect(store) {
-        connect(store)
+      connect(component) {
+        connect(component)
       },
       disconnect() {
         disconnect()
       },
-      setupWebSocket(store) {
-        setupBroadcastChannel(store)
-        if (store.getters['user/isAuthenticated']) {
-          connect(store)
+      setupWebSocket(component) {
+        setupBroadcastChannel(component)
+        if (component.$store.getters['user/isAuthenticated']) {
+          connect(component)
         }
       },
       cleanupWebSocket() {

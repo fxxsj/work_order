@@ -150,6 +150,8 @@
 <script>
 import { useWebSocket } from '@/composables/useWebSocket'
 
+const ws = useWebSocket()
+
 export default {
   name: 'NotificationCenter',
 
@@ -159,7 +161,12 @@ export default {
       dropdownVisible: false,
       expandedId: null,
       soundEnabled: localStorage.getItem('notification_sound_enabled') === 'true',
-      refreshInterval: null
+      refreshInterval: null,
+      // WebSocket state from useWebSocket
+      isConnected: false,
+      isConnecting: false,
+      hasError: false,
+      connectionState: 'disconnected'
     }
   },
 
@@ -193,7 +200,33 @@ export default {
     }
   },
 
+  watch: {
+    unreadCount(newVal, oldVal) {
+      if (newVal > oldVal) {
+        // 有新通知，仅更新计数，不自动弹出（符合上下文决策）
+      }
+    }
+  },
+
+  mounted() {
+    this.setupWebSocket(this)
+    this.loadNotifications()
+    this.$store.dispatch('notification/fetchUnreadCount')
+    this.refreshInterval = setInterval(() => {
+      this.$store.dispatch('notification/fetchUnreadCount')
+    }, 60000)
+  },
+
+  beforeDestroy() {
+    this.cleanupWebSocket()
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval)
+    }
+  },
+
   methods: {
+    ...ws.methods,
+
     toggleDropdown() {
       this.dropdownVisible = !this.dropdownVisible
       if (this.dropdownVisible && this.notifications.length === 0) {
@@ -292,30 +325,6 @@ export default {
 
     onSoundToggle(value) {
       localStorage.setItem('notification_sound_enabled', value.toString())
-    }
-  },
-
-  mounted() {
-    this.setupWebSocket(this.$store)
-    this.loadNotifications()
-    this.$store.dispatch('notification/fetchUnreadCount')
-    this.refreshInterval = setInterval(() => {
-      this.$store.dispatch('notification/fetchUnreadCount')
-    }, 60000)
-  },
-
-  beforeDestroy() {
-    this.cleanupWebSocket()
-    if (this.refreshInterval) {
-      clearInterval(this.refreshInterval)
-    }
-  },
-
-  watch: {
-    unreadCount(newVal, oldVal) {
-      if (newVal > oldVal) {
-        // 有新通知，仅更新计数，不自动弹出（符合上下文决策）
-      }
     }
   }
 }

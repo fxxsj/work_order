@@ -135,8 +135,8 @@ Output: Working ASGI application with ProtocolTypeRouter, authenticated WebSocke
     Note: If routing.py has existing imports from views.notification, update them
     to import from services.realtime_notification instead.
   </action>
-  <verify>grep -q "NotificationConsumer\|websocket_urlpatterns\|ws/notifications" backend/workorder/routing.py</verify>
-  <done>routing.py has websocket_urlpatterns with ws/notifications/ route pointing to NotificationConsumer</done>
+  <verify>grep -q "from .services.realtime_notification import NotificationConsumer" backend/workorder/routing.py && grep -q "websocket_urlpatterns" backend/workorder/routing.py && grep -q "ws/notifications" backend/workorder/routing.py</verify>
+  <done>routing.py has correct import from services.realtime_notification and websocket_urlpatterns with ws/notifications/ route pointing to NotificationConsumer</done>
 </task>
 
 <task type="auto">
