@@ -148,106 +148,120 @@
 </template>
 
 <script>
-import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
-import { useStore } from 'vuex'
-import { useRouter } from 'vue-router'
 import { useWebSocket } from '@/composables/useWebSocket'
 
 export default {
   name: 'NotificationCenter',
 
-  setup() {
-    const store = useStore()
-    const router = useRouter()
-    const popover = ref(null)
-    const dropdownVisible = ref(false)
-    const expandedId = ref(null)
-
-    const { isConnected, isConnecting, hasError, connectionState } = useWebSocket()
-    const soundEnabled = ref(localStorage.getItem('notification_sound_enabled') === 'true')
-
-    const notifications = computed(() => store.state.notification.notifications)
-    const unreadCount = computed(() => store.state.notification.unreadCount)
-    const hasUnread = computed(() => unreadCount.value > 0)
-    const unreadCountDisplay = computed(() => unreadCount.value > 99 ? '99+' : unreadCount.value)
-    const loading = computed(() => store.state.notification.loading)
-
-    const connectionStatus = computed(() => {
-      if (hasError.value) return 'error'
-      if (isConnecting.value) return 'connecting'
-      if (isConnected.value) return 'connected'
-      return 'disconnected'
-    })
-
-    const connectionError = computed(() => hasError.value)
-    const displayedNotifications = computed(() => notifications.value.slice(0, 10))
-
-    const toggleDropdown = () => {
-      dropdownVisible.value = !dropdownVisible.value
-      if (dropdownVisible.value && notifications.value.length === 0) {
-        loadNotifications()
-      }
+  data() {
+    return {
+      popover: null,
+      dropdownVisible: false,
+      expandedId: null,
+      soundEnabled: localStorage.getItem('notification_sound_enabled') === 'true',
+      refreshInterval: null
     }
+  },
 
-    const loadNotifications = async () => {
+  computed: {
+    notifications() {
+      return this.$store.state.notification.notifications
+    },
+    unreadCount() {
+      return this.$store.state.notification.unreadCount
+    },
+    hasUnread() {
+      return this.unreadCount > 0
+    },
+    unreadCountDisplay() {
+      return this.unreadCount > 99 ? '99+' : this.unreadCount
+    },
+    loading() {
+      return this.$store.state.notification.loading
+    },
+    connectionStatus() {
+      if (this.hasError) return 'error'
+      if (this.isConnecting) return 'connecting'
+      if (this.isConnected) return 'connected'
+      return 'disconnected'
+    },
+    connectionError() {
+      return this.hasError
+    },
+    displayedNotifications() {
+      return this.notifications.slice(0, 10)
+    }
+  },
+
+  methods: {
+    toggleDropdown() {
+      this.dropdownVisible = !this.dropdownVisible
+      if (this.dropdownVisible && this.notifications.length === 0) {
+        this.loadNotifications()
+      }
+    },
+
+    async loadNotifications() {
       try {
-        await store.dispatch('notification/fetchNotifications', { page_size: 20 })
+        await this.$store.dispatch('notification/fetchNotifications', { page_size: 20 })
       } catch (e) {
         console.error('Failed to load notifications:', e)
       }
-    }
+    },
 
-    const handleNotificationClick = (notification) => {
-      if (expandedId.value === notification.id) {
-        expandedId.value = null
+    handleNotificationClick(notification) {
+      if (this.expandedId === notification.id) {
+        this.expandedId = null
       } else {
-        expandedId.value = notification.id
+        this.expandedId = notification.id
         if (!notification.is_read) {
-          markAsRead(notification.id)
+          this.markAsRead(notification.id)
         }
       }
-    }
+    },
 
-    const markAsRead = async (id) => {
+    async markAsRead(id) {
       try {
-        await store.dispatch('notification/markAsRead', id)
+        await this.$store.dispatch('notification/markAsRead', id)
       } catch (e) {
         console.error('Failed to mark as read:', e)
       }
-    }
+    },
 
-    const markAllAsRead = async () => {
+    async markAllAsRead() {
       try {
-        await store.dispatch('notification/markAllAsRead')
+        await this.$store.dispatch('notification/markAllAsRead')
       } catch (e) {
         console.error('Failed to mark all as read:', e)
       }
-    }
+    },
 
-    const deleteNotification = async (id) => {
+    async deleteNotification(id) {
       try {
-        await store.dispatch('notification/deleteNotification', id)
+        await this.$store.dispatch('notification/deleteNotification', id)
       } catch (e) {
         console.error('Failed to delete notification:', e)
       }
-    }
+    },
 
-    const canNavigate = (notification) => notification.data?.task_id || notification.task_id
+    canNavigate(notification) {
+      return notification.data?.task_id || notification.task_id
+    },
 
-    const navigateToTask = (notification) => {
+    navigateToTask(notification) {
       const taskId = notification.data?.task_id || notification.task_id
       if (taskId) {
-        dropdownVisible.value = false
-        router.push({ name: 'TaskDetail', params: { id: taskId } })
+        this.dropdownVisible = false
+        this.$router.push({ name: 'TaskDetail', params: { id: taskId } })
       }
-    }
+    },
 
-    const goToNotificationPage = () => {
-      dropdownVisible.value = false
-      router.push({ name: 'Notifications' })
-    }
+    goToNotificationPage() {
+      this.dropdownVisible = false
+      this.$router.push({ name: 'Notifications' })
+    },
 
-    const formatTime = (timeStr) => {
+    formatTime(timeStr) {
       if (!timeStr) return ''
       const date = new Date(timeStr)
       const now = new Date()
@@ -259,9 +273,9 @@ export default {
       if (diff < 604800000) return `${Math.floor(diff / 86400000)}天前`
 
       return date.toLocaleDateString()
-    }
+    },
 
-    const getNotificationIcon = (notification) => {
+    getNotificationIcon(notification) {
       const type = notification.event_type || notification.notification_type
       const iconMap = {
         task_assigned: 'el-icon-user-solid',
@@ -274,79 +288,34 @@ export default {
         system_announcement: 'el-icon-bell'
       }
       return iconMap[type] || 'el-icon-bell'
-    }
+    },
 
-    const onSoundToggle = (value) => {
+    onSoundToggle(value) {
       localStorage.setItem('notification_sound_enabled', value.toString())
-    }
-
-    let refreshInterval = null
-    onMounted(() => {
-      loadNotifications()
-      store.dispatch('notification/fetchUnreadCount')
-      refreshInterval = setInterval(() => {
-        store.dispatch('notification/fetchUnreadCount')
-      }, 60000)
-    })
-
-    onUnmounted(() => {
-      if (refreshInterval) {
-        clearInterval(refreshInterval)
-      }
-    })
-
-    watch(unreadCount, (newVal, oldVal) => {
-      if (newVal > oldVal) {
-        // 有新通知，仅更新计数，不自动弹出（符合上下文决策）
-      }
-    })
-
-    return {
-      popover,
-      dropdownVisible,
-      expandedId,
-      notifications,
-      displayedNotifications,
-      hasUnread,
-      unreadCountDisplay,
-      loading,
-      connectionStatus,
-      connectionError,
-      connectionState,
-      soundEnabled,
-      toggleDropdown,
-      handleNotificationClick,
-      markAsRead,
-      markAllAsRead,
-      deleteNotification,
-      canNavigate,
-      navigateToTask,
-      goToNotificationPage,
-      formatTime,
-      getNotificationIcon,
-      onSoundToggle
     }
   },
 
-  computed: {
-    connectionStatusIcon() {
-      const icons = {
-        connecting: 'el-icon-loading',
-        connected: 'el-icon-circle-check',
-        disconnected: 'el-icon-warning',
-        error: 'el-icon-circle-close'
-      }
-      return icons[this.connectionStatus] || 'el-icon-warning'
-    },
+  mounted() {
+    this.setupWebSocket(this.$store)
+    this.loadNotifications()
+    this.$store.dispatch('notification/fetchUnreadCount')
+    this.refreshInterval = setInterval(() => {
+      this.$store.dispatch('notification/fetchUnreadCount')
+    }, 60000)
+  },
 
-    connectionStatusText() {
-      const texts = {
-        connecting: '连接中...',
-        connected: '已连接',
-        disconnected: '连接已断开',
-        error: '连接错误'
+  beforeDestroy() {
+    this.cleanupWebSocket()
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval)
+    }
+  },
+
+  watch: {
+    unreadCount(newVal, oldVal) {
+      if (newVal > oldVal) {
+        // 有新通知，仅更新计数，不自动弹出（符合上下文决策）
       }
-      return texts[this.connectionStatus] || '未知状态'
     }
   }
 }
