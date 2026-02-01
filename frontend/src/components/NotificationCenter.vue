@@ -13,7 +13,7 @@
         icon="el-icon-bell"
         @click="toggleDropdown"
       >
-        <i v-if="connectionError" class="el-icon-warning connection-error-icon" />
+        <i v-if="connectionError" class="el-icon-warning connection-error-icon"></i>
       </el-button>
     </el-badge>
 
@@ -26,7 +26,7 @@
       trigger="manual"
       popper-class="notification-popover"
     >
-      <div class="notification-panel" v-loading="loading">
+      <div v-loading="loading" class="notification-panel">
         <!-- 头部 -->
         <div class="notification-header">
           <span class="notification-title">通知</span>
@@ -55,7 +55,7 @@
           class="connection-status"
           :class="connectionStatus"
         >
-          <i :class="connectionStatusIcon" />
+          <i :class="connectionStatusIcon"></i>
           <span>{{ connectionStatusText }}</span>
         </div>
 
@@ -72,7 +72,7 @@
               <!-- 紧凑视图 -->
               <div class="notification-compact">
                 <div class="notification-icon">
-                  <i :class="getNotificationIcon(notification)" />
+                  <i :class="getNotificationIcon(notification)"></i>
                 </div>
                 <div class="notification-content">
                   <div class="notification-title-text">
@@ -82,7 +82,7 @@
                     {{ formatTime(notification.created_at || notification.timestamp) }}
                   </div>
                 </div>
-                <div v-if="!notification.is_read" class="unread-dot" />
+                <div v-if="!notification.is_read" class="unread-dot"></div>
               </div>
 
               <!-- 展开详情 -->
@@ -92,11 +92,11 @@
                 </p>
                 <div v-if="notification.data" class="notification-meta">
                   <span v-if="notification.data.workorder_number" class="meta-item">
-                    <i class="el-icon-document" />
+                    <i class="el-icon-document"></i>
                     {{ notification.data.workorder_number }}
                   </span>
                   <span v-if="notification.data.process_name" class="meta-item">
-                    <i class="el-icon-s-operation" />
+                    <i class="el-icon-s-operation"></i>
                     {{ notification.data.process_name }}
                   </span>
                 </div>
@@ -232,9 +232,7 @@ export default {
       }
     }
 
-    const canNavigate = (notification) => {
-      return notification.data?.task_id || notification.task_id
-    }
+    const canNavigate = (notification) => notification.data?.task_id || notification.task_id
 
     const navigateToTask = (notification) => {
       const taskId = notification.data?.task_id || notification.task_id
@@ -266,14 +264,14 @@ export default {
     const getNotificationIcon = (notification) => {
       const type = notification.event_type || notification.notification_type
       const iconMap = {
-        'task_assigned': 'el-icon-user-solid',
-        'task_completed': 'el-icon-circle-check',
-        'task_started': 'el-icon-video-play',
-        'workorder_created': 'el-icon-document',
-        'workorder_approved': 'el-icon-success',
-        'workorder_rejected': 'el-icon-error',
-        'deadline_warning': 'el-icon-warning',
-        'system_announcement': 'el-icon-bell'
+        task_assigned: 'el-icon-user-solid',
+        task_completed: 'el-icon-circle-check',
+        task_started: 'el-icon-video-play',
+        workorder_created: 'el-icon-document',
+        workorder_approved: 'el-icon-success',
+        workorder_rejected: 'el-icon-error',
+        deadline_warning: 'el-icon-warning',
+        system_announcement: 'el-icon-bell'
       }
       return iconMap[type] || 'el-icon-bell'
     }

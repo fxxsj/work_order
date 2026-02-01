@@ -43,13 +43,9 @@ export default {
   }),
 
   getters: {
-    unreadNotifications: (state) => {
-      return state.notifications.filter(n => !n.is_read)
-    },
+    unreadNotifications: (state) => state.notifications.filter(n => !n.is_read),
     hasUnread: (state) => state.unreadCount > 0,
-    unreadCountDisplay: (state) => {
-      return state.unreadCount > 99 ? '99+' : state.unreadCount
-    }
+    unreadCountDisplay: (state) => (state.unreadCount > 99 ? '99+' : state.unreadCount)
   },
 
   mutations: {
