@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** 创建即分派，审核即开工 - 施工单一经创建即可预览所有任务，审核通过后任务立即可用
-**Current focus:** Phase 7: Role-Based Task Centers - Complete
+**Current focus:** Phase 8: Real-time Notifications
 
 ## Current Position
 
-Phase: 7 of 10 (Role-Based Task Centers)
-Plan: 04 of 04 in current phase (All complete)
-Status: Phase complete
-Last activity: 2026-01-31T10:31:46Z — Completed Plan 07-04: Operator Task Progress Update
+Phase: 8 of 10 (Real-time Notifications)
+Plan: 01A of 07 in current phase
+Status: In progress
+Last activity: 2026-02-01T01:05:29Z — Completed Plan 08-01A: Channels Infrastructure Setup
 
-Progress: [████████████████░] 91% (21 of 23 plans complete)
+Progress: [███████████████░░] 93% (22 of 28 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 18
-- Average duration: 2.4 min
-- Total execution time: 0.72 hours
+- Total plans completed: 22
+- Average duration: 2.3 min
+- Total execution time: 0.77 hours
 
 **By Phase:**
 
@@ -33,11 +33,12 @@ Progress: [████████████████░] 91% (21 of 23 pl
 | 04-Task-Assignment-Core | 3 of 3 | 5 min | 1.7 min |
 | 05-Universal-Task-Visibility | 6 of 6 | 14 min | 2.3 min |
 | 06-Work-Order-Task-Integration | 3 of 3 | 7 min | 2.3 min |
-| 07-Role-Based-Task-Centers | 4 of 6 | 4 min | 1.0 min |
+| 07-Role-Based-Task-Centers | 4 of 4 | 4 min | 1.0 min |
+| 08-Real-time-Notifications | 1 of 7 | 0.5 min | 0.5 min |
 
 **Recent Trend:**
-- Last 3 plans: 07-04 (1min), 07-03 (1min), 07-02 (1min)
-- Phase 7 in progress - Operator center complete
+- Last 3 plans: 08-01A (0.5min), 07-04 (1min), 07-03 (1min)
+- Phase 8 in progress - Channels infrastructure configured
 
 *Updated after each plan completion*
 
@@ -268,6 +269,13 @@ Recent decisions affecting current work:
 - MessageBox dialog shows conflict with current owner and offers page refresh as retry
 - get_retry_suggestion centralizes error-to-retry mapping (can_retry, suggestion, action_text)
 
+**From 08-01A (Channels Infrastructure Setup):**
+- Channels dependencies installed: channels>=4.0.0, daphne>=4.0.0, redis>=5.0.0
+- Django settings configured with 'channels' in INSTALLED_APPS
+- ASGI_APPLICATION points to 'config.asgi.application'
+- Environment-based CHANNEL_LAYERS: Redis backend when REDIS_URL is set, InMemoryChannelLayer for development
+- Channel layer communications encrypted with SECRET_KEY when using Redis backend
+
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during sessions]
@@ -282,7 +290,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31 10:31 UTC
-Stopped at: Completed Phase 7 - All plans implemented and verified
-Next plan: Phase 8 (Pending - Real-time Notifications)
+Last session: 2026-02-01 01:05 UTC
+Stopped at: Completed Plan 08-01A - Channels Infrastructure Setup
+Next plan: 08-01B (ASGI Application Entry Point)
 Resume file: None
