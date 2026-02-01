@@ -195,6 +195,24 @@ export default {
     connectionError() {
       return this.hasError
     },
+    connectionStatusIcon() {
+      const iconMap = {
+        connecting: 'el-icon-loading',
+        connected: 'el-icon-circle-check',
+        disconnected: 'el-icon-warning-outline',
+        error: 'el-icon-circle-close'
+      }
+      return iconMap[this.connectionStatus] || 'el-icon-warning-outline'
+    },
+    connectionStatusText() {
+      const textMap = {
+        connecting: '正在连接...',
+        connected: '已连接',
+        disconnected: '连接断开',
+        error: '连接错误'
+      }
+      return textMap[this.connectionStatus] || '未知状态'
+    },
     displayedNotifications() {
       return this.notifications.slice(0, 10)
     }

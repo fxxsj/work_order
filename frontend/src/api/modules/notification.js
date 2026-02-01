@@ -6,7 +6,7 @@ import { BaseAPI } from '@/api/base/BaseAPI'
 
 class NotificationAPI extends BaseAPI {
   constructor() {
-    super('/api/notifications/', request)
+    super('/notifications/', request)
   }
 
   // 标记单个通知为已读
