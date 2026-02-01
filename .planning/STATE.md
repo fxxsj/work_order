@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 ## Current Position
 
 Phase: 8 of 10 (Real-time Notifications)
-Plan: 02B of 07 in current phase
+Plan: 04 of 07 in current phase
 Status: In progress
-Last activity: 2026-02-01T01:10:22Z — Completed Plan 08-02B: Task Event Notification Broadcasting
+Last activity: 2026-02-01T01:13:50Z — Completed Plan 08-04: 30-Day Notification Retention with Admin Cleanup
 
-Progress: [██████████████░░] 93% (26 of 28 plans complete)
+Progress: [██████████████░░] 96% (27 of 28 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 26
+- Total plans completed: 27
 - Average duration: 2.2 min
-- Total execution time: 0.85 hours
+- Total execution time: 0.90 hours
 
 **By Phase:**
 
@@ -34,11 +34,11 @@ Progress: [██████████████░░] 93% (26 of 28 plans
 | 05-Universal-Task-Visibility | 6 of 6 | 14 min | 2.3 min |
 | 06-Work-Order-Task-Integration | 3 of 3 | 7 min | 2.3 min |
 | 07-Role-Based-Task-Centers | 4 of 4 | 4 min | 1.0 min |
-| 08-Real-time-Notifications | 4 of 7 | 4 min | 1.0 min |
+| 08-Real-time-Notifications | 5 of 7 | 5 min | 1.0 min |
 
 **Recent Trend:**
-- Last 3 plans: 08-02B (2min), 08-03A (1min), 08-02A (0.5min)
-- Phase 8 in progress - Task event notification broadcasting complete
+- Last 3 plans: 08-04 (1min), 08-02B (2min), 08-03A (1min)
+- Phase 8 in progress - 30-day notification retention implemented
 
 *Updated after each plan completion*
 
@@ -313,6 +313,14 @@ Recent decisions affecting current work:
 - API integration: assign and complete actions call notification_service methods after successful operations
 - WebSocket broadcast: _send_websocket_notification sends to user_{user_id}_notifications group
 
+**From 08-04 (30-Day Notification Retention with Admin Cleanup):**
+- Query-level 30-day filter: Non-superusers see only notifications from last 30 days via get_queryset override
+- Admin cleanup action: delete_old_notifications action for bulk deletion of old notifications
+- Superuser exemption: Superusers bypass filter and see all notifications for audit/compliance
+- Automatic enforcement: Filter applied at database level with existing created_at index for performance
+- Data retention approach: Query filtering instead of auto-deletion preserves audit trail
+- Manual cleanup: Administrators can selectively delete old notifications via Django Admin action
+
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during sessions]
@@ -327,7 +335,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-01 01:10 UTC
-Stopped at: Completed Plan 08-02B - Task Event Notification Broadcasting
-Next plan: 08-03B (Notification Bell Component and Display)
+Last session: 2026-02-01 01:13 UTC
+Stopped at: Completed Plan 08-04 - 30-Day Notification Retention with Admin Cleanup
+Next plan: 08-05 (Notification Permission Control)
 Resume file: None
