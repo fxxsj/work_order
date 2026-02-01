@@ -13,6 +13,7 @@ import ui from './modules/ui'
 import workOrder from './modules/workOrder'
 import task from './modules/task'
 import cache from './modules/cache'
+import notification from './modules/notification'
 
 Vue.use(Vuex)
 
@@ -23,7 +24,8 @@ const store = new Vuex.Store({
     ui,
     workOrder,
     task,
-    cache
+    cache,
+    notification
   },
 
   // 全局 state（用于跨模块的共享状态）
