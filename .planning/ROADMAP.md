@@ -213,10 +213,12 @@ Plans:
 
 **Plans**: 3 plans
 
+Status: Ready for execution
+
 Plans:
-- [ ] 08-01: Set up Django Channels with Redis for WebSocket support
-- [ ] 08-02: Build WebSocket consumers for task event broadcasting
-- [ ] 08-03: Create frontend notification component with @vueuse/useWebSocket integration
+- [ ] 08-01-PLAN.md — Set up Django Channels with Redis for WebSocket support (Wave 1)
+- [ ] 08-02-PLAN.md — Build WebSocket consumers for task event broadcasting (Wave 2)
+- [ ] 08-03-PLAN.md — Create frontend notification component with WebSocket integration (Wave 2)
 
 ### Phase 9: Performance Optimization
 
@@ -276,6 +278,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 5. Universal Task Visibility | 6/6 | Complete | 2026-01-31 |
 | 6. Work Order Task Integration | 3/3 | Complete | 2026-01-31 |
 | 7. Role-Based Task Centers | 4/4 | Complete | 2026-01-31 |
-| 8. Real-time Notifications | 0/3 | Not started | - |
+| 8. Real-time Notifications | 0/3 | Ready for execution | - |
 | 9. Performance Optimization | 0/3 | Not started | - |
 | 10. Production Hardening | 0/3 | Not started | - |
