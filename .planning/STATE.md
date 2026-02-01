@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 ## Current Position
 
 Phase: 8 of 10 (Real-time Notifications)
-Plan: 01A of 07 in current phase
+Plan: 01B of 07 in current phase
 Status: In progress
-Last activity: 2026-02-01T01:05:29Z — Completed Plan 08-01A: Channels Infrastructure Setup
+Last activity: 2026-02-01T01:05:43Z — Completed Plan 08-01B: ASGI Application Entry Point
 
-Progress: [███████████████░░] 93% (22 of 28 plans complete)
+Progress: [██████████████░░] 93% (23 of 28 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 22
+- Total plans completed: 23
 - Average duration: 2.3 min
-- Total execution time: 0.77 hours
+- Total execution time: 0.78 hours
 
 **By Phase:**
 
@@ -34,11 +34,11 @@ Progress: [███████████████░░] 93% (22 of 28 pl
 | 05-Universal-Task-Visibility | 6 of 6 | 14 min | 2.3 min |
 | 06-Work-Order-Task-Integration | 3 of 3 | 7 min | 2.3 min |
 | 07-Role-Based-Task-Centers | 4 of 4 | 4 min | 1.0 min |
-| 08-Real-time-Notifications | 1 of 7 | 0.5 min | 0.5 min |
+| 08-Real-time-Notifications | 2 of 7 | 1 min | 0.5 min |
 
 **Recent Trend:**
-- Last 3 plans: 08-01A (0.5min), 07-04 (1min), 07-03 (1min)
-- Phase 8 in progress - Channels infrastructure configured
+- Last 3 plans: 08-01B (0.5min), 08-01A (0.5min), 07-04 (1min)
+- Phase 8 in progress - ASGI application with WebSocket routing configured
 
 *Updated after each plan completion*
 
@@ -276,6 +276,14 @@ Recent decisions affecting current work:
 - Environment-based CHANNEL_LAYERS: Redis backend when REDIS_URL is set, InMemoryChannelLayer for development
 - Channel layer communications encrypted with SECRET_KEY when using Redis backend
 
+**From 08-01B (ASGI Application Entry Point):**
+- Created backend/config/asgi.py with ProtocolTypeRouter for HTTP/WebSocket routing
+- WebSocket connections authenticated via AuthMiddlewareStack (scope["user"] available in consumers)
+- AllowedHostsOriginValidator validates WebSocket origin against ALLOWED_HOSTS setting
+- URLRouter routes ws/notifications/ pattern to NotificationConsumer from services.realtime_notification
+- HTTP requests continue to work via Django's ASGI handler (backward compatible)
+- WSGI application remains functional for development server compatibility
+
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during sessions]
@@ -291,6 +299,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-01 01:05 UTC
-Stopped at: Completed Plan 08-01A - Channels Infrastructure Setup
-Next plan: 08-01B (ASGI Application Entry Point)
+Stopped at: Completed Plan 08-01B - ASGI Application Entry Point
+Next plan: 08-02 (Frontend WebSocket Client)
 Resume file: None
