@@ -242,9 +242,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 09-01: Add composite database indexes on frequently filtered columns
-- [ ] 09-02: Implement Redis caching for task statistics and dashboard data
-- [ ] 09-03: Optimize ORM queries with select_related and prefetch_related
+- [ ] 09-01-PLAN.md — Add composite database indexes on frequently filtered columns (Wave 1)
+- [ ] 09-02-PLAN.md — Implement Redis caching for task statistics and dashboard data (Wave 2)
+- [ ] 09-03-PLAN.md — Optimize ORM queries with select_related and prefetch_related (Wave 2)
 
 ### Phase 10: Production Hardening
 
@@ -283,5 +283,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 6. Work Order Task Integration | 3/3 | Complete | 2026-01-31 |
 | 7. Role-Based Task Centers | 4/4 | Complete | 2026-01-31 |
 | 8. Real-time Notifications | 0/7 | Ready for execution | - |
-| 9. Performance Optimization | 0/3 | Not started | - |
+| 9. Performance Optimization | 3/3 | Ready for execution | - |
 | 10. Production Hardening | 0/3 | Not started | - |
