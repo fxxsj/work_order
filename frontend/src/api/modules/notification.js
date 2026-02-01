@@ -12,7 +12,7 @@ class NotificationAPI extends BaseAPI {
   // 标记单个通知为已读
   markAsRead(id) {
     return this.request({
-      url: `${this.baseURL}${id}/mark_read/`,
+      url: `${this.baseUrl}${id}/mark_read/`,
       method: 'post'
     })
   }
@@ -20,7 +20,7 @@ class NotificationAPI extends BaseAPI {
   // 标记所有通知为已读
   markAllAsRead() {
     return this.request({
-      url: `${this.baseURL}mark_all_read/`,
+      url: `${this.baseUrl}mark_all_read/`,
       method: 'post'
     })
   }
@@ -28,7 +28,7 @@ class NotificationAPI extends BaseAPI {
   // 获取未读数量
   getUnreadCount() {
     return this.request({
-      url: `${this.baseURL}unread_count/`,
+      url: `${this.baseUrl}unread_count/`,
       method: 'get'
     })
   }
@@ -36,7 +36,7 @@ class NotificationAPI extends BaseAPI {
   // 获取通知统计
   getStatistics() {
     return this.request({
-      url: `${this.baseURL}statistics/`,
+      url: `${this.baseUrl}statistics/`,
       method: 'get'
     })
   }
@@ -44,7 +44,7 @@ class NotificationAPI extends BaseAPI {
   // 删除通知
   delete(id) {
     return this.request({
-      url: `${this.baseURL}${id}/`,
+      url: `${this.baseUrl}${id}/`,
       method: 'delete'
     })
   }
@@ -52,7 +52,7 @@ class NotificationAPI extends BaseAPI {
   // 删除所有已读
   deleteAllRead() {
     return this.request({
-      url: `${this.baseURL}delete_all_read/`,
+      url: `${this.baseUrl}delete_all_read/`,
       method: 'delete'
     })
   }
