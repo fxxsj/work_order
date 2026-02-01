@@ -40,7 +40,7 @@ export function useWebSocket() {
   const buildWebSocketUrl = (component) => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
     const host = process.env.VUE_APP_WS_HOST || window.location.host
-    const token = component.$store.getters['user/token']
+    const token = component.$store.getters['user/authToken']
     return `${protocol}//${host}/ws/notifications/?token=${token}`
   }
 
