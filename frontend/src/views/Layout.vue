@@ -190,6 +190,9 @@
           </el-breadcrumb>
         </div>
         <div class="header-right">
+          <!-- 通知中心 -->
+          <notification-center />
+
           <el-dropdown @command="handleCommand">
             <span class="user-info">
               <i class="el-icon-user-solid"></i>
@@ -221,9 +224,13 @@
 
 <script>
 import { authAPI } from '@/api/modules'
+import NotificationCenter from '@/components/NotificationCenter.vue'
 
 export default {
   name: 'Layout',
+  components: {
+    NotificationCenter
+  },
   computed: {
     activeMenu() {
       const route = this.$route
@@ -425,6 +432,7 @@ export default {
 .header-right {
   display: flex;
   align-items: center;
+  gap: 15px;
 }
 
 .user-info {
