@@ -8,13 +8,10 @@
     >
       <el-button
         class="notification-bell"
-        :class="{ 'has-error': connectionError }"
         circle
         icon="el-icon-bell"
         @click="toggleDropdown"
-      >
-        <i v-if="connectionError" class="el-icon-warning connection-error-icon"></i>
-      </el-button>
+      />
     </el-badge>
 
     <!-- 下拉面板 -->
@@ -49,15 +46,15 @@
           </div>
         </div>
 
-        <!-- 连接状态指示器 -->
-        <div
+        <!-- 连接状态指示器（暂时隐藏，WebSocket 功能未启用） -->
+        <!-- <div
           v-if="connectionStatus !== 'connected'"
           class="connection-status"
           :class="connectionStatus"
         >
           <i :class="connectionStatusIcon"></i>
           <span>{{ connectionStatusText }}</span>
-        </div>
+        </div> -->
 
         <!-- 通知列表 -->
         <div class="notification-list">
