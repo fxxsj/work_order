@@ -39,7 +39,8 @@ export function useWebSocket() {
   // 构建WebSocket URL
   const buildWebSocketUrl = (component) => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const host = process.env.VUE_APP_WS_HOST || window.location.host
+    // 优先使用环境变量，否则使用 localhost:8001 (ASGI 服务器端口)
+    const host = process.env.VUE_APP_WS_HOST || 'localhost:8001'
     const token = component.$store.getters['user/authToken']
     return `${protocol}//${host}/ws/notifications/?token=${token}`
   }
