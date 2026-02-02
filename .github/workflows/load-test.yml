@@ -1,0 +1,201 @@
+name: Load Test
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/load-test.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+    inputs:
+      users:
+        description: 'Number of users to simulate'
+        required: true
+        default: '50'
+      spawn_rate:
+        description: 'Users per second'
+        required: true
+        default: '10'
+      run_time:
+        description: 'Test duration'
+        required: true
+        default: '2m'
+
+jobs:
+  load-test:
+    name: Locust Load Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_DB: workorder_test
+          POSTGRES_USER: workorder
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install locust
+
+      - name: Run migrations
+        env:
+          DATABASE_URL: postgres://workorder:test_password@localhost:5432/workorder_test
+          SECRET_KEY: test-secret-key-for-ci
+          DEBUG: True
+        run: |
+          cd backend
+          python manage.py migrate --noinput
+          python manage.py loaddata ../backend/workorder/fixtures/initial_data.json
+
+      - name: Create test data
+        env:
+          DATABASE_URL: postgres://workorder:test_password@localhost:5432/workorder_test
+          SECRET_KEY: test-secret-key-for-ci
+        run: |
+          cd backend
+          python -c "
+          from django.contrib.auth import get_user_model
+          from workorder.tests.factories import (
+              WorkOrderFactory, UserFactory, DepartmentFactory,
+              ProcessFactory, WorkOrderTaskFactory
+          )
+          import django
+          django.setup()
+
+          User = get_user_model()
+
+          # Create test users
+          supervisor = UserFactory(username='test_supervisor', role='supervisor')
+          operator = UserFactory(username='test_operator', role='operator')
+          maker = UserFactory(username='test_maker', role='maker')
+
+          # Set passwords for token auth
+          for user in [supervisor, operator, maker]:
+              user.set_password('testpass123')
+              user.save()
+
+          # Create test data
+          dept = DepartmentFactory(name='Test Dept')
+          process = ProcessFactory(name='Test Process')
+
+          for _ in range(50):
+              wo = WorkOrderFactory(approval_status='approved')
+              WorkOrderTaskFactory(
+                  work_order=wo,
+                  status='pending',
+                  assigned_department=dept
+              )
+
+          print('Test data created successfully')
+          "
+
+      - name: Start Django server
+        env:
+          DATABASE_URL: postgres://workorder:test_password@localhost:5432/workorder_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: test-secret-key-for-ci
+          DEBUG: False
+        run: |
+          cd backend
+          gunicorn config.wsgi:application --bind 0.0.0.0:8000 --daemon --access-logfile - --error-logfile -
+          # Wait for server to be ready
+          sleep 5
+
+      - name: Run Locust load test
+        env:
+          LOCUST_TARGET_HOST: http://localhost:8000
+        run: |
+          cd backend
+          users=${{ github.event.inputs.users || '50' }}
+          spawn_rate=${{ github.event.inputs.spawn_rate || '10' }}
+          run_time=${{ github.event.inputs.run_time || '2m' }}
+
+          locust -f locust/locustfile.py \
+            --headless \
+            --users $users \
+            --spawn-rate $spawn_rate \
+            --run-time $run_time \
+            --host $LOCUST_TARGET_HOST \
+            --html /tmp/locust-report.html \
+            --csv /tmp/locust
+
+      - name: Upload Locust report
+        uses: actions/upload-artifact@v3
+        with:
+          name: locust-report
+          path: |
+            /tmp/locust-report.html
+            /tmp/locust_stats.csv
+            /tmp/locust_stats_history.csv
+          retention-days: 30
+
+      - name: Check SLA compliance
+        run: |
+          # Check if exit code was non-zero (SLA failed)
+          if [ $? -ne 0 ]; then
+            echo "::error::Load test SLA validation failed!"
+            exit 1
+          fi
+
+      - name: Stop Django server
+        if: always()
+        run: |
+          pkill -f gunicorn || true
+
+  load-test-summary:
+    name: Load Test Summary
+    needs: load-test
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: locust-report
+
+      - name: Print summary
+        run: |
+          echo "## Load Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Detailed report available in artifacts." >> $GITHUB_STEP_SUMMARY
