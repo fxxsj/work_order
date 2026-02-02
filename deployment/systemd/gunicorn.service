@@ -1,0 +1,26 @@
+[Unit]
+Description=Workorder Gunicorn Daemon
+After=network.target postgresql.service
+
+[Service]
+Type=notify
+User=workorder
+Group=workorder
+RuntimeDirectory=gunicorn
+WorkingDirectory=/opt/workorder/backend
+Environment="PATH=/opt/workorder/backend/venv/bin"
+EnvironmentFile=/opt/workorder/backend/.env
+ExecStart=/opt/workorder/backend/venv/bin/gunicorn --config deployment/gunicorn.conf.py config.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=30
+PrivateTmp=true
+Restart=always
+RestartSec=5
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

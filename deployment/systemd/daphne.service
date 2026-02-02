@@ -1,0 +1,22 @@
+[Unit]
+Description=Workorder Daphne WebSocket Daemon
+After=network.target gunicorn.service redis.service
+
+[Service]
+Type=notify
+User=workorder
+Group=workorder
+RuntimeDirectory=daphne
+WorkingDirectory=/opt/workorder/backend
+Environment="PATH=/opt/workorder/backend/venv/bin"
+EnvironmentFile=/opt/workorder/backend/.env
+ExecStart=/opt/workorder/backend/venv/bin/daphne -b 127.0.0.1 -p 8001 config.asgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=30
+PrivateTmp=true
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
