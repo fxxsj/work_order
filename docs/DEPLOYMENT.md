@@ -563,6 +563,142 @@ DATABASES = {
 6. 限制 Django Admin 访问（IP 白名单）
 7. 配置日志监控和告警
 
+## 部署检查清单
+
+### 部署前准备
+
+- [ ] 确认服务器硬件配置满足要求（CPU: 2核+, 内存: 4GB+, 硬盘: 20GB+）
+- [ ] 确认操作系统版本（Ubuntu 20.04+ / CentOS 8+ / Debian 11+）
+- [ ] 准备好域名和 DNS 解析
+- [ ] 准备 SSL 证书（Let's Encrypt 或商业证书）
+- [ ] 创建部署用户并配置 sudo 权限
+- [ ] 准备好环境变量配置（.env 文件）
+- [ ] 备份现有数据（如果是迁移部署）
+
+### 数据库配置
+
+- [ ] 安装 PostgreSQL 14+ 或 MySQL 8+
+- [ ] 创建数据库和用户
+- [ ] 配置数据库连接权限
+- [ ] 测试数据库连接
+- [ ] 配置数据库自动备份
+
+### 后端部署
+
+- [ ] 克隆代码仓库
+- [ ] 创建 Python 虚拟环境
+- [ ] 安装所有依赖包（pip install -r requirements.txt）
+- [ ] 配置 .env 文件（SECRET_KEY, DEBUG, ALLOWED_HOSTS, 数据库配置等）
+- [ ] 运行数据库迁移（python manage.py migrate）
+- [ ] 创建超级用户（python manage.py createsuperuser）
+- [ ] 收集静态文件（python manage.py collectstatic）
+- [ ] 配置 Gunicorn（workers, timeout, 日志等）
+- [ ] 配置 Daphne for WebSocket（如果使用实时通知）
+- [ ] 创建 systemd 服务文件
+- [ ] 启动并验证服务状态（systemctl status workorder）
+
+### 前端部署
+
+- [ ] 安装 npm 依赖（npm install）
+- [ ] 配置生产环境 API 地址（.env.production 或 vue.config.js）
+- [ ] 构建生产版本（npm run build）
+- [ ] 部署到 Web 服务器目录
+- [ ] 验证前端可访问
+
+### Nginx 配置
+
+- [ ] 安装 Nginx
+- [ ] 配置 SSL 证书
+- [ ] 配置 HTTP 到 HTTPS 重定向
+- [ ] 配置反向代理（API 端点）
+- [ ] 配置 WebSocket 代理（/ws/ 路径）
+- [ ] 配置静态文件服务（/static/, /media/）
+- [ ] 配置前端 SPA 路由（try_files $uri $uri/ /index.html）
+- [ ] 测试配置并重载（nginx -t && systemctl reload nginx）
+
+### Redis 缓存（可选但推荐）
+
+- [ ] 安装 Redis 7+
+- [ ] 配置 Redis 密码认证
+- [ ] 配置 Django 缓存后端
+- [ ] 配置 Channels layer for WebSocket
+- [ ] 测试 Redis 连接
+
+### 监控和日志
+
+- [ ] 配置日志轮转（logrotate）
+- [ ] 配置系统日志监控（journalctl）
+- [ ] 配置应用错误日志监控
+- [ ] 配置数据库慢查询日志
+- [ ] 配置 Prometheus + Grafana（可选）
+- [ ] 配置告警通知（邮件/短信/钉钉）
+
+### 备份配置
+
+- [ ] 配置数据库自动备份（每天）
+- [ ] 配置媒体文件备份
+- [ ] 配置代码备份（Git）
+- [ ] 测试备份恢复流程
+- [ ] 配置异地备份（可选）
+- [ ] 配置备份保留策略（30天）
+
+### 安全检查
+
+- [ ] DEBUG=False
+- [ ] SECRET_KEY 已修改为强密钥
+- [ ] ALLOWED_HOSTS 正确配置
+- [ ] 数据库密码安全（强密码，不在代码中）
+- [ ] HTTPS 已启用且正常工作
+- [ ] 防火墙规则已配置（仅开放必要端口）
+- [ ] SSH 密钥认证已配置
+- [ ] 禁用 root SSH 登录
+- [ ] 配置 fail2ban 防止暴力破解
+- [ ] 日志记录已启用
+- [ ] 文件权限正确（.env 不可公开读取）
+- [ ] Django Admin 仅允许特定 IP 访问（可选）
+
+### 功能验证
+
+- [ ] 用户可以正常登录
+- [ ] 可以创建施工单
+- [ ] 任务自动生成正确
+- [ ] 审核流程正常工作
+- [ ] 任务分配功能正常
+- [ ] WebSocket 通知正常（如果启用）
+- [ ] 文件上传正常（图稿、刀模等）
+- [ ] 数据统计显示正确
+- [ ] API 文档可访问（/api/docs/）
+- [ ] 不会出现控制台错误
+
+### 性能验证
+
+- [ ] 页面加载时间 < 2秒
+- [ ] API 响应时间 < 500ms
+- [ ] 并发用户测试通过（50+ 用户）
+- [ ] 数据库查询优化生效
+- [ ] Redis 缓存正常工作
+- [ ] 静态资源 CDN 加速（可选）
+- [ ] Gzip 压缩已启用
+- [ ] 图片优化和懒加载
+
+### 文档和支持
+
+- [ ] API 文档已生成（/api/docs/）
+- [ ] 用户手册已交付（USER_MANUAL.md）
+- [ ] 部署文档已更新
+- [ ] 技术支持联系方式已确认
+- [ ] 应急响应流程已制定
+
+### 上线后检查
+
+- [ ] 监控系统运行状态（CPU、内存、磁盘）
+- [ ] 检查错误日志
+- [ ] 验证备份数据完整性
+- [ ] 测试备份恢复流程
+- [ ] 用户培训完成
+- [ ] 收集用户反馈
+- [ ] 制定优化计划
+
 ## 联系支持
 
 如遇到部署问题，请查看项目 Issues 或联系技术支持。
