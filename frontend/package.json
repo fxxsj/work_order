@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@types/dompurify": "^3.2.0",
-    "axios": "^1.6.2",
+    "axios": "^1.7.4",
     "core-js": "^3.34.0",
     "dompurify": "^3.3.1",
     "element-ui": "^2.15.14",
@@ -43,7 +43,8 @@
     "prettier": "^2.8.8",
     "sass": "^1.97.2",
     "sass-loader": "^16.0.6",
-    "vue-template-compiler": "^2.7.15"
+    "vue-template-compiler": "^2.7.15",
+    "ws": "^8.17.1"
   },
   "eslintConfig": {
     "root": true,
