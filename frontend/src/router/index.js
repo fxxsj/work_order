@@ -6,6 +6,10 @@ import { getCurrentUser } from '@/api/auth'
 
 Vue.use(VueRouter)
 
+// 防止重复导航的标志
+let isAuthChecking = false
+let authCheckPromise = null
+
 // P2 优化: 使用 Webpack 魔法注释优化代码分割
 // webpackChunkName: 为 chunk 命名，便于识别
 // webpackPrefetch: 浏览器空闲时预加载资源
@@ -289,25 +293,52 @@ router.beforeEach(async (to, from, next) => {
   if (requiresAuth) {
     // 检查是否已有用户信息（使用新的模块化 API）
     if (!store.getters['user/currentUser']) {
+      // 如果正在检查认证，等待完成而不是发起新请求
+      if (isAuthChecking && authCheckPromise) {
+        try {
+          await authCheckPromise
+          // 检查是否已登录
+          if (store.getters['user/currentUser']) {
+            next()
+            return
+          }
+          // 未登录，重定向到登录页
+          next({ path: '/login', query: { redirect: to.fullPath }, replace: true })
+          return
+        } catch (error) {
+          next({ path: '/login', query: { redirect: to.fullPath }, replace: true })
+          return
+        }
+      }
+
+      // 开始新的认证检查
+      isAuthChecking = true
+      authCheckPromise = (async () => {
+        try {
+          const userInfo = await getCurrentUser()
+          if (userInfo && userInfo.id) {
+            store.dispatch('user/initUser', userInfo)
+            return true
+          }
+          return false
+        } catch (error) {
+          return false
+        } finally {
+          isAuthChecking = false
+          authCheckPromise = null
+        }
+      })()
+
       try {
-        // 尝试获取当前用户信息
-        const userInfo = await getCurrentUser()
-        if (userInfo && userInfo.id) {
-          store.dispatch('user/initUser', userInfo)
+        const isLoggedIn = await authCheckPromise
+        if (isLoggedIn) {
           next()
         } else {
-          // 未登录，跳转到登录页，携带重定向信息
-          next({
-            path: '/login',
-            query: { redirect: to.fullPath }
-          })
+          // 未登录，跳转到登录页，携带重定向信息（使用 replace 避免导航历史问题）
+          next({ path: '/login', query: { redirect: to.fullPath }, replace: true })
         }
       } catch (error) {
-        // 未登录，跳转到登录页，携带重定向信息
-        next({
-          path: '/login',
-          query: { redirect: to.fullPath }
-        })
+        next({ path: '/login', query: { redirect: to.fullPath }, replace: true })
       }
     } else {
       next()
