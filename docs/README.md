@@ -2,22 +2,28 @@
 
 本目录包含项目的所有技术文档和分析文档。
 
-> **最后更新：** 2026-01-15
-> **更新事项：** 整理过时文档，精简文档体系（共移除17个过时文档）
+> **最后更新：** 2026-02-02
+> **更新事项：** 同步项目状态，更新 API 模块数量，添加 GSD 规划索引
 
 ## 📊 文档分类导航
 
 ### 📚 快速入门（必读）
 
 - **[QUICKSTART.md](QUICKSTART.md)** - 快速开始指南，详细的安装和配置步骤
-- **[LOGIN_INFO.md](LOGIN_INFO.md)** - 测试账号信息和登录说明
 - **[DATA_INITIALIZATION_ANALYSIS.md](DATA_INITIALIZATION_ANALYSIS.md)** - 数据初始化详细说明（所有预设数据）
 
-### 🔧 开发参考
+### 🎯 项目规划（GSD 框架）
 
-- **[SERVICE_LAYER_QUICK_REFERENCE.md](SERVICE_LAYER_QUICK_REFERENCE.md)** - Service 层快速参考
-- **[FIXTURES.md](FIXTURES.md)** - Fixtures 文件使用指南
-- **[DATA_SOURCE_CONSOLIDATION.md](DATA_SOURCE_CONSOLIDATION.md)** - 数据源统一说明
+> 项目采用 GSD (Get Shit Done) 方法论进行规划和迭代
+
+| 文件 | 说明 | 状态 |
+|------|------|------|
+| [.planning/PROJECT.md](../.planning/PROJECT.md) | 项目上下文和核心价值定义 | ✓ 有效 |
+| [.planning/REQUIREMENTS.md](../.planning/REQUIREMENTS.md) | 需求清单和验收标准 | ✓ 有效 |
+| [.planning/ROADMAP.md](../.planning/ROADMAP.md) | 10 阶段路线图和进度追踪 | ✓ 有效 |
+| [.planning/research/SUMMARY.md](../.planning/research/SUMMARY.md) | 域研究和架构分析 | ✓ 有效 |
+
+**当前进度**：Phase 1-7 ✅ 已完成，Phase 8-10 ⏳ 待执行
 
 ### 📋 核心业务流程（高优先级）
 
@@ -67,9 +73,8 @@
 
 ### 📜 历史参考（归档）
 
-- **[PURCHASE_PROCESS_REMOVAL.md](PURCHASE_PROCESS_REMOVAL.md)** ⚠️ - 采购工序移除说明（历史文档）
-- **[DESIGN_PROCESS_REMOVAL.md](DESIGN_PROCESS_REMOVAL.md)** ⚠️ - 设计工序移除说明（历史文档）
-- **[REDUNDANT_CODE_ANALYSIS.md](REDUNDANT_CODE_ANALYSIS.md)** ⚠️ - 冗余代码分析（需检查）
+- **[archive/](../archive/)** - 64 个历史文档（已完成的重构计划、历史分析等）
+- ⚠️ **REDUNDANT_CODE_ANALYSIS.md** - 需要验证冗余代码是否已全部修复
 
 ### 📝 维护日志
 
@@ -117,29 +122,51 @@
 
 **新手开发人员**:
 1. [QUICKSTART.md](QUICKSTART.md) - 环境配置
-2. [LOGIN_INFO.md](LOGIN_INFO.md) - 测试账号
-3. [DATA_INITIALIZATION_ANALYSIS.md](DATA_INITIALIZATION_ANALYSIS.md) - 数据说明
-4. [SERVICE_LAYER_QUICK_REFERENCE.md](SERVICE_LAYER_QUICK_REFERENCE.md) - Service 层使用
+2. [DATA_INITIALIZATION_ANALYSIS.md](DATA_INITIALIZATION_ANALYSIS.md) - 数据说明
+3. [FRONTEND_STANDARDS.md](FRONTEND_STANDARDS.md) - 前端开发规范
+4. [BEST_PRACTICES.md](BEST_PRACTICES.md) - 开发最佳实践
 
 **前端开发人员**:
 1. [SYSTEM_USAGE_ANALYSIS.md](SYSTEM_USAGE_ANALYSIS.md) - 系统流程
 2. [DASHBOARD_OPTIMIZATION_SUMMARY.md](DASHBOARD_OPTIMIZATION_SUMMARY.md) - 工作台优化
-3. [PROCESS_LOGIC_COMPREHENSIVE_ANALYSIS.md](PROCESS_LOGIC_COMPREHENSIVE_ANALYSIS.md) - 工序逻辑
+3. [FRONTEND_STANDARDS.md](FRONTEND_STANDARDS.md) - 前端规范
+4. [PROCESS_LOGIC_COMPREHENSIVE_ANALYSIS.md](PROCESS_LOGIC_COMPREHENSIVE_ANALYSIS.md) - 工序逻辑
 
 **后端开发人员**:
 1. [SYSTEM_USAGE_ANALYSIS.md](SYSTEM_USAGE_ANALYSIS.md) - 系统流程
 2. [WORKORDER_BUSINESS_FLOW_ANALYSIS.md](WORKORDER_BUSINESS_FLOW_ANALYSIS.md) - 业务流程
-3. [PROCESS_LOGIC_COMPREHENSIVE_ANALYSIS.md](PROCESS_LOGIC_COMPREHENSIVE_ANALYSIS.md) - 工序实现
+3. [API_DOCUMENTATION.md](API_DOCUMENTATION.md) - API 接口文档
 4. [PERMISSIONS.md](PERMISSIONS.md) - 权限控制
 
 **系统维护人员**:
 1. [DEPLOYMENT.md](DEPLOYMENT.md) - 部署指南
-2. [SYSTEM_USAGE_ANALYSIS.md](SYSTEM_USAGE_ANALYSIS.md) - 系统功能
-3. [PERMISSIONS_BEST_PRACTICES.md](PERMISSIONS_BEST_PRACTICES.md) - 权限最佳实践
+2. [USER_MANUAL.md](USER_MANUAL.md) - 用户手册
+3. [PERMISSIONS.md](PERMISSIONS.md) - 权限最佳实践
 
 ---
 
 ## 文档更新历史
+
+### 2026-02-02 文档同步
+
+✅ **执行的更新**：
+
+1. **更新 README.md (根目录)**：
+   - 更新 API 模块数量：16 → 27 个
+   - 更新项目结构（API 模块列表）
+   - 更新版本号到 v3.0.0
+   - 添加 GSD 规划文档链接
+
+2. **更新 docs/README.md**：
+   - 移除不存在的文档链接（LOGIN_INFO.md, SERVICE_LAYER_QUICK_REFERENCE.md）
+   - 添加 GSD 规划文档索引
+   - 更新不同角色的文档导航
+   - 同步项目当前进度（Phase 1-7 完成）
+
+3. **文档现状**：
+   - 总计 43 个有效文档
+   - GSD 规划已纳入文档体系
+   - 所有引用已验证一致性
 
 ### 2026-01-15 文档整理
 
