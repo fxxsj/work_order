@@ -2,47 +2,37 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-01-31)
+See: .planning/PROJECT.md (updated 2026-02-02)
 
-**Core value:** 创建即分派，审核即开工 - 施工单一经创建即可预览所有任务，审核通过后任务立即可用
-**Current focus:** Phase 10: Production Hardening
+**Core value:** 安全、稳定、可维护
+**Current focus:** v1.1 代码质量与安全加固
 
 ## Current Position
 
-Phase: 10 of 10 (Production Hardening)
-Plan: 02 of 04 in current phase
-Status: In progress
-Last activity: 2026-02-02T01:13:20Z — Completed Plan 10-02: API Documentation and User Manual
+Phase: 1 of 4 (Security Hardening)
+Plan: 01 of 14 in current milestone
+Status: Ready to start
+Last activity: 2026-02-02 — Started v1.1 milestone
 
-Progress: [███████████████░] 94% (31 of 32 plans complete)
+Progress: [░░░░░░░░░░░░░░░░░░░░░░░░░] 0% (0 of 14 plans complete)
 
 ## Performance Metrics
 
-**Velocity:**
-- Total plans completed: 31
-- Average duration: 2.3 min
-- Total execution time: 1.18 hours
+**v1.1 Velocity:**
+- Total plans: 14
+- Completed: 0
+- Remaining: 14
 
 **By Phase:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01-draft-task-foundation | 3 of 3 | 5 min | 1.7 min |
-| 02-Task-Data-Consistency | 3 of 3 | 5 min | 1.7 min |
-| 03-Dispatch-Configuration | 3 of 3 | 14 min | 4.7 min |
-| 04-Task-Assignment-Core | 3 of 3 | 5 min | 1.7 min |
-| 05-Universal-Task-Visibility | 6 of 6 | 14 min | 2.3 min |
-| 06-Work-Order-Task-Integration | 3 of 3 | 7 min | 2.3 min |
-| 07-Role-Based-Task-Centers | 4 of 4 | 4 min | 1.0 min |
-| 08-Real-time-Notifications | 5 of 7 | 5 min | 1.0 min |
-| 09-Performance-Optimization | 4 of 4 | 8 min | 2.0 min |
-| 10-Production-Hardening | 4 of 4 | 32 min | 8.0 min |
+| Phase | Plans | Status | Priority |
+|-------|-------|--------|----------|
+| 1. Security Hardening | 3 | Pending | P0 |
+| 2. Frontend Refactor | 4 | Pending | P1 |
+| 3. Code Cleanup | 3 | Pending | P2 |
+| 4. Test Framework | 4 | Pending | P2 |
 
-**Recent Trend:**
-- Last 3 plans: 10-02 (3min), 10-03 (2min), 10-01 (25min)
-- Phase 10 complete - all production hardening tasks finished
-
-*Updated after each plan completion*
+*Updated for v1.1 milestone*
 
 ## Accumulated Context
 
@@ -363,19 +353,33 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-[From .planning/todos/pending/ — ideas captured during sessions]
+[From code quality review 2026-02-02 — captured during v1.1 planning]
 
-None yet.
+**P0 - 安全修复 (立即处理):**
+- [ ] SEC-01: 升级 axios 到 1.7.4+ (修复 CSRF 漏洞)
+- [ ] SEC-02: 升级 ws 到 8.17.1+ (修复 DoS 漏洞)
+
+**P1 - 代码重构 (近期处理):**
+- [ ] CODE-01: 拆分 Detail.vue (3508行)
+- [ ] CODE-02: 拆分 WorkOrderForm.vue (1472行)
+- [ ] CODE-03: 创建 src/constants/ 目录
+- [ ] CODE-04: 清理后端测试文件 print() (120+ 处)
+
+**P2 - 代码质量 (计划处理):**
+- [ ] TEST-01: 创建后端测试框架
+- [ ] TEST-02: 补充核心模型测试
+- [ ] CLEAN-01: 清理前端 TODO 注释
+- [ ] CLEAN-02: 修复事件监听器内存泄漏
 
 ### Blockers/Concerns
 
 [Issues that affect future work]
 
-None yet.
+None yet for v1.1 milestone.
 
 ## Session Continuity
 
 Last session: 2026-02-02 01:13 UTC
-Stopped at: Completed Plan 10-02 - API Documentation and User Manual
-Next plan: None (Phase 10 complete)
+Stopped at: Completed v1.0 milestone
+Next action: Start Phase 1 (Security Hardening)
 Resume file: None
