@@ -1,0 +1,4 @@
+# Workorder system automated backups
+# Run daily at 2:00 AM
+
+0 2 * * * /opt/workorder/backend/deployment/scripts/backup.sh >> /var/log/backup.log 2>&1

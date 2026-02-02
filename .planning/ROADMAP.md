@@ -236,7 +236,7 @@ Plans:
 1. Task list queries complete in under 500ms with 10,000+ tasks in database
 2. Task statistics load in under 200ms using Redis cache
 3. Database composite indexes eliminate full table scans on filtered queries
-4. Frontend renders 100-task lists without frame drops (60 FPS maintained)
+4. Frontend renders 100-task lists without frame drops (60 FPS maintained) -- covered by Phase 5 plan 05-06 (Virtual Scroll Performance Optimization)
 5. Query optimization reduces database load by 70% compared to unoptimized baseline
 
 **Plans**: 3 plans
@@ -257,16 +257,18 @@ Plans:
 **Success Criteria** (what must be TRUE):
 1. All critical user workflows have integration tests passing
 2. API documentation is complete and accurate for all task endpoints
-3. User manual documents all features with screenshots and step-by-step guides
+3. User manual documents all features with step-by-step guides (Chinese)
 4. Production deployment checklist is completed (backups, monitoring, error logging)
 5. System successfully handles load testing with 100 concurrent users
 
 **Plans**: 3 plans
 
+**Status**: Ready for execution
+
 Plans:
-- [ ] 10-01: Write integration tests for core task workflows
-- [ ] 10-02: Create API documentation and user manual
-- [ ] 10-03: Perform load testing and deployment preparation
+- [ ] 10-01-PLAN.md — Write integration tests for core task workflows (Wave 1)
+- [ ] 10-02-PLAN.md — Create API documentation and user manual (Wave 2)
+- [ ] 10-03-PLAN.md — Perform load testing and deployment preparation (Wave 2)
 
 ## Progress
 
@@ -284,4 +286,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 7. Role-Based Task Centers | 4/4 | Complete | 2026-01-31 |
 | 8. Real-time Notifications | 0/7 | Ready for execution | - |
 | 9. Performance Optimization | 3/3 | Ready for execution | - |
-| 10. Production Hardening | 0/3 | Not started | - |
+| 10. Production Hardening | 0/3 | Ready for execution | - |

@@ -1,0 +1,33 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'workorder-monitor'
+
+scrape_configs:
+  # Django application
+  - job_name: 'django'
+    static_configs:
+      - targets: ['localhost:8000']
+    metrics_path: '/metrics/'
+
+  # Gunicorn (if using prometheus exporter)
+  - job_name: 'gunicorn'
+    static_configs:
+      - targets: ['localhost:8000']
+    metrics_path: '/metrics/'
+
+  # Node exporter (system metrics)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['localhost:9100']
+
+  # Postgres exporter
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['localhost:9187']
+
+  # Redis exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['localhost:9121']
