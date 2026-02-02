@@ -12,16 +12,16 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 Phase: 1 of 4 (Security Hardening)
 Plan: 02 of 14 in current milestone
 Status: In progress
-Last activity: 2026-02-02 — Completed PLAN-01 (axios upgrade)
+Last activity: 2026-02-02 — Completed PLAN-02 (ws upgrade)
 
-Progress: [██░░░░░░░░░░░░░░░░░░░░░░] 7% (1 of 14 plans complete)
+Progress: [████████░░░░░░░░░░░░░░░░░░░░░] 14% (2 of 14 plans complete)
 
 ## Performance Metrics
 
 **v1.1 Velocity:**
 - Total plans: 14
-- Completed: 1
-- Remaining: 13
+- Completed: 2
+- Remaining: 12
 
 **By Phase:**
 
@@ -357,7 +357,7 @@ Recent decisions affecting current work:
 
 **P0 - 安全修复 (立即处理):**
 - [x] SEC-01: 升级 axios 到 1.7.4+ (修复 CSRF 漏洞)
-- [ ] SEC-02: 升级 ws 到 8.17.1+ (修复 DoS 漏洞)
+- [x] SEC-02: 升级 ws 到 8.17.1+ (修复 DoS 漏洞)
 
 **P1 - 代码重构 (近期处理):**
 - [ ] CODE-01: 拆分 Detail.vue (3508行)
@@ -381,6 +381,12 @@ None yet for v1.1 milestone.
 - axios upgraded from ^1.6.2 to ^1.7.4 (resolved to 1.13.2)
 - Fixed CSRF vulnerability in axios HTTP client
 - Regenerated package-lock.json with npm install
+
+**From 01-02 (ws Security Upgrade):**
+- ws upgraded from 7.5.10 (transitive via jest/jsdom) to 8.17.1
+- Added ws@^8.17.1 as direct devDependency to override transitive dependency
+- Fixed DoS vulnerability in ws (CVE-2024-37890)
+- Jest remains functional after upgrade (verified with npm run test:unit -- --version)
 
 ## Session Continuity
 
