@@ -153,8 +153,7 @@ export default {
     },
 
     uploadReceipt(options) {
-      // TODO: 实现图片上传逻辑
-      console.log('上传签收照片', options.file)
+      // 图片上传占位符 - 如需实现，请参考其他上传组件的模式
     }
   }
 }

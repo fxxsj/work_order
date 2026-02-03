@@ -4,6 +4,7 @@
  */
 
 import { login } from '@/api/auth'
+import { authAPI } from '@/api/modules'
 import { permissionService } from '@/services'
 
 // 初始状态
@@ -204,13 +205,9 @@ const actions = {
     }
 
     try {
-      // 这里应该调用获取用户信息的 API
-      // const result = await authAPI.getUserInfo()
-
-      // 模拟获取成功
-      // TODO: 实现真实的 API 调用
-      const result = { success: true }
-      return result
+      // 调用获取当前用户信息的 API
+      const result = await authAPI.getCurrentUser()
+      return { success: true, data: result }
     } catch (error) {
       return { success: false, error: error.message }
     }

@@ -508,4 +508,228 @@ export default {
 .el-card {
   margin-bottom: 20px;
 }
+
+/* 状态标签样式 - 与 Detail.vue 一致 */
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* 施工单状态颜色 */
+.status-pending {
+  background-color: #f4f4f5;
+  color: #909399;
+  border: 1px solid #dcdfe6;
+}
+
+.status-in_progress {
+  background-color: #ecf5ff;
+  color: #409EFF;
+  border: 1px solid #b3d8ff;
+}
+
+.status-paused {
+  background-color: #fdf6ec;
+  color: #E6A23C;
+  border: 1px solid #faecd8;
+}
+
+.status-completed {
+  background-color: #f0f9eb;
+  color: #67C23A;
+  border: 1px solid #c2e7b0;
+}
+
+.status-cancelled {
+  background-color: #fef0f0;
+  color: #F56C6C;
+  border: 1px solid #fbc4c4;
+}
+
+/* 审核状态颜色 */
+.approval-pending {
+  background-color: #fdf6ec;
+  color: #E6A23C;
+  border: 1px solid #faecd8;
+}
+
+.approval-submitted {
+  background-color: #ecf5ff;
+  color: #409EFF;
+  border: 1px solid #b3d8ff;
+}
+
+.approval-approved {
+  background-color: #f0f9eb;
+  color: #67C23A;
+  border: 1px solid #c2e7b0;
+}
+
+.approval-rejected {
+  background-color: #fef0f0;
+  color: #F56C6C;
+  border: 1px solid #fbc4c4;
+}
+
+/* 优先级颜色 */
+.priority-low {
+  background-color: #f0f9eb;
+  color: #67C23A;
+  border: 1px solid #c2e7b0;
+}
+
+.priority-normal {
+  background-color: #ecf5ff;
+  color: #409EFF;
+  border: 1px solid #b3d8ff;
+}
+
+.priority-high {
+  background-color: #fdf6ec;
+  color: #E6A23C;
+  border: 1px solid #faecd8;
+}
+
+.priority-urgent {
+  background-color: #fef0f0;
+  color: #F56C6C;
+  border: 1px solid #fbc4c4;
+}
+
+/* 卡片标题样式 */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+}
+
+/* 详情区块标题 */
+.detail-section-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 16px;
+  padding: 0;
+}
+
+/* 进度条容器 */
+.progress-section {
+  margin-top: 10px;
+}
+
+/* 表格操作按钮样式 */
+.action-buttons .el-button {
+  padding: 8px 12px;
+  margin: 2px;
+}
+
+/* 空状态样式 */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #909399;
+}
+
+.empty-state i {
+  font-size: 48px;
+  margin-bottom: 16px;
+  color: #dcdfe6;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+/* 对话框样式优化 */
+.el-dialog__header {
+  padding-bottom: 16px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.el-dialog__body {
+  padding: 24px;
+}
+
+.el-dialog__footer {
+  padding-top: 16px;
+  border-top: 1px solid #ebeef5;
+}
+
+/* 表格斑马纹 */
+.el-table--striped .el-table__body tr.el-table__row--striped td {
+  background-color: #fafafa;
+}
+
+/* 表格悬停效果 */
+.el-table__body tr:hover > td {
+  background-color: #f5f7fa !important;
+}
+
+/* 必填星号样式 */
+.required-mark {
+  color: #F56C6C;
+  margin-right: 4px;
+}
+
+/* 表单标签样式 */
+.form-label {
+  font-size: 14px;
+  color: #606266;
+  font-weight: 500;
+}
+
+/* 时间选择器样式 */
+.el-date-editor.el-input,
+.el-date-editor.el-input__inner {
+  width: 100%;
+}
+
+/* 数字输入框样式 */
+.el-input-number {
+  width: 100%;
+}
+
+/* 下拉框样式 */
+.el-select {
+  width: 100%;
+}
+
+/* 开关样式 */
+.el-switch.is-checked {
+  color: #67C23A;
+}
+
+/* 标签页样式 */
+.el-tabs__header {
+  margin-bottom: 20px;
+}
+
+.el-tabs__item {
+  font-size: 14px;
+  padding: 0 20px;
+}
+
+/* 步骤条样式 */
+.el-step__title {
+  font-size: 13px;
+}
+
+.el-step__description {
+  font-size: 12px;
+}
+
+/* 进度文字颜色 */
+.progress-text {
+  font-size: 13px;
+  color: #606266;
+  margin-left: 8px;
+}
 </style>

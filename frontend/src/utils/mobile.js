@@ -153,16 +153,22 @@ export const MobileMixin = {
 // 移动端手势工具
 export const GestureUtils = {
   // 添加滑动监听
+  /**
+   * 添加滑动监听器
+   * @param {HTMLElement} element - 目标元素
+   * @param {Object} handlers - 滑动回调函数
+   * @returns {Function} 清理函数
+   */
   addSwipeListener(element, handlers) {
     let startX, startY, endX, endY
     const threshold = 50 // 滑动阈值
 
-    element.addEventListener('touchstart', (e) => {
+    const touchStartHandler = (e) => {
       startX = e.touches[0].clientX
       startY = e.touches[0].clientY
-    }, { passive: true })
+    }
 
-    element.addEventListener('touchend', (e) => {
+    const touchEndHandler = (e) => {
       endX = e.changedTouches[0].clientX
       endY = e.changedTouches[0].clientY
 
@@ -183,26 +189,53 @@ export const GestureUtils = {
           handlers.onSwipeDown(e)
         }
       }
-    }, { passive: true })
+    }
+
+    element.addEventListener('touchstart', touchStartHandler, { passive: true })
+    element.addEventListener('touchend', touchEndHandler, { passive: true })
+
+    // 返回清理函数
+    return () => {
+      element.removeEventListener('touchstart', touchStartHandler)
+      element.removeEventListener('touchend', touchEndHandler)
+    }
   },
 
-  // 添加长按监听
+  /**
+   * 添加长按监听器
+   * @param {HTMLElement} element - 目标元素
+   * @param {Function} handler - 长按回调函数
+   * @param {number} delay - 长按延迟时间（毫秒）
+   * @returns {Function} 清理函数
+   */
   addLongPressListener(element, handler, delay = 500) {
     let timeoutId
 
-    element.addEventListener('touchstart', (e) => {
+    const touchStartHandler = (e) => {
       timeoutId = setTimeout(() => {
         handler(e)
       }, delay)
-    }, { passive: true })
+    }
 
-    element.addEventListener('touchend', () => {
+    const touchEndHandler = () => {
       clearTimeout(timeoutId)
-    }, { passive: true })
+    }
 
-    element.addEventListener('touchmove', () => {
+    const touchMoveHandler = () => {
       clearTimeout(timeoutId)
-    }, { passive: true })
+    }
+
+    element.addEventListener('touchstart', touchStartHandler, { passive: true })
+    element.addEventListener('touchend', touchEndHandler, { passive: true })
+    element.addEventListener('touchmove', touchMoveHandler, { passive: true })
+
+    // 返回清理函数
+    return () => {
+      clearTimeout(timeoutId)
+      element.removeEventListener('touchstart', touchStartHandler)
+      element.removeEventListener('touchend', touchEndHandler)
+      element.removeEventListener('touchmove', touchMoveHandler)
+    }
   }
 }
 
@@ -405,23 +438,31 @@ export const PWAUtils = {
     if ('serviceWorker' in navigator) {
       try {
         const registration = await navigator.serviceWorker.register('/sw.js')
-        console.log('ServiceWorker registered:', registration)
         return registration
       } catch (error) {
-        console.error('ServiceWorker registration failed:', error)
         return null
       }
     }
   },
 
-  // 检查 PWA 安装状态
+  /**
+   * 检查 PWA 安装状态
+   * @returns {Object} 安装提示对象，包含 promptInstall 方法和 cleanup 函数
+   */
   checkInstallPrompt() {
     let deferredPrompt
+    let cleanupFn
 
-    window.addEventListener('beforeinstallprompt', (e) => {
+    const installHandler = (e) => {
       e.preventDefault()
       deferredPrompt = e
-    })
+    }
+
+    window.addEventListener('beforeinstallprompt', installHandler)
+
+    cleanupFn = () => {
+      window.removeEventListener('beforeinstallprompt', installHandler)
+    }
 
     return {
       promptInstall: () => {
@@ -429,12 +470,13 @@ export const PWAUtils = {
           deferredPrompt.prompt()
           deferredPrompt.userChoice.then((choiceResult) => {
             if (choiceResult.outcome === 'accepted') {
-              console.log('PWA installed')
+              // PWA installed
             }
             deferredPrompt = null
           })
         }
-      }
+      },
+      cleanup: cleanupFn
     }
   }
 }
