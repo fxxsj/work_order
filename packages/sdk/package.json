@@ -1,0 +1,9 @@
+{
+  "name": "@workorder/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "generate:types": "npx openapi-typescript ../../openapi/openapi.json -o src/schema.d.ts",
+    "lint:check": "node -e \"require('fs').accessSync('src/schema.d.ts')\""
+  }
+}

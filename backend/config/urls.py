@@ -16,6 +16,8 @@ urlpatterns = [
     path('api/', include('workorder.urls')),
     # API documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    # Backward-compatible explicit OpenAPI JSON endpoint (some docs/tools expect this)
+    path('api/openapi.json', SpectacularAPIView.as_view(), name='openapi-json'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     # Prometheus metrics (protect with authentication in production!)
@@ -31,4 +33,3 @@ if settings.DEBUG:
 admin.site.site_header = '印刷施工单跟踪系统'
 admin.site.site_title = '印刷施工单管理'
 admin.site.index_title = '欢迎使用印刷施工单跟踪系统'
-

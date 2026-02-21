@@ -206,6 +206,18 @@ else:
 
 CORS_ALLOW_CREDENTIALS = True
 
+# Multi-platform client origins (development defaults)
+# - Tauri desktop: tauri://localhost (or tauri.localhost variants depending on setup)
+# - Capacitor/Ionic: capacitor://localhost / ionic://localhost
+if DEBUG:
+    CORS_ALLOWED_ORIGINS = list(dict.fromkeys(CORS_ALLOWED_ORIGINS + [
+        "tauri://localhost",
+        "http://tauri.localhost",
+        "https://tauri.localhost",
+        "capacitor://localhost",
+        "ionic://localhost",
+    ]))
+
 # CSRF settings - 从环境变量读取
 _csrf_origins = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
 if _csrf_origins:

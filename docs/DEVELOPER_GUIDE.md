@@ -77,6 +77,26 @@ cp .env.development.example .env.development
 # 编辑开发环境配置
 ```
 
+#### 多端客户端（Phase 0）配置要点
+
+为了支持 **桌面端 / Android** 使用（通常是跨域/非同源），前端已支持运行时配置 API/WS 地址：
+
+- **运行时配置入口**：登录页底部「服务器设置」（配置后会刷新页面生效）
+- **运行时配置存储**：`localStorage["workorder.runtimeConfig"]`
+- **环境变量（可选）**：
+  - `VUE_APP_API_BASE_URL` 或 `VUE_APP_API_URL`（示例：`http://127.0.0.1:8000/api`）
+  - `VUE_APP_WS_BASE_URL`（示例：`ws://127.0.0.1:8001` 或 `wss://example.com`）
+  - 兼容旧配置：`VUE_APP_WS_HOST`（示例：`127.0.0.1:8001`）
+
+后端跨域（CORS）说明：
+- 开发环境已默认加入 `tauri://localhost`、`capacitor://localhost`、`ionic://localhost` 等常见 origin；生产环境请通过 `CORS_ALLOWED_ORIGINS` 显式配置。
+
+OpenAPI 导出（用于生成多端 SDK/类型）：
+
+```bash
+bash scripts/openapi/export-backend-openapi.sh
+```
+
 ### IDE配置
 
 #### VS Code扩展推荐

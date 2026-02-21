@@ -72,17 +72,26 @@
         <div class="tips">
           <p>提示：首次使用请在后台创建管理员账号</p>
           <p>命令：python manage.py createsuperuser</p>
+          <p class="server-settings">
+            <el-link type="primary" :underline="false" @click="showServerConfig = true">服务器设置</el-link>
+          </p>
         </div>
       </el-form>
     </div>
+
+    <server-config-dialog v-model="showServerConfig" />
   </div>
 </template>
 
 <script>
 import { authAPI } from '@/api/modules'
+import ServerConfigDialog from '@/components/ServerConfigDialog.vue'
 
 export default {
   name: 'Login',
+  components: {
+    ServerConfigDialog
+  },
   data() {
     return {
       loginForm: {
@@ -101,6 +110,7 @@ export default {
       loading: false,
       showLoginPrompt: false,
       showSuccessAlert: false,
+      showServerConfig: false,
       loginPromptMessage: '请登录后继续访问系统'
     }
   },
@@ -269,5 +279,8 @@ export default {
 .tips p {
   margin: 5px 0;
 }
-</style>
 
+.server-settings {
+  margin-top: 8px;
+}
+</style>

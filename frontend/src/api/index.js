@@ -2,6 +2,7 @@ import axios from 'axios'
 import { Message } from 'element-ui'
 import router from '@/router'
 import store from '@/store'
+import { getApiBaseUrl } from '@/config/runtimeConfig'
 
 // 获取 CSRF Token
 function getCsrfToken() {
@@ -22,7 +23,7 @@ function getCsrfToken() {
 
 // 创建 axios 实例
 const service = axios.create({
-  baseURL: '/api',
+  baseURL: getApiBaseUrl(),
   timeout: 30000,
   withCredentials: true,
   xsrfCookieName: 'csrftoken',
@@ -147,4 +148,3 @@ service.interceptors.response.use(
 )
 
 export default service
-
