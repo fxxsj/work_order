@@ -1,0 +1,16 @@
+{
+  "name": "workorder-mobile",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "cap:init": "npx cap init WorkOrder com.workorder.app --web-dir www",
+    "cap:add:android": "npx cap add android",
+    "cap:sync": "node ./scripts/sync-web.js && npx cap sync",
+    "android:open": "npx cap open android"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^5.7.0",
+    "@capacitor/core": "^5.7.0"
+  }
+}
+

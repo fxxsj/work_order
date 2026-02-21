@@ -38,6 +38,14 @@
 
 **适合人群**：架构师、技术负责人、高级开发者
 
+#### [MULTI_PLATFORM_CLIENT_PLAN.md](MULTI_PLATFORM_CLIENT_PLAN.md) ⭐ 新增
+- Web / macOS / Windows / Android 多平台客户端技术路线
+- Tauri / Capacitor / Web(PWA) 交付策略
+- OpenAPI/SDK 契约优先与分阶段实施计划
+- 风险评估与验收标准
+
+**适合人群**：技术负责人、架构师、客户端/前端负责人、项目经理
+
 #### [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
 - REST API完整规范
 - 认证系统说明
@@ -90,6 +98,18 @@
 - Git工作流
 
 **适合人群**：前端/后端开发者
+
+#### [PHASE1_BOOTSTRAP.md](PHASE1_BOOTSTRAP.md)
+- Phase 1：Tauri（macOS/Windows）与 Capacitor（Android）壳化启动指南
+- 最小验收标准与工具链准备
+
+---
+
+## 🧭 vNext（迁移中）
+
+- 新 Web（Vue 3 + Vite + TypeScript）：`apps/web/`（见 `apps/web/README.md`）
+- 桌面壳（Tauri）：`apps/desktop/`（见 `apps/desktop/README.md`）
+- Android 壳（Capacitor）：`apps/mobile/`（见 `apps/mobile/README.md`）
 
 #### [TESTING.md](TESTING.md)
 - 测试环境配置

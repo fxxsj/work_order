@@ -1,0 +1,20 @@
+[package]
+name = "workorder_desktop"
+version = "0.1.0"
+description = "Work Order Desktop Client"
+authors = ["workorder"]
+license = ""
+repository = ""
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "1.5", features = [] }
+
+[dependencies]
+serde_json = "1"
+tauri = { version = "1.5", features = ["shell-open"] }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+

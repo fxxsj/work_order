@@ -1,0 +1,32 @@
+{
+  "build": {
+    "beforeDevCommand": "",
+    "beforeBuildCommand": "",
+    "devPath": "http://localhost:8080",
+    "distDir": "../../../frontend/dist"
+  },
+  "package": {
+    "productName": "WorkOrder",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "windows": [
+      {
+        "title": "WorkOrder",
+        "width": 1280,
+        "height": 800,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": null
+    },
+    "bundle": {
+      "active": true,
+      "targets": "all",
+      "identifier": "com.workorder.app",
+      "icon": []
+    }
+  }
+}
+
