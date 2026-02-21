@@ -1,0 +1,144 @@
+<template>
+  <div class="page">
+    <div class="bar">
+      <div class="left">
+        <el-button size="small" @click="goHome">返回</el-button>
+        <div class="title">任务列表（vNext）</div>
+      </div>
+      <div class="right">
+        <el-input
+          v-model="search"
+          size="small"
+          clearable
+          placeholder="搜索：内容/要求"
+          style="width: 260px"
+          @keyup.enter="reload"
+        />
+        <el-button size="small" :loading="loading" @click="reload">查询</el-button>
+      </div>
+    </div>
+
+    <el-card>
+      <el-table :data="items" v-loading="loading" style="width: 100%">
+        <el-table-column label="施工单" min-width="140">
+          <template #default="{ row }">{{ row.work_order_process_info?.work_order?.order_number || '-' }}</template>
+        </el-table-column>
+        <el-table-column label="工序" width="120">
+          <template #default="{ row }">{{ row.work_order_process_info?.process?.name || '-' }}</template>
+        </el-table-column>
+        <el-table-column prop="task_type_display" label="类型" width="120" />
+        <el-table-column prop="work_content" label="内容" min-width="220" show-overflow-tooltip />
+        <el-table-column prop="status_display" label="状态" width="110" />
+        <el-table-column label="完成" width="140">
+          <template #default="{ row }">
+            {{ row.quantity_completed ?? 0 }} / {{ row.production_quantity ?? '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="assigned_department_name" label="部门" width="120" />
+        <el-table-column prop="assigned_operator_name" label="操作员" width="120" />
+      </el-table>
+
+      <div class="pager">
+        <el-pagination
+          background
+          layout="total, sizes, prev, pager, next"
+          :total="total"
+          :page-size="pageSize"
+          :current-page="page"
+          @update:current-page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+        />
+      </div>
+    </el-card>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { listTasks, type WorkOrderTaskListItem } from '../api/tasks'
+
+const router = useRouter()
+
+const loading = ref(false)
+const items = ref<WorkOrderTaskListItem[]>([])
+const total = ref(0)
+const page = ref(1)
+const pageSize = ref(20)
+const search = ref('')
+
+async function fetchList() {
+  loading.value = true
+  try {
+    const data = await listTasks({
+      page: page.value,
+      page_size: pageSize.value,
+      search: search.value || undefined
+    })
+    items.value = data.results
+    total.value = data.count
+  } catch (err: any) {
+    ElMessage.error(err?.response?.data?.error || err?.message || '加载失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+function reload() {
+  page.value = 1
+  fetchList()
+}
+
+function handlePageChange(next: number) {
+  page.value = next
+  fetchList()
+}
+
+function handlePageSizeChange(next: number) {
+  pageSize.value = next
+  page.value = 1
+  fetchList()
+}
+
+function goHome() {
+  router.push({ name: 'dashboard' })
+}
+
+onMounted(() => {
+  fetchList()
+})
+</script>
+
+<style scoped>
+.page {
+  padding: 16px;
+}
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+.left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.title {
+  font-size: 16px;
+  font-weight: 600;
+}
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+</style>
+
