@@ -21,6 +21,8 @@ import PurchaseOrderListView from '../views/PurchaseOrderListView.vue'
 import PurchaseReceiveCenterView from '../views/PurchaseReceiveCenterView.vue'
 import ProductStockListView from '../views/ProductStockListView.vue'
 import SalesOrderListView from '../views/SalesOrderListView.vue'
+import InvoiceListView from '../views/InvoiceListView.vue'
+import PaymentListView from '../views/PaymentListView.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -41,6 +43,8 @@ export const router = createRouter({
     { path: '/purchase-receive', name: 'purchase-receive', component: PurchaseReceiveCenterView, meta: { requiresAuth: true } },
     { path: '/product-stocks', name: 'product-stocks', component: ProductStockListView, meta: { requiresAuth: true } },
     { path: '/sales-orders', name: 'sales-orders', component: SalesOrderListView, meta: { requiresAuth: true } },
+    { path: '/invoices', name: 'invoices', component: InvoiceListView, meta: { requiresAuth: true } },
+    { path: '/payments', name: 'payments', component: PaymentListView, meta: { requiresAuth: true } },
     { path: '/tasks', name: 'tasks', component: TaskListView, meta: { requiresAuth: true } },
     { path: '/tasks/operator', name: 'operator-center', component: OperatorCenterView, meta: { requiresAuth: true } },
     { path: '/notifications', name: 'notifications', component: NotificationView, meta: { requiresAuth: true } }
