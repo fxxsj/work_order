@@ -48,7 +48,7 @@ jobs:
       - name: Validate tag
         shell: bash
         run: |
-          TAG="${{ inputs.tag }}"
+          TAG="${{ github.event.inputs.tag }}"
           if [ -z "$TAG" ]; then
             TAG="${{ github.ref_name }}"
           fi
@@ -66,7 +66,7 @@ jobs:
       - name: Apply Android version from tag
         shell: bash
         run: |
-          TAG="${{ inputs.tag }}"
+          TAG="${{ github.event.inputs.tag }}"
           if [ -z "$TAG" ]; then
             TAG="${{ github.ref_name }}"
           fi
@@ -87,7 +87,7 @@ jobs:
 
       - name: Collect unsigned outputs
         run: |
-          TAG="${{ inputs.tag }}"
+          TAG="${{ github.event.inputs.tag }}"
           if [ -z "$TAG" ]; then
             TAG="${{ github.ref_name }}"
           fi
@@ -124,7 +124,7 @@ jobs:
       - name: Verify unsigned outputs exist
         shell: bash
         run: |
-          TAG="${{ inputs.tag }}"
+          TAG="${{ github.event.inputs.tag }}"
           if [ -z "$TAG" ]; then
             TAG="${{ github.ref_name }}"
           fi
@@ -140,7 +140,7 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           set -euo pipefail
-          TAG="${{ inputs.tag }}"
+          TAG="${{ github.event.inputs.tag }}"
           if [ -z "$TAG" ]; then
             TAG="${{ github.ref_name }}"
           fi
@@ -187,7 +187,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.tag || github.ref_name }}
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           generate_release_notes: true
           files: |
             dist/*

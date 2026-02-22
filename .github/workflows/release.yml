@@ -21,7 +21,7 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.tag || github.ref_name }}
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           generate_release_notes: true
           draft: false
 
@@ -62,7 +62,7 @@ jobs:
         env:
           TAURI_PUBLIC_KEY: ${{ secrets.TAURI_PUBLIC_KEY }}
         run: |
-          TAG="${{ inputs.tag }}"
+          TAG="${{ github.event.inputs.tag }}"
           if [ -z "$TAG" ]; then
             TAG="${{ github.ref_name }}"
           fi
@@ -80,7 +80,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          TAG="${{ inputs.tag }}"
+          TAG="${{ github.event.inputs.tag }}"
           if [ -z "$TAG" ]; then
             TAG="${{ github.ref_name }}"
           fi
@@ -96,7 +96,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $tag = "${{ inputs.tag }}"
+          $tag = "${{ github.event.inputs.tag }}"
           if ([string]::IsNullOrWhiteSpace($tag)) { $tag = "${{ github.ref_name }}" }
           node scripts/release/collect-tauri-installers.mjs --tag "$tag" --platform "windows-x86_64"
 
@@ -111,7 +111,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          TAG="${{ inputs.tag }}"
+          TAG="${{ github.event.inputs.tag }}"
           if [ -z "$TAG" ]; then
             TAG="${{ github.ref_name }}"
           fi
@@ -122,7 +122,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $tag = "${{ inputs.tag }}"
+          $tag = "${{ github.event.inputs.tag }}"
           if ([string]::IsNullOrWhiteSpace($tag)) { $tag = "${{ github.ref_name }}" }
           New-Item -ItemType Directory -Force -Path dist/bundles | Out-Null
           $src = "apps/desktop/src-tauri/target/release/bundle"
@@ -135,7 +135,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          TAG="${{ inputs.tag }}"
+          TAG="${{ github.event.inputs.tag }}"
           if [ -z "$TAG" ]; then
             TAG="${{ github.ref_name }}"
           fi
@@ -151,7 +151,7 @@ jobs:
         if: ${{ runner.os == 'Windows' && secrets.TAURI_PRIVATE_KEY != '' && secrets.TAURI_KEY_PASSWORD != '' }}
         shell: pwsh
         run: |
-          $tag = "${{ inputs.tag }}"
+          $tag = "${{ github.event.inputs.tag }}"
           if ([string]::IsNullOrWhiteSpace($tag)) { $tag = "${{ github.ref_name }}" }
           node scripts/release/collect-tauri-updater-assets.mjs --tag "$tag" --platform "windows-x86_64"
 
@@ -181,21 +181,21 @@ jobs:
       - name: Upload bundles to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.tag || github.ref_name }}
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           files: dist/**/WorkOrder-*.zip
           fail_on_unmatched_files: false
 
       - name: Upload installers to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.tag || github.ref_name }}
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           files: dist/**/WorkOrder-*.dmg
           fail_on_unmatched_files: false
 
       - name: Upload Windows installers to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.tag || github.ref_name }}
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           files: |
             dist/**/WorkOrder-*.msi
             dist/**/WorkOrder-*.exe
@@ -221,7 +221,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          TAG="${{ inputs.tag }}"
+          TAG="${{ github.event.inputs.tag }}"
           if [ -z "$TAG" ]; then
             TAG="${{ github.ref_name }}"
           fi
@@ -249,13 +249,13 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist/upload
-          find dist -maxdepth 6 -type f \( -name "*.sig" -o -name "workorder-${{ inputs.tag || github.ref_name }}-*" \) -print0 | xargs -0 -I{} cp "{}" dist/upload/ || true
+          find dist -maxdepth 6 -type f \( -name "*.sig" -o -name "workorder-${{ github.event.inputs.tag || github.ref_name }}-*" \) -print0 | xargs -0 -I{} cp "{}" dist/upload/ || true
           cp dist/out/latest.json dist/upload/latest.json
           ls -la dist/upload
 
       - name: Upload assets to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.tag || github.ref_name }}
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           files: dist/upload/*
           fail_on_unmatched_files: false
