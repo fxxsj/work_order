@@ -16,8 +16,24 @@ function parseAndroidTag(raw) {
   const major = Number(m[1])
   const minor = Number(m[2])
   const patch = Number(m[3])
+  const prerelease = (m[4] || '').toLowerCase()
   const versionName = version
-  const versionCode = major * 1_000_000 + minor * 1_000 + patch
+
+  // versionCode scheme: MMMMMmmmppps (s in 0..9)
+  // - stable suffix: 9
+  // - prerelease suffix: alpha=1, beta=2, rc=3, other=0
+  //
+  // versionCode = major*10,000,000 + minor*10,000 + patch*10 + suffix
+  // Constraints: major should be <= 209 to keep versionCode < 2.1b
+  let suffix = 9
+  if (prerelease) {
+    if (prerelease.startsWith('-alpha')) suffix = 1
+    else if (prerelease.startsWith('-beta')) suffix = 2
+    else if (prerelease.startsWith('-rc')) suffix = 3
+    else suffix = 0
+  }
+
+  const versionCode = major * 10_000_000 + minor * 10_000 + patch * 10 + suffix
   if (!Number.isFinite(versionCode) || versionCode <= 0) fail(`invalid versionCode: ${versionCode}`)
   if (versionCode >= 2_100_000_000) fail(`versionCode too large: ${versionCode}`)
   return { versionName, versionCode }
@@ -92,4 +108,3 @@ if (fs.existsSync(kts)) {
 }
 
 fail('Android build.gradle not found (did you run cap add android?)')
-
