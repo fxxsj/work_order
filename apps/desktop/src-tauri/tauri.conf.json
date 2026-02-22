@@ -1,7 +1,7 @@
 {
   "build": {
-    "beforeDevCommand": "node ../scripts/ensure-web-dev.mjs",
-    "beforeBuildCommand": "node ../scripts/build-web.mjs",
+    "beforeDevCommand": "node ./scripts/ensure-web-dev.mjs",
+    "beforeBuildCommand": "node ./scripts/build-web.mjs",
     "devPath": "http://localhost:5173",
     "distDir": "../../web/dist"
   },
