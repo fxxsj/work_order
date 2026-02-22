@@ -4,9 +4,11 @@
 提供统一的库存管理接口，确保库存操作的安全性和一致性
 """
 
-from django.db import transaction
-from workorder.exceptions import InsufficientStockError, BusinessLogicError
 import logging
+
+from django.db import transaction
+
+from workorder.exceptions import BusinessLogicError, InsufficientStockError
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +18,7 @@ class InventoryService:
 
     @staticmethod
     @transaction.atomic
-    def add_stock(item, quantity, user=None, reason=''):
+    def add_stock(item, quantity, user=None, reason=""):
         """
         增加库存
 
@@ -58,7 +60,7 @@ class InventoryService:
 
     @staticmethod
     @transaction.atomic
-    def reduce_stock(item, quantity, user=None, reason=''):
+    def reduce_stock(item, quantity, user=None, reason=""):
         """
         减少库存
 
@@ -121,10 +123,16 @@ class InventoryService:
             dict: 库存状态信息
         """
         return {
-            'current_stock': item.current_stock,
-            'min_stock': item.min_stock if hasattr(item, 'min_stock') else 0,
-            'is_low_stock': item.current_stock < (item.min_stock if hasattr(item, 'min_stock') else 0),
-            'status': 'normal' if item.current_stock >= (item.min_stock if hasattr(item, 'min_stock') else 0) else 'low'
+            "current_stock": item.current_stock,
+            "min_stock": item.min_stock if hasattr(item, "min_stock") else 0,
+            "is_low_stock": item.current_stock
+            < (item.min_stock if hasattr(item, "min_stock") else 0),
+            "status": (
+                "normal"
+                if item.current_stock
+                >= (item.min_stock if hasattr(item, "min_stock") else 0)
+                else "low"
+            ),
         }
 
     @staticmethod

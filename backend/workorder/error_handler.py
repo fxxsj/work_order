@@ -6,10 +6,11 @@
 
 import logging
 import traceback
+
+from django.conf import settings
+from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
-from django.utils import timezone
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -33,16 +34,16 @@ def custom_exception_handler(exc, context):
     if response is not None:
         # DRF 异常（如 APIException）
         custom_response_data = {
-            'success': False,
-            'error': {
-                'code': getattr(exc, 'default_code', 'error'),
-                'message': str(exc.detail) if hasattr(exc, 'detail') else str(exc),
+            "success": False,
+            "error": {
+                "code": getattr(exc, "default_code", "error"),
+                "message": str(exc.detail) if hasattr(exc, "detail") else str(exc),
             },
-            'timestamp': timezone.now().isoformat(),
+            "timestamp": timezone.now().isoformat(),
         }
 
         # 如果有详细信息，添加到响应中
-        if hasattr(response.data, 'items'):
+        if hasattr(response.data, "items"):
             details = {}
             for key, value in response.data.items():
                 if isinstance(value, list):
@@ -53,7 +54,7 @@ def custom_exception_handler(exc, context):
                     details[key] = [str(value)]
 
             if details:
-                custom_response_data['error']['details'] = details
+                custom_response_data["error"]["details"] = details
 
         response.data = custom_response_data
 
@@ -62,10 +63,10 @@ def custom_exception_handler(exc, context):
             f"API Error: {custom_response_data['error']['code']} - "
             f"{custom_response_data['error']['message']}",
             extra={
-                'status_code': response.status_code,
-                'path': context['request'].path,
-                'method': context['request'].method,
-            }
+                "status_code": response.status_code,
+                "path": context["request"].path,
+                "method": context["request"].method,
+            },
         )
 
     else:
@@ -77,20 +78,20 @@ def custom_exception_handler(exc, context):
             error_details = traceback.format_exc()
         else:
             # 生产环境：显示通用错误信息
-            error_message = '服务器内部错误'
+            error_message = "服务器内部错误"
             error_details = None
 
         response_data = {
-            'success': False,
-            'error': {
-                'code': 'INTERNAL_ERROR',
-                'message': error_message,
+            "success": False,
+            "error": {
+                "code": "INTERNAL_ERROR",
+                "message": error_message,
             },
-            'timestamp': timezone.now().isoformat(),
+            "timestamp": timezone.now().isoformat(),
         }
 
         if error_details:
-            response_data['error']['debug'] = error_details
+            response_data["error"]["debug"] = error_details
 
         response = Response(response_data, status=500)
 
@@ -98,9 +99,9 @@ def custom_exception_handler(exc, context):
         logger.exception(
             f"Unhandled Exception: {exc}",
             extra={
-                'path': context['request'].path,
-                'method': context['request'].method,
-            }
+                "path": context["request"].path,
+                "method": context["request"].method,
+            },
         )
 
     return response
@@ -126,21 +127,21 @@ class ErrorHandler:
             Response: 错误响应
         """
         error_data = {
-            'success': False,
-            'error': {
-                'code': 'VALIDATION_ERROR',
-                'message': message,
+            "success": False,
+            "error": {
+                "code": "VALIDATION_ERROR",
+                "message": message,
             },
-            'timestamp': timezone.now().isoformat(),
+            "timestamp": timezone.now().isoformat(),
         }
 
         if details:
-            error_data['error']['details'] = details
+            error_data["error"]["details"] = details
 
         return Response(error_data, status=400)
 
     @staticmethod
-    def permission_denied(message='权限不足'):
+    def permission_denied(message="权限不足"):
         """
         创建权限拒绝响应
 
@@ -150,17 +151,20 @@ class ErrorHandler:
         Returns:
             Response: 错误响应
         """
-        return Response({
-            'success': False,
-            'error': {
-                'code': 'PERMISSION_DENIED',
-                'message': message,
+        return Response(
+            {
+                "success": False,
+                "error": {
+                    "code": "PERMISSION_DENIED",
+                    "message": message,
+                },
+                "timestamp": timezone.now().isoformat(),
             },
-            'timestamp': timezone.now().isoformat(),
-        }, status=403)
+            status=403,
+        )
 
     @staticmethod
-    def not_found(message='资源未找到'):
+    def not_found(message="资源未找到"):
         """
         创建资源未找到响应
 
@@ -170,14 +174,17 @@ class ErrorHandler:
         Returns:
             Response: 错误响应
         """
-        return Response({
-            'success': False,
-            'error': {
-                'code': 'NOT_FOUND',
-                'message': message,
+        return Response(
+            {
+                "success": False,
+                "error": {
+                    "code": "NOT_FOUND",
+                    "message": message,
+                },
+                "timestamp": timezone.now().isoformat(),
             },
-            'timestamp': timezone.now().isoformat(),
-        }, status=404)
+            status=404,
+        )
 
     @staticmethod
     def business_logic_error(message, details=None):
@@ -192,15 +199,15 @@ class ErrorHandler:
             Response: 错误响应
         """
         error_data = {
-            'success': False,
-            'error': {
-                'code': 'BUSINESS_LOGIC_ERROR',
-                'message': message,
+            "success": False,
+            "error": {
+                "code": "BUSINESS_LOGIC_ERROR",
+                "message": message,
             },
-            'timestamp': timezone.now().isoformat(),
+            "timestamp": timezone.now().isoformat(),
         }
 
         if details:
-            error_data['error']['details'] = details
+            error_data["error"]["details"] = details
 
         return Response(error_data, status=422)

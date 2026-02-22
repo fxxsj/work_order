@@ -7,20 +7,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('workorder', '0017_add_stock_quantity_to_product'),
+        ("workorder", "0017_add_stock_quantity_to_product"),
     ]
 
     operations = [
         migrations.AddIndex(
-            model_name='product',
-            index=models.Index(fields=['name'], name='product_name_idx'),
+            model_name="product",
+            index=models.Index(fields=["name"], name="product_name_idx"),
         ),
         migrations.AddIndex(
-            model_name='product',
-            index=models.Index(fields=['is_active'], name='product_is_active_idx'),
+            model_name="product",
+            index=models.Index(fields=["is_active"], name="product_is_active_idx"),
         ),
         migrations.AddIndex(
-            model_name='product',
-            index=models.Index(fields=['stock_quantity'], name='product_stock_idx'),
+            model_name="product",
+            index=models.Index(fields=["stock_quantity"], name="product_stock_idx"),
         ),
     ]

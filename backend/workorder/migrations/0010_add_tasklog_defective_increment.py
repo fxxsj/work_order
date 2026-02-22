@@ -6,13 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('workorder', '0009_add_task_collaboration_support'),
+        ("workorder", "0009_add_task_collaboration_support"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='tasklog',
-            name='quantity_defective_increment',
-            field=models.IntegerField(blank=True, help_text='本次操作的不良品数量增量', null=True, verbose_name='不良品数量增量'),
+            model_name="tasklog",
+            name="quantity_defective_increment",
+            field=models.IntegerField(
+                blank=True,
+                help_text="本次操作的不良品数量增量",
+                null=True,
+                verbose_name="不良品数量增量",
+            ),
         ),
     ]

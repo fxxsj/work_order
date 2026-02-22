@@ -6,13 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('workorder', '0007_configure_process_plate_requirements'),
+        ("workorder", "0007_configure_process_plate_requirements"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='workordertask',
-            name='quantity_defective',
-            field=models.IntegerField(default=0, help_text='任务不良品数量，在任务完成时记录', verbose_name='不良品数量'),
+            model_name="workordertask",
+            name="quantity_defective",
+            field=models.IntegerField(
+                default=0,
+                help_text="任务不良品数量，在任务完成时记录",
+                verbose_name="不良品数量",
+            ),
         ),
     ]

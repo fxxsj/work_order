@@ -6,18 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('workorder', '0016_salesorder_salesorderitem_and_more'),
+        ("workorder", "0016_salesorder_salesorderitem_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='product',
-            name='min_stock_quantity',
-            field=models.IntegerField(default=0, help_text='库存低于此数量时触发预警', verbose_name='最小库存'),
+            model_name="product",
+            name="min_stock_quantity",
+            field=models.IntegerField(
+                default=0, help_text="库存低于此数量时触发预警", verbose_name="最小库存"
+            ),
         ),
         migrations.AddField(
-            model_name='product',
-            name='stock_quantity',
-            field=models.IntegerField(default=0, help_text='产品的当前库存数量', verbose_name='库存数量'),
+            model_name="product",
+            name="stock_quantity",
+            field=models.IntegerField(
+                default=0, help_text="产品的当前库存数量", verbose_name="库存数量"
+            ),
         ),
     ]

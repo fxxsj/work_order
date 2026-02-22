@@ -8,23 +8,55 @@ try:
 except ImportError:
     # 如果导入失败（理论上不应该发生），使用内联数据作为后备
     DEPARTMENT_PROCESS_MAPPING = {
-        'design': ['CTP'],  # 设计部负责制版
-        'cutting': ['CUT', 'SCORE', 'TRIM'],  # 裁切车间：开料、压线、切成品
-        'printing': ['PRT', 'VAN'],  # 印刷车间：印刷、过油
-        'outsourcing': ['CUT', 'PRT', 'VAN', 'LAM_G', 'LAM_M', 'UV', 'FOIL_G', 'FOIL_S', 'EMB', 'TEX', 'DIE', 'LAM_B', 'MOUNT', 'BOX', 'STAPLE'],  # 外协车间：多个工序
-        'die_cutting': ['FOIL_G', 'FOIL_S', 'EMB', 'SCORE', 'DIE'],  # 模切车间：烫金、烫银、压凸、压线、模切
-        'packaging': ['CUT', 'TEX', 'LAM_B', 'MOUNT', 'GLUE', 'BOX', 'WINDOW', 'STAPLE', 'PACK'],  # 包装车间：多个工序
+        "design": ["CTP"],  # 设计部负责制版
+        "cutting": ["CUT", "SCORE", "TRIM"],  # 裁切车间：开料、压线、切成品
+        "printing": ["PRT", "VAN"],  # 印刷车间：印刷、过油
+        "outsourcing": [
+            "CUT",
+            "PRT",
+            "VAN",
+            "LAM_G",
+            "LAM_M",
+            "UV",
+            "FOIL_G",
+            "FOIL_S",
+            "EMB",
+            "TEX",
+            "DIE",
+            "LAM_B",
+            "MOUNT",
+            "BOX",
+            "STAPLE",
+        ],  # 外协车间：多个工序
+        "die_cutting": [
+            "FOIL_G",
+            "FOIL_S",
+            "EMB",
+            "SCORE",
+            "DIE",
+        ],  # 模切车间：烫金、烫银、压凸、压线、模切
+        "packaging": [
+            "CUT",
+            "TEX",
+            "LAM_B",
+            "MOUNT",
+            "GLUE",
+            "BOX",
+            "WINDOW",
+            "STAPLE",
+            "PACK",
+        ],  # 包装车间：多个工序
     }
 
 
 def configure_department_processes_forward(apps, schema_editor):
     """建立部门与工序的关联关系
-    
+
     使用共享数据源中的映射关系配置
     """
-    Process = apps.get_model('workorder', 'Process')
-    Department = apps.get_model('workorder', 'Department')
-    
+    Process = apps.get_model("workorder", "Process")
+    Department = apps.get_model("workorder", "Department")
+
     # 为每个部门建立工序关联（使用共享数据源）
     for dept_code, process_codes in DEPARTMENT_PROCESS_MAPPING.items():
         try:
@@ -41,8 +73,8 @@ def configure_department_processes_forward(apps, schema_editor):
 
 def configure_department_processes_backward(apps, schema_editor):
     """回滚操作：清除部门与工序的关联关系"""
-    Department = apps.get_model('workorder', 'Department')
-    
+    Department = apps.get_model("workorder", "Department")
+
     # 清除所有部门的工序关联
     for dept in Department.objects.all():
         dept.processes.clear()
@@ -51,9 +83,12 @@ def configure_department_processes_backward(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('workorder', '0003_load_departments'),
+        ("workorder", "0003_load_departments"),
     ]
 
     operations = [
-        migrations.RunPython(configure_department_processes_forward, configure_department_processes_backward),
+        migrations.RunPython(
+            configure_department_processes_forward,
+            configure_department_processes_backward,
+        ),
     ]

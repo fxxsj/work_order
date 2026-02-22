@@ -4,11 +4,13 @@
 提供通用的视图功能
 """
 
+import logging
+
 from django.db import transaction
 from rest_framework import status
 from rest_framework.response import Response
+
 from workorder.exceptions import BusinessLogicError
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -23,15 +25,12 @@ class TransactionMixin:
                 return self.create(request, *args, **kwargs)
         except BusinessLogicError as e:
             logger.warning(f"业务逻辑错误: {str(e)}")
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logger.error(f"创建失败: {str(e)}", exc_info=True)
             return Response(
-                {'error': '系统错误，请稍后重试'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": "系统错误，请稍后重试"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     def transactional_update(self, request, *args, **kwargs):
@@ -41,15 +40,12 @@ class TransactionMixin:
                 return self.update(request, *args, **kwargs)
         except BusinessLogicError as e:
             logger.warning(f"业务逻辑错误: {str(e)}")
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logger.error(f"更新失败: {str(e)}", exc_info=True)
             return Response(
-                {'error': '系统错误，请稍后重试'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": "系统错误，请稍后重试"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     def transactional_destroy(self, request, *args, **kwargs):
@@ -59,15 +55,12 @@ class TransactionMixin:
                 return self.destroy(request, *args, **kwargs)
         except BusinessLogicError as e:
             logger.warning(f"业务逻辑错误: {str(e)}")
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logger.error(f"删除失败: {str(e)}", exc_info=True)
             return Response(
-                {'error': '系统错误，请稍后重试'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": "系统错误，请稍后重试"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -85,20 +78,20 @@ class OptimisticLockMixin:
         Returns:
             Response: 如果有冲突返回错误响应，否则返回 None
         """
-        if not hasattr(instance, 'version'):
+        if not hasattr(instance, "version"):
             return None
 
-        expected_version = request_data.get('version')
+        expected_version = request_data.get("version")
         if expected_version is not None:
             current_version = instance.version
             if current_version != int(expected_version):
                 return Response(
                     {
-                        'error': '数据已被其他用户修改，请刷新后重试',
-                        'current_version': current_version,
-                        'your_version': int(expected_version)
+                        "error": "数据已被其他用户修改，请刷新后重试",
+                        "current_version": current_version,
+                        "your_version": int(expected_version),
                     },
-                    status=status.HTTP_409_CONFLICT
+                    status=status.HTTP_409_CONFLICT,
                 )
 
         return None
@@ -138,7 +131,7 @@ class InventoryOperationMixin:
         Returns:
             tuple: (success: bool, error_message: str or None)
         """
-        if not hasattr(task, 'product') or not task.product:
+        if not hasattr(task, "product") or not task.product:
             return True, None
 
         # 计算库存差异
@@ -159,7 +152,7 @@ class InventoryOperationMixin:
                     item=task.product,
                     quantity=stock_increment,
                     user=user,
-                    reason=f'施工单 {work_order.order_number} 包装任务完成'
+                    reason=f"施工单 {work_order.order_number} 包装任务完成",
                 )
             else:
                 # 减少库存
@@ -168,7 +161,7 @@ class InventoryOperationMixin:
                     item=task.product,
                     quantity=abs(stock_increment),
                     user=user,
-                    reason=f'施工单 {work_order.order_number} 包装任务数量调整'
+                    reason=f"施工单 {work_order.order_number} 包装任务数量调整",
                 )
 
                 if not success:
@@ -176,7 +169,7 @@ class InventoryOperationMixin:
 
             # 更新已计入库存的数量
             task.stock_accounted_quantity = new_quantity
-            task.save(update_fields=['stock_accounted_quantity'])
+            task.save(update_fields=["stock_accounted_quantity"])
 
             return True, None
 

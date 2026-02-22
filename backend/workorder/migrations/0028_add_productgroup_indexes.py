@@ -6,20 +6,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('workorder', '0027_add_department_updated_at_and_indexes'),
+        ("workorder", "0027_add_department_updated_at_and_indexes"),
     ]
 
     operations = [
         migrations.AddIndex(
-            model_name='productgroup',
-            index=models.Index(fields=['name'], name='productgroup_name_idx'),
+            model_name="productgroup",
+            index=models.Index(fields=["name"], name="productgroup_name_idx"),
         ),
         migrations.AddIndex(
-            model_name='productgroup',
-            index=models.Index(fields=['is_active'], name='productgroup_active_idx'),
+            model_name="productgroup",
+            index=models.Index(fields=["is_active"], name="productgroup_active_idx"),
         ),
         migrations.AddIndex(
-            model_name='productgroup',
-            index=models.Index(fields=['code'], name='productgroup_code_idx'),
+            model_name="productgroup",
+            index=models.Index(fields=["code"], name="productgroup_code_idx"),
         ),
     ]

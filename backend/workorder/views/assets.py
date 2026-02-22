@@ -4,41 +4,45 @@
 包含图稿、刀模、烫金版、压凸版等资产的视图集。
 """
 
-from rest_framework import viewsets, status, filters
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
-from ..permissions import SuperuserFriendlyModelPermissions
 from django.db.models import Sum
 from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
-from ..models.assets import (
-    Artwork, ArtworkProduct,
-    Die, DieProduct,
-    FoilingPlate, FoilingPlateProduct,
-    EmbossingPlate, EmbossingPlateProduct
-)
-from ..serializers.assets import (
-    ArtworkSerializer, ArtworkProductSerializer,
-    DieSerializer, DieProductSerializer,
-    FoilingPlateSerializer, FoilingPlateProductSerializer,
-    EmbossingPlateSerializer, EmbossingPlateProductSerializer
-)
-from ..models.core import WorkOrder, WorkOrderTask, WorkOrderProcess
+from ..models.assets import (Artwork, ArtworkProduct, Die, DieProduct,
+                             EmbossingPlate, EmbossingPlateProduct,
+                             FoilingPlate, FoilingPlateProduct)
+from ..models.core import WorkOrder, WorkOrderProcess, WorkOrderTask
+from ..permissions import SuperuserFriendlyModelPermissions
+from ..serializers.assets import (ArtworkProductSerializer, ArtworkSerializer,
+                                  DieProductSerializer, DieSerializer,
+                                  EmbossingPlateProductSerializer,
+                                  EmbossingPlateSerializer,
+                                  FoilingPlateProductSerializer,
+                                  FoilingPlateSerializer)
 
 
 class ArtworkViewSet(viewsets.ModelViewSet):
     """图稿视图集"""
-    permission_classes = [SuperuserFriendlyModelPermissions]  # 使用Django模型权限，与客户管理权限逻辑一致
+
+    permission_classes = [
+        SuperuserFriendlyModelPermissions
+    ]  # 使用Django模型权限，与客户管理权限逻辑一致
     queryset = Artwork.objects.all()
     serializer_class = ArtworkSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['base_code', 'version']
-    search_fields = ['base_code', 'name', 'imposition_size']
-    ordering_fields = ['created_at', 'base_code', 'version', 'name']
-    ordering = ['-base_code', '-version']
-    
-    @action(detail=True, methods=['post'])
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
+    filterset_fields = ["base_code", "version"]
+    search_fields = ["base_code", "name", "imposition_size"]
+    ordering_fields = ["created_at", "base_code", "version", "name"]
+    ordering = ["-base_code", "-version"]
+
+    @action(detail=True, methods=["post"])
     def create_version(self, request, pk=None):
         """基于现有图稿创建新版本
 
@@ -62,10 +66,18 @@ class ArtworkViewSet(viewsets.ModelViewSet):
                 base_code=original_artwork.base_code,
                 version=next_version,
                 name=original_artwork.name,
-                cmyk_colors=original_artwork.cmyk_colors.copy() if original_artwork.cmyk_colors else [],
-                other_colors=original_artwork.other_colors.copy() if original_artwork.other_colors else [],
+                cmyk_colors=(
+                    original_artwork.cmyk_colors.copy()
+                    if original_artwork.cmyk_colors
+                    else []
+                ),
+                other_colors=(
+                    original_artwork.other_colors.copy()
+                    if original_artwork.other_colors
+                    else []
+                ),
                 imposition_size=original_artwork.imposition_size,
-                notes=original_artwork.notes
+                notes=original_artwork.notes,
             )
 
             # 复制关联的刀模
@@ -83,13 +95,13 @@ class ArtworkViewSet(viewsets.ModelViewSet):
                     artwork=new_artwork,
                     product=ap.product,
                     imposition_quantity=ap.imposition_quantity,
-                    sort_order=ap.sort_order
+                    sort_order=ap.sort_order,
                 )
 
         serializer = self.get_serializer(new_artwork)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
-    @action(detail=True, methods=['post'])
+
+    @action(detail=True, methods=["post"])
     def confirm(self, request, pk=None):
         """设计部确认图稿"""
         from django.db import transaction
@@ -98,8 +110,7 @@ class ArtworkViewSet(viewsets.ModelViewSet):
 
         if artwork.confirmed:
             return Response(
-                {'error': '该图稿已经确认过了'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "该图稿已经确认过了"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         with transaction.atomic():
@@ -112,14 +123,14 @@ class ArtworkViewSet(viewsets.ModelViewSet):
             # 找到所有包含该图稿的任务（制版任务类型为plate_making）
             tasks = WorkOrderTask.objects.filter(
                 artwork=artwork,
-                task_type='plate_making',
-                work_order_process__status='in_progress'
+                task_type="plate_making",
+                work_order_process__status="in_progress",
             )
 
             for task in tasks:
                 # 如果图稿已确认，可以标记任务为完成
                 if task.artwork.confirmed:
-                    task.status = 'completed'
+                    task.status = "completed"
                     task.quantity_completed = 1
                     task.save()
 
@@ -133,26 +144,29 @@ class ArtworkViewSet(viewsets.ModelViewSet):
         """优化查询性能：预加载关联数据"""
         queryset = super().get_queryset()
         return queryset.prefetch_related(
-            'products__product',
-            'dies',
-            'foiling_plates',
-            'embossing_plates'
-        ).select_related('confirmed_by')
-
+            "products__product", "dies", "foiling_plates", "embossing_plates"
+        ).select_related("confirmed_by")
 
 
 class DieViewSet(viewsets.ModelViewSet):
     """刀模视图集"""
-    permission_classes = [SuperuserFriendlyModelPermissions]  # 使用Django模型权限，与客户管理权限逻辑一致
+
+    permission_classes = [
+        SuperuserFriendlyModelPermissions
+    ]  # 使用Django模型权限，与客户管理权限逻辑一致
     queryset = Die.objects.all()
     serializer_class = DieSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['confirmed']
-    search_fields = ['code', 'name', 'size', 'material']
-    ordering_fields = ['created_at', 'code', 'name']
-    ordering = ['-created_at']
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
+    filterset_fields = ["confirmed"]
+    search_fields = ["code", "name", "size", "material"]
+    ordering_fields = ["created_at", "code", "name"]
+    ordering = ["-created_at"]
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def confirm(self, request, pk=None):
         """设计部确认刀模"""
         from django.db import transaction
@@ -163,8 +177,7 @@ class DieViewSet(viewsets.ModelViewSet):
 
             if die.confirmed:
                 return Response(
-                    {'error': '该刀模已经确认过了'},
-                    status=status.HTTP_400_BAD_REQUEST
+                    {"error": "该刀模已经确认过了"}, status=status.HTTP_400_BAD_REQUEST
                 )
 
             die.confirmed = True
@@ -176,14 +189,14 @@ class DieViewSet(viewsets.ModelViewSet):
             # 找到所有包含该刀模的制版任务（task_type='plate_making'）
             tasks = WorkOrderTask.objects.filter(
                 die=die,
-                task_type='plate_making',
-                work_order_process__status='in_progress'
+                task_type="plate_making",
+                work_order_process__status="in_progress",
             )
 
             for task in tasks:
                 # 如果刀模已确认，可以标记任务为完成
                 if task.die and task.die.confirmed:
-                    task.status = 'completed'
+                    task.status = "completed"
                     task.quantity_completed = 1
                     task.save()
 
@@ -196,22 +209,30 @@ class DieViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """优化查询性能：预加载关联数据"""
         queryset = super().get_queryset()
-        return queryset.prefetch_related('products__product').select_related('confirmed_by')
-
+        return queryset.prefetch_related("products__product").select_related(
+            "confirmed_by"
+        )
 
 
 class FoilingPlateViewSet(viewsets.ModelViewSet):
     """烫金版视图集"""
-    permission_classes = [SuperuserFriendlyModelPermissions]  # 使用Django模型权限，与客户管理权限逻辑一致
+
+    permission_classes = [
+        SuperuserFriendlyModelPermissions
+    ]  # 使用Django模型权限，与客户管理权限逻辑一致
     queryset = FoilingPlate.objects.all()
     serializer_class = FoilingPlateSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
     filterset_fields = []
-    search_fields = ['code', 'name', 'size', 'material']
-    ordering_fields = ['created_at', 'code', 'name']
-    ordering = ['-created_at']
-    
-    @action(detail=True, methods=['post'])
+    search_fields = ["code", "name", "size", "material"]
+    ordering_fields = ["created_at", "code", "name"]
+    ordering = ["-created_at"]
+
+    @action(detail=True, methods=["post"])
     def confirm(self, request, pk=None):
         """设计部确认烫金版"""
         from django.db import transaction
@@ -222,8 +243,8 @@ class FoilingPlateViewSet(viewsets.ModelViewSet):
 
             if foiling_plate.confirmed:
                 return Response(
-                    {'error': '该烫金版已经确认过了'},
-                    status=status.HTTP_400_BAD_REQUEST
+                    {"error": "该烫金版已经确认过了"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             foiling_plate.confirmed = True
@@ -235,14 +256,14 @@ class FoilingPlateViewSet(viewsets.ModelViewSet):
             # 找到所有包含该烫金版的制版任务（task_type='plate_making'）
             tasks = WorkOrderTask.objects.filter(
                 foiling_plate=foiling_plate,
-                task_type='plate_making',
-                work_order_process__status='in_progress'
+                task_type="plate_making",
+                work_order_process__status="in_progress",
             )
 
             for task in tasks:
                 # 如果烫金版已确认，可以标记任务为完成
                 if task.foiling_plate and task.foiling_plate.confirmed:
-                    task.status = 'completed'
+                    task.status = "completed"
                     task.quantity_completed = 1
                     task.save()
 
@@ -255,22 +276,30 @@ class FoilingPlateViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """优化查询性能：预加载关联数据"""
         queryset = super().get_queryset()
-        return queryset.prefetch_related('products__product').select_related('confirmed_by')
-
+        return queryset.prefetch_related("products__product").select_related(
+            "confirmed_by"
+        )
 
 
 class EmbossingPlateViewSet(viewsets.ModelViewSet):
     """压凸版视图集"""
-    permission_classes = [SuperuserFriendlyModelPermissions]  # 使用Django模型权限，与客户管理权限逻辑一致
+
+    permission_classes = [
+        SuperuserFriendlyModelPermissions
+    ]  # 使用Django模型权限，与客户管理权限逻辑一致
     queryset = EmbossingPlate.objects.all()
     serializer_class = EmbossingPlateSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
     filterset_fields = []
-    search_fields = ['code', 'name', 'size', 'material']
-    ordering_fields = ['created_at', 'code', 'name']
-    ordering = ['-created_at']
-    
-    @action(detail=True, methods=['post'])
+    search_fields = ["code", "name", "size", "material"]
+    ordering_fields = ["created_at", "code", "name"]
+    ordering = ["-created_at"]
+
+    @action(detail=True, methods=["post"])
     def confirm(self, request, pk=None):
         """设计部确认压凸版"""
         from django.db import transaction
@@ -281,8 +310,8 @@ class EmbossingPlateViewSet(viewsets.ModelViewSet):
 
             if embossing_plate.confirmed:
                 return Response(
-                    {'error': '该压凸版已经确认过了'},
-                    status=status.HTTP_400_BAD_REQUEST
+                    {"error": "该压凸版已经确认过了"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             embossing_plate.confirmed = True
@@ -294,14 +323,14 @@ class EmbossingPlateViewSet(viewsets.ModelViewSet):
             # 找到所有包含该压凸版的制版任务（task_type='plate_making'）
             tasks = WorkOrderTask.objects.filter(
                 embossing_plate=embossing_plate,
-                task_type='plate_making',
-                work_order_process__status='in_progress'
+                task_type="plate_making",
+                work_order_process__status="in_progress",
             )
 
             for task in tasks:
                 # 如果压凸版已确认，可以标记任务为完成
                 if task.embossing_plate and task.embossing_plate.confirmed:
-                    task.status = 'completed'
+                    task.status = "completed"
                     task.quantity_completed = 1
                     task.save()
 
@@ -314,17 +343,20 @@ class EmbossingPlateViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """优化查询性能：预加载关联数据"""
         queryset = super().get_queryset()
-        return queryset.prefetch_related('products__product').select_related('confirmed_by')
-
+        return queryset.prefetch_related("products__product").select_related(
+            "confirmed_by"
+        )
 
 
 class ArtworkProductViewSet(viewsets.ModelViewSet):
     """图稿产品视图集"""
+
     queryset = ArtworkProduct.objects.all()
     serializer_class = ArtworkProductSerializer
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
-    ordering_fields = ['sort_order']
-    ordering = ['artwork', 'sort_order']
+    ordering_fields = ["sort_order"]
+    ordering = ["artwork", "sort_order"]
+
     def get_filterset(self):
         """延迟创建 FilterSet，避免模块加载时的关系解析问题"""
         from django_filters import FilterSet
@@ -332,19 +364,20 @@ class ArtworkProductViewSet(viewsets.ModelViewSet):
         class ArtworkProductFilterSet(FilterSet):
             class Meta:
                 model = ArtworkProduct
-                fields = ['artwork', 'product']
+                fields = ["artwork", "product"]
 
         return ArtworkProductFilterSet
 
 
-
 class DieProductViewSet(viewsets.ModelViewSet):
     """刀模产品视图集"""
+
     queryset = DieProduct.objects.all()
     serializer_class = DieProductSerializer
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
-    ordering_fields = ['sort_order']
-    ordering = ['die', 'sort_order']
+    ordering_fields = ["sort_order"]
+    ordering = ["die", "sort_order"]
+
     def get_filterset(self):
         """延迟创建 FilterSet，避免模块加载时的关系解析问题"""
         from django_filters import FilterSet
@@ -352,19 +385,20 @@ class DieProductViewSet(viewsets.ModelViewSet):
         class DieProductFilterSet(FilterSet):
             class Meta:
                 model = DieProduct
-                fields = ['die', 'product']
+                fields = ["die", "product"]
 
         return DieProductFilterSet
 
 
-
 class FoilingPlateProductViewSet(viewsets.ModelViewSet):
     """烫金版产品视图集"""
+
     queryset = FoilingPlateProduct.objects.all()
     serializer_class = FoilingPlateProductSerializer
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
-    ordering_fields = ['sort_order']
-    ordering = ['foiling_plate', 'sort_order']
+    ordering_fields = ["sort_order"]
+    ordering = ["foiling_plate", "sort_order"]
+
     def get_filterset(self):
         """延迟创建 FilterSet，避免模块加载时的关系解析问题"""
         from django_filters import FilterSet
@@ -372,19 +406,20 @@ class FoilingPlateProductViewSet(viewsets.ModelViewSet):
         class FoilingPlateProductFilterSet(FilterSet):
             class Meta:
                 model = FoilingPlateProduct
-                fields = ['foiling_plate', 'product']
+                fields = ["foiling_plate", "product"]
 
         return FoilingPlateProductFilterSet
 
 
-
 class EmbossingPlateProductViewSet(viewsets.ModelViewSet):
     """压凸版产品视图集"""
+
     queryset = EmbossingPlateProduct.objects.all()
     serializer_class = EmbossingPlateProductSerializer
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
-    ordering_fields = ['sort_order']
-    ordering = ['embossing_plate', 'sort_order']
+    ordering_fields = ["sort_order"]
+    ordering = ["embossing_plate", "sort_order"]
+
     def get_filterset(self):
         """延迟创建 FilterSet，避免模块加载时的关系解析问题"""
         from django_filters import FilterSet
@@ -392,7 +427,6 @@ class EmbossingPlateProductViewSet(viewsets.ModelViewSet):
         class EmbossingPlateProductFilterSet(FilterSet):
             class Meta:
                 model = EmbossingPlateProduct
-                fields = ['embossing_plate', 'product']
+                fields = ["embossing_plate", "product"]
 
         return EmbossingPlateProductFilterSet
-

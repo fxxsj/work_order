@@ -3,8 +3,9 @@
 
 提供缓存和优化的权限检查方法，减少数据库查询
 """
-from django.core.cache import cache
+
 from django.contrib.auth.models import Permission
+from django.core.cache import cache
 
 
 class PermissionCache:
@@ -24,13 +25,15 @@ class PermissionCache:
         if not user.is_authenticated:
             return []
 
-        cache_key = f'user_departments_{user.id}'
+        cache_key = f"user_departments_{user.id}"
         departments = cache.get(cache_key)
 
         if departments is None:
             # 缓存未命中，从数据库获取
-            if hasattr(user, 'profile') and user.profile:
-                departments = list(user.profile.departments.values_list('id', flat=True))
+            if hasattr(user, "profile") and user.profile:
+                departments = list(
+                    user.profile.departments.values_list("id", flat=True)
+                )
             else:
                 departments = []
 
@@ -61,7 +64,7 @@ class PermissionCache:
         Args:
             user: 用户对象
         """
-        cache_key = f'user_departments_{user.id}'
+        cache_key = f"user_departments_{user.id}"
         cache.delete(cache_key)
 
     @staticmethod
@@ -69,7 +72,7 @@ class PermissionCache:
         """清除所有用户权限缓存（谨慎使用）"""
         # 在用户部门变更时调用
         # 例如：用户被添加到新部门或从部门移除
-        cache.delete_many([key for key in cache.keys('user_departments_*')])
+        cache.delete_many([key for key in cache.keys("user_departments_*")])
 
 
 class PermissionUtils:

@@ -53,17 +53,20 @@
 #     }
 # }
 
+import logging
+import time
 # 4. 查询优化装饰器
 from functools import wraps
-from django.db import connection, reset_queries
+
 from django.conf import settings
-import time
-import logging
+from django.db import connection, reset_queries
 
 logger = logging.getLogger(__name__)
 
+
 def query_debug(func):
     """查询调试装饰器 - 记录查询数量和执行时间"""
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         if settings.DEBUG:
@@ -82,9 +85,12 @@ def query_debug(func):
 
             # 记录慢查询
             if end_time - start_time > 1.0:
-                logger.warning(f"慢查询检测: {func.__name__} 耗时 {end_time - start_time:.3f}秒")
+                logger.warning(
+                    f"慢查询检测: {func.__name__} 耗时 {end_time - start_time:.3f}秒"
+                )
 
         return result
+
     return wrapper
 
 
@@ -98,6 +104,7 @@ def select_related_fields(*fields):
         queryset = self.get_queryset()
         ...
     """
+
     def decorator(func):
         @wraps(func)
         def wrapper(self, *args, **kwargs):
@@ -106,7 +113,9 @@ def select_related_fields(*fields):
                 queryset = queryset.select_related(*fields)
             self.queryset = queryset
             return func(self, *args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -120,6 +129,7 @@ def prefetch_related_fields(*fields):
         queryset = self.get_queryset()
         ...
     """
+
     def decorator(func):
         @wraps(func)
         def wrapper(self, *args, **kwargs):
@@ -128,7 +138,9 @@ def prefetch_related_fields(*fields):
                 queryset = queryset.prefetch_related(*fields)
             self.queryset = queryset
             return func(self, *args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -152,7 +164,7 @@ class QueryAnalyzer:
         list(queryset)
 
         queries = connection.queries
-        total_time = sum(float(q['time']) for q in queries)
+        total_time = sum(float(q["time"]) for q in queries)
         count = len(queries)
 
         logger.info(f"{name} 查询分析:")
@@ -169,7 +181,9 @@ class QueryAnalyzer:
             logger.warning(f"  ⚠️  慢查询：总耗时过长 ({total_time:.3f}秒)")
 
         # 打印前 5 个最慢的查询
-        sorted_queries = sorted(queries, key=lambda x: float(x['time']), reverse=True)[:5]
+        sorted_queries = sorted(queries, key=lambda x: float(x["time"]), reverse=True)[
+            :5
+        ]
         logger.info(f"  最慢的 5 个查询:")
         for i, q in enumerate(sorted_queries, 1):
             logger.info(f"    {i}. {q['time']}秒 - {q['sql'][:100]}...")

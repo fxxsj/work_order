@@ -4,16 +4,19 @@
 提供任务分配的核心业务逻辑：
 - TaskAssignmentService: 主管分配任务给操作员
 """
-from typing import Optional, Dict, Any
+
+import logging
+from typing import Any, Dict, Optional
+
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
-import logging
 
-from ..models.core import WorkOrderTask
+from ..exceptions import (BusinessLogicError, PermissionDeniedError,
+                          TaskConflictError)
 from ..models.base import Department
+from ..models.core import WorkOrderTask
 from ..models.system import Notification
-from ..exceptions import BusinessLogicError, PermissionDeniedError, TaskConflictError
 from ..permission_utils import PermissionCache
 
 logger = logging.getLogger(__name__)
@@ -49,8 +52,7 @@ class TaskAssignmentService:
 
         # 统计操作员当前活跃任务数（状态为 in_progress 的任务）
         active_task_count = WorkOrderTask.objects.filter(
-            assigned_operator=operator,
-            status='in_progress'
+            assigned_operator=operator, status="in_progress"
         ).count()
 
         if active_task_count >= max_tasks:
@@ -93,7 +95,7 @@ class TaskAssignmentService:
         if task.assigned_department:
             if PermissionCache.is_user_in_department(user, task.assigned_department.id):
                 # 检查是否有 change_workorder 权限（主管权限）
-                if user.has_perm('workorder.change_workorder'):
+                if user.has_perm("workorder.change_workorder"):
                     return True
 
         raise PermissionDeniedError(
@@ -143,33 +145,26 @@ class TaskAssignmentService:
         Raises:
             BusinessLogicError: 不可分配时抛出
         """
-        if task.status == 'draft':
-            raise BusinessLogicError(
-                "草稿状态的任务不能分配，请先等待施工单审核通过"
-            )
+        if task.status == "draft":
+            raise BusinessLogicError("草稿状态的任务不能分配，请先等待施工单审核通过")
 
-        if task.status == 'completed':
-            raise BusinessLogicError(
-                "已完成的任务不能重新分配"
-            )
+        if task.status == "completed":
+            raise BusinessLogicError("已完成的任务不能重新分配")
 
-        if task.status == 'cancelled':
-            raise BusinessLogicError(
-                "已取消的任务不能分配"
-            )
+        if task.status == "cancelled":
+            raise BusinessLogicError("已取消的任务不能分配")
 
         # 任务必须有分配的部门
         if not task.assigned_department:
-            raise BusinessLogicError(
-                "任务尚未分配到部门，无法分配操作员"
-            )
+            raise BusinessLogicError("任务尚未分配到部门，无法分配操作员")
 
         return True
 
     @staticmethod
     @transaction.atomic
-    def assign_to_operator(task_id: int, operator_id: int, assigned_by,
-                          notes: Optional[str] = None) -> Dict[str, Any]:
+    def assign_to_operator(
+        task_id: int, operator_id: int, assigned_by, notes: Optional[str] = None
+    ) -> Dict[str, Any]:
         """将任务分配给指定操作员
 
         执行步骤：
@@ -216,7 +211,9 @@ class TaskAssignmentService:
         TaskAssignmentService.validate_operator_task_capacity(operator)
 
         # 验证操作员属于任务部门
-        TaskAssignmentService.validate_operator_in_department(operator, task.assigned_department)
+        TaskAssignmentService.validate_operator_in_department(
+            operator, task.assigned_department
+        )
 
         # 验证任务可分配性
         TaskAssignmentService.validate_task_assignment_eligibility(task)
@@ -226,22 +223,24 @@ class TaskAssignmentService:
 
         # 执行分配
         task.assigned_operator = operator
-        task.save(update_fields=['assigned_operator', 'updated_at'])
+        task.save(update_fields=["assigned_operator", "updated_at"])
 
         # 创建任务分配通知
-        work_order = task.work_order_process.work_order if task.work_order_process else None
+        work_order = (
+            task.work_order_process.work_order if task.work_order_process else None
+        )
         Notification.create_notification(
             recipient=operator,
-            notification_type='task_assigned',
-            title=f'新任务分配：{task.work_content}',
+            notification_type="task_assigned",
+            title=f"新任务分配：{task.work_content}",
             content=f'{assigned_by.username} 将任务 "{task.work_content}" 分配给您。'
-                    f'施工单：{work_order.order_number if work_order else "N/A"}'
-                    f'{f"（原操作员：{previous_operator.username}）" if previous_operator else ""}'
-                    f'{f" 备注：{notes}" if notes else ""}',
-            priority='normal',
+            f'施工单：{work_order.order_number if work_order else "N/A"}'
+            f'{f"（原操作员：{previous_operator.username}）" if previous_operator else ""}'
+            f'{f" 备注：{notes}" if notes else ""}',
+            priority="normal",
             work_order=work_order,
             work_order_process=task.work_order_process,
-            task=task
+            task=task,
         )
 
         logger.info(
@@ -250,18 +249,15 @@ class TaskAssignmentService:
         )
 
         return {
-            'task_id': task.id,
-            'assigned_operator': {
-                'id': operator.id,
-                'username': operator.username,
-                'first_name': operator.first_name,
-                'last_name': operator.last_name
+            "task_id": task.id,
+            "assigned_operator": {
+                "id": operator.id,
+                "username": operator.username,
+                "first_name": operator.first_name,
+                "last_name": operator.last_name,
             },
-            'assigned_by': {
-                'id': assigned_by.id,
-                'username': assigned_by.username
-            },
-            'assigned_at': timezone.now().isoformat()
+            "assigned_by": {"id": assigned_by.id, "username": assigned_by.username},
+            "assigned_at": timezone.now().isoformat(),
         }
 
     @staticmethod
@@ -277,12 +273,11 @@ class TaskAssignmentService:
         from django.contrib.auth.models import User
 
         department = Department.objects.get(id=department_id)
-        users = User.objects.filter(
-            profile__departments=department,
-            is_active=True
-        ).exclude(
-            is_superuser=True
-        ).values('id', 'username', 'first_name', 'last_name')
+        users = (
+            User.objects.filter(profile__departments=department, is_active=True)
+            .exclude(is_superuser=True)
+            .values("id", "username", "first_name", "last_name")
+        )
 
         return list(users)
 
@@ -301,29 +296,37 @@ class TaskAssignmentService:
         """
         # 超级管理员可以分配所有任务
         if user.is_superuser:
-            return list(WorkOrderTask.objects.filter(
-                assigned_department_id=department_id,
-                status__in=['pending', 'in_progress']
-            ).values_list('id', flat=True))
+            return list(
+                WorkOrderTask.objects.filter(
+                    assigned_department_id=department_id,
+                    status__in=["pending", "in_progress"],
+                ).values_list("id", flat=True)
+            )
 
         # 部门主管可以分配本部门任务
         if PermissionCache.is_user_in_department(user, department_id):
-            if user.has_perm('workorder.change_workorder'):
-                return list(WorkOrderTask.objects.filter(
-                    assigned_department_id=department_id,
-                    status__in=['pending', 'in_progress']
-                ).values_list('id', flat=True))
+            if user.has_perm("workorder.change_workorder"):
+                return list(
+                    WorkOrderTask.objects.filter(
+                        assigned_department_id=department_id,
+                        status__in=["pending", "in_progress"],
+                    ).values_list("id", flat=True)
+                )
 
         # 施工单创建人可以分配自己施工单的任务
-        return list(WorkOrderTask.objects.filter(
-            assigned_department_id=department_id,
-            status__in=['pending', 'in_progress'],
-            work_order_process__work_order__created_by=user
-        ).values_list('id', flat=True))
+        return list(
+            WorkOrderTask.objects.filter(
+                assigned_department_id=department_id,
+                status__in=["pending", "in_progress"],
+                work_order_process__work_order__created_by=user,
+            ).values_list("id", flat=True)
+        )
 
     @staticmethod
     @transaction.atomic
-    def claim_task(task_id: int, operator, notes: Optional[str] = None) -> Dict[str, Any]:
+    def claim_task(
+        task_id: int, operator, notes: Optional[str] = None
+    ) -> Dict[str, Any]:
         """操作员认领任务
 
         允许操作员认领未分配的任务。使用 select_for_update 实现乐观锁，
@@ -358,11 +361,11 @@ class TaskAssignmentService:
 
         # 验证操作员属于任务部门
         if not task.assigned_department:
-            raise BusinessLogicError(
-                "该任务尚未分配到部门，无法认领"
-            )
+            raise BusinessLogicError("该任务尚未分配到部门，无法认领")
 
-        if not PermissionCache.is_user_in_department(operator, task.assigned_department.id):
+        if not PermissionCache.is_user_in_department(
+            operator, task.assigned_department.id
+        ):
             raise BusinessLogicError(
                 f"您不属于部门 {task.assigned_department.name}，无法认领该任务"
             )
@@ -371,77 +374,71 @@ class TaskAssignmentService:
         TaskAssignmentService.validate_operator_task_capacity(operator)
 
         # 验证任务可认领性
-        if task.status == 'draft':
-            raise BusinessLogicError(
-                "草稿状态的任务不能认领，请先等待施工单审核通过"
-            )
+        if task.status == "draft":
+            raise BusinessLogicError("草稿状态的任务不能认领，请先等待施工单审核通过")
 
-        if task.status == 'completed':
-            raise BusinessLogicError(
-                "已完成的任务不能认领"
-            )
+        if task.status == "completed":
+            raise BusinessLogicError("已完成的任务不能认领")
 
-        if task.status == 'cancelled':
-            raise BusinessLogicError(
-                "已取消的任务不能认领"
-            )
+        if task.status == "cancelled":
+            raise BusinessLogicError("已取消的任务不能认领")
 
         # 检查任务是否已被其他操作员认领
         if task.assigned_operator:
             # 如果是被自己认领的，允许更新
             if task.assigned_operator.id == operator.id:
                 return {
-                    'task_id': task.id,
-                    'assigned_operator': {
-                        'id': operator.id,
-                        'username': operator.username,
-                        'first_name': operator.first_name,
-                        'last_name': operator.last_name
+                    "task_id": task.id,
+                    "assigned_operator": {
+                        "id": operator.id,
+                        "username": operator.username,
+                        "first_name": operator.first_name,
+                        "last_name": operator.last_name,
                     },
-                    'already_claimed': True,
-                    'message': '您已经认领了该任务'
+                    "already_claimed": True,
+                    "message": "您已经认领了该任务",
                 }
 
             # 被其他人认领 - 使用特定的冲突错误
             raise TaskConflictError(
                 detail=f"该任务已被 {task.assigned_operator.username} 认领，无法重复认领",
                 current_owner=task.assigned_operator.username,
-                task_id=task.id
+                task_id=task.id,
             )
 
         # 执行认领
         task.assigned_operator = operator
-        task.save(update_fields=['assigned_operator', 'updated_at'])
+        task.save(update_fields=["assigned_operator", "updated_at"])
 
         # 创建任务认领通知
-        work_order = task.work_order_process.work_order if task.work_order_process else None
+        work_order = (
+            task.work_order_process.work_order if task.work_order_process else None
+        )
         Notification.create_notification(
             recipient=operator,
-            notification_type='task_assigned',
-            title=f'任务认领成功：{task.work_content}',
+            notification_type="task_assigned",
+            title=f"任务认领成功：{task.work_content}",
             content=f'您已成功认领任务 "{task.work_content}"。'
-                    f'施工单：{work_order.order_number if work_order else "N/A"}'
-                    f'{f" 备注：{notes}" if notes else ""}',
-            priority='normal',
+            f'施工单：{work_order.order_number if work_order else "N/A"}'
+            f'{f" 备注：{notes}" if notes else ""}',
+            priority="normal",
             work_order=work_order,
             work_order_process=task.work_order_process,
-            task=task
+            task=task,
         )
 
-        logger.info(
-            f"任务认领：用户 {operator.username} 认领了任务 {task_id}"
-        )
+        logger.info(f"任务认领：用户 {operator.username} 认领了任务 {task_id}")
 
         return {
-            'task_id': task.id,
-            'assigned_operator': {
-                'id': operator.id,
-                'username': operator.username,
-                'first_name': operator.first_name,
-                'last_name': operator.last_name
+            "task_id": task.id,
+            "assigned_operator": {
+                "id": operator.id,
+                "username": operator.username,
+                "first_name": operator.first_name,
+                "last_name": operator.last_name,
             },
-            'already_claimed': False,
-            'message': '任务认领成功'
+            "already_claimed": False,
+            "message": "任务认领成功",
         }
 
     @staticmethod
@@ -469,8 +466,8 @@ class TaskAssignmentService:
         claimable_tasks = WorkOrderTask.objects.filter(
             assigned_department_id__in=user_departments,
             assigned_operator__isnull=True,
-            status='pending'
-        ).values_list('id', flat=True)
+            status="pending",
+        ).values_list("id", flat=True)
 
         return list(claimable_tasks)
 
@@ -486,28 +483,24 @@ class TaskAssignmentService:
         """
         if isinstance(error, TaskConflictError):
             return {
-                'can_retry': True,
-                'suggestion': '刷新页面后重试',
-                'current_owner': getattr(error, 'current_owner', None),
-                'action_text': '刷新页面'
+                "can_retry": True,
+                "suggestion": "刷新页面后重试",
+                "current_owner": getattr(error, "current_owner", None),
+                "action_text": "刷新页面",
             }
 
         if isinstance(error, PermissionDeniedError):
             return {
-                'can_retry': False,
-                'suggestion': '您没有权限执行此操作',
-                'action_text': '联系管理员'
+                "can_retry": False,
+                "suggestion": "您没有权限执行此操作",
+                "action_text": "联系管理员",
             }
 
         if isinstance(error, BusinessLogicError):
-            return {
-                'can_retry': False,
-                'suggestion': str(error),
-                'action_text': '确定'
-            }
+            return {"can_retry": False, "suggestion": str(error), "action_text": "确定"}
 
         return {
-            'can_retry': False,
-            'suggestion': '操作失败，请稍后重试',
-            'action_text': '重试'
+            "can_retry": False,
+            "suggestion": "操作失败，请稍后重试",
+            "action_text": "重试",
         }

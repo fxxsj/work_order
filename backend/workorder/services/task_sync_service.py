@@ -4,7 +4,9 @@
 在施工单工序修改时，使用差量更新算法同步草稿任务。
 提供预览和执行两个步骤，防止意外数据丢失。
 """
+
 from django.db import transaction
+
 from ..models import WorkOrder, WorkOrderProcess, WorkOrderTask
 from .task_generation import DraftTaskGenerationService
 
@@ -43,14 +45,13 @@ class TaskSyncService:
 
         # 计算差异
         removed = old_set - new_set  # 被移除的工序
-        added = new_set - old_set    # 新增的工序
+        added = new_set - old_set  # 新增的工序
 
         # 查询将被删除的草稿任务数量
         tasks_to_remove = 0
         if removed:
             tasks_to_remove = WorkOrderTask.objects.filter(
-                work_order_process__in=list(removed),
-                status='draft'
+                work_order_process__in=list(removed), status="draft"
             ).count()
 
         # 估算新增任务数量（基于工序类型）
@@ -58,11 +59,11 @@ class TaskSyncService:
         tasks_to_add = len(added) * 2  # 保守估计每个工序平均生成2个任务
 
         return {
-            'tasks_to_remove': tasks_to_remove,
-            'tasks_to_add': tasks_to_add,
-            'removed_process_ids': list(removed),
-            'added_process_ids': list(added),
-            'affected': len(removed) > 0 or len(added) > 0
+            "tasks_to_remove": tasks_to_remove,
+            "tasks_to_add": tasks_to_add,
+            "removed_process_ids": list(removed),
+            "added_process_ids": list(added),
+            "affected": len(removed) > 0 or len(added) > 0,
         }
 
     @staticmethod
@@ -93,8 +94,8 @@ class TaskSyncService:
             locked_work_order, old_process_ids, new_process_ids
         )
 
-        removed_ids = preview['removed_process_ids']
-        added_ids = preview['added_process_ids']
+        removed_ids = preview["removed_process_ids"]
+        added_ids = preview["added_process_ids"]
 
         deleted_count = 0
         added_count = 0
@@ -103,15 +104,14 @@ class TaskSyncService:
         if removed_ids:
             deleted_count, _ = WorkOrderTask.objects.filter(
                 work_order_process__in=removed_ids,
-                status='draft'  # 仅删除草稿任务，不影响正式任务
+                status="draft",  # 仅删除草稿任务，不影响正式任务
             ).delete()
 
         # 2. 为新增工序生成草稿任务
         if added_ids:
             # 获取新增的工序对象
             new_processes = WorkOrderProcess.objects.filter(
-                id__in=added_ids,
-                work_order=locked_work_order
+                id__in=added_ids, work_order=locked_work_order
             )
 
             all_new_tasks = []
@@ -123,16 +123,14 @@ class TaskSyncService:
             # 批量创建新任务
             if all_new_tasks:
                 created_tasks = WorkOrderTask.objects.bulk_create(
-                    all_new_tasks,
-                    batch_size=100,
-                    ignore_conflicts=False
+                    all_new_tasks, batch_size=100, ignore_conflicts=False
                 )
                 added_count = len(created_tasks)
 
-        message = f'同步完成：已删除 {deleted_count} 个草稿任务，新增 {added_count} 个草稿任务'
+        message = f"同步完成：已删除 {deleted_count} 个草稿任务，新增 {added_count} 个草稿任务"
 
         return {
-            'deleted_count': deleted_count,
-            'added_count': added_count,
-            'message': message
+            "deleted_count": deleted_count,
+            "added_count": added_count,
+            "message": message,
         }

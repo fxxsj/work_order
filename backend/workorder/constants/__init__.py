@@ -15,79 +15,51 @@
         print("紧急订单")
 """
 
-# 状态常量
-from .status import (
-    WorkOrderStatus,
-    WorkOrderApprovalStatus,
-    TaskStatus,
-    ProcessStatus,
-    MaterialPurchaseStatus,
-    ApprovalStepStatus,
-    ApprovalEscalationStatus,
-    NotificationStatus,
-    DeliveryOrderStatus,
-    QualityInspectionStatus,
-    StockTransactionStatus,
-)
-
-# 优先级常量
-from .priority import (
-    Priority,
-    WorkflowPriority,
-)
-
 # 审核常量
-from .approval import (
-    WorkflowType,
-    StepType,
-    DecisionType,
-    RuleType,
-)
-
+from .approval import DecisionType, RuleType, StepType, WorkflowType
 # 权限常量
-from .permissions import (
-    UserRole,
-    PermissionAction,
-    PermissionGroups,
-    WORKORDER,
-    TASK,
-    PROCESS,
-    CUSTOMER,
-    PRODUCT,
-    MATERIAL,
-    SUPPLIER,
-)
+from .permissions import (CUSTOMER, MATERIAL, PROCESS, PRODUCT, SUPPLIER, TASK,
+                          WORKORDER, PermissionAction, PermissionGroups,
+                          UserRole)
+# 优先级常量
+from .priority import Priority, WorkflowPriority
+# 状态常量
+from .status import (ApprovalEscalationStatus, ApprovalStepStatus,
+                     DeliveryOrderStatus, MaterialPurchaseStatus,
+                     NotificationStatus, ProcessStatus,
+                     QualityInspectionStatus, StockTransactionStatus,
+                     TaskStatus, WorkOrderApprovalStatus, WorkOrderStatus)
 
 __all__ = [
     # 状态常量
-    'WorkOrderStatus',
-    'WorkOrderApprovalStatus',
-    'TaskStatus',
-    'ProcessStatus',
-    'MaterialPurchaseStatus',
-    'ApprovalStepStatus',
-    'ApprovalEscalationStatus',
-    'NotificationStatus',
-    'DeliveryOrderStatus',
-    'QualityInspectionStatus',
-    'StockTransactionStatus',
+    "WorkOrderStatus",
+    "WorkOrderApprovalStatus",
+    "TaskStatus",
+    "ProcessStatus",
+    "MaterialPurchaseStatus",
+    "ApprovalStepStatus",
+    "ApprovalEscalationStatus",
+    "NotificationStatus",
+    "DeliveryOrderStatus",
+    "QualityInspectionStatus",
+    "StockTransactionStatus",
     # 优先级常量
-    'Priority',
-    'WorkflowPriority',
+    "Priority",
+    "WorkflowPriority",
     # 审核常量
-    'WorkflowType',
-    'StepType',
-    'DecisionType',
-    'RuleType',
+    "WorkflowType",
+    "StepType",
+    "DecisionType",
+    "RuleType",
     # 权限常量
-    'UserRole',
-    'PermissionAction',
-    'PermissionGroups',
-    'WORKORDER',
-    'TASK',
-    'PROCESS',
-    'CUSTOMER',
-    'PRODUCT',
-    'MATERIAL',
-    'SUPPLIER',
+    "UserRole",
+    "PermissionAction",
+    "PermissionGroups",
+    "WORKORDER",
+    "TASK",
+    "PROCESS",
+    "CUSTOMER",
+    "PRODUCT",
+    "MATERIAL",
+    "SUPPLIER",
 ]
