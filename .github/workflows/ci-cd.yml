@@ -139,6 +139,8 @@ jobs:
       run: |
         cd frontend
         npm install
+        # Generate lockfile for caching if not exists
+        if [ ! -f package-lock.json ]; then npm install --package-lock-only; fi
 
     - name: Run ESLint
       run: |

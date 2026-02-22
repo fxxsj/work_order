@@ -282,7 +282,7 @@ class SmartAssignmentService:
     @staticmethod
     def calculate_team_balance_score(team_users: List[User]) -> Dict[str, float]:
         """计算团队平衡性评分"""
-        skill_levels = [user.skill_profile.skill_level for user in team_users if user.skill_profile else 0]
+        skill_levels = [user.skill_profile.skill_level for user in team_users if hasattr(user, 'skill_profile') and user.skill_profile] or [0]
         work_capacities = [user.work_capacity for user in team_users if user.skill_profile else 5]
         
         # 团队技能多样性

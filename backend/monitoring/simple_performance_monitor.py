@@ -89,7 +89,7 @@ def get_business_metrics():
                 'recent_workorders': recent_workorders,
                 'timestamp': datetime.now().isoformat()
             }
-        except Exception as e:
+    except Exception as e:
             logger.error(f"Error getting workorder metrics: {e}")
             return None
 
