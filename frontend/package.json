@@ -79,7 +79,7 @@
     "not dead"
   ],
   "overrides": {
-    "vue": "$vue",
-    "vue-template-compiler": "$vue-template-compiler"
+    "vue": "~2.7.16",
+    "vue-template-compiler": "^2.7.15"
   }
 }
