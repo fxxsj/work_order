@@ -20,6 +20,7 @@ import MaterialSupplierListView from '../views/MaterialSupplierListView.vue'
 import PurchaseOrderListView from '../views/PurchaseOrderListView.vue'
 import PurchaseReceiveCenterView from '../views/PurchaseReceiveCenterView.vue'
 import ProductStockListView from '../views/ProductStockListView.vue'
+import SalesOrderListView from '../views/SalesOrderListView.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -39,6 +40,7 @@ export const router = createRouter({
     { path: '/purchase-orders', name: 'purchase-orders', component: PurchaseOrderListView, meta: { requiresAuth: true } },
     { path: '/purchase-receive', name: 'purchase-receive', component: PurchaseReceiveCenterView, meta: { requiresAuth: true } },
     { path: '/product-stocks', name: 'product-stocks', component: ProductStockListView, meta: { requiresAuth: true } },
+    { path: '/sales-orders', name: 'sales-orders', component: SalesOrderListView, meta: { requiresAuth: true } },
     { path: '/tasks', name: 'tasks', component: TaskListView, meta: { requiresAuth: true } },
     { path: '/tasks/operator', name: 'operator-center', component: OperatorCenterView, meta: { requiresAuth: true } },
     { path: '/notifications', name: 'notifications', component: NotificationView, meta: { requiresAuth: true } }

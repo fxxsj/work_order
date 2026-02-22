@@ -23,6 +23,7 @@
         <el-button @click="goPurchaseOrders">采购单</el-button>
         <el-button @click="goPurchaseReceive">收货质检/入库</el-button>
         <el-button @click="goProductStocks">成品库存</el-button>
+        <el-button @click="goSalesOrders">销售订单</el-button>
       </div>
     </el-card>
   </div>
@@ -101,6 +102,10 @@ function goPurchaseReceive() {
 
 function goProductStocks() {
   router.push({ name: 'product-stocks' })
+}
+
+function goSalesOrders() {
+  router.push({ name: 'sales-orders' })
 }
 </script>
 
