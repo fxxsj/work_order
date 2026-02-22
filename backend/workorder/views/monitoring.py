@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from django.utils import timezone
+from django.db.models import Count, Sum, Avg, F
 from django.contrib.auth.models import User
 
 from ..services.monitoring import (

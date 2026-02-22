@@ -17,6 +17,7 @@ from django.db.models import Q, Count, Sum, Max, Avg, F
 from django.db import models
 from django.utils import timezone
 from decimal import Decimal
+from ..models.system import Notification
 
 from ..permissions import (
     WorkOrderProcessPermission,

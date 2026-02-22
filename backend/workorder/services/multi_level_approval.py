@@ -497,7 +497,7 @@ class MultiLevelApprovalService:
                 recipient=work_order.created_by,
                 notification_type='approval_result',
                 title=f'审核结果：{work_order.order_number}',
-                content=f'您的施工单审核{decision == "approve" ? "通过" : "被拒绝"}',
+                content=f'您的施工单审核{"通过" if decision == "approve" else "被拒绝"}',
                 priority='high',
                 work_order=work_order
             )

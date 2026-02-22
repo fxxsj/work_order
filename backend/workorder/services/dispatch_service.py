@@ -14,6 +14,7 @@ import random
 import logging
 from ..models.system import TaskAssignmentRule
 from ..models.core import WorkOrderTask
+from ..models.base import Department
 
 logger = logging.getLogger(__name__)
 

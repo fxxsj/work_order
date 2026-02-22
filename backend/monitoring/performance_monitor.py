@@ -515,10 +515,7 @@ class BusinessMetricsCollector:
             # 使用缓存优化数据收集
             cached_metrics = cache.get('workorder_business_metrics')
             if cached_metrics:
-                return {
-                    'user_metrics': cached_metrics,
-                    **cached_workorder_metrics
-                }
+                return cached_metrics
             
             # 某本统计
             total_workorders = WorkOrder.objects.count()

@@ -9,6 +9,8 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 import json
+from .core import WorkOrder
+from .system import WorkOrderApprovalLog
 
 
 class ApprovalWorkflow(models.Model):

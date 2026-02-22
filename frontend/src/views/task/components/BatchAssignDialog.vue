@@ -85,7 +85,6 @@
 </template>
 
 <script>
-import { departmentAPI } from '@/api/modules'
 import { getUserList } from '@/api/user'
 import ErrorHandler from '@/utils/errorHandler'
 

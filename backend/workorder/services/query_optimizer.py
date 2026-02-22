@@ -10,6 +10,7 @@
 
 from django.db import models
 from django.db.models import Prefetch, Q, Count, Sum, Avg, Max, Min
+from django.utils import timezone
 from django.core.cache import cache
 from django.conf import settings
 from typing import List, Dict, Any, Optional, Union

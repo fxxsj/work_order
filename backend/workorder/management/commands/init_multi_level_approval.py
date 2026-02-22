@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from workorder.models.multi_level_approval import ApprovalWorkflow, ApprovalStep, ApprovalRule
 
 
 class Command(BaseCommand):

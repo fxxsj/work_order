@@ -7,38 +7,38 @@
 # 2. 查询优化配置
 # 在 settings.py 中添加:
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        'OPTIONS': {
-            # SQLite 优化
-            'timeout': 20,
-            'check_same_thread': False,
-        },
-        # PostgreSQL 优化（如果使用 PostgreSQL）
-        # 'ENGINE': 'django.db.backends.postgresql',
-        # 'HOST': 'localhost',
-        # 'PORT': '5432',
-        # 'USER': 'postgres',
-        # 'PASSWORD': 'password',
-        # 'NAME': 'workorder',
-        # 'OPTIONS': {
-        #     'connect_timeout': 10,
-        #     'options': '-c statement_timeout=30000',
-        # },
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#         'OPTIONS': {
+#             # SQLite 优化
+#             'timeout': 20,
+#             'check_same_thread': False,
+#         },
+#         # PostgreSQL 优化（如果使用 PostgreSQL）
+#         # 'ENGINE': 'django.db.backends.postgresql',
+#         # 'HOST': 'localhost',
+#         # 'PORT': '5432',
+#         # 'USER': 'postgres',
+#         # 'PASSWORD': 'password',
+#         # 'NAME': 'workorder',
+#         # 'OPTIONS': {
+#         #     'connect_timeout': 10,
+#         #     'options': '-c statement_timeout=30000',
+#         # },
+#     }
+# }
 
 # REST_FRAMEWORK 分页配置
-REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20,
-    'MAX_PAGE_SIZE': 100,  # 限制最大页大小
-    # 或使用游标分页（更高效）
-    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
-    # 'PAGE_SIZE': 20,
-}
+# REST_FRAMEWORK = {
+#     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+#     'PAGE_SIZE': 20,
+#     'MAX_PAGE_SIZE': 100,  # 限制最大页大小
+#     # 或使用游标分页（更高效）
+#     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
+#     # 'PAGE_SIZE': 20,
+# }
 
 # 3. 缓存配置（如果使用 Redis）
 # CACHES = {
