@@ -10,6 +10,16 @@
 - 端侧通过登录页「服务器设置」配置 `API Base URL / WS Base URL`
 - 桌面端 Token 默认存储在系统 Keychain/凭据管理器（不写入 localStorage）；Android 默认使用 Capacitor Preferences（可在后续升级为加密存储）
 
+## 0.1 下载页（可选）
+
+Web vNext 提供了一个“客户端下载”页面（`/download`），用于从 GitHub Releases 拉取最新桌面端/Android 产物并提供下载链接。
+
+需要在 Web 构建环境配置：
+
+```bash
+VITE_GITHUB_REPO=owner/repo
+```
+
 ## 1. Web（Vue 3 / Vite）
 
 ```bash
@@ -51,6 +61,10 @@ git push origin v1.0.0
 
 - `TAURI_PRIVATE_KEY` / `TAURI_KEY_PASSWORD`（用于签名更新包）
 - `TAURI_PUBLIC_KEY`（会在 release workflow 中写入 `apps/desktop/src-tauri/tauri.conf.json` 的 `tauri.updater.pubkey` 并开启 `active`）
+
+Updater 的 `latest.json` 下载地址会在 Release workflow 中自动注入：
+- 优先使用 `TAURI_UPDATER_ENDPOINT`（你自建下载站点时使用）
+- 否则使用 `GITHUB_REPOSITORY` 推导出 `https://github.com/<owner>/<repo>/releases/latest/download/latest.json`
 
 默认情况下 `tauri.updater.active=false`（避免在未配置密钥时误启用）。当上述 3 个 Secrets 都存在时，Release workflow 会额外上传：
 

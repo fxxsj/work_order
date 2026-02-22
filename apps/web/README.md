@@ -33,3 +33,11 @@ cp .env.example .env
 ```bash
 VITE_ROUTER_MODE=hash
 ```
+
+### 可选：客户端下载页
+
+路由 `/download` 会从 GitHub Releases 拉取最新桌面端/Android 产物并展示下载链接。配置：
+
+```bash
+VITE_GITHUB_REPO=owner/repo
+```

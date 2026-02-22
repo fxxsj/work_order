@@ -19,10 +19,18 @@ function updateJsonVersion(filePath, nextVersion) {
   }
   json.package.version = nextVersion
 
+  json.tauri = json.tauri || {}
+  json.tauri.updater = json.tauri.updater || {}
+
+  const explicitEndpoint = String(process.env.TAURI_UPDATER_ENDPOINT || '').trim()
+  const repo = String(process.env.TAURI_UPDATER_REPO || process.env.GITHUB_REPOSITORY || '').trim()
+  const nextEndpoint = explicitEndpoint || (repo ? `https://github.com/${repo}/releases/latest/download/latest.json` : '')
+  if (nextEndpoint) {
+    json.tauri.updater.endpoints = [nextEndpoint]
+  }
+
   const pubkey = String(process.env.TAURI_PUBLIC_KEY || '').trim()
   if (pubkey) {
-    json.tauri = json.tauri || {}
-    json.tauri.updater = json.tauri.updater || {}
     json.tauri.updater.active = true
     json.tauri.updater.pubkey = pubkey
   }

@@ -32,11 +32,13 @@ import DeliveryOrderListView from '../views/DeliveryOrderListView.vue'
 import QualityInspectionListView from '../views/QualityInspectionListView.vue'
 import StockInListView from '../views/StockInListView.vue'
 import StockOutListView from '../views/StockOutListView.vue'
+import ClientDownloadView from '../views/ClientDownloadView.vue'
 
 export const router = createRouter({
   history: (import.meta.env.VITE_ROUTER_MODE === 'hash' ? createWebHashHistory() : createWebHistory()),
   routes: [
     { path: '/login', name: 'login', component: LoginView, meta: { requiresAuth: false } },
+    { path: '/download', name: 'client-download', component: ClientDownloadView, meta: { requiresAuth: false } },
     { path: '/', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true } },
     { path: '/workorders', name: 'workorders', component: WorkOrderListView, meta: { requiresAuth: true } },
     { path: '/workorders/create', name: 'workorder-create', component: WorkOrderCreateView, meta: { requiresAuth: true } },

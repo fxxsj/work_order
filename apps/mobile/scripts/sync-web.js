@@ -17,6 +17,7 @@ function copyDir(srcDir, destDir) {
 function emptyDir(dir) {
   if (!fs.existsSync(dir)) return
   for (const name of fs.readdirSync(dir)) {
+    if (name === '.gitkeep') continue
     fs.rmSync(path.join(dir, name), { recursive: true, force: true })
   }
 }
