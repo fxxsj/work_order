@@ -17,6 +17,7 @@ import ProcessListView from '../views/ProcessListView.vue'
 import MaterialListView from '../views/MaterialListView.vue'
 import SupplierListView from '../views/SupplierListView.vue'
 import MaterialSupplierListView from '../views/MaterialSupplierListView.vue'
+import PurchaseOrderListView from '../views/PurchaseOrderListView.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -33,6 +34,7 @@ export const router = createRouter({
     { path: '/materials', name: 'materials', component: MaterialListView, meta: { requiresAuth: true } },
     { path: '/suppliers', name: 'suppliers', component: SupplierListView, meta: { requiresAuth: true } },
     { path: '/material-suppliers', name: 'material-suppliers', component: MaterialSupplierListView, meta: { requiresAuth: true } },
+    { path: '/purchase-orders', name: 'purchase-orders', component: PurchaseOrderListView, meta: { requiresAuth: true } },
     { path: '/tasks', name: 'tasks', component: TaskListView, meta: { requiresAuth: true } },
     { path: '/tasks/operator', name: 'operator-center', component: OperatorCenterView, meta: { requiresAuth: true } },
     { path: '/notifications', name: 'notifications', component: NotificationView, meta: { requiresAuth: true } }

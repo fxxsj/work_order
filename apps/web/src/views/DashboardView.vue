@@ -20,6 +20,7 @@
         <el-button @click="goMaterials">物料</el-button>
         <el-button @click="goSuppliers">供应商</el-button>
         <el-button @click="goMaterialSuppliers">物料-供应商</el-button>
+        <el-button @click="goPurchaseOrders">采购单</el-button>
       </div>
     </el-card>
   </div>
@@ -86,6 +87,10 @@ function goSuppliers() {
 
 function goMaterialSuppliers() {
   router.push({ name: 'material-suppliers' })
+}
+
+function goPurchaseOrders() {
+  router.push({ name: 'purchase-orders' })
 }
 </script>
 
