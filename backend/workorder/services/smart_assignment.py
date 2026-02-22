@@ -9,6 +9,7 @@
 5. 学习型算法优化
 """
 
+from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Count, Q, Avg, Max, Min
 from django.utils import timezone
@@ -287,7 +288,7 @@ class SmartAssignmentService:
         
         # 团队技能多样性
         skill_diversity = len(set(
-            skill.lower() for user in team_users for skill in user_profile.technical_skills or [] for user in team_users if user.skill_profile
+            skill.lower() for user in team_users if hasattr(user, 'skill_profile') for skill in (user.skill_profile.technical_skills or [])
         ))
         
         # 平衡度计算
