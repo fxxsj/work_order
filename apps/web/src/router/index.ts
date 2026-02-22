@@ -12,6 +12,8 @@ import WorkOrderDetailView from '../views/WorkOrderDetailView.vue'
 import WorkOrderCreateView from '../views/WorkOrderCreateView.vue'
 import CustomerListView from '../views/CustomerListView.vue'
 import ProductListView from '../views/ProductListView.vue'
+import DepartmentListView from '../views/DepartmentListView.vue'
+import ProcessListView from '../views/ProcessListView.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -23,6 +25,8 @@ export const router = createRouter({
     { path: '/workorders/:id', name: 'workorder-detail', component: WorkOrderDetailView, meta: { requiresAuth: true } },
     { path: '/customers', name: 'customers', component: CustomerListView, meta: { requiresAuth: true } },
     { path: '/products', name: 'products', component: ProductListView, meta: { requiresAuth: true } },
+    { path: '/departments', name: 'departments', component: DepartmentListView, meta: { requiresAuth: true } },
+    { path: '/processes', name: 'processes', component: ProcessListView, meta: { requiresAuth: true } },
     { path: '/tasks', name: 'tasks', component: TaskListView, meta: { requiresAuth: true } },
     { path: '/tasks/operator', name: 'operator-center', component: OperatorCenterView, meta: { requiresAuth: true } },
     { path: '/notifications', name: 'notifications', component: NotificationView, meta: { requiresAuth: true } }

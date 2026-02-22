@@ -15,6 +15,8 @@
         <el-button @click="goNotifications">通知</el-button>
         <el-button @click="goCustomers">客户</el-button>
         <el-button @click="goProducts">产品</el-button>
+        <el-button @click="goDepartments">部门</el-button>
+        <el-button @click="goProcesses">工序</el-button>
       </div>
     </el-card>
   </div>
@@ -61,6 +63,14 @@ function goCustomers() {
 
 function goProducts() {
   router.push({ name: 'products' })
+}
+
+function goDepartments() {
+  router.push({ name: 'departments' })
+}
+
+function goProcesses() {
+  router.push({ name: 'processes' })
 }
 </script>
 
