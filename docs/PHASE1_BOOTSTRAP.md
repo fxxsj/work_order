@@ -1,6 +1,6 @@
 # Phase 1 启动指南：桌面（Tauri）与 Android（Capacitor）
 
-> 更新时间：2026-02-21  
+> 更新时间：2026-02-22  
 > 目标：在不大重构的前提下，把现有 Web 前端“壳化”成可安装客户端，用于内测与早期交付。
 
 ## 0. 前置（必须完成）
@@ -15,7 +15,7 @@
 
 ### 1.1 建议的开发模式
 
-- **开发期**：Tauri 直接加载 `http://localhost:5173`（运行 `apps/web` 的 dev server）
+- **开发期**：Tauri 直接加载 `http://localhost:5173`（自动启动 `apps/web` dev server）
 - **打包期**：Tauri 使用 `apps/web` 构建产物（`apps/web/dist`）
 - **环境切换**：通过登录页「服务器设置」配置 `API Base URL / WS Base URL`
 
@@ -24,24 +24,19 @@
 ### 1.1.1 实际运行命令（最短路径）
 
 ```bash
-# 1) 后端
+# 1) 后端（另开终端）
 cd backend
 python manage.py runserver
 
-# 2) Web（Vue3/Vite）
-cd ../apps/web
+# 2) 桌面壳（会自动启动 apps/web 的 dev server）
+cd /path/to/work_order
 npm install
-npm run dev
-
-# 3) 桌面壳
-cd ../apps/desktop
-npm install
-npm run tauri:dev
+npm run desktop:dev
 ```
 
 ### 1.2 本地工具链
 
-- Node.js（与当前前端一致）
+- Node.js 18+
 - Rust toolchain（Tauri 需要）
 - 平台签名/打包工具（正式发布时再补齐）
 
@@ -56,7 +51,9 @@ npm run tauri:dev
 
 ### 2.1 建议的开发模式
 
-- **开发期**：Capacitor 使用本地 Web 资源（从 `frontend` 构建后拷贝/同步）或指向 dev server（按工具链选择）
+- **开发期**：
+  - 方式 A（推荐，稳定）：构建 Web → 同步到 `apps/mobile/www` → Android Studio 运行
+  - 方式 B（更快迭代）：`CAP_SERVER_URL` 指向 Vite dev server（Live Reload）
 - **打包期**：使用 Web 构建产物
 - **环境切换**：通过登录页「服务器设置」配置 `API Base URL / WS Base URL`
 
@@ -65,25 +62,35 @@ npm run tauri:dev
 ### 2.1.1 实际运行命令（最短路径）
 
 ```bash
-# 1) 构建 Web（Vue3/Vite，推荐）
-cd apps/web
+# 1) 安装依赖（根目录）
+cd /path/to/work_order
 npm install
-npm run build
 
 # 2) 初始化与生成 Android 工程（首次）
-cd ../apps/mobile
-npm install
-npm run cap:init
-npm run cap:add:android
+npm run android:init
 
-# 3) 同步资源并打开 Android Studio
-npm run cap:sync
+# 3) 构建 Web 并同步到 Android 工程
+npm run android:build
+
+# 4) 打开 Android Studio
 npm run android:open
+```
+
+#### 可选：Live Reload（dev server 模式）
+
+```bash
+# 1) 启动 Web dev server
+cd /path/to/work_order
+npm run web:dev
+
+# 2) 设置 dev server 地址并同步（Android 模拟器访问宿主机用 10.0.2.2）
+export CAP_SERVER_URL="http://10.0.2.2:5173"
+npm run android:sync
 ```
 
 ### 2.2 本地工具链
 
-- Node.js
+- Node.js 18+
 - Android Studio + Android SDK
 
 ### 2.3 最小验收（Android MVP）

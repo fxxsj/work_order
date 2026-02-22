@@ -96,7 +96,7 @@
 ### 环境要求
 
 - Python 3.8+
-- Node.js 14+
+- Node.js 18+
 - npm/yarn
 
 ### 后端安装
@@ -156,9 +156,9 @@ npm run serve
 ### Web vNext（推荐）
 
 ```bash
-cd apps/web
+cd /path/to/work_order
 npm install
-npm run dev
+npm run web:dev
 ```
 
 默认运行在 `http://localhost:5173`
@@ -170,32 +170,25 @@ npm run dev
 cd backend
 python manage.py runserver
 
-# 2) 启动 Web vNext（另开终端）
-cd apps/web
-npm run dev
-
-# 3) 启动桌面壳（另开终端）
-cd apps/desktop
+# 2) 启动桌面壳（另开终端，会自动启动 apps/web dev server）
+cd /path/to/work_order
 npm install
-npm run tauri:dev
+npm run desktop:dev
 ```
 
 ### Android：Capacitor
 
 ```bash
-# 1) 构建 Web
-cd apps/web
+cd /path/to/work_order
 npm install
-npm run build
 
-# 2) 初始化与生成 Android 工程（首次）
-cd ../apps/mobile
-npm install
-npm run cap:init
-npm run cap:add:android
+# 1) 初始化与生成 Android 工程（首次）
+npm run android:init
 
-# 3) 同步资源并打开 Android Studio
-npm run cap:sync
+# 2) 构建 Web 并同步到 Android 工程
+npm run android:build
+
+# 3) 打开 Android Studio
 npm run android:open
 ```
 

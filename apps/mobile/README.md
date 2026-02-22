@@ -1,33 +1,46 @@
 # Mobile Client（Capacitor）- Android
 
-本应用用于把仓库现有的 `frontend/`（Vue SPA）打包为 Android 客户端。
+本应用用于把仓库现有的 `apps/web/`（Vue 3 + Vite SPA）打包为 Android 客户端。
 
 ## 开发模式建议
 
 优先建议先跑通“Web 构建产物 → Capacitor 同步 → Android Studio 运行”的链路：
 
-1) 构建 Web vNext（推荐）
+1) 构建 Web vNext 并同步到 `apps/mobile/www`（推荐）
 
 ```bash
-cd apps/web
+cd /path/to/work_order
 npm install
-npm run build
+npm run android:build
 ```
 
 2) 初始化并生成 Android 工程（首次）
 
 ```bash
-cd apps/mobile
+cd /path/to/work_order
 npm install
-npm run cap:init
-npm run cap:add:android
+npm run android:init
 ```
 
-3) 同步 Web 资源并打开 Android Studio
+3) 打开 Android Studio
 
 ```bash
-cd apps/mobile
-npm run cap:sync
+cd /path/to/work_order
+npm run android:open
+```
+
+## 可选：Live Reload（dev server 模式）
+
+`apps/mobile/capacitor.config.ts` 支持通过 `CAP_SERVER_URL` 直接加载 Vite dev server：
+
+```bash
+cd /path/to/work_order
+npm install
+npm run web:dev
+
+# Android 模拟器访问宿主机用 10.0.2.2
+export CAP_SERVER_URL="http://10.0.2.2:5173"
+npm run android:sync
 npm run android:open
 ```
 

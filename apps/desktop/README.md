@@ -1,6 +1,6 @@
 # Desktop Client（Tauri）- macOS / Windows
 
-本应用用于把仓库现有的 `frontend/`（Vue SPA）打包为桌面客户端。
+本应用用于把仓库现有的 `apps/web/`（Vue 3 + Vite SPA）打包为桌面客户端。
 
 ## 开发（推荐）
 
@@ -8,21 +8,15 @@
 - 本地运行 Django：`cd backend && python manage.py runserver`
 - 或使用 Docker Compose（如你项目已配置好）
 
-2) 启动 Web vNext dev server
+2) 启动 Tauri（加载 `http://localhost:5173`）
 
 ```bash
-cd apps/web
+cd /path/to/work_order
 npm install
-npm run dev
+npm run desktop:dev
 ```
 
-3) 启动 Tauri（加载 `http://localhost:5173`）
-
-```bash
-cd apps/desktop
-npm install
-npm run tauri:dev
-```
+> `desktop:dev` 会先启动 `apps/web` 的 dev server（见 `apps/desktop/src-tauri/tauri.conf.json` 的 `beforeDevCommand`）。
 
 首次进入桌面客户端后，在登录页底部点击「服务器设置」，配置：
 - `API Base URL`：例如 `http://127.0.0.1:8000/api`
@@ -31,11 +25,9 @@ npm run tauri:dev
 ## 打包
 
 ```bash
-cd apps/web
-npm run build
-
-cd ../apps/desktop
-npm run tauri:build
+cd /path/to/work_order
+npm install
+npm run desktop:build
 ```
 
 ## 说明
