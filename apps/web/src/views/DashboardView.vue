@@ -11,6 +11,7 @@
       <div class="actions">
         <el-button type="primary" @click="goWorkOrders">施工单</el-button>
         <el-button @click="goTasks">任务</el-button>
+        <el-button @click="goOperatorCenter">操作员中心</el-button>
         <el-button @click="goNotifications">通知</el-button>
       </div>
     </el-card>
@@ -42,6 +43,10 @@ function goWorkOrders() {
 
 function goTasks() {
   router.push({ name: 'tasks' })
+}
+
+function goOperatorCenter() {
+  router.push({ name: 'operator-center' })
 }
 
 function goNotifications() {
