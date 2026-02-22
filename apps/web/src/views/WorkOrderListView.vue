@@ -19,7 +19,7 @@
     </div>
 
     <el-card>
-      <el-table :data="items" v-loading="loading" style="width: 100%">
+      <el-table :data="items" v-loading="loading" style="width: 100%" @row-click="handleRowClick">
         <el-table-column prop="order_number" label="单号" min-width="140" />
         <el-table-column prop="customer_name" label="客户" min-width="140" />
         <el-table-column prop="product_name" label="产品" min-width="140" />
@@ -103,6 +103,10 @@ function goHome() {
   router.push({ name: 'dashboard' })
 }
 
+function handleRowClick(row: WorkOrderListItem) {
+  router.push({ name: 'workorder-detail', params: { id: row.id } })
+}
+
 onMounted(() => {
   fetchList()
 })
@@ -139,4 +143,3 @@ onMounted(() => {
   margin-top: 12px;
 }
 </style>
-

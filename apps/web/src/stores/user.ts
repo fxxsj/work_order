@@ -5,7 +5,7 @@ import { clearAuthToken, getAuthToken, setAuthToken } from '../lib/authToken'
 export type UserPayload = {
   id: number
   username: string
-  token: string
+  token?: string
   permissions?: string[]
   groups?: string[]
   is_superuser?: boolean
@@ -17,7 +17,17 @@ export const useUserStore = defineStore('user', {
     authToken: getAuthToken()
   }),
   getters: {
-    isAuthenticated: (state) => !!state.authToken
+    isAuthenticated: (state) => !!state.authToken,
+    permissions: (state) => state.currentUser?.permissions || [],
+    groups: (state) => state.currentUser?.groups || [],
+    isSuperuser: (state) => !!state.currentUser?.is_superuser,
+    hasPermission: (state) => (perm: string) => {
+      const perms = state.currentUser?.permissions || []
+      return perms.includes('*') || perms.includes(perm)
+    },
+    hasRole: (state) => (role: string) => {
+      return (state.currentUser?.groups || []).includes(role)
+    }
   },
   actions: {
     async login(username: string, password: string) {

@@ -32,3 +32,28 @@ export async function listWorkOrders(params: {
   return res.data
 }
 
+export type WorkOrderDetail = Record<string, any>
+
+export async function getWorkOrder(id: number) {
+  const res = await http.get<WorkOrderDetail>(`/workorders/${id}/`)
+  return res.data
+}
+
+export async function updateWorkOrderStatus(id: number, status: string) {
+  const res = await http.post(`/workorders/${id}/update_status/`, { status })
+  return res.data
+}
+
+export async function approveWorkOrder(input: {
+  id: number
+  approval_status: 'approved' | 'rejected'
+  approval_comment?: string
+  rejection_reason?: string
+}) {
+  const res = await http.post(`/workorders/${input.id}/approve/`, {
+    approval_status: input.approval_status,
+    approval_comment: input.approval_comment || '',
+    rejection_reason: input.rejection_reason || ''
+  })
+  return res.data
+}
