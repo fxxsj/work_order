@@ -8,6 +8,7 @@
 - Web（线上部署）默认使用 **history 路由**
 - 桌面/Android（打包产物）默认使用 **hash 路由**（避免 `file://`/静态目录下刷新或深链路 404）
 - 端侧通过登录页「服务器设置」配置 `API Base URL / WS Base URL`
+- 桌面端 Token 默认存储在系统 Keychain/凭据管理器（不写入 localStorage）；Android 默认使用 Capacitor Preferences（可在后续升级为加密存储）
 
 ## 1. Web（Vue 3 / Vite）
 
