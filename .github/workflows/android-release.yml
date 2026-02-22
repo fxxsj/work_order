@@ -76,20 +76,29 @@ jobs:
       - name: Build APK/AAB (release, unsigned)
         run: |
           cd apps/mobile/android
+          chmod +x ./gradlew
           ./gradlew assembleRelease
           ./gradlew bundleRelease
 
       - name: Collect unsigned outputs
         run: |
+          TAG="${{ inputs.tag }}"
+          if [ -z "$TAG" ]; then
+            TAG="${{ github.ref_name }}"
+          fi
           mkdir -p dist
-          cp apps/mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk dist/app-release-unsigned.apk
-          cp apps/mobile/android/app/build/outputs/bundle/release/app-release.aab dist/app-release-unsigned.aab
+          cp apps/mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk "dist/WorkOrder-${TAG}-unsigned.apk"
+          cp apps/mobile/android/app/build/outputs/bundle/release/app-release.aab "dist/WorkOrder-${TAG}-unsigned.aab"
 
       - name: Verify unsigned outputs exist
         shell: bash
         run: |
-          test -f dist/app-release-unsigned.apk
-          test -f dist/app-release-unsigned.aab
+          TAG="${{ inputs.tag }}"
+          if [ -z "$TAG" ]; then
+            TAG="${{ github.ref_name }}"
+          fi
+          test -f "dist/WorkOrder-${TAG}-unsigned.apk"
+          test -f "dist/WorkOrder-${TAG}-unsigned.aab"
 
       - name: Sign APK (optional, if secrets are set)
         if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
@@ -100,34 +109,38 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           set -euo pipefail
+          TAG="${{ inputs.tag }}"
+          if [ -z "$TAG" ]; then
+            TAG="${{ github.ref_name }}"
+          fi
           echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
 
           BUILD_TOOLS_VERSION="$(ls "$ANDROID_SDK_ROOT/build-tools" | sort -V | tail -1)"
           ZIPALIGN="$ANDROID_SDK_ROOT/build-tools/$BUILD_TOOLS_VERSION/zipalign"
           APKSIGNER="$ANDROID_SDK_ROOT/build-tools/$BUILD_TOOLS_VERSION/apksigner"
 
-          "$ZIPALIGN" -v -p 4 dist/app-release-unsigned.apk dist/app-release-aligned.apk
+          "$ZIPALIGN" -v -p 4 "dist/WorkOrder-${TAG}-unsigned.apk" "dist/WorkOrder-${TAG}-aligned.apk"
           "$APKSIGNER" sign \
             --ks "$RUNNER_TEMP/release.keystore" \
             --ks-pass "pass:$ANDROID_KEYSTORE_PASSWORD" \
             --ks-key-alias "$ANDROID_KEY_ALIAS" \
             --key-pass "pass:$ANDROID_KEY_PASSWORD" \
-            --out dist/app-release-signed.apk \
-            dist/app-release-aligned.apk
-          "$APKSIGNER" verify --verbose dist/app-release-signed.apk
+            --out "dist/WorkOrder-${TAG}-signed.apk" \
+            "dist/WorkOrder-${TAG}-aligned.apk"
+          "$APKSIGNER" verify --verbose "dist/WorkOrder-${TAG}-signed.apk"
 
-          cp dist/app-release-unsigned.aab dist/app-release-signed.aab
+          cp "dist/WorkOrder-${TAG}-unsigned.aab" "dist/WorkOrder-${TAG}-signed.aab"
           jarsigner -keystore "$RUNNER_TEMP/release.keystore" \
             -storepass "$ANDROID_KEYSTORE_PASSWORD" \
             -keypass "$ANDROID_KEY_PASSWORD" \
-            dist/app-release-signed.aab \
+            "dist/WorkOrder-${TAG}-signed.aab" \
             "$ANDROID_KEY_ALIAS"
-          jarsigner -verify -verbose dist/app-release-signed.aab
+          jarsigner -verify -verbose "dist/WorkOrder-${TAG}-signed.aab"
 
       - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk
+          name: android-release
           path: dist/
 
       - name: Upload to Google Play (optional)
@@ -136,7 +149,7 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.workorder.app
-          releaseFiles: dist/app-release-signed.aab
+          releaseFiles: dist/*-signed.aab
           track: internal
           status: completed
 

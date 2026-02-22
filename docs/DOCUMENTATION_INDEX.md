@@ -107,6 +107,9 @@
 - 多平台客户端交付命令（Web / macOS / Windows / Android）
 - hash/history 路由与打包注意事项
 
+#### [RELEASE_DRY_RUN.md](RELEASE_DRY_RUN.md)
+- 真实发布演练检查清单（桌面 → Android）
+
 ---
 
 ## 🧭 vNext（迁移中）
