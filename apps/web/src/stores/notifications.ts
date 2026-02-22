@@ -27,6 +27,7 @@ export const useNotificationsStore = defineStore('notifications', {
       if (!token) return
 
       const url = buildNotificationsWsUrl(token)
+      if (!url) return
       this.wsState = 'connecting'
 
       let socket: WebSocket | null = null
@@ -99,4 +100,3 @@ export const useNotificationsStore = defineStore('notifications', {
     }
   }
 })
-

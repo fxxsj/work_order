@@ -70,6 +70,9 @@ export function getWsBaseUrl() {
   // 默认策略（开发友好）：
   // - 本地开发：默认走 8001（与现有 Vue2 约定一致）
   // - 其他环境：复用当前 host（假设由反向代理转发 /ws）
+  if (window.location.protocol === 'file:' || !window.location.hostname) {
+    return ''
+  }
   const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://'
   const host = window.location.hostname
   if (host === 'localhost' || host === '127.0.0.1') {
@@ -80,6 +83,7 @@ export function getWsBaseUrl() {
 
 export function buildNotificationsWsUrl(token: string) {
   const base = getWsBaseUrl().replace(/\/+$/, '')
+  if (!base) return ''
   const tokenParam = `token=${encodeURIComponent(token || '')}`
 
   if (base.includes('/ws/notifications')) {
