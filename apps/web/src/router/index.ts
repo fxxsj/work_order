@@ -23,6 +23,8 @@ import ProductStockListView from '../views/ProductStockListView.vue'
 import SalesOrderListView from '../views/SalesOrderListView.vue'
 import InvoiceListView from '../views/InvoiceListView.vue'
 import PaymentListView from '../views/PaymentListView.vue'
+import ArtworkListView from '../views/ArtworkListView.vue'
+import DieListView from '../views/DieListView.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -45,6 +47,8 @@ export const router = createRouter({
     { path: '/sales-orders', name: 'sales-orders', component: SalesOrderListView, meta: { requiresAuth: true } },
     { path: '/invoices', name: 'invoices', component: InvoiceListView, meta: { requiresAuth: true } },
     { path: '/payments', name: 'payments', component: PaymentListView, meta: { requiresAuth: true } },
+    { path: '/artworks', name: 'artworks', component: ArtworkListView, meta: { requiresAuth: true } },
+    { path: '/dies', name: 'dies', component: DieListView, meta: { requiresAuth: true } },
     { path: '/tasks', name: 'tasks', component: TaskListView, meta: { requiresAuth: true } },
     { path: '/tasks/operator', name: 'operator-center', component: OperatorCenterView, meta: { requiresAuth: true } },
     { path: '/notifications', name: 'notifications', component: NotificationView, meta: { requiresAuth: true } }

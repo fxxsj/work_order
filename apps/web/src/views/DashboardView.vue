@@ -26,6 +26,8 @@
         <el-button @click="goSalesOrders">销售订单</el-button>
         <el-button @click="goInvoices">发票</el-button>
         <el-button @click="goPayments">收款</el-button>
+        <el-button @click="goArtworks">图稿</el-button>
+        <el-button @click="goDies">刀模</el-button>
       </div>
     </el-card>
   </div>
@@ -116,6 +118,14 @@ function goInvoices() {
 
 function goPayments() {
   router.push({ name: 'payments' })
+}
+
+function goArtworks() {
+  router.push({ name: 'artworks' })
+}
+
+function goDies() {
+  router.push({ name: 'dies' })
 }
 </script>
 
