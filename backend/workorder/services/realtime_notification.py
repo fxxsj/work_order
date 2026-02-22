@@ -16,6 +16,7 @@ from django.db.models import Q
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.conf import settings
+from django.core.cache import cache
 import logging
 
 logger = logging.getLogger(__name__)
@@ -463,7 +464,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         """建立WebSocket连接"""
-        # 从查询参数获取 token
+        # 从查询参数获取 token / ticket
         query_string = self.scope.get("query_string", b"").decode("utf-8")
 
         from urllib.parse import parse_qs
@@ -471,25 +472,44 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
         # parse_qs 返回字符串键，不是字节键
         token = query_params.get("token", [None])[0]
+        ticket = query_params.get("ticket", [None])[0]
 
-        if not token:
-            logger.warning("WebSocket 连接缺少 token")
-            await self.close(code=4001, reason="Missing token")
-            return
+        user = None
 
-        # 验证 token 并获取用户（使用 sync_to_async 包装同步 ORM 调用）
-        from rest_framework.authtoken.models import Token
-        from asgiref.sync import sync_to_async
+        if ticket:
+            try:
+                cache_key = f'ws_ticket:{ticket}'
+                user_id = await sync_to_async(cache.get)(cache_key)
+                if not user_id:
+                    await self.close(code=4001, reason="Invalid ticket")
+                    return
 
-        try:
-            token_obj = await sync_to_async(Token.objects.select_related('user').get)(key=token)
-            user = token_obj.user
-        except Token.DoesNotExist:
-            logger.warning(f"WebSocket token 无效: {token[:10]}...")
-            await self.close(code=4001, reason="Invalid token")
-            return
+                # one-time ticket
+                await sync_to_async(cache.delete)(cache_key)
+                user = await sync_to_async(User.objects.get)(id=user_id)
+            except Exception:
+                await self.close(code=4001, reason="Invalid ticket")
+                return
 
-        if not user.is_authenticated:
+        if not user:
+            if not token:
+                logger.warning("WebSocket 连接缺少 token/ticket")
+                await self.close(code=4001, reason="Missing token")
+                return
+
+            # 验证 token 并获取用户（使用 sync_to_async 包装同步 ORM 调用）
+            from rest_framework.authtoken.models import Token
+            from asgiref.sync import sync_to_async
+
+            try:
+                token_obj = await sync_to_async(Token.objects.select_related('user').get)(key=token)
+                user = token_obj.user
+            except Token.DoesNotExist:
+                logger.warning(f"WebSocket token 无效: {token[:10]}...")
+                await self.close(code=4001, reason="Invalid token")
+                return
+
+        if not user or not user.is_authenticated:
             await self.close(code=4001, reason="User not authenticated")
             return
 

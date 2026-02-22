@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ElMessage } from 'element-plus'
 import { buildNotificationsWsUrl } from '../utils/runtimeConfig'
 import { getAuthToken } from '../lib/authToken'
-import { getUnreadCount } from '../api/notifications'
+import { getUnreadCount, getWsTicket } from '../api/notifications'
 
 type WsState = 'disconnected' | 'connecting' | 'connected' | 'error'
 
@@ -20,14 +20,11 @@ export const useNotificationsStore = defineStore('notifications', {
         // ignore
       }
     },
-    connectIfNeeded() {
+    async connectIfNeeded() {
       if (this.wsState === 'connecting' || this.wsState === 'connected') return
 
       const token = getAuthToken()
       if (!token) return
-
-      const url = buildNotificationsWsUrl(token)
-      if (!url) return
       this.wsState = 'connecting'
 
       let socket: WebSocket | null = null
@@ -46,7 +43,7 @@ export const useNotificationsStore = defineStore('notifications', {
         cleanupTimers()
         const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 60000)
         reconnectAttempts += 1
-        reconnectTimeout = window.setTimeout(() => connect(), delay)
+        reconnectTimeout = window.setTimeout(() => void connect(), delay)
       }
 
       const startHeartbeat = () => {
@@ -58,8 +55,22 @@ export const useNotificationsStore = defineStore('notifications', {
         }, 30000)
       }
 
-      const connect = () => {
+      const buildUrl = async () => {
         try {
+          const ticket = await getWsTicket()
+          return buildNotificationsWsUrl({ ticket })
+        } catch {
+          return buildNotificationsWsUrl({ token })
+        }
+      }
+
+      const connect = async () => {
+        try {
+          const url = await buildUrl()
+          if (!url) {
+            this.wsState = 'disconnected'
+            return
+          }
           socket = new WebSocket(url)
 
           socket.onopen = () => {
@@ -96,7 +107,7 @@ export const useNotificationsStore = defineStore('notifications', {
         }
       }
 
-      connect()
+      void connect()
     }
   }
 })

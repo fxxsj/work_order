@@ -81,15 +81,17 @@ export function getWsBaseUrl() {
   return `${protocol}${window.location.host}`
 }
 
-export function buildNotificationsWsUrl(token: string) {
+export function buildNotificationsWsUrl(auth: { token?: string; ticket?: string }) {
   const base = getWsBaseUrl().replace(/\/+$/, '')
   if (!base) return ''
-  const tokenParam = `token=${encodeURIComponent(token || '')}`
+  const ticket = auth.ticket ? String(auth.ticket) : ''
+  const token = !ticket && auth.token ? String(auth.token) : ''
+  const query = ticket ? `ticket=${encodeURIComponent(ticket)}` : `token=${encodeURIComponent(token)}`
 
   if (base.includes('/ws/notifications')) {
-    return base.includes('?') ? `${base}&${tokenParam}` : `${base}?${tokenParam}`
+    return base.includes('?') ? `${base}&${query}` : `${base}?${query}`
   }
 
   const wsPrefix = base.endsWith('/ws') ? base : `${base}/ws`
-  return `${wsPrefix}/notifications/?${tokenParam}`
+  return `${wsPrefix}/notifications/?${query}`
 }

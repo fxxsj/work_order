@@ -34,3 +34,7 @@ export async function markAllRead() {
   return res.data
 }
 
+export async function getWsTicket() {
+  const res = await http.post<{ ticket: string; expires_in: number }>('/notifications/ws_ticket/')
+  return res.data.ticket
+}

@@ -4,6 +4,8 @@
 提供通知管理、WebSocket连接、通知设置等功能
 """
 
+import secrets
+
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -12,6 +14,7 @@ from django.db.models import Q
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
+from django.core.cache import cache
 
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
 
@@ -159,6 +162,16 @@ class NotificationViewSet(viewsets.GenericViewSet):
             'total_count': queryset.count(),
             'unread_count': queryset.filter(is_read=False).count(),
             'read_count': queryset.filter(is_read=True).count()
+        })
+
+    @action(detail=False, methods=['post'])
+    def ws_ticket(self, request):
+        """获取 WebSocket 连接票据（短期有效，一次性使用）"""
+        ticket = secrets.token_urlsafe(32)
+        cache.set(f'ws_ticket:{ticket}', request.user.id, timeout=60)
+        return Response({
+            'ticket': ticket,
+            'expires_in': 60
         })
 
 
