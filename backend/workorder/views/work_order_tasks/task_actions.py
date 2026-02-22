@@ -14,10 +14,9 @@ from rest_framework.response import Response
 
 from workorder.models.assets import Artwork, Die
 from workorder.models.core import TaskLog, WorkOrder, WorkOrderTask
+from workorder.models.system import Notification
 from workorder.serializers.core import WorkOrderTaskSerializer
 from workorder.services.realtime_notification import notification_service
-
-from workorder.models.system import Notification
 
 
 class TaskActionsMixin:
