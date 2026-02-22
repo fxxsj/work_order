@@ -18,6 +18,14 @@ function updateJsonVersion(filePath, nextVersion) {
     throw new Error(`Missing package.version in ${filePath}`)
   }
   json.package.version = nextVersion
+
+  const pubkey = String(process.env.TAURI_PUBLIC_KEY || '').trim()
+  if (pubkey) {
+    json.tauri = json.tauri || {}
+    json.tauri.updater = json.tauri.updater || {}
+    json.tauri.updater.active = true
+    json.tauri.updater.pubkey = pubkey
+  }
   fs.writeFileSync(filePath, `${JSON.stringify(json, null, 2)}\n`)
 }
 
@@ -57,4 +65,3 @@ updateJsonVersion(tauriConf, version)
 updateCargoTomlVersion(cargoToml, version)
 
 console.log(`[release] applied version ${version}`)
-

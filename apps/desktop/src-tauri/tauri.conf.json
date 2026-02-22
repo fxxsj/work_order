@@ -26,6 +26,14 @@
       "targets": "all",
       "identifier": "com.workorder.app",
       "icon": []
+    },
+    "updater": {
+      "active": false,
+      "endpoints": [
+        "https://github.com/fxxsj/work_order/releases/latest/download/latest.json"
+      ],
+      "dialog": true,
+      "pubkey": ""
     }
   }
 }

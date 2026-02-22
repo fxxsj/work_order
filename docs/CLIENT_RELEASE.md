@@ -40,6 +40,15 @@ npm run desktop:build
 
 推送 tag（例如 `v1.0.0`）会触发 `.github/workflows/release.yml`，构建 macOS/Windows 安装包并发布到 GitHub Releases。
 
+#### 可选：桌面端自动更新（Upgrader / Updater）
+
+如果你希望启用 Tauri 内置 updater，需要在仓库 Secrets 配置：
+
+- `TAURI_PRIVATE_KEY` / `TAURI_KEY_PASSWORD`（用于签名更新包）
+- `TAURI_PUBLIC_KEY`（会在 release workflow 中写入 `apps/desktop/src-tauri/tauri.conf.json` 的 `tauri.updater.pubkey` 并开启 `active`）
+
+默认情况下 `tauri.updater.active=false`（避免在未配置密钥时误启用）。
+
 ## 3. Android（Capacitor）
 
 前置：Android Studio + Android SDK（以及 JDK）。
@@ -59,6 +68,16 @@ cd /path/to/work_order
 npm run android:build
 npm run android:open
 ```
+
+### 3.1 GitHub Release（tag 触发）
+
+推送 tag（例如 `android-v1.0.0`）会触发 `.github/workflows/android-release.yml`，构建 Android release APK 并发布到 GitHub Releases。
+
+可选：配置以下 Secrets 以输出已签名 APK：
+- `ANDROID_KEYSTORE_BASE64`
+- `ANDROID_KEYSTORE_PASSWORD`
+- `ANDROID_KEY_ALIAS`
+- `ANDROID_KEY_PASSWORD`
 
 可选（更快迭代）：Live Reload（dev server 模式）
 
