@@ -80,6 +80,12 @@
   ],
   "overrides": {
     "vue": "~2.7.16",
-    "vue-template-compiler": "^2.7.15"
+    "vue-template-compiler": "^2.7.15",
+    "@vue/babel-preset-jsx": {
+      "vue": "~2.7.16"
+    },
+    "@vue/babel-preset-app": {
+      "vue": "~2.7.16"
+    }
   }
 }
