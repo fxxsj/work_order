@@ -75,6 +75,37 @@ jobs:
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
         run: npm run desktop:build
 
+      - name: Collect installers (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${{ inputs.tag }}"
+          if [ -z "$TAG" ]; then
+            TAG="${{ github.ref_name }}"
+          fi
+          ARCH="$(uname -m)"
+          if [ "$ARCH" = "arm64" ]; then
+            PLATFORM="darwin-aarch64"
+          else
+            PLATFORM="darwin-x86_64"
+          fi
+          node scripts/release/collect-tauri-installers.mjs --tag "$TAG" --platform "$PLATFORM"
+
+      - name: Collect installers (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $tag = "${{ inputs.tag }}"
+          if ([string]::IsNullOrWhiteSpace($tag)) { $tag = "${{ github.ref_name }}" }
+          node scripts/release/collect-tauri-installers.mjs --tag "$tag" --platform "windows-x86_64"
+
+      - name: Upload installer artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-installers-${{ matrix.os }}
+          path: dist/installers/*
+
       - name: Package bundles (macOS)
         if: runner.os == 'macOS'
         shell: bash
@@ -152,6 +183,20 @@ jobs:
         with:
           tag_name: ${{ inputs.tag || github.ref_name }}
           files: dist/**/WorkOrder-*.zip
+
+      - name: Upload installers to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag || github.ref_name }}
+          files: dist/**/WorkOrder-*.dmg
+
+      - name: Upload Windows installers to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag || github.ref_name }}
+          files: |
+            dist/**/WorkOrder-*.msi
+            dist/**/WorkOrder-*.exe
 
   publish-updater:
     name: Publish updater assets
