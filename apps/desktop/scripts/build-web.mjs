@@ -4,9 +4,8 @@ const env = { ...process.env, VITE_ROUTER_MODE: 'hash' }
 
 const result = spawnSync(
   'npm',
-  ['--prefix', '../../web', 'run', 'build'],
+  ['-w', 'workorder-web-vnext', 'run', 'build'],
   { stdio: 'inherit', env, shell: process.platform === 'win32' }
 )
 
 process.exit(result.status ?? 0)
-

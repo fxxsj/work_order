@@ -24,10 +24,12 @@ if (await checkUp(DEV_URL)) {
 
 console.log(`[desktop] starting web dev server: ${DEV_URL}`)
 
-const child = spawn('npm', ['--prefix', '../../web', 'run', 'dev'], {
+const env = { ...process.env, VITE_ROUTER_MODE: 'hash' }
+
+const child = spawn('npm', ['-w', 'workorder-web-vnext', 'run', 'dev'], {
   stdio: 'inherit',
-  shell: process.platform === 'win32'
+  shell: process.platform === 'win32',
+  env
 })
 
 child.on('exit', (code) => process.exit(code ?? 0))
-
