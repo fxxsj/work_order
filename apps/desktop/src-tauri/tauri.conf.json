@@ -7,7 +7,7 @@
   },
   "package": {
     "productName": "WorkOrder",
-    "version": "0.1.0"
+    "version": "0.1.0-40016"
   },
   "tauri": {
     "windows": [

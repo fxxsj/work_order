@@ -1,6 +1,6 @@
 [package]
 name = "workorder_desktop"
-version = "0.1.0"
+version = "0.1.0-40016"
 description = "Work Order Desktop Client"
 authors = ["workorder"]
 license = ""

@@ -19,6 +19,7 @@
     "vue-lazyload": "^1.3.3",
     "vue-router": "^3.6.5",
     "vue-virtual-scroller": "^1.0.0-rc.2",
+    "vuedraggable": "^2.24.3",
     "vuex": "^3.6.2",
     "vuex-persistedstate": "^4.1.0",
     "xlsx": "^0.18.5"

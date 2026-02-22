@@ -17,7 +17,7 @@ from workorder.models.core import TaskLog, WorkOrder, WorkOrderTask
 from workorder.serializers.core import WorkOrderTaskSerializer
 from workorder.services.realtime_notification import notification_service
 
-from .....models.system import Notification
+from workorder.models.system import Notification
 
 
 class TaskActionsMixin:

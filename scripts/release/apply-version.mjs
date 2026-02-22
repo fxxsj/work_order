@@ -1,14 +1,60 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-function normalizeTag(raw) {
+function parseVersion(raw) {
   const tag = String(raw || '').trim()
   if (!tag) throw new Error('Missing version/tag')
   const version = tag.startsWith('v') ? tag.slice(1) : tag
-  if (!/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(version)) {
-    throw new Error(`Invalid version: ${version}`)
+  const match = version.match(/^(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)(?:-(?<pre>[0-9A-Za-z.-]+))?$/)
+  if (!match?.groups) throw new Error(`Invalid version: ${version}`)
+  const major = Number(match.groups.major)
+  const minor = Number(match.groups.minor)
+  const patch = Number(match.groups.patch)
+  const pre = match.groups.pre || ''
+  return { tag, version, major, minor, patch, pre }
+}
+
+function toMsiSafePrereleaseNumber(pre) {
+  const trimmed = String(pre || '').trim()
+  if (!trimmed) return ''
+
+  if (/^\d+$/.test(trimmed)) {
+    const n = Number(trimmed)
+    if (!Number.isFinite(n) || n < 0 || n > 65535) {
+      throw new Error(`Invalid numeric prerelease for MSI: ${trimmed} (must be 0..65535)`)
+    }
+    return String(n)
   }
-  return version
+
+  const firstIdent = trimmed.split('.')[0] || ''
+  const channel = firstIdent.toLowerCase()
+  const baseMap = new Map([
+    ['alpha', 10000],
+    ['beta', 20000],
+    ['rc', 30000],
+    ['dryrun', 40000],
+    ['preview', 50000],
+  ])
+  const base = baseMap.get(channel) ?? 0
+
+  const lastNumberMatch = trimmed.match(/(\d+)(?!.*\d)/)
+  const n = lastNumberMatch ? Number(lastNumberMatch[1]) : 0
+  const combined = base + n
+  if (!Number.isFinite(combined) || combined < 0 || combined > 65535) {
+    throw new Error(
+      `Pre-release "${trimmed}" cannot be mapped to MSI-safe numeric prerelease (0..65535). Got ${combined}.`,
+    )
+  }
+  return String(combined)
+}
+
+function normalizeTagForTauri(raw) {
+  const parsed = parseVersion(raw)
+  if (!parsed.pre) return parsed.version
+
+  const numericPre = toMsiSafePrereleaseNumber(parsed.pre)
+  const nextVersion = `${parsed.major}.${parsed.minor}.${parsed.patch}-${numericPre}`
+  return nextVersion
 }
 
 function updateJsonVersion(filePath, nextVersion) {
@@ -63,7 +109,7 @@ function updateCargoTomlVersion(filePath, nextVersion) {
   fs.writeFileSync(filePath, out.join('\n'))
 }
 
-const version = normalizeTag(process.argv[2] || process.env.GITHUB_REF_NAME)
+const version = normalizeTagForTauri(process.argv[2] || process.env.GITHUB_REF_NAME)
 const repoRoot = process.cwd()
 
 const tauriConf = path.join(repoRoot, 'apps', 'desktop', 'src-tauri', 'tauri.conf.json')
