@@ -6,7 +6,7 @@
 
 确保您的系统已安装：
 - Python 3.8 或更高版本
-- Node.js 14 或更高版本
+- Node.js 18 或更高版本
 - npm 或 yarn
 
 ## 一、启动后端（5分钟）
@@ -57,31 +57,26 @@ python manage.py runserver
 
 ## 二、启动前端（5分钟）
 
-### 1. 打开新的终端，进入前端目录
+### 1. 打开新的终端，在仓库根目录安装依赖
 
 ```bash
-cd frontend
-```
-
-### 2. 安装依赖
-
-```bash
+cd /path/to/work_order
 npm install
 ```
 
-### 3. 启动开发服务器
+### 2. 启动开发服务器
 
 ```bash
-npm run serve
+npm run web:dev
 ```
 
-✅ 前端已启动在 http://localhost:8080
+✅ 前端已启动在 http://localhost:5173
 
 ## 三、开始使用
 
 ### 1. 登录系统
 
-打开浏览器访问：http://localhost:8081
+打开浏览器访问：http://localhost:5173
 
 **测试账号**（已自动创建）：
 - 用户名：`admin`
@@ -218,4 +213,3 @@ python manage.py runserver 8001
 - 联系技术支持
 
 祝您使用愉快！🎉
-

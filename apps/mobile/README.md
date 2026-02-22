@@ -50,6 +50,6 @@ npm run android:open
 
 ## 说明
 
-- `apps/mobile/www` 的内容来自 `apps/web/dist`（优先）或 `frontend/dist`（回退）（由 `cap:sync` 复制）。
+- `apps/mobile/www` 的内容来自 `apps/web/dist`（由 `cap:sync` 复制）。
 - `npm run android:build` 默认以 `hash` 路由构建 `apps/web`（避免深链路刷新 404）。
 - Android 工程（`apps/mobile/android`）体积较大，已在仓库 `.gitignore` 忽略；建议用脚本生成。

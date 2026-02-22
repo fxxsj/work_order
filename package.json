@@ -2,7 +2,6 @@
   "name": "workorder-monorepo",
   "private": true,
   "workspaces": [
-    "frontend",
     "apps/web",
     "apps/desktop",
     "apps/mobile",
@@ -12,8 +11,6 @@
     "node": ">=18"
   },
   "scripts": {
-    "legacy:dev": "npm -w work-order-frontend run serve",
-    "legacy:build": "npm -w work-order-frontend run build",
     "web:dev": "npm -w workorder-web-vnext run dev",
     "web:build": "npm -w workorder-web-vnext run build",
     "web:build:hash": "node scripts/web/build-web.mjs hash",

@@ -28,7 +28,7 @@ Internet
 ### 软件要求
 - Ubuntu 20.04 LTS / CentOS 8+ / Debian 11+
 - Python 3.8+
-- Node.js 14+
+- Node.js 18+
 - PostgreSQL 12+ / MySQL 8+ (推荐) 或 SQLite
 - Nginx 1.18+
 
@@ -272,16 +272,16 @@ sudo systemctl status workorder
 ### 4.1 构建前端
 
 ```bash
-cd /var/www/workorder/frontend
+cd /var/www/workorder
 
 # 安装依赖
 npm install
 
-# 修改 API 地址（如果需要）
-# 编辑 vue.config.js 或 .env.production
+# （可选）固定 API/WS 地址
+# 编辑 apps/web/.env（或使用反向代理让前端走 /api）
 
 # 构建生产版本
-npm run build
+npm run web:build
 ```
 
 ### 4.2 配置 Nginx
@@ -299,7 +299,7 @@ server {
 
     # 前端静态文件
     location / {
-        root /var/www/workorder/frontend/dist;
+        root /var/www/workorder/apps/web/dist;
         try_files $uri $uri/ /index.html;
         expires 1d;
         add_header Cache-Control "public, immutable";
@@ -455,9 +455,9 @@ python manage.py collectstatic --noinput
 sudo systemctl restart workorder
 
 # 更新前端
-cd ../frontend
+cd ..
 npm install
-npm run build
+npm run web:build
 sudo systemctl reload nginx
 ```
 
@@ -600,8 +600,8 @@ DATABASES = {
 ### 前端部署
 
 - [ ] 安装 npm 依赖（npm install）
-- [ ] 配置生产环境 API 地址（.env.production 或 vue.config.js）
-- [ ] 构建生产版本（npm run build）
+- [ ] 配置生产环境 API 地址（apps/web/.env 或反向代理）
+- [ ] 构建生产版本（npm run web:build）
 - [ ] 部署到 Web 服务器目录
 - [ ] 验证前端可访问
 
@@ -702,4 +702,3 @@ DATABASES = {
 ## 联系支持
 
 如遇到部署问题，请查看项目 Issues 或联系技术支持。
-

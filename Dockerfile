@@ -1,21 +1,25 @@
 # Multi-stage Dockerfile for 印刷施工单跟踪系统
 
-# Build stage for frontend
-FROM node:16-alpine AS frontend-build
+# Build stage for Web (Vue 3 / Vite)
+FROM node:18-alpine AS web-build
 
-WORKDIR /app/frontend
+WORKDIR /app
 
-# Copy frontend package files
-COPY frontend/package*.json ./
+# Copy workspace manifests first (better layer cache)
+COPY package.json package-lock.json ./
+COPY apps/web/package.json apps/web/package.json
+COPY apps/desktop/package.json apps/desktop/package.json
+COPY apps/mobile/package.json apps/mobile/package.json
+COPY packages/sdk/package.json packages/sdk/package.json
 
-# Install frontend dependencies
-RUN npm ci --only=production
+# Install deps (uses npm workspaces)
+RUN npm ci
 
-# Copy frontend source code
-COPY frontend/ ./
+# Copy web source code
+COPY apps/web/ apps/web/
 
-# Build frontend
-RUN npm run build
+# Build web
+RUN npm -w workorder-web-vnext run build
 
 # Production stage
 FROM python:3.9-slim AS production
@@ -32,6 +36,7 @@ RUN apt-get update \
         build-essential \
         libpq-dev \
         curl \
+        netcat-openbsd \
         gnupg \
         git \
     && rm -rf /var/lib/apt/lists/*
@@ -51,8 +56,8 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Copy backend code
 COPY backend/ ./
 
-# Copy frontend build files from frontend-build stage
-COPY --from=frontend-build /app/frontend/dist ./static/
+# Copy web build files from web-build stage
+COPY --from=web-build /app/apps/web/dist ./static/
 
 # Create necessary directories
 RUN mkdir -p /app/logs /app/media /app/staticfiles \

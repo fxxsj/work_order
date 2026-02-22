@@ -23,9 +23,7 @@ function emptyDir(dir) {
 }
 
 const repoRoot = path.resolve(__dirname, '..', '..', '..')
-const preferredDist = path.join(repoRoot, 'apps', 'web', 'dist')
-const fallbackDist = path.join(repoRoot, 'frontend', 'dist')
-const webDist = fs.existsSync(preferredDist) ? preferredDist : fallbackDist
+const webDist = path.join(repoRoot, 'apps', 'web', 'dist')
 const webDir = path.join(repoRoot, 'apps', 'mobile', 'www')
 
 const devServerUrl = process.env.CAP_SERVER_URL
@@ -37,7 +35,7 @@ if (devServerUrl) {
 
 if (!fs.existsSync(webDist)) {
   console.error(`web build output not found: ${webDist}`)
-  console.error('Run: npm run web:build (recommended) OR cd frontend && npm run build')
+  console.error('Run: npm run web:build')
   console.error('Tip: For Live Reload, set CAP_SERVER_URL and re-run sync.')
   process.exit(1)
 }

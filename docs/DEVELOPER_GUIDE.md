@@ -21,7 +21,7 @@
 
 ### 前置要求
 
-- Node.js 16.x+
+- Node.js 18.x+
 - Python 3.11+
 - Git
 - VS Code (推荐)
@@ -33,18 +33,17 @@
 git clone <repository-url>
 cd work_order
 
-# 启动前端
-cd frontend
+# 启动前端（Web vNext）
 npm install
-npm run serve
+npm run web:dev
 
 # 启动后端
-cd ../backend
+cd backend
 pip install -r requirements.txt
 python manage.py runserver
 ```
 
-访问：http://localhost:8080
+访问：http://localhost:5173
 
 ## 🛠️ 开发环境搭建
 
@@ -69,12 +68,11 @@ cp .env.example .env
 #### 前端环境
 
 ```bash
-# 安装依赖
+cd /path/to/work_order
 npm install
 
-# 开发环境配置
-cp .env.development.example .env.development
-# 编辑开发环境配置
+# （可选）固定 API/WS 地址（也可在登录页运行时配置）
+cp apps/web/.env.example apps/web/.env
 ```
 
 #### 多端客户端（Phase 0）配置要点
@@ -84,9 +82,8 @@ cp .env.development.example .env.development
 - **运行时配置入口**：登录页底部「服务器设置」（配置后会刷新页面生效）
 - **运行时配置存储**：`localStorage["workorder.runtimeConfig"]`
 - **环境变量（可选）**：
-  - `VUE_APP_API_BASE_URL` 或 `VUE_APP_API_URL`（示例：`http://127.0.0.1:8000/api`）
-  - `VUE_APP_WS_BASE_URL`（示例：`ws://127.0.0.1:8001` 或 `wss://example.com`）
-  - 兼容旧配置：`VUE_APP_WS_HOST`（示例：`127.0.0.1:8001`）
+  - `VITE_API_BASE_URL`（示例：`http://127.0.0.1:8000/api`）
+  - `VITE_WS_BASE_URL`（示例：`ws://127.0.0.1:8001` 或 `wss://example.com`）
 
 后端跨域（CORS）说明：
 - 开发环境已默认加入 `tauri://localhost`、`capacitor://localhost`、`ionic://localhost` 等常见 origin；生产环境请通过 `CORS_ALLOWED_ORIGINS` 显式配置。

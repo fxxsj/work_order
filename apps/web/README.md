@@ -1,17 +1,13 @@
-# Web vNext（Vue 3 + Vite + TypeScript）
+# Web（Vue 3 + Vite + TypeScript）
 
-该目录用于逐步替换现有 `frontend/`（Vue 2.7 + Vue CLI），采用“绞杀者模式”迁移：
-
-- 新功能/新页面优先在 `apps/web` 开发
-- 旧页面按模块逐步迁移
-- 迁移完成后再下线 `frontend/`
+该目录是系统的主 Web 客户端（Vue 3 / Vite / TS / Pinia / Element Plus）。
 
 ## 开发
 
 ```bash
-cd apps/web
+cd /path/to/work_order
 npm install
-npm run dev
+npm run web:dev
 ```
 
 默认：

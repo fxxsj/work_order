@@ -22,6 +22,8 @@ MAX_DUPLICATION=5
 
 # Track overall success
 OVERALL_SUCCESS=true
+SECURITY_ISSUES=0
+COVERAGE_PERCENTAGE=0
 
 # Function to print status
 print_status() {
@@ -120,23 +122,14 @@ else
 fi
 
 echo ""
-echo "🎨 Step 4: Frontend Quality Checks"
-echo "================================="
+echo "🎨 Step 4: Web Client Build Check"
+echo "================================"
 
-# 4.1 Frontend linting
-echo "Running frontend linting..."
-if cd frontend && npm run lint; then
-    print_status 0 "Frontend linting"
+echo "Checking web production build (Vue 3 / Vite)..."
+if npm -w workorder-web-vnext run build; then
+    print_status 0 "Web production build"
 else
-    print_status 1 "Frontend linting"
-fi
-
-# 4.2 Frontend tests
-echo "Running frontend tests..."
-if cd frontend && npm run test:unit; then
-    print_status 0 "Frontend unit tests"
-else
-    print_status 1 "Frontend unit tests"
+    print_status 1 "Web production build"
 fi
 
 echo ""
@@ -149,14 +142,6 @@ if cd backend && python manage.py check; then
     print_status 0 "Django system check"
 else
     print_status 1 "Django system check"
-fi
-
-# 5.2 Frontend build check
-echo "Checking frontend build..."
-if cd frontend && npm run build; then
-    print_status 0 "Frontend production build"
-else
-    print_status 1 "Frontend production build"
 fi
 
 echo ""
@@ -212,8 +197,7 @@ cat > quality-report.json << EOF
       "backend_linting": $(cd backend && flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics > /dev/null 2>&1 && echo "true" || echo "false"),
       "security_issues": $SECURITY_ISSUES,
       "test_coverage": $COVERAGE_PERCENTAGE,
-      "frontend_linting": $(cd frontend && npm run lint > /dev/null 2>&1 && echo "true" || echo "false"),
-      "frontend_tests": $(cd frontend && npm run test:unit > /dev/null 2>&1 && echo "true" || echo "false")
+      "web_build": $(npm -w workorder-web-vnext run build > /dev/null 2>&1 && echo "true" || echo "false")
     },
     "thresholds": {
       "min_test_coverage": $MIN_TEST_COVERAGE,

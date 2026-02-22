@@ -68,7 +68,7 @@ export function getWsBaseUrl() {
   if (env) return normalizeWsBaseUrl(env)
 
   // 默认策略（开发友好）：
-  // - 本地开发：默认走 8001（与现有 Vue2 约定一致）
+  // - 本地开发：默认走 8001（后端 WebSocket 默认端口）
   // - 其他环境：复用当前 host（假设由反向代理转发 /ws）
   if (window.location.protocol === 'file:' || !window.location.hostname) {
     return ''

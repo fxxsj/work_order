@@ -1,6 +1,6 @@
 # 印刷施工单跟踪系统
 
-一个基于 Vue 2 + Element UI + Django 4.2 的印刷施工单跟踪管理系统，支持施工单管理、工序跟踪、任务管理、客户管理、物料管理等完整业务流程。
+一个基于 Vue 3 + Vite + TypeScript + Element Plus + Django 4.2 的印刷施工单跟踪管理系统，支持施工单管理、工序跟踪、任务管理、客户管理、物料管理等完整业务流程。
 
 ## 功能特性
 
@@ -70,8 +70,7 @@
 ## 技术栈
 
 ### 前端
-- **稳定版（legacy）**：Vue 2.7 + Element UI 2.15 + Vue Router 3 + Vuex 3
-- **vNext（迁移中）**：Vue 3 + Vite + TypeScript + Pinia + Element Plus + Vue Router 4（目录：`apps/web/`）
+- Vue 3 + Vite + TypeScript + Pinia + Element Plus + Vue Router 4（目录：`apps/web/`）
 
 ### 后端
 - **Django 4.2** - Python Web 框架
@@ -141,21 +140,6 @@ python manage.py runserver
 ### 前端安装
 
 ```bash
-# 进入前端目录
-cd frontend
-
-# 安装依赖
-npm install
-
-# 启动开发服务器
-npm run serve
-```
-
-前端服务将运行在 `http://localhost:8080`
-
-### Web vNext（推荐）
-
-```bash
 cd /path/to/work_order
 npm install
 npm run web:dev
@@ -194,7 +178,7 @@ npm run android:open
 
 ### 访问系统
 
-- **前端界面**: http://localhost:8081
+- **前端界面**: http://localhost:5173
 - **Django Admin**: http://localhost:8000/admin
 - **API 文档**: http://localhost:8000/api
 
@@ -234,71 +218,15 @@ work_order/
 │   ├── manage.py           # Django 管理脚本
 │   └── requirements.txt    # Python 依赖
 │
-├── frontend/               # 前端项目
-│   ├── public/            # 静态资源
-│   ├── src/
-│   │   ├── api/           # API 接口
-│   │   │   ├── base/      # API 基础类
-│   │   │   │   └── BaseAPI.js       # Base API 类
-│   │   │   └── modules/   # API 模块（27个模块）
-│   │   │       ├── auth.js
-│   │   │       ├── customer.js
-│   │   │       ├── department.js
-│   │   │       ├── process.js
-│   │   │       ├── product.js
-│   │   │       ├── product-group.js
-│   │   │       ├── material.js
-│   │   │       ├── product-material.js
-│   │   │       ├── artwork.js
-│   │   │       ├── die.js
-│   │   │       ├── foiling-plate.js
-│   │   │       ├── embossing-plate.js
-│   │   │       ├── supplier.js
-│   │   │       ├── invoice.js
-│   │   │       ├── production-cost.js
-│   │   │       ├── payment.js
-│   │   │       ├── statement.js
-│   │   │       ├── product-stock.js
-│   │   │       ├── delivery-order.js
-│   │   │       ├── quality-inspection.js
-│   │   │       ├── stock-in.js
-│   │   │       ├── stock-out.js
-│   │   │       ├── sales-order.js
-│   │   │       ├── workorder.js
-│   │   │       ├── workorder-task.js
-│   │   │       ├── workorder-process.js
-│   │   │       ├── workorder-material.js
-│   │   │       ├── task-assignment-rule.js
-│   │   │       ├── purchase.js
-│   │   │       ├── notification.js
-│   │   │       └── index.js            # 统一导出
-│   │   ├── mixins/        # Vue Mixins
-│   │   │   ├── listPageMixin.js        # 列表页面 Mixin
-│   │   │   ├── permissionMixin.js      # 权限检查 Mixin
-│   │   │   ├── crudMixin.js            # CRUD 操作 Mixin
-│   │   │   └── crudPermissionMixin.js  # CRUD 权限 Mixin
-│   │   ├── utils/         # 工具函数
-│   │   │   └── errorHandler.js         # 统一错误处理
-│   │   ├── assets/        # 资源文件
-│   │   ├── components/    # 组件
-│   │   ├── router/        # 路由配置
-│   │   ├── store/         # Vuex 状态管理
-│   │   ├── views/         # 页面视图
-│   │   │   ├── Layout.vue          # 布局页面
-│   │   │   ├── Dashboard.vue       # 工作台
-│   │   │   ├── workorder/          # 施工单相关页面
-│   │   │   │   ├── List.vue        # 列表页
-│   │   │   │   ├── Detail.vue      # 详情页
-│   │   │   │   ├── Form.vue        # 表单页
-│   │   │   │   └── components/     # 子组件
-│   │   │   ├── customer/           # 客户管理
-│   │   │   ├── process/            # 工序管理
-│   │   │   ├── material/           # 物料管理
-│   │   │   └── task/               # 任务管理
-│   │   ├── App.vue        # 根组件
-│   │   └── main.js        # 入口文件
-│   ├── package.json       # Node 依赖
-│   └── vue.config.js      # Vue 配置
+├── apps/
+│   ├── web/                # Web 客户端（Vue 3 / Vite / TS）
+│   ├── desktop/            # 桌面端壳（Tauri）
+│   └── mobile/             # Android 壳（Capacitor）
+│
+├── packages/
+│   └── sdk/                # OpenAPI 生成的 SDK/类型
+│
+├── scripts/                # 构建/发布脚本
 │
 ├── docs/                   # 项目文档
 │   ├── README.md          # 文档索引
@@ -433,11 +361,12 @@ work_order/
 ### 前端部署
 
 ```bash
-cd frontend
-npm run build
+cd /path/to/work_order
+npm install
+npm run web:build
 ```
 
-将 `dist` 目录部署到 Web 服务器（如 Nginx）。
+将 `apps/web/dist` 目录部署到 Web 服务器（如 Nginx），或将其作为静态资源随服务端镜像一起发布。
 
 ## 开发说明
 
