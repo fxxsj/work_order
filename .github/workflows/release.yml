@@ -44,7 +44,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
@@ -230,7 +230,7 @@ jobs:
         if: ${{ steps.gate.outputs.enabled == 'true' }}
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Download artifacts
         if: ${{ steps.gate.outputs.enabled == 'true' }}
