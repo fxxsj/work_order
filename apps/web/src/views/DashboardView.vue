@@ -32,6 +32,7 @@
         <el-button @click="goEmbossingPlates">压凸版</el-button>
         <el-button @click="goProductGroups">产品组</el-button>
         <el-button @click="goDeliveryOrders">发货单</el-button>
+        <el-button @click="goQualityInspections">质量检验</el-button>
       </div>
     </el-card>
   </div>
@@ -146,6 +147,10 @@ function goProductGroups() {
 
 function goDeliveryOrders() {
   router.push({ name: 'delivery-orders' })
+}
+
+function goQualityInspections() {
+  router.push({ name: 'quality-inspections' })
 }
 </script>
 

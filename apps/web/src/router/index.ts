@@ -29,6 +29,7 @@ import FoilingPlateListView from '../views/FoilingPlateListView.vue'
 import EmbossingPlateListView from '../views/EmbossingPlateListView.vue'
 import ProductGroupListView from '../views/ProductGroupListView.vue'
 import DeliveryOrderListView from '../views/DeliveryOrderListView.vue'
+import QualityInspectionListView from '../views/QualityInspectionListView.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -57,6 +58,7 @@ export const router = createRouter({
     { path: '/embossing-plates', name: 'embossing-plates', component: EmbossingPlateListView, meta: { requiresAuth: true } },
     { path: '/product-groups', name: 'product-groups', component: ProductGroupListView, meta: { requiresAuth: true } },
     { path: '/delivery-orders', name: 'delivery-orders', component: DeliveryOrderListView, meta: { requiresAuth: true } },
+    { path: '/quality-inspections', name: 'quality-inspections', component: QualityInspectionListView, meta: { requiresAuth: true } },
     { path: '/tasks', name: 'tasks', component: TaskListView, meta: { requiresAuth: true } },
     { path: '/tasks/operator', name: 'operator-center', component: OperatorCenterView, meta: { requiresAuth: true } },
     { path: '/notifications', name: 'notifications', component: NotificationView, meta: { requiresAuth: true } }
