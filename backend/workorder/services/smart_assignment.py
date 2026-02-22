@@ -291,8 +291,8 @@ class SmartAssignmentService:
         ))
         
         # 平衡度计算
-        avg_skill_level = np.mean(skill_levels) if skill_levels else [1.0])
-        capacity_variance = np.var(work_capacities) if work_capacities else [1.0])
+        avg_skill_level = np.mean(skill_levels) if skill_levels else 1.0
+        capacity_variance = np.var(work_capacities) if work_capacities else 1.0
         
         # 平衡度评分：技能多样性 + 容量平衡
         diversity_score = (skill_diversity / len(skill_levels)) * 0.4

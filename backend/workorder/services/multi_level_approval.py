@@ -513,7 +513,7 @@ class MultiLevelApprovalService:
                 recipient=participant,
                 notification_type='approval_completed',
                 title=f'审核完成：{work_order.order_number}',
-                content=f'施工单 {work_order.order_number} 审核流程已结束，结果：{decision == "approve" ? "通过" : "拒绝"}',
+                content=f'施工单 {work_order.order_number} 审核流程已结束，结果：{"通过" if decision == "approve" else "拒绝"}',
                 priority='high',
                 work_order=work_order
             )

@@ -138,7 +138,7 @@ jobs:
     - name: Install dependencies
       run: |
         cd frontend
-        npm ci
+        npm install
 
     - name: Run ESLint
       run: |
@@ -213,7 +213,7 @@ jobs:
     - name: Install frontend dependencies and build
       run: |
         cd frontend
-        npm ci
+        npm install
         npm run build
 
     - name: Run integration tests
