@@ -137,7 +137,10 @@ jobs:
 
     - name: Install dependencies
       run: |
+        # Remove root node_modules to prevent Vue 3 hoisting conflict
+        rm -rf node_modules
         cd frontend
+        rm -rf node_modules
         npm install
         # Generate lockfile for caching if not exists
         if [ ! -f package-lock.json ]; then npm install --package-lock-only; fi
