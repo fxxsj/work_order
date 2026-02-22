@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for 印刷施工单跟踪系统
 
 # Build stage for Web (Vue 3 / Vite)
-FROM node:18-alpine AS web-build
+FROM node:20-bookworm-slim AS web-build
 
 WORKDIR /app
 
@@ -14,6 +14,10 @@ COPY packages/sdk/package.json packages/sdk/package.json
 
 # Install deps (uses npm workspaces)
 RUN npm ci
+
+# Workaround: ensure Rollup native binary exists on linux runners
+RUN ROLLUP_VERSION="$(node -e "console.log(require('rollup/package.json').version)")" \
+    && npm i --no-save "@rollup/rollup-linux-x64-gnu@${ROLLUP_VERSION}"
 
 # Copy web source code
 COPY apps/web/ apps/web/
