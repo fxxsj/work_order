@@ -10,6 +10,7 @@ import { useNotificationsStore } from '../stores/notifications'
 import OperatorCenterView from '../views/OperatorCenterView.vue'
 import WorkOrderDetailView from '../views/WorkOrderDetailView.vue'
 import WorkOrderCreateView from '../views/WorkOrderCreateView.vue'
+import CustomerListView from '../views/CustomerListView.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -19,6 +20,7 @@ export const router = createRouter({
     { path: '/workorders', name: 'workorders', component: WorkOrderListView, meta: { requiresAuth: true } },
     { path: '/workorders/create', name: 'workorder-create', component: WorkOrderCreateView, meta: { requiresAuth: true } },
     { path: '/workorders/:id', name: 'workorder-detail', component: WorkOrderDetailView, meta: { requiresAuth: true } },
+    { path: '/customers', name: 'customers', component: CustomerListView, meta: { requiresAuth: true } },
     { path: '/tasks', name: 'tasks', component: TaskListView, meta: { requiresAuth: true } },
     { path: '/tasks/operator', name: 'operator-center', component: OperatorCenterView, meta: { requiresAuth: true } },
     { path: '/notifications', name: 'notifications', component: NotificationView, meta: { requiresAuth: true } }
