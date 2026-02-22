@@ -15,8 +15,8 @@
 
 ### 1.1 建议的开发模式
 
-- **开发期**：Tauri 直接加载 `http://localhost:8080`（运行现有 `frontend` 的 dev server）
-- **打包期**：Tauri 使用 `frontend` 构建产物（`frontend/dist`）
+- **开发期**：Tauri 直接加载 `http://localhost:5173`（运行 `apps/web` 的 dev server）
+- **打包期**：Tauri 使用 `apps/web` 构建产物（`apps/web/dist`）
 - **环境切换**：通过登录页「服务器设置」配置 `API Base URL / WS Base URL`
 
 代码位置：`apps/desktop/`
@@ -28,10 +28,10 @@
 cd backend
 python manage.py runserver
 
-# 2) 前端（Vue2）
-cd ../frontend
+# 2) Web（Vue3/Vite）
+cd ../apps/web
 npm install
-npm run serve
+npm run dev
 
 # 3) 桌面壳
 cd ../apps/desktop
@@ -65,8 +65,8 @@ npm run tauri:dev
 ### 2.1.1 实际运行命令（最短路径）
 
 ```bash
-# 1) 构建前端（Vue2）
-cd frontend
+# 1) 构建 Web（Vue3/Vite，推荐）
+cd apps/web
 npm install
 npm run build
 
