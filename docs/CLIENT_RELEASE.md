@@ -19,6 +19,8 @@ npm run web:build
 
 产物：`apps/web/dist/`
 
+> CI：`.github/workflows/clients.yml` 会在构建后上传 `web-dist` artifact（便于下载验证）。
+
 ## 2. 桌面端（Tauri：macOS / Windows）
 
 前置：Rust toolchain（以及对应平台构建工具链）。
@@ -63,4 +65,3 @@ npm run web:dev
 export CAP_SERVER_URL="http://10.0.2.2:5173"
 npm run android:sync
 ```
-

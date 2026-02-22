@@ -43,6 +43,12 @@ jobs:
       - name: Build apps/web
         run: npm run web:build:hash
 
+      - name: Upload web dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: apps/web/dist/
+
   openapi-and-sdk:
     name: OpenAPI export + SDK types
     runs-on: ubuntu-latest
@@ -75,3 +81,11 @@ jobs:
 
       - name: Generate SDK types
         run: npm run sdk:generate
+
+      - name: Upload OpenAPI + SDK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-and-sdk
+          path: |
+            openapi/openapi.json
+            packages/sdk/src/schema.d.ts
