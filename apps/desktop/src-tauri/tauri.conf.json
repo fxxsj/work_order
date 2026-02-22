@@ -25,7 +25,11 @@
       "active": true,
       "targets": "all",
       "identifier": "com.workorder.app",
-      "icon": []
+      "icon": [
+        "icons/icon.ico",
+        "icons/icon.icns",
+        "icons/icon.png"
+      ]
     },
     "updater": {
       "active": false,
