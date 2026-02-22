@@ -14,6 +14,9 @@ import CustomerListView from '../views/CustomerListView.vue'
 import ProductListView from '../views/ProductListView.vue'
 import DepartmentListView from '../views/DepartmentListView.vue'
 import ProcessListView from '../views/ProcessListView.vue'
+import MaterialListView from '../views/MaterialListView.vue'
+import SupplierListView from '../views/SupplierListView.vue'
+import MaterialSupplierListView from '../views/MaterialSupplierListView.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -27,6 +30,9 @@ export const router = createRouter({
     { path: '/products', name: 'products', component: ProductListView, meta: { requiresAuth: true } },
     { path: '/departments', name: 'departments', component: DepartmentListView, meta: { requiresAuth: true } },
     { path: '/processes', name: 'processes', component: ProcessListView, meta: { requiresAuth: true } },
+    { path: '/materials', name: 'materials', component: MaterialListView, meta: { requiresAuth: true } },
+    { path: '/suppliers', name: 'suppliers', component: SupplierListView, meta: { requiresAuth: true } },
+    { path: '/material-suppliers', name: 'material-suppliers', component: MaterialSupplierListView, meta: { requiresAuth: true } },
     { path: '/tasks', name: 'tasks', component: TaskListView, meta: { requiresAuth: true } },
     { path: '/tasks/operator', name: 'operator-center', component: OperatorCenterView, meta: { requiresAuth: true } },
     { path: '/notifications', name: 'notifications', component: NotificationView, meta: { requiresAuth: true } }

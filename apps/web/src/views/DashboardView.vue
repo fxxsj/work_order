@@ -17,6 +17,9 @@
         <el-button @click="goProducts">产品</el-button>
         <el-button @click="goDepartments">部门</el-button>
         <el-button @click="goProcesses">工序</el-button>
+        <el-button @click="goMaterials">物料</el-button>
+        <el-button @click="goSuppliers">供应商</el-button>
+        <el-button @click="goMaterialSuppliers">物料-供应商</el-button>
       </div>
     </el-card>
   </div>
@@ -71,6 +74,18 @@ function goDepartments() {
 
 function goProcesses() {
   router.push({ name: 'processes' })
+}
+
+function goMaterials() {
+  router.push({ name: 'materials' })
+}
+
+function goSuppliers() {
+  router.push({ name: 'suppliers' })
+}
+
+function goMaterialSuppliers() {
+  router.push({ name: 'material-suppliers' })
 }
 </script>
 
