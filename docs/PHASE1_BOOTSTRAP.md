@@ -43,6 +43,7 @@ npm run desktop:dev
 ### 1.3 最小验收（桌面 MVP）
 
 - 登录/登出、token 过期跳转
+- Token 持久化存储（桌面端默认使用系统 Keychain/凭据管理器）
 - 施工单列表/详情/关键操作
 - 任务操作（认领/开始/完成）
 - 通知（WebSocket 可连接，断线重连）
@@ -96,6 +97,7 @@ npm run android:sync
 ### 2.3 最小验收（Android MVP）
 
 - 登录/登出、token 过期跳转
+- Token 持久化存储（Android 默认使用 Capacitor Preferences）
 - 触控可用（列表/详情/弹窗不溢出）
 - 文件上传（如业务需要）
 - 通知（WebSocket 可连接，断线重连）

@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^5.7.0",
-    "@capacitor/core": "^5.7.0"
+    "@capacitor/core": "^5.7.0",
+    "@capacitor/preferences": "^5.0.8"
   }
 }

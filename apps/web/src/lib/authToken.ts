@@ -84,11 +84,15 @@ export function setAuthToken(token: string) {
   }
 
   if (isTauri()) {
-    void saveToTauriKeychain(token)
+    void saveToTauriKeychain(token).catch(() => {
+      localStorage.setItem(TOKEN_KEY, token)
+    })
     return
   }
   if (isCapacitorNative()) {
-    void saveToCapacitorPreferences(token)
+    void saveToCapacitorPreferences(token).catch(() => {
+      localStorage.setItem(TOKEN_KEY, token)
+    })
     return
   }
   localStorage.setItem(TOKEN_KEY, token)
@@ -99,12 +103,11 @@ export function clearAuthToken() {
 
   if (isTauri()) {
     localStorage.removeItem(TOKEN_KEY)
-    return void clearTauriKeychain()
+    return void clearTauriKeychain().catch(() => {})
   }
   if (isCapacitorNative()) {
     localStorage.removeItem(TOKEN_KEY)
-    return void clearCapacitorPreferences()
+    return void clearCapacitorPreferences().catch(() => {})
   }
   localStorage.removeItem(TOKEN_KEY)
 }
-
