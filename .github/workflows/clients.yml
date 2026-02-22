@@ -5,6 +5,7 @@ on:
     branches: [ main, develop ]
     paths:
       - 'apps/**'
+      - 'backend/**'
       - 'packages/**'
       - 'openapi/**'
       - 'scripts/openapi/**'
@@ -15,6 +16,7 @@ on:
     branches: [ main, develop ]
     paths:
       - 'apps/**'
+      - 'backend/**'
       - 'packages/**'
       - 'openapi/**'
       - 'scripts/openapi/**'
