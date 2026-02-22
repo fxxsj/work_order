@@ -31,6 +31,7 @@
         <el-button @click="goFoilingPlates">烫金版</el-button>
         <el-button @click="goEmbossingPlates">压凸版</el-button>
         <el-button @click="goProductGroups">产品组</el-button>
+        <el-button @click="goDeliveryOrders">发货单</el-button>
       </div>
     </el-card>
   </div>
@@ -141,6 +142,10 @@ function goEmbossingPlates() {
 
 function goProductGroups() {
   router.push({ name: 'product-groups' })
+}
+
+function goDeliveryOrders() {
+  router.push({ name: 'delivery-orders' })
 }
 </script>
 
