@@ -4,10 +4,12 @@ from django.db import migrations
 
 # 从共享数据源导入预设部门数据
 try:
-    from workorder.data import (PRESET_DEPARTMENT_CODES,
-                                PRESET_MANAGEMENT_DEPARTMENTS,
-                                PRESET_PRODUCTION_DEPARTMENT,
-                                PRESET_WORKSHOP_DEPARTMENTS)
+    from workorder.data import (
+        PRESET_DEPARTMENT_CODES,
+        PRESET_MANAGEMENT_DEPARTMENTS,
+        PRESET_PRODUCTION_DEPARTMENT,
+        PRESET_WORKSHOP_DEPARTMENTS,
+    )
 except ImportError:
     # 如果导入失败（理论上不应该发生），使用内联数据作为后备
     PRESET_MANAGEMENT_DEPARTMENTS = [

@@ -14,8 +14,7 @@ from django.contrib import admin
 from django.utils import timezone
 from django.utils.html import format_html
 
-from ..models import (Notification, TaskAssignmentRule, UserProfile,
-                      WorkOrderApprovalLog)
+from ..models import Notification, TaskAssignmentRule, UserProfile, WorkOrderApprovalLog
 
 
 @admin.register(UserProfile)

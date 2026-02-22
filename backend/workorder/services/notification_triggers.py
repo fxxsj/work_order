@@ -11,12 +11,19 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-from ..models.core import (ProcessLog, TaskLog, WorkOrder, WorkOrderProcess,
-                           WorkOrderTask)
+from ..models.core import (
+    ProcessLog,
+    TaskLog,
+    WorkOrder,
+    WorkOrderProcess,
+    WorkOrderTask,
+)
 from ..models.system import WorkOrderApprovalLog
-from ..services.realtime_notification import (NotificationEvent,
-                                              NotificationPriority,
-                                              notification_service)
+from ..services.realtime_notification import (
+    NotificationEvent,
+    NotificationPriority,
+    notification_service,
+)
 
 
 @receiver(post_save, sender=WorkOrder)

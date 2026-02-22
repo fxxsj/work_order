@@ -16,8 +16,13 @@ from django.contrib import admin
 from django.db.models import Count, Sum
 from django.utils.html import format_html
 
-from ..models import (Material, MaterialSupplier, PurchaseOrder,
-                      PurchaseOrderItem, Supplier)
+from ..models import (
+    Material,
+    MaterialSupplier,
+    PurchaseOrder,
+    PurchaseOrderItem,
+    Supplier,
+)
 from .mixins import FixedInlineModelAdminMixin
 from .utils import PURCHASE_STATUS_COLORS, create_status_badge_method
 

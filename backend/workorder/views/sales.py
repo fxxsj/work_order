@@ -18,9 +18,11 @@ from ..models.base import Customer
 from ..models.products import Product
 from ..models.sales import SalesOrder, SalesOrderItem
 from ..permissions import SuperuserFriendlyModelPermissions
-from ..serializers.sales import (SalesOrderDetailSerializer,
-                                 SalesOrderItemSerializer,
-                                 SalesOrderListSerializer)
+from ..serializers.sales import (
+    SalesOrderDetailSerializer,
+    SalesOrderItemSerializer,
+    SalesOrderListSerializer,
+)
 
 
 class SalesOrderViewSet(viewsets.ModelViewSet):

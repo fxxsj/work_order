@@ -6,9 +6,16 @@
 
 from rest_framework import serializers
 
-from ..models.assets import (Artwork, ArtworkProduct, Die, DieProduct,
-                             EmbossingPlate, EmbossingPlateProduct,
-                             FoilingPlate, FoilingPlateProduct)
+from ..models.assets import (
+    Artwork,
+    ArtworkProduct,
+    Die,
+    DieProduct,
+    EmbossingPlate,
+    EmbossingPlateProduct,
+    FoilingPlate,
+    FoilingPlateProduct,
+)
 
 
 class ArtworkProductSerializer(serializers.ModelSerializer):

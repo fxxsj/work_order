@@ -16,9 +16,13 @@ sys.path.append("/home/chenjiaxing/文档/work_order/backend")
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
-from monitoring.working_monitor import (alert_manager, get_performance_stats,
-                                        health_monitor, metrics,
-                                        monitor_performance)
+from monitoring.working_monitor import (
+    alert_manager,
+    get_performance_stats,
+    health_monitor,
+    metrics,
+    monitor_performance,
+)
 
 
 @monitor_performance("test_fast_operation")

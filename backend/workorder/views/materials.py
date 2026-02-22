@@ -12,20 +12,27 @@ from rest_framework import filters, pagination, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ..models.materials import (Material, MaterialSupplier, PurchaseOrder,
-                                PurchaseOrderItem, PurchaseReceiveRecord,
-                                Supplier)
+from ..models.materials import (
+    Material,
+    MaterialSupplier,
+    PurchaseOrder,
+    PurchaseOrderItem,
+    PurchaseReceiveRecord,
+    Supplier,
+)
 from ..permissions import SuperuserFriendlyModelPermissions
-from ..serializers.materials import (InspectionConfirmSerializer,
-                                     MaterialSerializer,
-                                     MaterialSupplierSerializer,
-                                     PurchaseOrderDetailSerializer,
-                                     PurchaseOrderItemSerializer,
-                                     PurchaseOrderListSerializer,
-                                     PurchaseReceiveRecordCreateSerializer,
-                                     PurchaseReceiveRecordSerializer,
-                                     ReturnProcessSerializer,
-                                     SupplierSerializer)
+from ..serializers.materials import (
+    InspectionConfirmSerializer,
+    MaterialSerializer,
+    MaterialSupplierSerializer,
+    PurchaseOrderDetailSerializer,
+    PurchaseOrderItemSerializer,
+    PurchaseOrderListSerializer,
+    PurchaseReceiveRecordCreateSerializer,
+    PurchaseReceiveRecordSerializer,
+    ReturnProcessSerializer,
+    SupplierSerializer,
+)
 
 
 class MaterialViewSet(viewsets.ModelViewSet):

@@ -6,8 +6,7 @@
 
 from rest_framework import serializers
 
-from ..models.system import (Notification, TaskAssignmentRule,
-                             WorkOrderApprovalLog)
+from ..models.system import Notification, TaskAssignmentRule, WorkOrderApprovalLog
 
 
 class WorkOrderApprovalLogSerializer(serializers.ModelSerializer):

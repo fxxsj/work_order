@@ -13,9 +13,13 @@ import time
 sys.path.append("/home/chenjiaxing/文档/work_order/backend")
 
 # 直接导入监控模块
-from monitoring.working_monitor import (alert_manager, get_performance_stats,
-                                        health_monitor, metrics,
-                                        monitor_performance)
+from monitoring.working_monitor import (
+    alert_manager,
+    get_performance_stats,
+    health_monitor,
+    metrics,
+    monitor_performance,
+)
 
 
 @monitor_performance("test_fast_operation")

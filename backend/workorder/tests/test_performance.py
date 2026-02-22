@@ -172,8 +172,7 @@ class PerformanceTestCase(TestCase):
         """Test that task list queryset uses select_related properly"""
         from django.test import RequestFactory
 
-        from workorder.views.work_order_tasks.task_main import \
-            BaseWorkOrderTaskViewSet
+        from workorder.views.work_order_tasks.task_main import BaseWorkOrderTaskViewSet
 
         factory = RequestFactory()
         request = factory.get("/api/workorder-tasks/")

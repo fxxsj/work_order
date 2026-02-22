@@ -1,8 +1,11 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from workorder.models.multi_level_approval import (ApprovalRule, ApprovalStep,
-                                                   ApprovalWorkflow)
+from workorder.models.multi_level_approval import (
+    ApprovalRule,
+    ApprovalStep,
+    ApprovalWorkflow,
+)
 
 
 class Command(BaseCommand):
@@ -38,8 +41,11 @@ class Command(BaseCommand):
 
     def _reset_existing_workflows(self):
         """重置现有的审核工作流数据"""
-        from ..models.multi_level_approval import (ApprovalRule, ApprovalStep,
-                                                   ApprovalWorkflow)
+        from ..models.multi_level_approval import (
+            ApprovalRule,
+            ApprovalStep,
+            ApprovalWorkflow,
+        )
 
         # 删除所有现有的工作流和步骤
         self.stdout.write("🗑️  清理现有审核工作流数据...")
@@ -58,8 +64,10 @@ class Command(BaseCommand):
 
     def _create_default_workflows(self):
         """创建默认审核工作流"""
-        from ..models.multi_level_approval import (ApprovalWorkflow,
-                                                   MultiLevelApprovalService)
+        from ..models.multi_level_approval import (
+            ApprovalWorkflow,
+            MultiLevelApprovalService,
+        )
 
         self.stdout.write("📋 创建默认审核工作流...")
 

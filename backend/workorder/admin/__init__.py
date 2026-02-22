@@ -24,25 +24,49 @@ from .mixins import FixedInlineModelAdminMixin, _patched_check_inlines
 
 ModelAdmin.checks_class._check_inlines = _patched_check_inlines
 
-from .assets import (ArtworkAdmin, DieAdmin, EmbossingPlateAdmin,
-                     FoilingPlateAdmin)
+from .assets import ArtworkAdmin, DieAdmin, EmbossingPlateAdmin, FoilingPlateAdmin
+
 # 导入各模块的 Admin 类
 from .base import CustomerAdmin, DepartmentAdmin, ProcessAdmin
-from .core import (ProcessLogAdmin, WorkOrderAdmin, WorkOrderMaterialAdmin,
-                   WorkOrderProcessAdmin, WorkOrderTaskAdmin)
-from .finance import (CostCenterAdmin, CostItemAdmin, InvoiceAdmin,
-                      PaymentAdmin, PaymentPlanAdmin, ProductionCostAdmin,
-                      StatementAdmin)
-from .inventory import (DeliveryItemAdmin, DeliveryOrderAdmin,
-                        ProductStockAdmin, QualityInspectionAdmin,
-                        StockInAdmin, StockOutAdmin)
-from .materials import (MaterialAdmin, MaterialSupplierAdmin,
-                        PurchaseOrderAdmin, PurchaseOrderItemAdmin,
-                        SupplierAdmin)
+from .core import (
+    ProcessLogAdmin,
+    WorkOrderAdmin,
+    WorkOrderMaterialAdmin,
+    WorkOrderProcessAdmin,
+    WorkOrderTaskAdmin,
+)
+from .finance import (
+    CostCenterAdmin,
+    CostItemAdmin,
+    InvoiceAdmin,
+    PaymentAdmin,
+    PaymentPlanAdmin,
+    ProductionCostAdmin,
+    StatementAdmin,
+)
+from .inventory import (
+    DeliveryItemAdmin,
+    DeliveryOrderAdmin,
+    ProductStockAdmin,
+    QualityInspectionAdmin,
+    StockInAdmin,
+    StockOutAdmin,
+)
+from .materials import (
+    MaterialAdmin,
+    MaterialSupplierAdmin,
+    PurchaseOrderAdmin,
+    PurchaseOrderItemAdmin,
+    SupplierAdmin,
+)
 from .products import ProductAdmin, ProductGroupAdmin, ProductGroupItemAdmin
 from .sales import SalesOrderAdmin, SalesOrderItemAdmin
-from .system import (NotificationAdmin, TaskAssignmentRuleAdmin,
-                     UserProfileAdmin, WorkOrderApprovalLogAdmin)
+from .system import (
+    NotificationAdmin,
+    TaskAssignmentRuleAdmin,
+    UserProfileAdmin,
+    WorkOrderApprovalLogAdmin,
+)
 
 __all__ = [
     # Mixins

@@ -12,8 +12,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
-from ..exceptions import (BusinessLogicError, PermissionDeniedError,
-                          TaskConflictError)
+from ..exceptions import BusinessLogicError, PermissionDeniedError, TaskConflictError
 from ..models.base import Department
 from ..models.core import WorkOrderTask
 from ..models.system import Notification

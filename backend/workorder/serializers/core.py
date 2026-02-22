@@ -8,9 +8,16 @@ from rest_framework import serializers
 
 from ..models.assets import ArtworkProduct
 from ..models.base import Department, Process
-from ..models.core import (APPROVED_ORDER_PROTECTED_FIELDS, ProcessLog,
-                           TaskLog, WorkOrder, WorkOrderMaterial,
-                           WorkOrderProcess, WorkOrderProduct, WorkOrderTask)
+from ..models.core import (
+    APPROVED_ORDER_PROTECTED_FIELDS,
+    ProcessLog,
+    TaskLog,
+    WorkOrder,
+    WorkOrderMaterial,
+    WorkOrderProcess,
+    WorkOrderProduct,
+    WorkOrderTask,
+)
 from ..models.products import Product
 
 

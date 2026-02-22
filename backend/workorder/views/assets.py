@@ -11,17 +11,28 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ..models.assets import (Artwork, ArtworkProduct, Die, DieProduct,
-                             EmbossingPlate, EmbossingPlateProduct,
-                             FoilingPlate, FoilingPlateProduct)
+from ..models.assets import (
+    Artwork,
+    ArtworkProduct,
+    Die,
+    DieProduct,
+    EmbossingPlate,
+    EmbossingPlateProduct,
+    FoilingPlate,
+    FoilingPlateProduct,
+)
 from ..models.core import WorkOrder, WorkOrderProcess, WorkOrderTask
 from ..permissions import SuperuserFriendlyModelPermissions
-from ..serializers.assets import (ArtworkProductSerializer, ArtworkSerializer,
-                                  DieProductSerializer, DieSerializer,
-                                  EmbossingPlateProductSerializer,
-                                  EmbossingPlateSerializer,
-                                  FoilingPlateProductSerializer,
-                                  FoilingPlateSerializer)
+from ..serializers.assets import (
+    ArtworkProductSerializer,
+    ArtworkSerializer,
+    DieProductSerializer,
+    DieSerializer,
+    EmbossingPlateProductSerializer,
+    EmbossingPlateSerializer,
+    FoilingPlateProductSerializer,
+    FoilingPlateSerializer,
+)
 
 
 class ArtworkViewSet(viewsets.ModelViewSet):

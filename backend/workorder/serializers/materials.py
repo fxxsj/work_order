@@ -8,9 +8,14 @@ import re
 
 from rest_framework import serializers
 
-from ..models.materials import (Material, MaterialSupplier, PurchaseOrder,
-                                PurchaseOrderItem, PurchaseReceiveRecord,
-                                Supplier)
+from ..models.materials import (
+    Material,
+    MaterialSupplier,
+    PurchaseOrder,
+    PurchaseOrderItem,
+    PurchaseReceiveRecord,
+    Supplier,
+)
 
 
 class MaterialSerializer(serializers.ModelSerializer):

@@ -5,10 +5,15 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from workorder.models import WorkOrder, WorkOrderTask
-from workorder.tests.factories import (CustomerFactory, DepartmentFactory,
-                                       ProcessFactory, ProductFactory,
-                                       UserFactory, WorkOrderFactory,
-                                       WorkOrderProcessFactory)
+from workorder.tests.factories import (
+    CustomerFactory,
+    DepartmentFactory,
+    ProcessFactory,
+    ProductFactory,
+    UserFactory,
+    WorkOrderFactory,
+    WorkOrderProcessFactory,
+)
 
 
 @pytest.mark.django_db

@@ -7,13 +7,14 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
 
-from ..models.products import (Product, ProductGroup, ProductGroupItem,
-                               ProductMaterial)
+from ..models.products import Product, ProductGroup, ProductGroupItem, ProductMaterial
 from ..permissions import SuperuserFriendlyModelPermissions
-from ..serializers.products import (ProductGroupItemSerializer,
-                                    ProductGroupSerializer,
-                                    ProductMaterialSerializer,
-                                    ProductSerializer)
+from ..serializers.products import (
+    ProductGroupItemSerializer,
+    ProductGroupSerializer,
+    ProductMaterialSerializer,
+    ProductSerializer,
+)
 
 
 class ProductViewSet(viewsets.ModelViewSet):

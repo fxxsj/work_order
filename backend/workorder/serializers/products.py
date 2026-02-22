@@ -8,8 +8,7 @@ import re
 
 from rest_framework import serializers
 
-from ..models.products import (Product, ProductGroup, ProductGroupItem,
-                               ProductMaterial)
+from ..models.products import Product, ProductGroup, ProductGroupItem, ProductMaterial
 
 
 class ProductMaterialSerializer(serializers.ModelSerializer):

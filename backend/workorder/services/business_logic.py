@@ -14,8 +14,15 @@ from django.utils import timezone
 
 from ..models.assets import Artwork, Die, EmbossingPlate, FoilingPlate
 from ..models.base import Customer, Department, Process
-from ..models.core import (ProcessLog, TaskLog, WorkOrder, WorkOrderMaterial,
-                           WorkOrderProcess, WorkOrderProduct, WorkOrderTask)
+from ..models.core import (
+    ProcessLog,
+    TaskLog,
+    WorkOrder,
+    WorkOrderMaterial,
+    WorkOrderProcess,
+    WorkOrderProduct,
+    WorkOrderTask,
+)
 from ..models.materials import Material
 from ..models.products import Product, ProductMaterial
 from ..models.system import Notification, UserProfile, WorkOrderApprovalLog

@@ -13,8 +13,14 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from workorder.models import (DeliveryItem, DeliveryOrder, ProductStock,
-                              QualityInspection, StockIn, StockOut)
+from workorder.models import (
+    DeliveryItem,
+    DeliveryOrder,
+    ProductStock,
+    QualityInspection,
+    StockIn,
+    StockOut,
+)
 
 # ==================== 成品库存序列化器 ====================
 

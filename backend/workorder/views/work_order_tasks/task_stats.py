@@ -194,8 +194,15 @@ class TaskStatsMixin:
         from datetime import datetime, timedelta
 
         from django.contrib.auth.models import User
-        from django.db.models import (Avg, Count, DurationField,
-                                      ExpressionWrapper, F, Q, Sum)
+        from django.db.models import (
+            Avg,
+            Count,
+            DurationField,
+            ExpressionWrapper,
+            F,
+            Q,
+            Sum,
+        )
 
         # 获取查询参数
         start_date = request.query_params.get("start_date")

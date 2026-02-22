@@ -17,12 +17,22 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from ..models import (ProcessLog, WorkOrder, WorkOrderMaterial,
-                      WorkOrderProcess, WorkOrderProduct, WorkOrderTask)
+from ..models import (
+    ProcessLog,
+    WorkOrder,
+    WorkOrderMaterial,
+    WorkOrderProcess,
+    WorkOrderProduct,
+    WorkOrderTask,
+)
 from .mixins import FixedInlineModelAdminMixin
-from .utils import (PURCHASE_STATUS_COLORS, TASK_STATUS_COLORS,
-                    WORKORDER_STATUS_COLORS, create_priority_badge_method,
-                    create_status_badge_method)
+from .utils import (
+    PURCHASE_STATUS_COLORS,
+    TASK_STATUS_COLORS,
+    WORKORDER_STATUS_COLORS,
+    create_priority_badge_method,
+    create_status_badge_method,
+)
 
 # ==================== Inline 类 ====================
 

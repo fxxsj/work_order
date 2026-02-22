@@ -13,29 +13,72 @@ Models 模块
 - sales: 销售管理模型 (SalesOrder, SalesOrderItem)
 """
 
-from .assets import (Artwork, ArtworkProduct, Die, DieProduct, EmbossingPlate,
-                     EmbossingPlateProduct, FoilingPlate, FoilingPlateProduct)
+from .assets import (
+    Artwork,
+    ArtworkProduct,
+    Die,
+    DieProduct,
+    EmbossingPlate,
+    EmbossingPlateProduct,
+    FoilingPlate,
+    FoilingPlateProduct,
+)
+
 # 导入所有模型，保持向后兼容
 from .base import Customer, Department, Process
-from .core import (APPROVED_ORDER_EDITABLE_FIELDS,
-                   APPROVED_ORDER_PROTECTED_FIELDS, ProcessLog, TaskLog,
-                   WorkOrder, WorkOrderMaterial, WorkOrderProcess,
-                   WorkOrderProduct, WorkOrderTask)
-from .finance import (CostCenter, CostItem, Invoice, Payment, PaymentPlan,
-                      ProductionCost, Statement)
-from .inventory import (DeliveryItem, DeliveryOrder, ProductStock,
-                        QualityInspection, StockIn, StockOut)
-from .materials import (Material, MaterialSupplier, PurchaseOrder,
-                        PurchaseOrderItem, PurchaseReceiveRecord, Supplier)
-from .multi_level_approval import (ApprovalEscalation, ApprovalRule,
-                                   ApprovalStep, ApprovalWorkflow,
-                                   MultiLevelApprovalService,
-                                   UrgentOrderService)
-from .products import (Product, ProductGroup, ProductGroupItem,
-                       ProductMaterial, ProductStockLog)
+from .core import (
+    APPROVED_ORDER_EDITABLE_FIELDS,
+    APPROVED_ORDER_PROTECTED_FIELDS,
+    ProcessLog,
+    TaskLog,
+    WorkOrder,
+    WorkOrderMaterial,
+    WorkOrderProcess,
+    WorkOrderProduct,
+    WorkOrderTask,
+)
+from .finance import (
+    CostCenter,
+    CostItem,
+    Invoice,
+    Payment,
+    PaymentPlan,
+    ProductionCost,
+    Statement,
+)
+from .inventory import (
+    DeliveryItem,
+    DeliveryOrder,
+    ProductStock,
+    QualityInspection,
+    StockIn,
+    StockOut,
+)
+from .materials import (
+    Material,
+    MaterialSupplier,
+    PurchaseOrder,
+    PurchaseOrderItem,
+    PurchaseReceiveRecord,
+    Supplier,
+)
+from .multi_level_approval import (
+    ApprovalEscalation,
+    ApprovalRule,
+    ApprovalStep,
+    ApprovalWorkflow,
+    MultiLevelApprovalService,
+    UrgentOrderService,
+)
+from .products import (
+    Product,
+    ProductGroup,
+    ProductGroupItem,
+    ProductMaterial,
+    ProductStockLog,
+)
 from .sales import SalesOrder, SalesOrderItem
-from .system import (Notification, TaskAssignmentRule, UserProfile,
-                     WorkOrderApprovalLog)
+from .system import Notification, TaskAssignmentRule, UserProfile, WorkOrderApprovalLog
 
 __all__ = [
     # 基础模型

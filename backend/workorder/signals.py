@@ -8,8 +8,14 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-from .models import (Artwork, Die, EmbossingPlate, FoilingPlate,
-                     WorkOrderMaterial, WorkOrderTask)
+from .models import (
+    Artwork,
+    Die,
+    EmbossingPlate,
+    FoilingPlate,
+    WorkOrderMaterial,
+    WorkOrderTask,
+)
 
 # 用于存储保存前的状态，以便检测状态变化
 _material_status_cache = {}

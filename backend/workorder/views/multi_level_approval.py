@@ -12,26 +12,49 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ..models.assets import (Artwork, ArtworkProduct, Die, DieProduct,
-                             EmbossingPlate, EmbossingPlateProduct,
-                             FoilingPlate, FoilingPlateProduct)
+from ..models.assets import (
+    Artwork,
+    ArtworkProduct,
+    Die,
+    DieProduct,
+    EmbossingPlate,
+    EmbossingPlateProduct,
+    FoilingPlate,
+    FoilingPlateProduct,
+)
 from ..models.base import Customer, Department, Process
-from ..models.core import (ProcessLog, TaskLog, WorkOrder, WorkOrderMaterial,
-                           WorkOrderProcess, WorkOrderProduct, WorkOrderTask)
+from ..models.core import (
+    ProcessLog,
+    TaskLog,
+    WorkOrder,
+    WorkOrderMaterial,
+    WorkOrderProcess,
+    WorkOrderProduct,
+    WorkOrderTask,
+)
 from ..models.materials import Material
-from ..models.multi_level_approval import (ApprovalEscalation, ApprovalRule,
-                                           ApprovalStep, ApprovalWorkflow,
-                                           MultiLevelApprovalService,
-                                           UrgentOrderService)
+from ..models.multi_level_approval import (
+    ApprovalEscalation,
+    ApprovalRule,
+    ApprovalStep,
+    ApprovalWorkflow,
+    MultiLevelApprovalService,
+    UrgentOrderService,
+)
 from ..models.products import Product, ProductMaterial
 from ..models.system import UserProfile, WorkOrderApprovalLog
 from ..permissions import SuperuserFriendlyModelPermissions
 from ..serializers.multi_level_approval import (
-    ApprovalEscalationSerializer, ApprovalRuleSerializer,
-    ApprovalStatusSerializer, ApprovalStepSerializer,
-    ApprovalWorkflowSerializer, EscalationActionSerializer,
-    MultiLevelApprovalActionSerializer, UrgentOrderActionSerializer,
-    WorkflowDeterminationSerializer)
+    ApprovalEscalationSerializer,
+    ApprovalRuleSerializer,
+    ApprovalStatusSerializer,
+    ApprovalStepSerializer,
+    ApprovalWorkflowSerializer,
+    EscalationActionSerializer,
+    MultiLevelApprovalActionSerializer,
+    UrgentOrderActionSerializer,
+    WorkflowDeterminationSerializer,
+)
 
 
 class ApprovalWorkflowViewSet(viewsets.ModelViewSet):

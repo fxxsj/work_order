@@ -17,18 +17,38 @@
 
 # 审核常量
 from .approval import DecisionType, RuleType, StepType, WorkflowType
+
 # 权限常量
-from .permissions import (CUSTOMER, MATERIAL, PROCESS, PRODUCT, SUPPLIER, TASK,
-                          WORKORDER, PermissionAction, PermissionGroups,
-                          UserRole)
+from .permissions import (
+    CUSTOMER,
+    MATERIAL,
+    PROCESS,
+    PRODUCT,
+    SUPPLIER,
+    TASK,
+    WORKORDER,
+    PermissionAction,
+    PermissionGroups,
+    UserRole,
+)
+
 # 优先级常量
 from .priority import Priority, WorkflowPriority
+
 # 状态常量
-from .status import (ApprovalEscalationStatus, ApprovalStepStatus,
-                     DeliveryOrderStatus, MaterialPurchaseStatus,
-                     NotificationStatus, ProcessStatus,
-                     QualityInspectionStatus, StockTransactionStatus,
-                     TaskStatus, WorkOrderApprovalStatus, WorkOrderStatus)
+from .status import (
+    ApprovalEscalationStatus,
+    ApprovalStepStatus,
+    DeliveryOrderStatus,
+    MaterialPurchaseStatus,
+    NotificationStatus,
+    ProcessStatus,
+    QualityInspectionStatus,
+    StockTransactionStatus,
+    TaskStatus,
+    WorkOrderApprovalStatus,
+    WorkOrderStatus,
+)
 
 __all__ = [
     # 状态常量

@@ -11,8 +11,11 @@ from rest_framework.response import Response
 
 from ..models.base import Customer, Department, Process
 from ..permissions import SuperuserFriendlyModelPermissions
-from ..serializers.base import (CustomerSerializer, DepartmentSerializer,
-                                ProcessSerializer)
+from ..serializers.base import (
+    CustomerSerializer,
+    DepartmentSerializer,
+    ProcessSerializer,
+)
 
 
 class CustomerViewSet(viewsets.ModelViewSet):

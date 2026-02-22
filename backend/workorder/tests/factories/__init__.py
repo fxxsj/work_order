@@ -2,9 +2,14 @@
 
 from .base import DepartmentFactory, ProcessFactory
 from .users import UserFactory
-from .workorder import (CustomerFactory, ProductFactory, WorkOrderFactory,
-                        WorkOrderProcessFactory, WorkOrderProductFactory,
-                        WorkOrderTaskFactory)
+from .workorder import (
+    CustomerFactory,
+    ProductFactory,
+    WorkOrderFactory,
+    WorkOrderProcessFactory,
+    WorkOrderProductFactory,
+    WorkOrderTaskFactory,
+)
 
 __all__ = [
     "DepartmentFactory",

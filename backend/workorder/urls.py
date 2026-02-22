@@ -1,29 +1,63 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .auth_views import (LoginView, change_password, get_current_user,
-                         get_salespersons, get_users_by_department,
-                         logout_view, register_view, update_profile)
-from .views import (ArtworkProductViewSet, ArtworkViewSet,  # 财务视图集; 库存视图集
-                    CostCenterViewSet, CostItemViewSet, CustomerViewSet,
-                    DeliveryItemViewSet, DeliveryOrderViewSet,
-                    DepartmentViewSet, DieProductViewSet, DieViewSet,
-                    DraftTaskViewSet, EmbossingPlateProductViewSet,
-                    EmbossingPlateViewSet, FoilingPlateProductViewSet,
-                    FoilingPlateViewSet, InvoiceViewSet,
-                    MaterialSupplierViewSet, MaterialViewSet,
-                    PaymentPlanViewSet, PaymentViewSet, ProcessLogViewSet,
-                    ProcessViewSet, ProductGroupItemViewSet,
-                    ProductGroupViewSet, ProductionCostViewSet,
-                    ProductMaterialViewSet, ProductStockViewSet,
-                    ProductViewSet, PurchaseOrderItemViewSet,
-                    PurchaseOrderViewSet, PurchaseReceiveRecordViewSet,
-                    QualityInspectionViewSet, SalesOrderItemViewSet,
-                    SalesOrderViewSet, StatementViewSet, StockInViewSet,
-                    StockOutViewSet, SupplierViewSet,
-                    TaskAssignmentRuleViewSet, WorkOrderMaterialViewSet,
-                    WorkOrderProcessViewSet, WorkOrderProductViewSet,
-                    WorkOrderTaskViewSet, WorkOrderViewSet)
+from .auth_views import (
+    LoginView,
+    change_password,
+    get_current_user,
+    get_salespersons,
+    get_users_by_department,
+    logout_view,
+    register_view,
+    update_profile,
+)
+from .views import ArtworkViewSet  # 财务视图集; 库存视图集
+from .views import (
+    ArtworkProductViewSet,
+    CostCenterViewSet,
+    CostItemViewSet,
+    CustomerViewSet,
+    DeliveryItemViewSet,
+    DeliveryOrderViewSet,
+    DepartmentViewSet,
+    DieProductViewSet,
+    DieViewSet,
+    DraftTaskViewSet,
+    EmbossingPlateProductViewSet,
+    EmbossingPlateViewSet,
+    FoilingPlateProductViewSet,
+    FoilingPlateViewSet,
+    InvoiceViewSet,
+    MaterialSupplierViewSet,
+    MaterialViewSet,
+    PaymentPlanViewSet,
+    PaymentViewSet,
+    ProcessLogViewSet,
+    ProcessViewSet,
+    ProductGroupItemViewSet,
+    ProductGroupViewSet,
+    ProductionCostViewSet,
+    ProductMaterialViewSet,
+    ProductStockViewSet,
+    ProductViewSet,
+    PurchaseOrderItemViewSet,
+    PurchaseOrderViewSet,
+    PurchaseReceiveRecordViewSet,
+    QualityInspectionViewSet,
+    SalesOrderItemViewSet,
+    SalesOrderViewSet,
+    StatementViewSet,
+    StockInViewSet,
+    StockOutViewSet,
+    SupplierViewSet,
+    TaskAssignmentRuleViewSet,
+    WorkOrderMaterialViewSet,
+    WorkOrderProcessViewSet,
+    WorkOrderProductViewSet,
+    WorkOrderTaskViewSet,
+    WorkOrderViewSet,
+)
+
 # TODO: 多级审批功能待恢复（等待模型迁移完成）
 # 暂时注释掉有问题的导入，避免自动重载错误
 # 恢复步骤：
@@ -33,15 +67,19 @@ from .views import (ArtworkProductViewSet, ArtworkViewSet,  # 财务视图集; �
 # 4. 测试多级审批功能是否正常
 # 相关 issue: #XXX
 #
-from .views.multi_level_approval import (ApprovalReportViewSet,
-                                         ApprovalStepViewSet,
-                                         ApprovalWorkflowViewSet,
-                                         MultiLevelApprovalViewSet,
-                                         UrgentOrderViewSet)
-from .views.notification import (NotificationTemplateViewSet,
-                                 NotificationViewSet,
-                                 SystemNotificationViewSet,
-                                 UserNotificationSettingsViewSet)
+from .views.multi_level_approval import (
+    ApprovalReportViewSet,
+    ApprovalStepViewSet,
+    ApprovalWorkflowViewSet,
+    MultiLevelApprovalViewSet,
+    UrgentOrderViewSet,
+)
+from .views.notification import (
+    NotificationTemplateViewSet,
+    NotificationViewSet,
+    SystemNotificationViewSet,
+    UserNotificationSettingsViewSet,
+)
 
 router = DefaultRouter()
 router.register(r"customers", CustomerViewSet)

@@ -8,10 +8,14 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from ..models.core import WorkOrder
-from ..models.multi_level_approval import (ApprovalEscalation, ApprovalRule,
-                                           ApprovalStep, ApprovalWorkflow,
-                                           MultiLevelApprovalService,
-                                           UrgentOrderService)
+from ..models.multi_level_approval import (
+    ApprovalEscalation,
+    ApprovalRule,
+    ApprovalStep,
+    ApprovalWorkflow,
+    MultiLevelApprovalService,
+    UrgentOrderService,
+)
 
 
 class ApprovalWorkflowSerializer(serializers.ModelSerializer):

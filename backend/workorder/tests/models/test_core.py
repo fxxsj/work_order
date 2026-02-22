@@ -6,8 +6,10 @@
 import pytest
 
 from workorder.models.core import WorkOrder, WorkOrderProcess, WorkOrderTask
-from workorder.serializers.core import (WorkOrderCreateUpdateSerializer,
-                                        WorkOrderListSerializer)
+from workorder.serializers.core import (
+    WorkOrderCreateUpdateSerializer,
+    WorkOrderListSerializer,
+)
 from workorder.tests.conftest import TestDataFactory
 
 

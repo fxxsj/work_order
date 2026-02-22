@@ -3,9 +3,12 @@ from datetime import datetime
 
 from django.core.management.base import BaseCommand
 
-from monitoring.working_monitor import (generate_performance_report,
-                                        get_performance_stats, health_monitor,
-                                        metrics)
+from monitoring.working_monitor import (
+    generate_performance_report,
+    get_performance_stats,
+    health_monitor,
+    metrics,
+)
 
 
 class Command(BaseCommand):

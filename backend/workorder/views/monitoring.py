@@ -13,8 +13,11 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
 from ..services.api_gateway import APIResponse
-from ..services.monitoring import (BusinessMetrics, PerformanceMonitor,
-                                   monitoring_service)
+from ..services.monitoring import (
+    BusinessMetrics,
+    PerformanceMonitor,
+    monitoring_service,
+)
 
 
 class PerformanceMonitoringViewSet(viewsets.GenericViewSet):

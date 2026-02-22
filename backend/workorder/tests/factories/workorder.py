@@ -6,8 +6,12 @@ import factory
 from django.utils import timezone
 
 from workorder.models.base import Customer
-from workorder.models.core import (WorkOrder, WorkOrderProcess,
-                                   WorkOrderProduct, WorkOrderTask)
+from workorder.models.core import (
+    WorkOrder,
+    WorkOrderProcess,
+    WorkOrderProduct,
+    WorkOrderTask,
+)
 from workorder.models.products import Product
 
 from .base import DepartmentFactory, ProcessFactory

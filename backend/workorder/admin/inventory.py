@@ -16,11 +16,21 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from ..models import (DeliveryItem, DeliveryOrder, ProductStock,
-                      QualityInspection, StockIn, StockOut)
+from ..models import (
+    DeliveryItem,
+    DeliveryOrder,
+    ProductStock,
+    QualityInspection,
+    StockIn,
+    StockOut,
+)
 from .mixins import FixedInlineModelAdminMixin
-from .utils import (IN_OUT_ORDER_STATUS_COLORS, QUALITY_STATUS_COLORS,
-                    STOCK_STATUS_COLORS, create_status_badge_method)
+from .utils import (
+    IN_OUT_ORDER_STATUS_COLORS,
+    QUALITY_STATUS_COLORS,
+    STOCK_STATUS_COLORS,
+    create_status_badge_method,
+)
 
 # ==================== Inline 类 ====================
 

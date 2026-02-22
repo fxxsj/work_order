@@ -16,8 +16,16 @@
 
 from django.contrib import admin
 
-from ..models import (Artwork, ArtworkProduct, Die, DieProduct, EmbossingPlate,
-                      EmbossingPlateProduct, FoilingPlate, FoilingPlateProduct)
+from ..models import (
+    Artwork,
+    ArtworkProduct,
+    Die,
+    DieProduct,
+    EmbossingPlate,
+    EmbossingPlateProduct,
+    FoilingPlate,
+    FoilingPlateProduct,
+)
 from .mixins import FixedInlineModelAdminMixin
 
 # ==================== Inline 类 ====================

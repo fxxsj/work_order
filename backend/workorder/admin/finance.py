@@ -14,8 +14,15 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from ..models import (CostCenter, CostItem, Invoice, Payment, PaymentPlan,
-                      ProductionCost, Statement)
+from ..models import (
+    CostCenter,
+    CostItem,
+    Invoice,
+    Payment,
+    PaymentPlan,
+    ProductionCost,
+    Statement,
+)
 from .utils import FINANCE_STATUS_COLORS, create_status_badge_method
 
 

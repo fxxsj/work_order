@@ -11,8 +11,12 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from workorder.models import Material, Process
-from workorder.models.products import (Product, ProductGroup, ProductGroupItem,
-                                       ProductMaterial)
+from workorder.models.products import (
+    Product,
+    ProductGroup,
+    ProductGroupItem,
+    ProductMaterial,
+)
 
 
 class ProductSerializerTest(TestCase):

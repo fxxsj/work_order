@@ -18,15 +18,33 @@ Views 模块 - 保持向后兼容
 
 # 从模块中导入所有视图集
 from .views import (  # 基础视图集; 产品视图集; 物料视图集; 资产视图集; 核心业务视图集; 系统视图集; 销售视图集
-    ArtworkViewSet, CustomerViewSet, DepartmentViewSet, DieViewSet,
-    EmbossingPlateViewSet, FoilingPlateViewSet, MaterialSupplierViewSet,
-    MaterialViewSet, NotificationViewSet, ProcessLogViewSet, ProcessViewSet,
-    ProductGroupItemViewSet, ProductGroupViewSet, ProductMaterialViewSet,
-    ProductViewSet, PurchaseOrderItemViewSet, PurchaseOrderViewSet,
-    SalesOrderItemViewSet, SalesOrderViewSet, SupplierViewSet,
-    TaskAssignmentRuleViewSet, WorkOrderMaterialViewSet,
-    WorkOrderProcessViewSet, WorkOrderProductViewSet, WorkOrderTaskViewSet,
-    WorkOrderViewSet)
+    ArtworkViewSet,
+    CustomerViewSet,
+    DepartmentViewSet,
+    DieViewSet,
+    EmbossingPlateViewSet,
+    FoilingPlateViewSet,
+    MaterialSupplierViewSet,
+    MaterialViewSet,
+    NotificationViewSet,
+    ProcessLogViewSet,
+    ProcessViewSet,
+    ProductGroupItemViewSet,
+    ProductGroupViewSet,
+    ProductMaterialViewSet,
+    ProductViewSet,
+    PurchaseOrderItemViewSet,
+    PurchaseOrderViewSet,
+    SalesOrderItemViewSet,
+    SalesOrderViewSet,
+    SupplierViewSet,
+    TaskAssignmentRuleViewSet,
+    WorkOrderMaterialViewSet,
+    WorkOrderProcessViewSet,
+    WorkOrderProductViewSet,
+    WorkOrderTaskViewSet,
+    WorkOrderViewSet,
+)
 
 __all__ = [
     # 基础视图集

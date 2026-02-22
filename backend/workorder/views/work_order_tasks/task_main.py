@@ -9,18 +9,24 @@ import logging
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import (OpenApiParameter, OpenApiResponse,
-                                   extend_schema, extend_schema_view)
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from workorder.exceptions import (BusinessLogicError, PermissionDeniedError,
-                                  TaskConflictError)
+from workorder.exceptions import (
+    BusinessLogicError,
+    PermissionDeniedError,
+    TaskConflictError,
+)
 from workorder.models.core import WorkOrderTask
 from workorder.permissions import WorkOrderTaskPermission
-from workorder.serializers.core import (TaskAssignmentSerializer,
-                                        WorkOrderTaskSerializer)
+from workorder.serializers.core import TaskAssignmentSerializer, WorkOrderTaskSerializer
 from workorder.services.task_assignment import TaskAssignmentService
 
 from .task_export import TaskExportMixin

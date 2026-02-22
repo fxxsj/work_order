@@ -17,8 +17,12 @@ from django.utils import timezone
 from django_filters import CharFilter, FilterSet, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import (OpenApiResponse, extend_schema,
-                                   extend_schema_view, inline_serializer)
+from drf_spectacular.utils import (
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+    inline_serializer,
+)
 from rest_framework import filters, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -28,28 +32,40 @@ logger = logging.getLogger(__name__)
 from ..export_utils import export_tasks, export_work_orders
 from ..models.assets import Artwork, Die
 from ..models.base import Customer, Department, Process
-from ..models.core import (ProcessLog, WorkOrder, WorkOrderMaterial,
-                           WorkOrderProcess, WorkOrderProduct, WorkOrderTask)
+from ..models.core import (
+    ProcessLog,
+    WorkOrder,
+    WorkOrderMaterial,
+    WorkOrderProcess,
+    WorkOrderProduct,
+    WorkOrderTask,
+)
 from ..models.materials import Material
 from ..models.products import Product, ProductMaterial
-from ..permissions import (SuperuserFriendlyModelPermissions,
-                           WorkOrderDataPermission,
-                           WorkOrderMaterialPermission,
-                           WorkOrderProcessPermission, WorkOrderTaskPermission)
+from ..permissions import (
+    SuperuserFriendlyModelPermissions,
+    WorkOrderDataPermission,
+    WorkOrderMaterialPermission,
+    WorkOrderProcessPermission,
+    WorkOrderTaskPermission,
+)
 from ..serializers.base import ProcessSerializer
-from ..serializers.core import (DraftTaskSerializer, ProcessLogSerializer,
-                                WorkOrderCreateUpdateSerializer,
-                                WorkOrderDetailSerializer,
-                                WorkOrderListSerializer,
-                                WorkOrderMaterialSerializer,
-                                WorkOrderProcessSerializer,
-                                WorkOrderProcessUpdateSerializer,
-                                WorkOrderProductSerializer,
-                                WorkOrderTaskSerializer)
+from ..serializers.core import (
+    DraftTaskSerializer,
+    ProcessLogSerializer,
+    WorkOrderCreateUpdateSerializer,
+    WorkOrderDetailSerializer,
+    WorkOrderListSerializer,
+    WorkOrderMaterialSerializer,
+    WorkOrderProcessSerializer,
+    WorkOrderProcessUpdateSerializer,
+    WorkOrderProductSerializer,
+    WorkOrderTaskSerializer,
+)
 from ..services.task_sync_service import TaskSyncService
+
 # P1 优化: 导入自定义速率限制
-from ..throttling import (ApprovalRateThrottle, CreateRateThrottle,
-                          ExportRateThrottle)
+from ..throttling import ApprovalRateThrottle, CreateRateThrottle, ExportRateThrottle
 
 
 @extend_schema_view(

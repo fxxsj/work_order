@@ -12,10 +12,12 @@ from django.utils import timezone
 
 from workorder.models.core import WorkOrder
 from workorder.models.system import Notification
-from workorder.services.realtime_notification import (NotificationEvent,
-                                                      NotificationManager,
-                                                      NotificationPriority,
-                                                      notification_service)
+from workorder.services.realtime_notification import (
+    NotificationEvent,
+    NotificationManager,
+    NotificationPriority,
+    notification_service,
+)
 
 
 class Command(BaseCommand):

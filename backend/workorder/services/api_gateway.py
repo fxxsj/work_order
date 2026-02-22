@@ -15,10 +15,12 @@ from rest_framework.response import Response
 
 from ..models.base import Customer, Department, Process
 from ..models.core import WorkOrder, WorkOrderProcess, WorkOrderTask
-from ..services.business_logic import (ProcessBusinessService,
-                                       ReportBusinessService,
-                                       TaskBusinessService,
-                                       WorkOrderBusinessService)
+from ..services.business_logic import (
+    ProcessBusinessService,
+    ReportBusinessService,
+    TaskBusinessService,
+    WorkOrderBusinessService,
+)
 from ..services.realtime_notification import notification_service
 
 

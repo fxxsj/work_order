@@ -11,8 +11,7 @@ from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db.models import Q
 from django.utils import timezone
-from drf_spectacular.utils import (OpenApiResponse, extend_schema,
-                                   extend_schema_view)
+from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination

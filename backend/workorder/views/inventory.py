@@ -17,23 +17,32 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from workorder.models import (DeliveryItem, DeliveryOrder, ProductStock,
-                              QualityInspection, SalesOrder, StockIn, StockOut)
+from workorder.models import (
+    DeliveryItem,
+    DeliveryOrder,
+    ProductStock,
+    QualityInspection,
+    SalesOrder,
+    StockIn,
+    StockOut,
+)
 from workorder.permissions import SuperuserFriendlyModelPermissions
-from workorder.serializers.inventory import (DeliveryItemSerializer,
-                                             DeliveryOrderCreateSerializer,
-                                             DeliveryOrderListSerializer,
-                                             DeliveryOrderSerializer,
-                                             DeliveryOrderUpdateSerializer,
-                                             ProductStockAdjustSerializer,
-                                             ProductStockSerializer,
-                                             ProductStockUpdateSerializer,
-                                             QualityInspectionCreateSerializer,
-                                             QualityInspectionSerializer,
-                                             QualityInspectionUpdateSerializer,
-                                             StockInCreateSerializer,
-                                             StockInSerializer,
-                                             StockOutSerializer)
+from workorder.serializers.inventory import (
+    DeliveryItemSerializer,
+    DeliveryOrderCreateSerializer,
+    DeliveryOrderListSerializer,
+    DeliveryOrderSerializer,
+    DeliveryOrderUpdateSerializer,
+    ProductStockAdjustSerializer,
+    ProductStockSerializer,
+    ProductStockUpdateSerializer,
+    QualityInspectionCreateSerializer,
+    QualityInspectionSerializer,
+    QualityInspectionUpdateSerializer,
+    StockInCreateSerializer,
+    StockInSerializer,
+    StockOutSerializer,
+)
 
 
 class ProductStockViewSet(viewsets.ModelViewSet):

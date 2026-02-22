@@ -13,8 +13,7 @@ from rest_framework.response import Response
 
 from ..models.system import Notification, TaskAssignmentRule
 from ..permissions import SuperuserFriendlyModelPermissions
-from ..serializers.system import (NotificationSerializer,
-                                  TaskAssignmentRuleSerializer)
+from ..serializers.system import NotificationSerializer, TaskAssignmentRuleSerializer
 
 
 class NotificationViewSet(viewsets.ModelViewSet):
@@ -100,8 +99,10 @@ class TaskAssignmentRuleViewSet(viewsets.ModelViewSet):
 
         返回所有活跃工序的分派预览，显示每个工序将分派到哪个部门
         """
-        from ..services.dispatch_service import (AutoDispatchService,
-                                                 DispatchPreviewService)
+        from ..services.dispatch_service import (
+            AutoDispatchService,
+            DispatchPreviewService,
+        )
 
         preview_data = DispatchPreviewService.generate_preview()
 

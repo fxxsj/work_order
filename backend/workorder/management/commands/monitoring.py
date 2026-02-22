@@ -10,8 +10,11 @@ from datetime import timedelta
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from workorder.services.monitoring import (BusinessMetrics, PerformanceMonitor,
-                                           monitoring_service)
+from workorder.services.monitoring import (
+    BusinessMetrics,
+    PerformanceMonitor,
+    monitoring_service,
+)
 
 
 class Command(BaseCommand):

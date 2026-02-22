@@ -9,9 +9,17 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone
 
-from ..models import (Artwork, Customer, Department, Process, Product,
-                      WorkOrder, WorkOrderProcess, WorkOrderProduct,
-                      WorkOrderTask)
+from ..models import (
+    Artwork,
+    Customer,
+    Department,
+    Process,
+    Product,
+    WorkOrder,
+    WorkOrderProcess,
+    WorkOrderProduct,
+    WorkOrderTask,
+)
 from .conftest import TestDataFactory
 
 
