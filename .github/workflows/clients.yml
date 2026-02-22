@@ -38,7 +38,14 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies (workspaces)
-        run: npm install
+        run: npm ci
+
+      - name: Ensure Rollup linux binary (workaround)
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROLLUP_VERSION="$(node -e "console.log(require('rollup/package.json').version)")"
+          npm i --no-save "@rollup/rollup-linux-x64-gnu@${ROLLUP_VERSION}"
 
       - name: Build apps/web
         run: npm run web:build:hash
@@ -77,7 +84,14 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies (workspaces)
-        run: npm install
+        run: npm ci
+
+      - name: Ensure Rollup linux binary (workaround)
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROLLUP_VERSION="$(node -e "console.log(require('rollup/package.json').version)")"
+          npm i --no-save "@rollup/rollup-linux-x64-gnu@${ROLLUP_VERSION}"
 
       - name: Generate SDK types
         run: npm run sdk:generate
