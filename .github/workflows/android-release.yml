@@ -67,6 +67,9 @@ jobs:
           fi
           node scripts/release/apply-android-version.mjs "$TAG"
 
+      - name: Verify Android packageName matches appId
+        run: node scripts/release/verify-android-package.mjs
+
       - name: Build web + sync into Android
         run: npm run android:build
 
