@@ -27,9 +27,17 @@ const fallbackDist = path.join(repoRoot, 'frontend', 'dist')
 const webDist = fs.existsSync(preferredDist) ? preferredDist : fallbackDist
 const webDir = path.join(repoRoot, 'apps', 'mobile', 'www')
 
+const devServerUrl = process.env.CAP_SERVER_URL
+if (devServerUrl) {
+  fs.mkdirSync(webDir, { recursive: true })
+  console.log(`CAP_SERVER_URL is set (${devServerUrl}); skipping web asset sync.`)
+  process.exit(0)
+}
+
 if (!fs.existsSync(webDist)) {
-  console.error(`frontend build output not found: ${webDist}`)
-  console.error('Run: cd apps/web && npm run build (recommended) OR cd frontend && npm run build')
+  console.error(`web build output not found: ${webDist}`)
+  console.error('Run: npm run web:build (recommended) OR cd frontend && npm run build')
+  console.error('Tip: For Live Reload, set CAP_SERVER_URL and re-run sync.')
   process.exit(1)
 }
 
