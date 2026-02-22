@@ -70,17 +70,26 @@
 ## 技术栈
 
 ### 前端
-- **Vue 2.7** - 渐进式 JavaScript 框架
-- **Element UI 2.15** - 基于 Vue 2 的组件库
-- **Vue Router 3** - 路由管理
-- **Vuex 3** - 状态管理
-- **Axios** - HTTP 客户端
+- **稳定版（legacy）**：Vue 2.7 + Element UI 2.15 + Vue Router 3 + Vuex 3
+- **vNext（迁移中）**：Vue 3 + Vite + TypeScript + Pinia + Element Plus + Vue Router 4（目录：`apps/web/`）
 
 ### 后端
 - **Django 4.2** - Python Web 框架
 - **Django REST Framework 3.14** - REST API 框架
 - **Django Admin** - 管理后台
 - **SQLite** - 数据库（可更换为 PostgreSQL/MySQL）
+- **Channels(WebSocket)** - 通知与实时能力
+- **drf-spectacular(OpenAPI)** - API 契约与文档
+
+## vNext 与多平台客户端（Web / macOS / Windows / Android）
+
+本仓库已引入“**一套 Web 业务代码，多端壳复用**”路线：
+
+- Web vNext：`apps/web/`（Vue 3/Vite/TS）
+- 桌面端：`apps/desktop/`（Tauri，macOS/Windows）
+- Android：`apps/mobile/`（Capacitor）
+
+端侧支持在登录页配置 `API Base URL / WS Base URL`，用于适配公网/内网/多环境部署。
 
 ## 快速开始
 
@@ -143,6 +152,52 @@ npm run serve
 ```
 
 前端服务将运行在 `http://localhost:8080`
+
+### Web vNext（推荐）
+
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
+默认运行在 `http://localhost:5173`
+
+### 桌面端（macOS / Windows）：Tauri
+
+```bash
+# 1) 启动后端（另开终端）
+cd backend
+python manage.py runserver
+
+# 2) 启动 Web vNext（另开终端）
+cd apps/web
+npm run dev
+
+# 3) 启动桌面壳（另开终端）
+cd apps/desktop
+npm install
+npm run tauri:dev
+```
+
+### Android：Capacitor
+
+```bash
+# 1) 构建 Web
+cd apps/web
+npm install
+npm run build
+
+# 2) 初始化与生成 Android 工程（首次）
+cd ../apps/mobile
+npm install
+npm run cap:init
+npm run cap:add:android
+
+# 3) 同步资源并打开 Android Studio
+npm run cap:sync
+npm run android:open
+```
 
 ### 访问系统
 

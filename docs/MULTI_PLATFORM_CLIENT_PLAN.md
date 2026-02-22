@@ -1,8 +1,8 @@
 # 多平台客户端规划 - 印刷施工单跟踪系统
 
-> 更新时间：2026-02-21  
-> 规划版本：v0.1  
-> 适用系统版本：v2.x（现有 Vue 2.7 + Django/DRF）  
+> 更新时间：2026-02-22  
+> 规划版本：v0.2  
+> 适用系统版本：v3.0.0+（Django/DRF 后端 + 前端 legacy(Vue 2.7) 与 vNext(Vue 3) 并行）  
 > 目标：交付 Web / macOS / Windows / Android 客户端，并最大化代码复用、可维护性与交付效率
 
 ## 1. 背景与现状
@@ -12,6 +12,17 @@
 - **后端**：Django 4.2 + DRF + TokenAuthentication + Channels(WebSocket) + drf-spectacular(OpenAPI)
 - **前端**：Vue 2.7 + Element UI + Vue CLI（SPA）
 - **通信**：REST API（分页/过滤）+ WebSocket（通知）
+
+### 1.3 当前实现进展（截至 2026-02-22）
+
+仓库已落地“Web 业务代码复用 + 多端壳”最小闭环：
+
+- Web vNext：`apps/web/`（Vue 3 + Vite + TypeScript + Pinia + Element Plus）
+- 桌面壳：`apps/desktop/`（Tauri，macOS/Windows）
+- Android 壳：`apps/mobile/`（Capacitor）
+- 端侧运行时配置：登录页「服务器设置」（`API Base URL / WS Base URL`）
+- OpenAPI 导出脚本：`scripts/openapi/export-backend-openapi.sh`
+- SDK 骨架：`packages/sdk/`（基于 OpenAPI 生成 TS 类型/SDK）
 
 ### 1.2 多端诉求拆解
 
