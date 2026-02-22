@@ -95,27 +95,19 @@ jobs:
           SECRET_KEY: test-secret-key-for-ci
         run: |
           cd backend
-          python manage.py shell -c "
-from workorder.tests.factories import DepartmentFactory, ProcessFactory, UserFactory, WorkOrderFactory, WorkOrderProcessFactory, WorkOrderTaskFactory
-
-supervisor = UserFactory(username='test_supervisor')
-operator = UserFactory(username='test_operator')
-maker = UserFactory(username='test_maker')
-
-for user in (supervisor, operator, maker):
-    user.set_password('testpass123')
-    user.save()
-
-dept = DepartmentFactory(name='Test Dept')
-process = ProcessFactory(name='Test Process')
-
-for _ in range(50):
-    wo = WorkOrderFactory(approval_status='approved', processes=0)
-    wop = WorkOrderProcessFactory(work_order=wo, process=process, tasks=0)
-    WorkOrderTaskFactory(work_order_process=wop, status='pending', assigned_department=dept)
-
-print('Test data created successfully')
-"
+          python manage.py shell -c "exec('from workorder.tests.factories import DepartmentFactory, ProcessFactory, UserFactory, WorkOrderFactory, WorkOrderProcessFactory, WorkOrderTaskFactory\\n'
+          'supervisor = UserFactory(username=\"test_supervisor\")\\n'
+          'operator = UserFactory(username=\"test_operator\")\\n'
+          'maker = UserFactory(username=\"test_maker\")\\n'
+          'for user in (supervisor, operator, maker):\\n'
+          '    user.set_password(\"testpass123\"); user.save()\\n'
+          'dept = DepartmentFactory(name=\"Test Dept\")\\n'
+          'process = ProcessFactory(name=\"Test Process\")\\n'
+          'for _ in range(50):\\n'
+          '    wo = WorkOrderFactory(approval_status=\"approved\", processes=0)\\n'
+          '    wop = WorkOrderProcessFactory(work_order=wo, process=process, tasks=0)\\n'
+          '    WorkOrderTaskFactory(work_order_process=wop, status=\"pending\", assigned_department=dept)\\n'
+          'print(\"Test data created successfully\")\\n')"
 
       - name: Start Django server
         env:
@@ -168,7 +160,7 @@ print('Test data created successfully')
       - name: Stop Django server
         if: always()
         run: |
-          pkill -f gunicorn || true
+          pkill -f "manage.py runserver" || true
 
   load-test-summary:
     name: Load Test Summary
