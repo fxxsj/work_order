@@ -35,6 +35,10 @@ npm run desktop:build
 - `desktop:build` 会先以 hash 路由构建 `apps/web`（由 `apps/desktop/src-tauri/tauri.conf.json` 驱动）
 - macOS/Windows 的签名、公证与自动更新建议在内测跑通后再补齐
 
+### 2.1 GitHub Release（tag 触发）
+
+推送 tag（例如 `v1.0.0`）会触发 `.github/workflows/release.yml`，构建 macOS/Windows 安装包并发布到 GitHub Releases。
+
 ## 3. Android（Capacitor）
 
 前置：Android Studio + Android SDK（以及 JDK）。
