@@ -40,6 +40,11 @@ npm run desktop:build
 
 推送 tag（例如 `v1.0.0`）会触发 `.github/workflows/release.yml`，构建 macOS/Windows 安装包并发布到 GitHub Releases。
 
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
 #### 可选：桌面端自动更新（Upgrader / Updater）
 
 如果你希望启用 Tauri 内置 updater，需要在仓库 Secrets 配置：
@@ -77,6 +82,11 @@ npm run android:open
 推送 tag（例如 `android-v1.0.0`）会触发 `.github/workflows/android-release.yml`，构建 Android release APK 并发布到 GitHub Releases。
 默认会生成 `app-release-unsigned.apk` 与 `app-release-unsigned.aab`；配置 keystore secrets 后会额外输出签名后的 `app-release-signed.apk` 与 `app-release-signed.aab`。
 版本号从 tag 注入到 Android 工程（`versionName/versionCode`），确保每次发布递增（稳定版 suffix=9，预发布 alpha/beta/rc suffix=1/2/3）。
+
+```bash
+git tag android-v1.0.0
+git push origin android-v1.0.0
+```
 
 可选：配置以下 Secrets 以输出已签名 APK：
 - `ANDROID_KEYSTORE_BASE64`
