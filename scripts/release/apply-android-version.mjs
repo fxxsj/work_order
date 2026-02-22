@@ -39,6 +39,10 @@ function parseAndroidTag(raw) {
   return { versionName, versionCode }
 }
 
+function escapeRegExp(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 function updateBuildGradleGroovy(filePath, versionName, versionCode) {
   let s = fs.readFileSync(filePath, 'utf8')
   const before = s
@@ -62,6 +66,14 @@ function updateBuildGradleGroovy(filePath, versionName, versionCode) {
   }
 
   fs.writeFileSync(filePath, s)
+
+  const after = fs.readFileSync(filePath, 'utf8')
+  if (!new RegExp(`\\bversionCode\\s+${versionCode}\\b`).test(after)) {
+    fail(`failed to set versionCode in ${filePath}`)
+  }
+  if (!new RegExp(`\\bversionName\\s+\"${escapeRegExp(versionName)}\"`).test(after)) {
+    fail(`failed to set versionName in ${filePath}`)
+  }
 }
 
 function updateBuildGradleKts(filePath, versionName, versionCode) {
@@ -86,6 +98,14 @@ function updateBuildGradleKts(filePath, versionName, versionCode) {
   }
 
   fs.writeFileSync(filePath, s)
+
+  const after = fs.readFileSync(filePath, 'utf8')
+  if (!new RegExp(`\\bversionCode\\s*=\\s*${versionCode}\\b`).test(after)) {
+    fail(`failed to set versionCode in ${filePath}`)
+  }
+  if (!new RegExp(`\\bversionName\\s*=\\s*\"${escapeRegExp(versionName)}\"`).test(after)) {
+    fail(`failed to set versionName in ${filePath}`)
+  }
 }
 
 const tag = process.argv[2]
