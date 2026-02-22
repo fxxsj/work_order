@@ -60,6 +60,11 @@ jobs:
           fi
           node scripts/release/validate-tag.mjs android "$TAG"
 
+      - name: Build web assets for Capacitor (pre-android)
+        run: |
+          npm run web:build:hash
+          node apps/mobile/scripts/sync-web.js
+
       - name: Generate Android project (Capacitor)
         run: |
           cd apps/mobile
@@ -81,8 +86,8 @@ jobs:
       - name: Verify Android packageName matches appId
         run: node scripts/release/verify-android-package.mjs
 
-      - name: Build web + sync into Android
-        run: npm run android:build
+      - name: Sync web into Android
+        run: npm run android:sync
 
       - name: Build APK/AAB (release, unsigned)
         run: |
