@@ -25,3 +25,11 @@ npm run dev
 ```bash
 cp .env.example .env
 ```
+
+### 路由模式（桌面/移动端打包建议）
+
+默认使用 HTML5 history 路由（适合 Web 部署）。在 Tauri/Capacitor 的构建产物场景（`file://` 或静态资源目录）建议使用 hash 路由：
+
+```bash
+VITE_ROUTER_MODE=hash
+```

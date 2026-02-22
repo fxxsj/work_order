@@ -33,4 +33,5 @@ npm run desktop:build
 ## 说明
 
 - Tauri 默认在开发期加载 `http://localhost:5173`，打包期加载 `apps/web/dist`。
+- 打包期默认使用 `hash` 路由（避免 `file://` 场景下刷新/深链路 404），见 `apps/desktop/src-tauri/tauri.conf.json` 的 `beforeBuildCommand`。
 - 桌面端通常是跨域运行，务必保证后端 `CORS_ALLOWED_ORIGINS` 包含常见 Tauri origin（开发环境已默认加入）。

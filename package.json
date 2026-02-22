@@ -16,13 +16,14 @@
     "legacy:build": "npm -w work-order-frontend run build",
     "web:dev": "npm -w workorder-web-vnext run dev",
     "web:build": "npm -w workorder-web-vnext run build",
+    "web:build:hash": "node scripts/web/build-web.mjs hash",
     "web:preview": "npm -w workorder-web-vnext run preview",
     "desktop:dev": "npm -w workorder-desktop run tauri:dev",
     "desktop:build": "npm -w workorder-desktop run tauri:build",
     "android:init": "npm -w workorder-mobile run cap:init && npm -w workorder-mobile run cap:add:android",
     "android:sync": "npm -w workorder-mobile run cap:sync",
     "android:open": "npm -w workorder-mobile run android:open",
-    "android:build": "npm run web:build && npm run android:sync",
+    "android:build": "npm run web:build:hash && npm run android:sync",
     "openapi:export": "bash scripts/openapi/export-backend-openapi.sh",
     "sdk:generate": "npm -w @workorder/sdk run generate:types"
   }

@@ -16,7 +16,7 @@
 ### 1.1 建议的开发模式
 
 - **开发期**：Tauri 直接加载 `http://localhost:5173`（自动启动 `apps/web` dev server）
-- **打包期**：Tauri 使用 `apps/web` 构建产物（`apps/web/dist`）
+- **打包期**：Tauri 使用 `apps/web` 构建产物（`apps/web/dist`，默认使用 `hash` 路由以兼容 `file://`）
 - **环境切换**：通过登录页「服务器设置」配置 `API Base URL / WS Base URL`
 
 代码位置：`apps/desktop/`
@@ -54,7 +54,7 @@ npm run desktop:dev
 - **开发期**：
   - 方式 A（推荐，稳定）：构建 Web → 同步到 `apps/mobile/www` → Android Studio 运行
   - 方式 B（更快迭代）：`CAP_SERVER_URL` 指向 Vite dev server（Live Reload）
-- **打包期**：使用 Web 构建产物
+- **打包期**：使用 Web 构建产物（`android:build` 默认使用 `hash` 路由以避免深链路刷新 404）
 - **环境切换**：通过登录页「服务器设置」配置 `API Base URL / WS Base URL`
 
 代码位置：`apps/mobile/`

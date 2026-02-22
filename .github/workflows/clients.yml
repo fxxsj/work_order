@@ -41,7 +41,7 @@ jobs:
         run: npm install
 
       - name: Build apps/web
-        run: npm run web:build
+        run: npm run web:build:hash
 
   openapi-and-sdk:
     name: OpenAPI export + SDK types
@@ -75,4 +75,3 @@ jobs:
 
       - name: Generate SDK types
         run: npm run sdk:generate
-
