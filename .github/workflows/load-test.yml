@@ -76,7 +76,7 @@ jobs:
         run: |
           cd backend
           pip install -r requirements.txt
-          pip install locust
+          pip install gunicorn
 
       - name: Run migrations
         env:
@@ -117,9 +117,25 @@ jobs:
           DEBUG: False
         run: |
           cd backend
-          python manage.py runserver 0.0.0.0:8000 &
+          gunicorn config.wsgi:application \
+            --bind 0.0.0.0:8000 \
+            --workers 2 \
+            --threads 4 \
+            --timeout 120 \
+            --access-logfile - \
+            --error-logfile - \
+            --daemon
+
           # Wait for server to be ready
-          sleep 5
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/api/health/ >/dev/null; then
+              echo "Server is ready."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Server did not become ready in time."
+          exit 1
 
       - name: Run Locust load test
         env:
@@ -160,7 +176,7 @@ jobs:
       - name: Stop Django server
         if: always()
         run: |
-          pkill -f "manage.py runserver" || true
+          pkill -f gunicorn || true
 
   load-test-summary:
     name: Load Test Summary
