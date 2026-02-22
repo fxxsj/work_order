@@ -33,6 +33,8 @@
         <el-button @click="goProductGroups">产品组</el-button>
         <el-button @click="goDeliveryOrders">发货单</el-button>
         <el-button @click="goQualityInspections">质量检验</el-button>
+        <el-button @click="goStockIns">入库单</el-button>
+        <el-button @click="goStockOuts">出库单</el-button>
       </div>
     </el-card>
   </div>
@@ -151,6 +153,14 @@ function goDeliveryOrders() {
 
 function goQualityInspections() {
   router.push({ name: 'quality-inspections' })
+}
+
+function goStockIns() {
+  router.push({ name: 'stock-ins' })
+}
+
+function goStockOuts() {
+  router.push({ name: 'stock-outs' })
 }
 </script>
 
