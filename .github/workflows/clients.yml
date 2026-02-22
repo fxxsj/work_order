@@ -1,0 +1,78 @@
+name: Clients (vNext)
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'openapi/**'
+      - 'scripts/openapi/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/clients.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'openapi/**'
+      - 'scripts/openapi/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/clients.yml'
+
+jobs:
+  web-vnext-build:
+    name: Web vNext build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies (workspaces)
+        run: npm install
+
+      - name: Build apps/web
+        run: npm run web:build
+
+  openapi-and-sdk:
+    name: OpenAPI export + SDK types
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Export OpenAPI
+        run: bash scripts/openapi/export-backend-openapi.sh
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies (workspaces)
+        run: npm install
+
+      - name: Generate SDK types
+        run: npm run sdk:generate
+
