@@ -58,6 +58,15 @@ jobs:
           cd apps/mobile
           npm run cap:add:android
 
+      - name: Apply Android version from tag
+        shell: bash
+        run: |
+          TAG="${{ inputs.tag }}"
+          if [ -z "$TAG" ]; then
+            TAG="${{ github.ref_name }}"
+          fi
+          node scripts/release/apply-android-version.mjs "$TAG"
+
       - name: Build web + sync into Android
         run: npm run android:build
 
@@ -72,6 +81,12 @@ jobs:
           mkdir -p dist
           cp apps/mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk dist/app-release-unsigned.apk
           cp apps/mobile/android/app/build/outputs/bundle/release/app-release.aab dist/app-release-unsigned.aab
+
+      - name: Verify unsigned outputs exist
+        shell: bash
+        run: |
+          test -f dist/app-release-unsigned.apk
+          test -f dist/app-release-unsigned.aab
 
       - name: Sign APK (optional, if secrets are set)
         if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
