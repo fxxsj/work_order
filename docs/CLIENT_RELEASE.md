@@ -75,12 +75,16 @@ npm run android:open
 ### 3.1 GitHub Release（tag 触发）
 
 推送 tag（例如 `android-v1.0.0`）会触发 `.github/workflows/android-release.yml`，构建 Android release APK 并发布到 GitHub Releases。
+默认会生成 `app-release-unsigned.apk` 与 `app-release-unsigned.aab`；配置 keystore secrets 后会额外输出签名后的 `app-release-signed.apk` 与 `app-release-signed.aab`。
 
 可选：配置以下 Secrets 以输出已签名 APK：
 - `ANDROID_KEYSTORE_BASE64`
 - `ANDROID_KEYSTORE_PASSWORD`
 - `ANDROID_KEY_ALIAS`
 - `ANDROID_KEY_PASSWORD`
+
+可选：上传到 Google Play（内测轨道）
+- `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`（service account JSON，明文存入 GitHub Secrets）
 
 可选（更快迭代）：Live Reload（dev server 模式）
 

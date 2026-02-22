@@ -59,6 +59,7 @@ jobs:
           if [ -z "$TAG" ]; then
             TAG="${{ github.ref_name }}"
           fi
+          node scripts/release/validate-tag.mjs desktop "$TAG"
           node scripts/release/apply-version.mjs "$TAG"
 
       - name: Build Tauri app
