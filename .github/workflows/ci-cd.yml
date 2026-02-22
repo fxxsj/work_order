@@ -123,7 +123,7 @@ jobs:
   # Frontend testing and building
   frontend-test:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -132,18 +132,17 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        cache-dependency-path: frontend/package.json
 
-    - name: Install dependencies
+    - name: Clean and install dependencies
       run: |
-        # Remove root node_modules to prevent Vue 3 hoisting conflict
-        rm -rf node_modules
+        # Remove all node_modules to prevent workspace hoisting
+        rm -rf node_modules frontend/node_modules apps/*/node_modules packages/*/node_modules
+        # Clear npm cache to avoid cached Vue 3
+        npm cache clean --force
         cd frontend
-        rm -rf node_modules
         npm install
-        # Generate lockfile for caching if not exists
-        if [ ! -f package-lock.json ]; then npm install --package-lock-only; fi
+        # Verify Vue 2 is installed
+        npm list vue vue-template-compiler
 
     - name: Run ESLint
       run: |
