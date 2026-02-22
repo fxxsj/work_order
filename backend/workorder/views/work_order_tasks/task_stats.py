@@ -13,10 +13,9 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from workorder.export_utils import export_tasks
 from workorder.models import WorkOrderTask
 from workorder.throttling import ExportRateThrottle
-
-from workorder.export_utils import export_tasks
 
 logger = logging.getLogger(__name__)
 
