@@ -2,8 +2,8 @@
   "build": {
     "beforeDevCommand": "",
     "beforeBuildCommand": "",
-    "devPath": "http://localhost:8080",
-    "distDir": "../../../frontend/dist"
+    "devPath": "http://localhost:5173",
+    "distDir": "../../web/dist"
   },
   "package": {
     "productName": "WorkOrder",
@@ -29,4 +29,3 @@
     }
   }
 }
-

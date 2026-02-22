@@ -8,15 +8,15 @@
 - 本地运行 Django：`cd backend && python manage.py runserver`
 - 或使用 Docker Compose（如你项目已配置好）
 
-2) 启动前端 dev server
+2) 启动 Web vNext dev server
 
 ```bash
-cd frontend
+cd apps/web
 npm install
-npm run serve
+npm run dev
 ```
 
-3) 启动 Tauri（加载 `http://localhost:8080`）
+3) 启动 Tauri（加载 `http://localhost:5173`）
 
 ```bash
 cd apps/desktop
@@ -31,7 +31,7 @@ npm run tauri:dev
 ## 打包
 
 ```bash
-cd frontend
+cd apps/web
 npm run build
 
 cd ../apps/desktop
@@ -40,6 +40,5 @@ npm run tauri:build
 
 ## 说明
 
-- Tauri 默认在开发期加载 `http://localhost:8080`，打包期加载 `frontend/dist`。
+- Tauri 默认在开发期加载 `http://localhost:5173`，打包期加载 `apps/web/dist`。
 - 桌面端通常是跨域运行，务必保证后端 `CORS_ALLOWED_ORIGINS` 包含常见 Tauri origin（开发环境已默认加入）。
-

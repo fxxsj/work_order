@@ -22,16 +22,17 @@ function emptyDir(dir) {
 }
 
 const repoRoot = path.resolve(__dirname, '..', '..', '..')
-const webDist = path.join(repoRoot, 'frontend', 'dist')
+const preferredDist = path.join(repoRoot, 'apps', 'web', 'dist')
+const fallbackDist = path.join(repoRoot, 'frontend', 'dist')
+const webDist = fs.existsSync(preferredDist) ? preferredDist : fallbackDist
 const webDir = path.join(repoRoot, 'apps', 'mobile', 'www')
 
 if (!fs.existsSync(webDist)) {
   console.error(`frontend build output not found: ${webDist}`)
-  console.error('Run: cd frontend && npm run build')
+  console.error('Run: cd apps/web && npm run build (recommended) OR cd frontend && npm run build')
   process.exit(1)
 }
 
 emptyDir(webDir)
 copyDir(webDist, webDir)
 console.log(`Synced web assets: ${webDist} -> ${webDir}`)
-

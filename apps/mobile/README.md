@@ -6,10 +6,10 @@
 
 优先建议先跑通“Web 构建产物 → Capacitor 同步 → Android Studio 运行”的链路：
 
-1) 构建前端
+1) 构建 Web vNext（推荐）
 
 ```bash
-cd frontend
+cd apps/web
 npm install
 npm run build
 ```
@@ -37,6 +37,5 @@ npm run android:open
 
 ## 说明
 
-- `apps/mobile/www` 的内容来自 `frontend/dist`（由 `cap:sync` 复制）。
+- `apps/mobile/www` 的内容来自 `apps/web/dist`（优先）或 `frontend/dist`（回退）（由 `cap:sync` 复制）。
 - Android 工程（`apps/mobile/android`）体积较大，已在仓库 `.gitignore` 忽略；建议用脚本生成。
-
