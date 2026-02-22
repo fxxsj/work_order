@@ -2,6 +2,13 @@
  * TaskStats 组件单元测试
  */
 
+// Mock API modules to prevent import chain issues with buble/vue-template-compiler
+jest.mock('@/api/modules', () => ({
+  workOrderTaskAPI: {
+    getStats: jest.fn()
+  }
+}))
+
 import { shallowMount, createLocalVue } from '@vue/test-utils'
 import TaskStats from '@/views/task/components/TaskStats.vue'
 
