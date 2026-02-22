@@ -86,7 +86,8 @@ jobs:
         run: |
           cd backend
           python manage.py migrate --noinput
-          python manage.py loaddata ../backend/workorder/fixtures/initial_data.json
+          python manage.py load_initial_users
+          python manage.py loaddata workorder/fixtures/initial_products.json
 
       - name: Create test data
         env:
@@ -94,41 +95,27 @@ jobs:
           SECRET_KEY: test-secret-key-for-ci
         run: |
           cd backend
-          python -c "
-          from django.contrib.auth import get_user_model
-          from workorder.tests.factories import (
-              WorkOrderFactory, UserFactory, DepartmentFactory,
-              ProcessFactory, WorkOrderTaskFactory
-          )
-          import django
-          django.setup()
+          python manage.py shell -c "
+from workorder.tests.factories import DepartmentFactory, ProcessFactory, UserFactory, WorkOrderFactory, WorkOrderProcessFactory, WorkOrderTaskFactory
 
-          User = get_user_model()
+supervisor = UserFactory(username='test_supervisor')
+operator = UserFactory(username='test_operator')
+maker = UserFactory(username='test_maker')
 
-          # Create test users
-          supervisor = UserFactory(username='test_supervisor', role='supervisor')
-          operator = UserFactory(username='test_operator', role='operator')
-          maker = UserFactory(username='test_maker', role='maker')
+for user in (supervisor, operator, maker):
+    user.set_password('testpass123')
+    user.save()
 
-          # Set passwords for token auth
-          for user in [supervisor, operator, maker]:
-              user.set_password('testpass123')
-              user.save()
+dept = DepartmentFactory(name='Test Dept')
+process = ProcessFactory(name='Test Process')
 
-          # Create test data
-          dept = DepartmentFactory(name='Test Dept')
-          process = ProcessFactory(name='Test Process')
+for _ in range(50):
+    wo = WorkOrderFactory(approval_status='approved', processes=0)
+    wop = WorkOrderProcessFactory(work_order=wo, process=process, tasks=0)
+    WorkOrderTaskFactory(work_order_process=wop, status='pending', assigned_department=dept)
 
-          for _ in range(50):
-              wo = WorkOrderFactory(approval_status='approved')
-              WorkOrderTaskFactory(
-                  work_order=wo,
-                  status='pending',
-                  assigned_department=dept
-              )
-
-          print('Test data created successfully')
-          "
+print('Test data created successfully')
+"
 
       - name: Start Django server
         env:
@@ -138,7 +125,7 @@ jobs:
           DEBUG: False
         run: |
           cd backend
-          gunicorn config.wsgi:application --bind 0.0.0.0:8000 --daemon --access-logfile - --error-logfile -
+          python manage.py runserver 0.0.0.0:8000 &
           # Wait for server to be ready
           sleep 5
 
@@ -190,6 +177,7 @@ jobs:
     if: always()
     steps:
       - name: Download artifacts
+        if: ${{ needs.load-test.result == 'success' }}
         uses: actions/download-artifact@v4
         with:
           name: locust-report
@@ -198,4 +186,8 @@ jobs:
         run: |
           echo "## Load Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Detailed report available in artifacts." >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.load-test.result }}" = "success" ]; then
+            echo "Detailed report available in artifacts." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Load test job failed; no report artifact was uploaded." >> $GITHUB_STEP_SUMMARY
+          fi
