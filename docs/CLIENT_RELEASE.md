@@ -47,7 +47,10 @@ npm run desktop:build
 - `TAURI_PRIVATE_KEY` / `TAURI_KEY_PASSWORD`（用于签名更新包）
 - `TAURI_PUBLIC_KEY`（会在 release workflow 中写入 `apps/desktop/src-tauri/tauri.conf.json` 的 `tauri.updater.pubkey` 并开启 `active`）
 
-默认情况下 `tauri.updater.active=false`（避免在未配置密钥时误启用）。
+默认情况下 `tauri.updater.active=false`（避免在未配置密钥时误启用）。当上述 3 个 Secrets 都存在时，Release workflow 会额外上传：
+
+- `latest.json`（更新清单）
+- `workorder-<tag>-<platform>.*` 与对应 `.sig`（更新包与签名）
 
 ## 3. Android（Capacitor）
 
