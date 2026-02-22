@@ -25,6 +25,8 @@ import InvoiceListView from '../views/InvoiceListView.vue'
 import PaymentListView from '../views/PaymentListView.vue'
 import ArtworkListView from '../views/ArtworkListView.vue'
 import DieListView from '../views/DieListView.vue'
+import FoilingPlateListView from '../views/FoilingPlateListView.vue'
+import EmbossingPlateListView from '../views/EmbossingPlateListView.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -49,6 +51,8 @@ export const router = createRouter({
     { path: '/payments', name: 'payments', component: PaymentListView, meta: { requiresAuth: true } },
     { path: '/artworks', name: 'artworks', component: ArtworkListView, meta: { requiresAuth: true } },
     { path: '/dies', name: 'dies', component: DieListView, meta: { requiresAuth: true } },
+    { path: '/foiling-plates', name: 'foiling-plates', component: FoilingPlateListView, meta: { requiresAuth: true } },
+    { path: '/embossing-plates', name: 'embossing-plates', component: EmbossingPlateListView, meta: { requiresAuth: true } },
     { path: '/tasks', name: 'tasks', component: TaskListView, meta: { requiresAuth: true } },
     { path: '/tasks/operator', name: 'operator-center', component: OperatorCenterView, meta: { requiresAuth: true } },
     { path: '/notifications', name: 'notifications', component: NotificationView, meta: { requiresAuth: true } }

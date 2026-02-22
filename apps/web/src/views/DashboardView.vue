@@ -28,6 +28,8 @@
         <el-button @click="goPayments">收款</el-button>
         <el-button @click="goArtworks">图稿</el-button>
         <el-button @click="goDies">刀模</el-button>
+        <el-button @click="goFoilingPlates">烫金版</el-button>
+        <el-button @click="goEmbossingPlates">压凸版</el-button>
       </div>
     </el-card>
   </div>
@@ -126,6 +128,14 @@ function goArtworks() {
 
 function goDies() {
   router.push({ name: 'dies' })
+}
+
+function goFoilingPlates() {
+  router.push({ name: 'foiling-plates' })
+}
+
+function goEmbossingPlates() {
+  router.push({ name: 'embossing-plates' })
 }
 </script>
 
