@@ -15,6 +15,7 @@
           @keyup.enter="reload"
         />
         <el-button size="small" :loading="loading" @click="reload">查询</el-button>
+        <el-button size="small" type="primary" @click="goCreate">新建</el-button>
       </div>
     </div>
 
@@ -105,6 +106,10 @@ function goHome() {
 
 function handleRowClick(row: WorkOrderListItem) {
   router.push({ name: 'workorder-detail', params: { id: row.id } })
+}
+
+function goCreate() {
+  router.push({ name: 'workorder-create' })
 }
 
 onMounted(() => {

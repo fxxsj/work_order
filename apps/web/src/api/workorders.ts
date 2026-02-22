@@ -57,3 +57,20 @@ export async function approveWorkOrder(input: {
   })
   return res.data
 }
+
+export async function createWorkOrder(input: {
+  customer: number
+  priority: 'low' | 'normal' | 'high' | 'urgent'
+  delivery_date: string
+  notes?: string
+  products_data: Array<{
+    product: number
+    quantity: number
+    unit: string
+    specification?: string
+    sort_order?: number
+  }>
+}) {
+  const res = await http.post('/workorders/', input)
+  return res.data
+}
