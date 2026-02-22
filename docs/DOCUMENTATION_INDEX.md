@@ -103,6 +103,10 @@
 - Phase 1：Tauri（macOS/Windows）与 Capacitor（Android）壳化启动指南
 - 最小验收标准与工具链准备
 
+#### [CLIENT_RELEASE.md](CLIENT_RELEASE.md)
+- 多平台客户端交付命令（Web / macOS / Windows / Android）
+- hash/history 路由与打包注意事项
+
 ---
 
 ## 🧭 vNext（迁移中）
