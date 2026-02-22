@@ -77,5 +77,9 @@
     "> 1%",
     "last 2 versions",
     "not dead"
-  ]
+  ],
+  "overrides": {
+    "vue": "$vue",
+    "vue-template-compiler": "$vue-template-compiler"
+  }
 }

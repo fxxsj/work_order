@@ -85,8 +85,8 @@ jobs:
     - name: Run security checks with bandit
       run: |
         cd backend
-        bandit -r . -f json -o bandit-report.json || true
-        bandit -r . -f text
+        bandit -r . -x ./tests,./*/tests -f json -o bandit-report.json || true
+        bandit -r . -x ./tests,./*/tests -f text
 
     - name: Run dependency security check with safety
       run: |

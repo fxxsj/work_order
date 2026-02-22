@@ -39,7 +39,7 @@ class TaskStatsMixin:
 
         # Create a hash of parameters for cache key
         params = f"{start_date or ''}:{end_date or ''}:{department_id or ''}"
-        params_hash = hashlib.md5(params.encode()).hexdigest()[:8]
+        params_hash = hashlib.md5(params.encode()).hexdigest()[:8]  # nosec
         return f"{self.COLLAB_STATS_CACHE_PREFIX}:{params_hash}"
 
     @action(detail=False, methods=["get"], throttle_classes=[ExportRateThrottle])
