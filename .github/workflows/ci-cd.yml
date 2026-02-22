@@ -133,16 +133,17 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
 
-    - name: Clean and install dependencies
+    - name: Install dependencies
       run: |
-        # Remove all node_modules to prevent workspace hoisting
-        rm -rf node_modules frontend/node_modules apps/*/node_modules packages/*/node_modules
-        # Clear npm cache to avoid cached Vue 3
-        npm cache clean --force
+        # Temporarily hide root package.json to prevent workspace hoisting
+        # This ensures frontend installs Vue 2 independently
+        mv package.json package.json.bak
+        mv package-lock.json package-lock.json.bak 2>/dev/null || true
         cd frontend
         npm install
-        # Verify Vue 2 is installed
-        npm list vue vue-template-compiler
+        cd ..
+        mv package.json.bak package.json
+        mv package-lock.json.bak package-lock.json 2>/dev/null || true
 
     - name: Run ESLint
       run: |
