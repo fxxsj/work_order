@@ -64,7 +64,7 @@ jobs:
         cd backend
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest pytest-django pytest-cov flake8 black isort safety bandit
+        pip install channels-redis pytest pytest-django pytest-cov flake8 black isort safety bandit
 
     - name: Lint with flake8
       run: |
