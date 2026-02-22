@@ -57,7 +57,11 @@ jobs:
       - name: Generate Android project (Capacitor)
         run: |
           cd apps/mobile
-          npm run cap:add:android
+          if [ -d android ]; then
+            echo "Android project already exists; skipping cap add."
+          else
+            npm run cap:add:android
+          fi
 
       - name: Apply Android version from tag
         shell: bash
@@ -88,8 +92,34 @@ jobs:
             TAG="${{ github.ref_name }}"
           fi
           mkdir -p dist
-          cp apps/mobile/android/app/build/outputs/apk/release/app-release-unsigned.apk "dist/WorkOrder-${TAG}-unsigned.apk"
-          cp apps/mobile/android/app/build/outputs/bundle/release/app-release.aab "dist/WorkOrder-${TAG}-unsigned.aab"
+          APK_DIR="apps/mobile/android/app/build/outputs/apk/release"
+          AAB_DIR="apps/mobile/android/app/build/outputs/bundle/release"
+
+          if [ -f "$APK_DIR/app-release-unsigned.apk" ]; then
+            cp "$APK_DIR/app-release-unsigned.apk" "dist/WorkOrder-${TAG}-unsigned.apk"
+          elif [ -f "$APK_DIR/app-release.apk" ]; then
+            cp "$APK_DIR/app-release.apk" "dist/WorkOrder-${TAG}-unsigned.apk"
+          else
+            APK="$(ls -1 "$APK_DIR"/*.apk 2>/dev/null | head -n 1 || true)"
+            if [ -z "$APK" ]; then
+              echo "No APK found in $APK_DIR"
+              ls -la "$APK_DIR" || true
+              exit 1
+            fi
+            cp "$APK" "dist/WorkOrder-${TAG}-unsigned.apk"
+          fi
+
+          if [ -f "$AAB_DIR/app-release.aab" ]; then
+            cp "$AAB_DIR/app-release.aab" "dist/WorkOrder-${TAG}-unsigned.aab"
+          else
+            AAB="$(ls -1 "$AAB_DIR"/*.aab 2>/dev/null | head -n 1 || true)"
+            if [ -z "$AAB" ]; then
+              echo "No AAB found in $AAB_DIR"
+              ls -la "$AAB_DIR" || true
+              exit 1
+            fi
+            cp "$AAB" "dist/WorkOrder-${TAG}-unsigned.aab"
+          fi
 
       - name: Verify unsigned outputs exist
         shell: bash

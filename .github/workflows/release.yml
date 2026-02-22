@@ -183,12 +183,14 @@ jobs:
         with:
           tag_name: ${{ inputs.tag || github.ref_name }}
           files: dist/**/WorkOrder-*.zip
+          fail_on_unmatched_files: false
 
       - name: Upload installers to release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.tag || github.ref_name }}
           files: dist/**/WorkOrder-*.dmg
+          fail_on_unmatched_files: false
 
       - name: Upload Windows installers to release
         uses: softprops/action-gh-release@v2
@@ -197,6 +199,7 @@ jobs:
           files: |
             dist/**/WorkOrder-*.msi
             dist/**/WorkOrder-*.exe
+          fail_on_unmatched_files: false
 
   publish-updater:
     name: Publish updater assets
@@ -255,3 +258,4 @@ jobs:
         with:
           tag_name: ${{ inputs.tag || github.ref_name }}
           files: dist/upload/*
+          fail_on_unmatched_files: false
