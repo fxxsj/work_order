@@ -2,6 +2,16 @@
  * TaskService 单元测试
  */
 
+// Mock @/api before importing TaskService
+jest.mock('@/api', () => ({
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn()
+  }
+}))
+
 import taskService from '@/services/TaskService'
 
 // Mock API 客户端

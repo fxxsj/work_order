@@ -2,6 +2,16 @@
  * WorkOrderService 单元测试
  */
 
+// Mock @/api before importing WorkOrderService
+jest.mock('@/api', () => ({
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn()
+  }
+}))
+
 import workOrderService, { WorkOrderService } from '@/services/WorkOrderService'
 
 // Mock API 客户端
