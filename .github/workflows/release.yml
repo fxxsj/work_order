@@ -120,7 +120,8 @@ jobs:
             TAG="${{ github.ref_name }}"
           fi
           mkdir -p dist/bundles
-          ditto -c -k --sequesterRsrc --keepParent apps/desktop/src-tauri/target/release/bundle "dist/bundles/WorkOrder-${TAG}-macos.zip"
+          BUNDLE_ROOT="$(node scripts/release/print-tauri-bundle-root.mjs)"
+          ditto -c -k --sequesterRsrc --keepParent "$BUNDLE_ROOT" "dist/bundles/WorkOrder-${TAG}-macos.zip"
 
       - name: Package bundles (Windows)
         if: runner.os == 'Windows'
@@ -129,7 +130,7 @@ jobs:
           $tag = "${{ github.event.inputs.tag }}"
           if ([string]::IsNullOrWhiteSpace($tag)) { $tag = "${{ github.ref_name }}" }
           New-Item -ItemType Directory -Force -Path dist/bundles | Out-Null
-          $src = "apps/desktop/src-tauri/target/release/bundle"
+          $src = node scripts/release/print-tauri-bundle-root.mjs
           $dst = "dist/bundles/WorkOrder-$tag-windows.zip"
           if (Test-Path $dst) { Remove-Item $dst -Force }
           Compress-Archive -Path "$src/*" -DestinationPath $dst

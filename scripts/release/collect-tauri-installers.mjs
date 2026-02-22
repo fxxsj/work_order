@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { resolveTauriBundleRoot } from './tauri-bundle-root.mjs'
 
 function requireArg(name) {
   const idx = process.argv.indexOf(`--${name}`)
@@ -29,13 +30,9 @@ const tag = requireArg('tag')
 const platform = requireArg('platform') // darwin-aarch64, darwin-x86_64, windows-x86_64
 
 const repoRoot = process.cwd()
-const bundleRoot = path.join(repoRoot, 'apps', 'desktop', 'src-tauri', 'target', 'release', 'bundle')
+const bundleRoot = resolveTauriBundleRoot(repoRoot)
 const outDir = path.join(repoRoot, 'dist', 'installers')
 fs.mkdirSync(outDir, { recursive: true })
-
-if (!fs.existsSync(bundleRoot)) {
-  throw new Error(`Bundle directory not found: ${bundleRoot}`)
-}
 
 const allFiles = listFilesRecursive(bundleRoot).map((p) => p.replace(/\\/g, '/'))
 
@@ -56,4 +53,3 @@ if (platform.startsWith('windows-')) {
 }
 
 console.log(`[release] collected installers for ${platform} into dist/installers`)
-
