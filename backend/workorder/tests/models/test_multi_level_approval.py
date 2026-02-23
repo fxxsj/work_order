@@ -86,4 +86,3 @@ class TestMultiLevelApprovalService:
         )
         assert len(steps) == 1
         assert steps[0].assigned_to == urgent_handler
-
