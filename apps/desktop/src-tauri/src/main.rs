@@ -34,11 +34,14 @@ fn clear_auth_token() -> Result<(), String> {
 }
 
 fn main() {
+  let download = tauri::CustomMenuItem::new("download".to_string(), "客户端下载");
   let show = tauri::CustomMenuItem::new("show".to_string(), "显示窗口");
   let hide = tauri::CustomMenuItem::new("hide".to_string(), "隐藏窗口");
   let quit = tauri::CustomMenuItem::new("quit".to_string(), "退出");
 
   let tray_menu = tauri::SystemTrayMenu::new()
+    .add_item(download)
+    .add_native_item(tauri::SystemTrayMenuItem::Separator)
     .add_item(show)
     .add_item(hide)
     .add_native_item(tauri::SystemTrayMenuItem::Separator)
@@ -56,6 +59,23 @@ fn main() {
         }
       }
       tauri::SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
+        "download" => {
+          if let Some(window) = app.get_window("main") {
+            let _ = window.show();
+            let _ = window.set_focus();
+            let _ = window.eval(
+              r#"
+              try {
+                if (location.hash && location.hash.startsWith('#/')) {
+                  location.hash = '#/download'
+                } else {
+                  location.pathname = '/download'
+                }
+              } catch {}
+              "#,
+            );
+          }
+        }
         "show" => {
           if let Some(window) = app.get_window("main") {
             let _ = window.show();
