@@ -1,5 +1,6 @@
 import { http } from '../lib/http'
-import type { PaginatedResult } from './workorders'
+import { createApiWithActions } from './base'
+import type { PaginatedResult } from './base'
 
 export type WorkOrderTaskListItem = {
   id: number
@@ -20,14 +21,51 @@ export type WorkOrderTaskListItem = {
   created_at: string
 }
 
+export const taskApi = createApiWithActions(
+  'workorder-tasks',
+  {
+    getOperatorCenter: async () => (await http.get<OperatorCenterResponse>('/workorder-tasks/operator_center/')).data,
+    claim: async (taskId: number, notes?: string) => (await http.post(`/workorder-tasks/${taskId}/claim/`, { notes: notes || '' })).data,
+    updateQuantity: async (input: {
+      taskId: number
+      version?: number
+      quantity_increment: number
+      quantity_defective?: number
+      notes?: string
+    }) =>
+      (
+        await http.post(`/workorder-tasks/${input.taskId}/update_quantity/`, {
+          version: input.version,
+          quantity_increment: input.quantity_increment,
+          quantity_defective: input.quantity_defective || 0,
+          notes: input.notes || ''
+        })
+      ).data,
+    complete: async (input: {
+      taskId: number
+      version?: number
+      completion_reason?: string
+      quantity_defective?: number
+      notes?: string
+    }) =>
+      (
+        await http.post(`/workorder-tasks/${input.taskId}/complete/`, {
+          version: input.version,
+          completion_reason: input.completion_reason || '',
+          quantity_defective: input.quantity_defective || 0,
+          notes: input.notes || ''
+        })
+      ).data
+  }
+)
+
 export async function listTasks(params: {
   page: number
   page_size: number
   search?: string
   ordering?: string
 }) {
-  const res = await http.get<PaginatedResult<WorkOrderTaskListItem>>('/workorder-tasks/', { params })
-  return res.data
+  return taskApi.list(params)
 }
 
 export type OperatorCenterResponse = {
@@ -43,13 +81,11 @@ export type OperatorCenterResponse = {
 }
 
 export async function getOperatorCenter() {
-  const res = await http.get<OperatorCenterResponse>('/workorder-tasks/operator_center/')
-  return res.data
+  return taskApi.getOperatorCenter()
 }
 
 export async function claimTask(taskId: number, notes?: string) {
-  const res = await http.post(`/workorder-tasks/${taskId}/claim/`, { notes: notes || '' })
-  return res.data
+  return taskApi.claim(taskId, notes)
 }
 
 export async function updateTaskQuantity(input: {
@@ -59,13 +95,7 @@ export async function updateTaskQuantity(input: {
   quantity_defective?: number
   notes?: string
 }) {
-  const res = await http.post(`/workorder-tasks/${input.taskId}/update_quantity/`, {
-    version: input.version,
-    quantity_increment: input.quantity_increment,
-    quantity_defective: input.quantity_defective || 0,
-    notes: input.notes || ''
-  })
-  return res.data
+  return taskApi.updateQuantity(input)
 }
 
 export async function completeTask(input: {
@@ -75,11 +105,5 @@ export async function completeTask(input: {
   quantity_defective?: number
   notes?: string
 }) {
-  const res = await http.post(`/workorder-tasks/${input.taskId}/complete/`, {
-    version: input.version,
-    completion_reason: input.completion_reason || '',
-    quantity_defective: input.quantity_defective || 0,
-    notes: input.notes || ''
-  })
-  return res.data
+  return taskApi.complete(input)
 }
