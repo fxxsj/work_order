@@ -26,7 +26,9 @@ export type ApprovalStep = {
 export const approvalStepApi = createApiWithActions('approval-steps', {
   start: async (id: number) => (await http.post(`/approval-steps/${id}/start_step/`, {})).data,
   complete: async (id: number, input: { decision: ApprovalStepDecision; comments?: string }) =>
-    (await http.post(`/approval-steps/${id}/complete_step/`, input)).data
+    (await http.post(`/approval-steps/${id}/complete_step/`, input)).data,
+  escalate: async (id: number, input: { escalation_reason: string; to_step_id?: number | null }) =>
+    (await http.post(`/approval-steps/${id}/escalate_step/`, input)).data
 })
 
 export async function listApprovalSteps(params: { page: number; page_size: number; search?: string }) {
@@ -41,3 +43,6 @@ export async function completeApprovalStep(id: number, input: { decision: Approv
   return approvalStepApi.complete(id, input)
 }
 
+export async function escalateApprovalStep(id: number, input: { escalation_reason: string; to_step_id?: number | null }) {
+  return approvalStepApi.escalate(id, input)
+}

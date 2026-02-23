@@ -23,6 +23,7 @@
             <el-button size="small" type="danger" :loading="actingId === row.id" @click="openComplete(row, 'reject')">
               拒绝
             </el-button>
+            <el-button size="small" type="warning" :loading="actingId === row.id" @click="openEscalate(row)">上报</el-button>
           </template>
         </el-table-column>
       </template>
@@ -39,6 +40,18 @@
         <el-button type="primary" :loading="submitting" @click="submitComplete">确定</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="escalateOpen" title="上报审核步骤" width="560px" :close-on-click-modal="false">
+      <el-form :model="escalateForm" label-width="120px">
+        <el-form-item label="上报原因" required>
+          <el-input v-model="escalateForm.escalation_reason" type="textarea" :rows="4" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="escalateOpen = false">取消</el-button>
+        <el-button type="primary" :loading="submitting" @click="submitEscalate">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -48,6 +61,7 @@ import { ElMessage } from 'element-plus'
 import {
   approvalStepApi,
   completeApprovalStep,
+  escalateApprovalStep,
   startApprovalStep,
   type ApprovalStep,
   type ApprovalStepDecision
@@ -64,6 +78,10 @@ const completeDecision = ref<ApprovalStepDecision>('approve')
 const submitting = ref(false)
 
 const completeForm = reactive({ comments: '' })
+
+const escalateOpen = ref(false)
+const escalatingId = ref<number | null>(null)
+const escalateForm = reactive({ escalation_reason: '' })
 
 async function reload() {
   await listRef.value?.loadData()
@@ -108,6 +126,33 @@ async function submitComplete() {
     actingId.value = null
   }
 }
+
+function openEscalate(row: ApprovalStep) {
+  escalatingId.value = row.id
+  escalateForm.escalation_reason = ''
+  escalateOpen.value = true
+}
+
+async function submitEscalate() {
+  if (!escalatingId.value) return
+  if (!escalateForm.escalation_reason.trim()) {
+    ElMessage.warning('请输入上报原因')
+    return
+  }
+  submitting.value = true
+  actingId.value = escalatingId.value
+  try {
+    await escalateApprovalStep(escalatingId.value, { escalation_reason: escalateForm.escalation_reason.trim() })
+    ElMessage.success('已上报')
+    escalateOpen.value = false
+    await reload()
+  } catch (err: any) {
+    ElMessage.error(formatError(err, '上报失败'))
+  } finally {
+    submitting.value = false
+    actingId.value = null
+  }
+}
 </script>
 
 <style scoped>
@@ -115,4 +160,3 @@ async function submitComplete() {
   padding: 16px;
 }
 </style>
-
