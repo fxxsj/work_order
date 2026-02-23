@@ -31,6 +31,16 @@ export async function listWorkOrders(params: {
 
 export type WorkOrderDetail = Record<string, any>
 
+export async function exportWorkOrders(params?: {
+  search?: string
+  ordering?: string
+  status?: string
+  priority?: string
+  filename?: string
+}) {
+  return http.get('/workorders/export/', { params, responseType: 'blob' })
+}
+
 export const workOrderApi = createApiWithActions(
   'workorders',
   {

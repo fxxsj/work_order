@@ -68,6 +68,10 @@ export async function listTasks(params: {
   return taskApi.list(params)
 }
 
+export async function exportTasks(params?: { search?: string; ordering?: string; filename?: string }) {
+  return http.get('/workorder-tasks/export/', { params, responseType: 'blob' })
+}
+
 export type OperatorCenterResponse = {
   my_tasks: WorkOrderTaskListItem[]
   claimable_tasks: WorkOrderTaskListItem[]
