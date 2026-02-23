@@ -18,6 +18,7 @@
         <el-button @click="goScan">扫码</el-button>
         <el-button @click="goMonitoring">监控</el-button>
         <el-button @click="goApprovalWorkflows">审批工作流</el-button>
+        <el-button @click="goApprovalSteps">审批待办</el-button>
         <el-button @click="goCustomers">客户</el-button>
         <el-button @click="goProducts">产品</el-button>
         <el-button @click="goDepartments">部门</el-button>
@@ -102,6 +103,10 @@ function goMonitoring() {
 
 function goApprovalWorkflows() {
   router.push({ name: 'approval-workflows' })
+}
+
+function goApprovalSteps() {
+  router.push({ name: 'approval-steps' })
 }
 
 function goCustomers() {
