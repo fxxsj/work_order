@@ -8,7 +8,7 @@ from django.db import transaction
 from django.db.models import Case, Count, F, FloatField, Sum, When
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, pagination, status, viewsets
+from rest_framework import filters, pagination, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -20,7 +20,6 @@ from ..models.materials import (
     PurchaseReceiveRecord,
     Supplier,
 )
-from ..permissions import SuperuserFriendlyModelPermissions
 from ..serializers.materials import (
     InspectionConfirmSerializer,
     MaterialSerializer,
@@ -81,16 +80,10 @@ class MaterialSupplierViewSet(BaseViewSet):
     ordering = ["-created_at"]
 
 
-class PurchaseOrderViewSet(viewsets.ModelViewSet):
+class PurchaseOrderViewSet(BaseViewSet):
     """采购单视图集（优化版）"""
 
     queryset = PurchaseOrder.objects.all()
-    permission_classes = [SuperuserFriendlyModelPermissions]
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
     search_fields = ["order_number", "supplier__name"]
     ordering_fields = ["created_at", "order_number", "total_amount"]
     ordering = ["-created_at"]
@@ -359,11 +352,10 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
         return Response({"materials": list(materials)})
 
 
-class PurchaseOrderItemViewSet(viewsets.ModelViewSet):
+class PurchaseOrderItemViewSet(BaseViewSet):
     """采购单明细视图集"""
 
     queryset = PurchaseOrderItem.objects.all()
-    permission_classes = [SuperuserFriendlyModelPermissions]
     serializer_class = PurchaseOrderItemSerializer
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     ordering_fields = ["created_at"]
@@ -390,14 +382,13 @@ class PurchaseOrderItemViewSet(viewsets.ModelViewSet):
         )
 
 
-class PurchaseReceiveRecordViewSet(viewsets.ModelViewSet):
+class PurchaseReceiveRecordViewSet(BaseViewSet):
     """采购收货记录视图集
 
     提供收货记录的CRUD操作和质检、入库、退货等业务操作。
     """
 
     queryset = PurchaseReceiveRecord.objects.all()
-    permission_classes = [SuperuserFriendlyModelPermissions]
     serializer_class = PurchaseReceiveRecordSerializer
     filter_backends = [
         DjangoFilterBackend,
