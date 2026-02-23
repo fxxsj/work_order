@@ -11,54 +11,7 @@ from .auth_views import (
     register_view,
     update_profile,
 )
-
-# 财务/库存/基础等视图集
-from .views import (
-    ArtworkProductViewSet,
-    ArtworkViewSet,
-    CostCenterViewSet,
-    CostItemViewSet,
-    CustomerViewSet,
-    DeliveryItemViewSet,
-    DeliveryOrderViewSet,
-    DepartmentViewSet,
-    DieProductViewSet,
-    DieViewSet,
-    DraftTaskViewSet,
-    EmbossingPlateProductViewSet,
-    EmbossingPlateViewSet,
-    FoilingPlateProductViewSet,
-    FoilingPlateViewSet,
-    InvoiceViewSet,
-    MaterialSupplierViewSet,
-    MaterialViewSet,
-    PaymentPlanViewSet,
-    PaymentViewSet,
-    ProcessLogViewSet,
-    ProcessViewSet,
-    ProductGroupItemViewSet,
-    ProductGroupViewSet,
-    ProductMaterialViewSet,
-    ProductStockViewSet,
-    ProductViewSet,
-    ProductionCostViewSet,
-    PurchaseOrderItemViewSet,
-    PurchaseOrderViewSet,
-    PurchaseReceiveRecordViewSet,
-    QualityInspectionViewSet,
-    SalesOrderItemViewSet,
-    SalesOrderViewSet,
-    StatementViewSet,
-    StockInViewSet,
-    StockOutViewSet,
-    SupplierViewSet,
-    TaskAssignmentRuleViewSet,
-    WorkOrderMaterialViewSet,
-    WorkOrderProcessViewSet,
-    WorkOrderProductViewSet,
-    WorkOrderTaskViewSet,
-    WorkOrderViewSet,
-)
+from . import views
 from .views.monitoring import (
     BusinessMetricsViewSet,
     DashboardMonitoringViewSet,
@@ -79,56 +32,62 @@ from .views.notification import (
 )
 
 router = DefaultRouter()
-router.register(r"customers", CustomerViewSet)
-router.register(r"departments", DepartmentViewSet)
-router.register(r"processes", ProcessViewSet)
-router.register(r"products", ProductViewSet)
-router.register(r"product-materials", ProductMaterialViewSet)
-router.register(r"materials", MaterialViewSet)
-router.register(r"suppliers", SupplierViewSet)
-router.register(r"material-suppliers", MaterialSupplierViewSet)
-router.register(r"purchase-orders", PurchaseOrderViewSet)
-router.register(r"purchase-order-items", PurchaseOrderItemViewSet)
-router.register(r"purchase-receive-records", PurchaseReceiveRecordViewSet)
-router.register(r"sales-orders", SalesOrderViewSet)
-router.register(r"sales-order-items", SalesOrderItemViewSet)
-router.register(r"workorders", WorkOrderViewSet)
-router.register(r"workorder-processes", WorkOrderProcessViewSet)
-router.register(r"workorder-products", WorkOrderProductViewSet)
-router.register(r"workorder-materials", WorkOrderMaterialViewSet)
-router.register(r"workorder-tasks", WorkOrderTaskViewSet)
-router.register(r"draft-tasks", DraftTaskViewSet, basename="draft-task")
-router.register(r"product-groups", ProductGroupViewSet)
-router.register(r"product-group-items", ProductGroupItemViewSet)
-router.register(r"process-logs", ProcessLogViewSet)
-router.register(r"task-assignment-rules", TaskAssignmentRuleViewSet)
+router.register(r"customers", views.CustomerViewSet)
+router.register(r"departments", views.DepartmentViewSet)
+router.register(r"processes", views.ProcessViewSet)
+router.register(r"products", views.ProductViewSet)
+router.register(r"product-materials", views.ProductMaterialViewSet)
+router.register(r"materials", views.MaterialViewSet)
+router.register(r"suppliers", views.SupplierViewSet)
+router.register(r"material-suppliers", views.MaterialSupplierViewSet)
+router.register(r"purchase-orders", views.PurchaseOrderViewSet)
+router.register(r"purchase-order-items", views.PurchaseOrderItemViewSet)
+router.register(r"purchase-receive-records", views.PurchaseReceiveRecordViewSet)
+router.register(r"sales-orders", views.SalesOrderViewSet)
+router.register(r"sales-order-items", views.SalesOrderItemViewSet)
+router.register(r"workorders", views.WorkOrderViewSet)
+router.register(r"workorder-processes", views.WorkOrderProcessViewSet)
+router.register(r"workorder-products", views.WorkOrderProductViewSet)
+router.register(r"workorder-materials", views.WorkOrderMaterialViewSet)
+router.register(r"workorder-tasks", views.WorkOrderTaskViewSet)
+router.register(r"draft-tasks", views.DraftTaskViewSet, basename="draft-task")
+router.register(r"product-groups", views.ProductGroupViewSet)
+router.register(r"product-group-items", views.ProductGroupItemViewSet)
+router.register(r"process-logs", views.ProcessLogViewSet)
+router.register(r"task-assignment-rules", views.TaskAssignmentRuleViewSet)
 router.register(r"notifications", NotificationViewSet, basename="notifications")
-router.register(r"artworks", ArtworkViewSet)
-router.register(r"artwork-products", ArtworkProductViewSet)
-router.register(r"dies", DieViewSet)
-router.register(r"die-products", DieProductViewSet)
-router.register(r"foiling-plates", FoilingPlateViewSet)
-router.register(r"foiling-plate-products", FoilingPlateProductViewSet)
-router.register(r"embossing-plates", EmbossingPlateViewSet)
-router.register(r"embossing-plate-products", EmbossingPlateProductViewSet)
+router.register(r"artworks", views.ArtworkViewSet)
+router.register(r"artwork-products", views.ArtworkProductViewSet)
+router.register(r"dies", views.DieViewSet)
+router.register(r"die-products", views.DieProductViewSet)
+router.register(r"foiling-plates", views.FoilingPlateViewSet)
+router.register(r"foiling-plate-products", views.FoilingPlateProductViewSet)
+router.register(r"embossing-plates", views.EmbossingPlateViewSet)
+router.register(r"embossing-plate-products", views.EmbossingPlateProductViewSet)
 
 # 财务路由
-router.register(r"cost-centers", CostCenterViewSet, basename="cost-center")
-router.register(r"cost-items", CostItemViewSet, basename="cost-item")
-router.register(r"production-costs", ProductionCostViewSet, basename="production-cost")
-router.register(r"invoices", InvoiceViewSet, basename="invoice")
-router.register(r"payments", PaymentViewSet, basename="payment")
-router.register(r"payment-plans", PaymentPlanViewSet, basename="payment-plan")
-router.register(r"statements", StatementViewSet, basename="statement")
+router.register(r"cost-centers", views.CostCenterViewSet, basename="cost-center")
+router.register(r"cost-items", views.CostItemViewSet, basename="cost-item")
+router.register(
+    r"production-costs", views.ProductionCostViewSet, basename="production-cost"
+)
+router.register(r"invoices", views.InvoiceViewSet, basename="invoice")
+router.register(r"payments", views.PaymentViewSet, basename="payment")
+router.register(r"payment-plans", views.PaymentPlanViewSet, basename="payment-plan")
+router.register(r"statements", views.StatementViewSet, basename="statement")
 
 # 库存路由
-router.register(r"product-stocks", ProductStockViewSet, basename="product-stock")
-router.register(r"stock-ins", StockInViewSet, basename="stock-in")
-router.register(r"stock-outs", StockOutViewSet, basename="stock-out")
-router.register(r"delivery-orders", DeliveryOrderViewSet, basename="delivery-order")
-router.register(r"delivery-items", DeliveryItemViewSet, basename="delivery-item")
+router.register(r"product-stocks", views.ProductStockViewSet, basename="product-stock")
+router.register(r"stock-ins", views.StockInViewSet, basename="stock-in")
+router.register(r"stock-outs", views.StockOutViewSet, basename="stock-out")
 router.register(
-    r"quality-inspections", QualityInspectionViewSet, basename="quality-inspection"
+    r"delivery-orders", views.DeliveryOrderViewSet, basename="delivery-order"
+)
+router.register(r"delivery-items", views.DeliveryItemViewSet, basename="delivery-item")
+router.register(
+    r"quality-inspections",
+    views.QualityInspectionViewSet,
+    basename="quality-inspection",
 )
 
 # 多级审批端点已启用。
