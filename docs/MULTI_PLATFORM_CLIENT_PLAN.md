@@ -13,7 +13,7 @@
 - **前端**：Vue 3 + Vite + TypeScript + Pinia + Element Plus（SPA）
 - **通信**：REST API（分页/过滤）+ WebSocket（通知）
 
-### 1.3 当前实现进展（截至 2026-02-22）
+### 1.3 当前实现进展（截至 2026-02-23）
 
 仓库已落地“Web 业务代码复用 + 多端壳”最小闭环：
 
@@ -85,13 +85,13 @@
 - `apps/web/`：新 Web（Vue 3/Vite）逐步替换
 - `apps/desktop/`：Tauri 容器（指向 `apps/web` 构建产物）
 - `apps/mobile/`：Capacitor 容器（指向 `apps/web` 构建产物）
-- `packages/sdk/`：OpenAPI 生成的 TypeScript SDK（Web/桌面/移动共享）
-- `packages/shared/`：共享工具、权限/菜单模型、日期/货币/校验等纯逻辑
+- `packages/sdk/`：OpenAPI 生成的 TypeScript 类型/SDK（Web/桌面/移动共享）
+- `packages/shared/`：共享纯逻辑（可选，尚未创建）
 
-中期（稳定后再收敛为 monorepo）：
+当前（已落地）：
 
-- 使用 `pnpm workspace` 或 `npm workspaces` 管理多包依赖
-- CI 统一在根目录构建与发版
+- 根目录已使用 `npm workspaces` 管理多包依赖（见 `package.json` 的 `workspaces`）
+- CI 已在根目录统一构建与发版（详见 `.github/workflows/` 与 `docs/CLIENT_RELEASE.md`）
 
 ### 3.2 关键跨端能力设计
 
@@ -126,6 +126,8 @@
 - 生成 `TypeScript SDK`（统一请求封装、类型）
 - 前端支持配置 `API_BASE_URL / WS_BASE_URL`（为桌面/安卓做准备）
 
+当前状态：已落地（OpenAPI 导出脚本 + `packages/sdk` 类型生成脚本 + vNext 运行时配置入口）。
+
 验收标准：
 - SDK 能跑通：登录、拉列表、更新、关键动作接口
 - WebSocket 通知在开发环境可连通（含重连/心跳）
@@ -138,6 +140,8 @@
 - **桌面 MVP（macOS/Windows）**：Tauri 包壳，能登录、浏览/操作核心页面、通知可用
 - **Android MVP**：Capacitor 包壳，能登录、浏览/操作核心页面、基础文件上传可用
 - 发布与更新策略草案（内测渠道）
+
+当前状态：已落地（Tauri/Capacitor 壳 + tag 发版产物链路）。
 
 验收标准：
 - 端到端业务链路可用（至少：登录→施工单列表→详情→任务操作→通知）
@@ -158,7 +162,7 @@
 #### 当前落地状态（仓库内）
 
 - 已新增 Web vNext 骨架：`apps/web/`（Vue 3 + Vite + TypeScript），已包含最小登录/路由守卫/运行时 API 配置入口。
-- 已在 Web vNext 迁移/实现的模块（截至 2026-02-22）：
+- 已在 Web vNext 迁移/实现的模块（截至 2026-02-23）：
   - 施工单：列表 / 详情 / 审核 / 状态更新 / 创建（基础字段）
   - 任务：列表、操作员中心（认领/更新数量/完成）
   - 通知：列表、已读、WebSocket 连接（基础）
@@ -196,13 +200,17 @@ Android 优先项：
 - Web 线上使用 history；桌面/Android 构建产物默认用 hash（详见 `docs/CLIENT_RELEASE.md`）
 - 统一运行时配置入口（`API Base URL / WS Base URL`）并在端侧持久化
 
-### 5.2 Token + WebSocket token in query 的安全性
+### 5.2 Token + WebSocket 鉴权的安全性
 
 风险：URL 可能被代理/日志记录，泄露 token。  
 对策（从低到高）：
 - 低：Nginx/应用日志过滤 query 参数；缩短 token 有效期；设备丢失可立即失效 token
-- 中：新增“WS 票据”接口（短时票据换取 WebSocket 连接）
+- 中：新增“WS 票据”接口（短时票据换取 WebSocket 连接，且可一次性使用）
 - 高：升级到 JWT + 短期 access token + refresh token（并对 WS 做票据/子协议）
+
+当前实现：
+- 前端优先调用 `/notifications/ws_ticket/` 获取短时 ticket 连接 WS；若失败再 fallback 使用 token；
+- 后端 WS consumer 同时支持 `ticket` 与 `token` query 参数（`ticket` 为一次性、短时缓存）。
 
 ### 5.3 多端发布与签名
 
