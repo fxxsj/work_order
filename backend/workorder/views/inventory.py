@@ -287,12 +287,29 @@ class StockInViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        stock_in.status = "completed"
-        stock_in.approved_by = request.user
-        stock_in.approved_at = timezone.now()
-        stock_in.save()
+        with transaction.atomic():
+            stock_in.status = "completed"
+            stock_in.approved_by = request.user
+            stock_in.approved_at = timezone.now()
+            stock_in.save()
 
-        # TODO: 创建ProductStock记录
+            # 创建 ProductStock 记录（按施工单产品拆分批次）
+            work_order = stock_in.work_order
+            for wp in work_order.products.select_related("product").all():
+                if not wp.quantity or wp.quantity <= 0:
+                    continue
+                batch_no = f"{stock_in.order_number}-{wp.id}"
+                ProductStock.objects.get_or_create(
+                    batch_no=batch_no,
+                    defaults={
+                        "product": wp.product,
+                        "quantity": wp.quantity,
+                        "work_order": work_order,
+                        "production_date": stock_in.stock_in_date,
+                        "status": "in_stock",
+                        "notes": f"入库单 {stock_in.order_number}",
+                    },
+                )
 
         serializer = self.get_serializer(stock_in)
         return Response({"message": "入库单审核成功", "data": serializer.data})
