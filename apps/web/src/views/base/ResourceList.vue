@@ -8,6 +8,7 @@
       </div>
 
       <div class="right">
+        <slot name="filters" />
         <el-input
           v-model="searchQuery"
           :placeholder="searchPlaceholder"
@@ -56,6 +57,7 @@ type Api<TItem> = {
 type Props = {
   title: string
   api: Api<T>
+  extraParams?: Record<string, any> | (() => Record<string, any>)
   canCreate?: boolean
   defaultPageSize?: number
   searchPlaceholder?: string
@@ -86,10 +88,12 @@ const searchQuery = ref('')
 async function loadData() {
   loading.value = true
   try {
+    const extraParams = typeof props.extraParams === 'function' ? props.extraParams() : props.extraParams
     const data = await props.api.list({
       page: currentPage.value,
       page_size: pageSize.value,
-      search: searchQuery.value || undefined
+      search: searchQuery.value || undefined,
+      ...(extraParams || {})
     })
     items.value = data.results
     totalCount.value = data.count
@@ -163,4 +167,3 @@ onMounted(() => {
   justify-content: flex-end;
 }
 </style>
-
