@@ -717,7 +717,7 @@ export const useWorkOrderStore = defineStore('workOrder', {
    - [ ] 高级报表
 
 2. **架构优化**
-   - [ ] 代码分割
+   - [x] 代码分割（路由懒加载）
    - [ ] 状态管理优化
    - [ ] API 缓存策略
 
