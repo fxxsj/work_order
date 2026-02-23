@@ -1,11 +1,6 @@
-import { http } from '../lib/http'
+import { createCrudApi } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type ProductGroupItem = {
   id: number
@@ -28,28 +23,24 @@ export type ProductGroup = {
   items?: ProductGroupItem[]
 }
 
+export const productGroupApi = createCrudApi<ProductGroup>('product-groups')
+
 export async function listProductGroups(params: { page: number; page_size: number; search?: string; is_active?: boolean }) {
-  const res = await http.get<PaginatedResult<ProductGroup>>('/product-groups/', { params })
-  return res.data
+  return productGroupApi.list(params)
 }
 
 export async function getProductGroup(id: number) {
-  const res = await http.get<ProductGroup>(`/product-groups/${id}/`)
-  return res.data
+  return productGroupApi.retrieve(id)
 }
 
 export async function createProductGroup(input: Partial<ProductGroup> & { items_write?: any[] }) {
-  const res = await http.post<ProductGroup>('/product-groups/', input)
-  return res.data
+  return productGroupApi.create(input)
 }
 
 export async function updateProductGroup(id: number, input: Partial<ProductGroup> & { items_write?: any[] }) {
-  const res = await http.put<ProductGroup>(`/product-groups/${id}/`, input)
-  return res.data
+  return productGroupApi.update(id, input)
 }
 
 export async function deleteProductGroup(id: number) {
-  const res = await http.delete(`/product-groups/${id}/`)
-  return res.data
+  return productGroupApi.delete(id)
 }
-
