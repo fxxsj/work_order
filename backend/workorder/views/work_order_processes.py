@@ -14,8 +14,7 @@ from django.db import models
 from django.db.models import Avg, Count, F, Max, Q, Sum
 from django.utils import timezone
 from django_filters import CharFilter, FilterSet, NumberFilter
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, status, viewsets
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -54,9 +53,10 @@ from ..serializers.core import (
 
 # P1 优化: 导入自定义速率限制
 from ..throttling import ApprovalRateThrottle, CreateRateThrottle, ExportRateThrottle
+from .base_viewsets import BaseViewSet
 
 
-class WorkOrderProcessViewSet(viewsets.ModelViewSet):
+class WorkOrderProcessViewSet(BaseViewSet):
     """施工单工序视图集"""
 
     queryset = WorkOrderProcess.objects.select_related(
@@ -66,11 +66,6 @@ class WorkOrderProcessViewSet(viewsets.ModelViewSet):
         WorkOrderProcessPermission
     ]  # 使用自定义权限：如果有编辑施工单权限，就可以编辑其工序
     serializer_class = WorkOrderProcessSerializer
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
     filterset_fields = ["work_order", "process", "status", "operator", "department"]
     search_fields = ["work_order__order_number", "process__name", "department__name"]
     ordering_fields = ["sequence", "actual_start_time", "created_at"]
