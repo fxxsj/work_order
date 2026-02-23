@@ -74,6 +74,11 @@ from .views.notification import (
     SystemNotificationViewSet,
     UserNotificationSettingsViewSet,
 )
+from .views.monitoring import (
+    BusinessMetricsViewSet,
+    DashboardMonitoringViewSet,
+    PerformanceMonitoringViewSet,
+)
 
 router = DefaultRouter()
 router.register(r"customers", CustomerViewSet)
@@ -147,6 +152,21 @@ router.register(
     r"notification-templates",
     NotificationTemplateViewSet,
     basename="notification-templates",
+)
+router.register(
+    r"monitoring-performance",
+    PerformanceMonitoringViewSet,
+    basename="monitoring-performance",
+)
+router.register(
+    r"monitoring-business",
+    BusinessMetricsViewSet,
+    basename="monitoring-business",
+)
+router.register(
+    r"monitoring-dashboard",
+    DashboardMonitoringViewSet,
+    basename="monitoring-dashboard",
 )
 
 urlpatterns = [
