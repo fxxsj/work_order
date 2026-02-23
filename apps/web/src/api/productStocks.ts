@@ -1,11 +1,8 @@
 import { http } from '../lib/http'
+import { createApiWithActions } from './base'
+import type { PaginatedResult } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type ProductStock = {
   id: number
@@ -33,6 +30,17 @@ export type ProductStock = {
   updated_at?: string
 }
 
+export const productStockApi = createApiWithActions(
+  'product-stocks',
+  {
+    adjust: async (id: number, input: { adjust_type: 'add' | 'subtract' | 'set'; quantity: number; reason: string }) =>
+      (await http.post(`/product-stocks/${id}/adjust/`, input)).data,
+    getLowStock: async () => (await http.get('/product-stocks/low_stock/')).data,
+    getSummary: async () => (await http.get('/product-stocks/summary/')).data
+  },
+  { updateMethod: 'patch' }
+)
+
 export async function listProductStocks(params: {
   page: number
   page_size: number
@@ -41,27 +49,21 @@ export async function listProductStocks(params: {
   status?: string
   batch_number?: string
 }) {
-  const res = await http.get<PaginatedResult<ProductStock>>('/product-stocks/', { params })
-  return res.data
+  return productStockApi.list(params)
 }
 
 export async function updateProductStock(id: number, input: Partial<ProductStock>) {
-  const res = await http.patch<ProductStock>(`/product-stocks/${id}/`, input)
-  return res.data
+  return productStockApi.update(id, input)
 }
 
 export async function adjustProductStock(id: number, input: { adjust_type: 'add' | 'subtract' | 'set'; quantity: number; reason: string }) {
-  const res = await http.post(`/product-stocks/${id}/adjust/`, input)
-  return res.data
+  return productStockApi.adjust(id, input)
 }
 
 export async function getLowStockProductStocks() {
-  const res = await http.get('/product-stocks/low_stock/')
-  return res.data
+  return productStockApi.getLowStock()
 }
 
 export async function getProductStockSummary() {
-  const res = await http.get('/product-stocks/summary/')
-  return res.data
+  return productStockApi.getSummary()
 }
-
