@@ -40,6 +40,7 @@ import ProductionCostListView from '../views/ProductionCostListView.vue'
 import StatementListView from '../views/StatementListView.vue'
 import ScanView from '../views/ScanView.vue'
 import MonitoringView from '../views/MonitoringView.vue'
+import ApprovalWorkflowListView from '../views/ApprovalWorkflowListView.vue'
 
 export const router = createRouter({
   history: (import.meta.env.VITE_ROUTER_MODE === 'hash' ? createWebHashHistory() : createWebHistory()),
@@ -49,6 +50,7 @@ export const router = createRouter({
     { path: '/', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true } },
     { path: '/scan', name: 'scan', component: ScanView, meta: { requiresAuth: true } },
     { path: '/monitoring', name: 'monitoring', component: MonitoringView, meta: { requiresAuth: true } },
+    { path: '/approval-workflows', name: 'approval-workflows', component: ApprovalWorkflowListView, meta: { requiresAuth: true } },
     { path: '/workorders', name: 'workorders', component: WorkOrderListView, meta: { requiresAuth: true } },
     { path: '/workorders/create', name: 'workorder-create', component: WorkOrderCreateView, meta: { requiresAuth: true } },
     { path: '/workorders/:id', name: 'workorder-detail', component: WorkOrderDetailView, meta: { requiresAuth: true } },
