@@ -1,47 +1,47 @@
 import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router'
 import { useUserStore } from '../stores/user'
 
-import LoginView from '../views/LoginView.vue'
-import DashboardView from '../views/DashboardView.vue'
-import WorkOrderListView from '../views/WorkOrderListView.vue'
-import TaskListView from '../views/TaskListView.vue'
-import NotificationView from '../views/NotificationView.vue'
 import { useNotificationsStore } from '../stores/notifications'
-import OperatorCenterView from '../views/OperatorCenterView.vue'
-import WorkOrderDetailView from '../views/WorkOrderDetailView.vue'
-import WorkOrderCreateView from '../views/WorkOrderCreateView.vue'
-import CustomerListView from '../views/CustomerListView.vue'
-import ProductListView from '../views/ProductListView.vue'
-import DepartmentListView from '../views/DepartmentListView.vue'
-import ProcessListView from '../views/ProcessListView.vue'
-import MaterialListView from '../views/MaterialListView.vue'
-import SupplierListView from '../views/SupplierListView.vue'
-import MaterialSupplierListView from '../views/MaterialSupplierListView.vue'
-import PurchaseOrderListView from '../views/PurchaseOrderListView.vue'
-import PurchaseReceiveCenterView from '../views/PurchaseReceiveCenterView.vue'
-import ProductStockListView from '../views/ProductStockListView.vue'
-import SalesOrderListView from '../views/SalesOrderListView.vue'
-import InvoiceListView from '../views/InvoiceListView.vue'
-import PaymentListView from '../views/PaymentListView.vue'
-import ArtworkListView from '../views/ArtworkListView.vue'
-import DieListView from '../views/DieListView.vue'
-import FoilingPlateListView from '../views/FoilingPlateListView.vue'
-import EmbossingPlateListView from '../views/EmbossingPlateListView.vue'
-import ProductGroupListView from '../views/ProductGroupListView.vue'
-import DeliveryOrderListView from '../views/DeliveryOrderListView.vue'
-import QualityInspectionListView from '../views/QualityInspectionListView.vue'
-import StockInListView from '../views/StockInListView.vue'
-import StockOutListView from '../views/StockOutListView.vue'
-import ClientDownloadView from '../views/ClientDownloadView.vue'
-import TaskAssignmentHistoryView from '../views/TaskAssignmentHistoryView.vue'
-import CostCenterListView from '../views/CostCenterListView.vue'
-import CostItemListView from '../views/CostItemListView.vue'
-import ProductionCostListView from '../views/ProductionCostListView.vue'
-import StatementListView from '../views/StatementListView.vue'
-import ScanView from '../views/ScanView.vue'
-import MonitoringView from '../views/MonitoringView.vue'
-import ApprovalWorkflowListView from '../views/ApprovalWorkflowListView.vue'
-import ApprovalStepListView from '../views/ApprovalStepListView.vue'
+const LoginView = () => import('../views/LoginView.vue')
+const DashboardView = () => import('../views/DashboardView.vue')
+const WorkOrderListView = () => import('../views/WorkOrderListView.vue')
+const TaskListView = () => import('../views/TaskListView.vue')
+const NotificationView = () => import('../views/NotificationView.vue')
+const OperatorCenterView = () => import('../views/OperatorCenterView.vue')
+const WorkOrderDetailView = () => import('../views/WorkOrderDetailView.vue')
+const WorkOrderCreateView = () => import('../views/WorkOrderCreateView.vue')
+const CustomerListView = () => import('../views/CustomerListView.vue')
+const ProductListView = () => import('../views/ProductListView.vue')
+const DepartmentListView = () => import('../views/DepartmentListView.vue')
+const ProcessListView = () => import('../views/ProcessListView.vue')
+const MaterialListView = () => import('../views/MaterialListView.vue')
+const SupplierListView = () => import('../views/SupplierListView.vue')
+const MaterialSupplierListView = () => import('../views/MaterialSupplierListView.vue')
+const PurchaseOrderListView = () => import('../views/PurchaseOrderListView.vue')
+const PurchaseReceiveCenterView = () => import('../views/PurchaseReceiveCenterView.vue')
+const ProductStockListView = () => import('../views/ProductStockListView.vue')
+const SalesOrderListView = () => import('../views/SalesOrderListView.vue')
+const InvoiceListView = () => import('../views/InvoiceListView.vue')
+const PaymentListView = () => import('../views/PaymentListView.vue')
+const ArtworkListView = () => import('../views/ArtworkListView.vue')
+const DieListView = () => import('../views/DieListView.vue')
+const FoilingPlateListView = () => import('../views/FoilingPlateListView.vue')
+const EmbossingPlateListView = () => import('../views/EmbossingPlateListView.vue')
+const ProductGroupListView = () => import('../views/ProductGroupListView.vue')
+const DeliveryOrderListView = () => import('../views/DeliveryOrderListView.vue')
+const QualityInspectionListView = () => import('../views/QualityInspectionListView.vue')
+const StockInListView = () => import('../views/StockInListView.vue')
+const StockOutListView = () => import('../views/StockOutListView.vue')
+const ClientDownloadView = () => import('../views/ClientDownloadView.vue')
+const TaskAssignmentHistoryView = () => import('../views/TaskAssignmentHistoryView.vue')
+const CostCenterListView = () => import('../views/CostCenterListView.vue')
+const CostItemListView = () => import('../views/CostItemListView.vue')
+const ProductionCostListView = () => import('../views/ProductionCostListView.vue')
+const StatementListView = () => import('../views/StatementListView.vue')
+const ScanView = () => import('../views/ScanView.vue')
+const MonitoringView = () => import('../views/MonitoringView.vue')
+const ApprovalWorkflowListView = () => import('../views/ApprovalWorkflowListView.vue')
+const ApprovalStepListView = () => import('../views/ApprovalStepListView.vue')
 
 export const router = createRouter({
   history: (import.meta.env.VITE_ROUTER_MODE === 'hash' ? createWebHashHistory() : createWebHistory()),
