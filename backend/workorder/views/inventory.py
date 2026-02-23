@@ -419,7 +419,9 @@ class StockOutViewSet(viewsets.ModelViewSet):
 
                 if remaining > 0:
                     return Response(
-                        {"error": f"产品 {item.product.name} 库存不足，缺少 {remaining}"},
+                        {
+                            "error": f"产品 {item.product.name} 库存不足，缺少 {remaining}"
+                        },
                         status=status.HTTP_400_BAD_REQUEST,
                     )
 
