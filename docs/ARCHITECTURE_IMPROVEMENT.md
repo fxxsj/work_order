@@ -23,7 +23,7 @@
 - [x] 清理备份文件 / secrets（已执行 `git rm` + `.gitignore` 约束 + `.env.*.example`）
 - [x] 统一 `DATABASE_URL` 支持（Django settings 已兼容）
 - [x] Release / Tag Web 产物（`v*` tag 会上传 `WorkOrder-<tag>-web.zip` 到 GitHub Release）
-- [ ] 前端：统一运行时配置（`runtimeConfig` 收敛到 `apps/web/src/config/`）
+- [x] 前端：统一运行时配置（已收敛到 `apps/web/src/config/index.ts`，并移除 `utils/runtimeConfig.ts`）
 - [ ] 前端：全局错误处理（Axios 拦截器 / 统一 toast）
 - [ ] 未完成功能：逐项评估/移除/补齐（multi-level approval / inventory / finance / notification）
 

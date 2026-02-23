@@ -26,7 +26,7 @@
 
 <script setup lang="ts">
 import { reactive, watch } from 'vue'
-import { clearRuntimeConfig, getRuntimeConfig, normalizeApiBaseUrl, normalizeWsBaseUrl, setRuntimeConfig } from '../utils/runtimeConfig'
+import { clearRuntimeConfig, getRuntimeConfig, normalizeApiBaseUrl, normalizeWsBaseUrl, setRuntimeConfig } from '../config'
 
 const visible = defineModel<boolean>({ default: false })
 

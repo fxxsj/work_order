@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ElMessage } from 'element-plus'
-import { buildNotificationsWsUrl } from '../utils/runtimeConfig'
+import { buildNotificationsWsUrl } from '../config'
 import { getAuthToken } from '../lib/authToken'
 import { getUnreadCount, getWsTicket } from '../api/notifications'
 

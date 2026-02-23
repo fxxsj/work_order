@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { getApiBaseUrl } from '../utils/runtimeConfig'
+import { getApiBaseUrl } from '../config'
 import { clearAuthToken, getAuthToken } from './authToken'
 import { redirectToLoginWithRedirect } from '../utils/navigation'
 
