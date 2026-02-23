@@ -30,6 +30,7 @@
         <el-button @click="goPayments">收款</el-button>
         <el-button @click="goCostCenters">成本中心</el-button>
         <el-button @click="goCostItems">成本项目</el-button>
+        <el-button @click="goProductionCosts">生产成本</el-button>
         <el-button @click="goArtworks">图稿</el-button>
         <el-button @click="goDies">刀模</el-button>
         <el-button @click="goFoilingPlates">烫金版</el-button>
@@ -145,6 +146,10 @@ function goCostCenters() {
 
 function goCostItems() {
   router.push({ name: 'cost-items' })
+}
+
+function goProductionCosts() {
+  router.push({ name: 'production-costs' })
 }
 
 function goArtworks() {
