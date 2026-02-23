@@ -167,14 +167,6 @@ jobs:
             /tmp/locust_stats_history.csv
           retention-days: 30
 
-      - name: Check SLA compliance
-        run: |
-          # Check if exit code was non-zero (SLA failed)
-          if [ $? -ne 0 ]; then
-            echo "::error::Load test SLA validation failed!"
-            exit 1
-          fi
-
       - name: Stop Django server
         if: always()
         run: |
