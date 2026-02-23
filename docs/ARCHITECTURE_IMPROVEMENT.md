@@ -2,9 +2,40 @@
 
 > 版本: 1.0
 > 更新日期: 2026-02-23
-> 状态: 待执行
+> 状态: 进行中（已落地部分 P0/P1）
 
 ---
+
+## 进度总览（持续更新）
+
+### P0：减少代码冗余
+
+- [x] 前端：通用 CRUD API 工厂（`apps/web/src/api/base.ts`）
+- [x] 前端：迁移部分 API 模块到工厂（已完成：`customers/departments/materials/products/suppliers/payments`）
+- [x] 前端：通用列表组件（`apps/web/src/views/base/ResourceList.vue`）
+- [x] 前端：迁移部分列表页到通用组件（已完成：`Customer/Product/Supplier/Material/Payment`）
+- [x] 后端：落地 `BaseViewSet` 并迁移部分 ViewSet（已完成：`base.py/products.py/materials.py` 的核心 CRUD）
+- [ ] 后端：继续迁移剩余 ViewSet（目标：大多数简单 CRUD 继承 `BaseViewSet`）
+- [ ] 后端：资产确认逻辑抽象（`assets.py` 的 confirm 重复）
+
+### P1：清理技术债务
+
+- [x] 清理备份文件 / secrets（已执行 `git rm` + `.gitignore` 约束 + `.env.*.example`）
+- [x] 统一 `DATABASE_URL` 支持（Django settings 已兼容）
+- [x] Release / Tag Web 产物（`v*` tag 会上传 `WorkOrder-<tag>-web.zip` 到 GitHub Release）
+- [ ] 前端：统一运行时配置（`runtimeConfig` 收敛到 `apps/web/src/config/`）
+- [ ] 前端：全局错误处理（Axios 拦截器 / 统一 toast）
+- [ ] 未完成功能：逐项评估/移除/补齐（multi-level approval / inventory / finance / notification）
+
+### P2：完成核心功能
+
+- [ ] 库存管理 TODO：补齐与测试
+- [ ] 财务模块 TODO：对账单 / 期初余额等
+
+### P3：长期优化
+
+- [ ] 缓存策略工具化 + 可观测性
+- [ ] 聚合 API（dashboard 一次请求）
 
 ## 目录
 
@@ -1017,5 +1048,5 @@ backend/workorder/admin/disabled/ (评估后决定)
 ---
 
 *文档版本: 1.0*
-*最后更新: 2025-02-23*
+*最后更新: 2026-02-23*
 *维护者: 开发团队*
