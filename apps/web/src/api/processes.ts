@@ -1,11 +1,8 @@
 import { http } from '../lib/http'
+import { createApiWithActions } from './base'
+import type { PaginatedResult } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type Process = {
   id: number
@@ -28,34 +25,42 @@ export type Process = {
   embossing_plate_required?: boolean
 }
 
+export const processApi = createApiWithActions(
+  'processes',
+  {
+    listAll: async () => {
+      const res = await http.get<PaginatedResult<Process>>('/processes/', {
+        params: { page: 1, page_size: 1000, ordering: 'sort_order,code' }
+      })
+      return res.data.results
+    },
+    batchUpdateActive: async (input: { ids: number[]; is_active: boolean }) => {
+      const res = await http.post('/processes/batch_update_active/', input)
+      return res.data
+    }
+  }
+)
+
 export async function listProcesses(params: { page: number; page_size: number; search?: string }) {
-  const res = await http.get<PaginatedResult<Process>>('/processes/', { params })
-  return res.data
+  return processApi.list(params)
 }
 
 export async function listAllProcesses() {
-  const res = await http.get<PaginatedResult<Process>>('/processes/', {
-    params: { page: 1, page_size: 1000, ordering: 'sort_order,code' }
-  })
-  return res.data.results
+  return processApi.listAll()
 }
 
 export async function batchUpdateProcessesActive(input: { ids: number[]; is_active: boolean }) {
-  const res = await http.post('/processes/batch_update_active/', input)
-  return res.data
+  return processApi.batchUpdateActive(input)
 }
 
 export async function createProcess(input: Partial<Process>) {
-  const res = await http.post<Process>('/processes/', input)
-  return res.data
+  return processApi.create(input)
 }
 
 export async function updateProcess(id: number, input: Partial<Process>) {
-  const res = await http.put<Process>(`/processes/${id}/`, input)
-  return res.data
+  return processApi.update(id, input)
 }
 
 export async function deleteProcess(id: number) {
-  const res = await http.delete(`/processes/${id}/`)
-  return res.data
+  return processApi.delete(id)
 }
