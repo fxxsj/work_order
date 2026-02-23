@@ -4,6 +4,7 @@ Django settings for work order tracking system.
 
 import os
 from pathlib import Path
+from urllib.parse import parse_qsl, urlparse
 
 from dotenv import load_dotenv
 
@@ -147,8 +148,39 @@ DATABASES = {
     }
 }
 
-# 如果设置了 PostgreSQL 环境变量（如 CI 环境），则使用 PostgreSQL
-if os.environ.get("POSTGRES_DB"):
+# 优先支持 DATABASE_URL（与 docker-compose/CI 一致）
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if DATABASE_URL:
+    parsed = urlparse(DATABASE_URL)
+    scheme = (parsed.scheme or "").lower()
+
+    if scheme in ("postgres", "postgresql"):
+        query = dict(parse_qsl(parsed.query or ""))
+        DATABASES["default"] = {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": (parsed.path or "/").lstrip("/") or os.environ.get("POSTGRES_DB", ""),
+            "USER": parsed.username or os.environ.get("POSTGRES_USER", ""),
+            "PASSWORD": parsed.password or os.environ.get("POSTGRES_PASSWORD", ""),
+            "HOST": parsed.hostname or os.environ.get("POSTGRES_HOST", "localhost"),
+            "PORT": str(parsed.port or os.environ.get("POSTGRES_PORT", "5432")),
+            "OPTIONS": {
+                "connect_timeout": 10,
+                **({"sslmode": query["sslmode"]} if "sslmode" in query else {}),
+            },
+        }
+    elif scheme in ("sqlite", "sqlite3"):
+        # Examples:
+        # - sqlite:////absolute/path/db.sqlite3
+        # - sqlite:///relative/path/db.sqlite3
+        sqlite_path = parsed.path or ""
+        if sqlite_path:
+            DATABASES["default"] = {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": sqlite_path,
+            }
+
+# 兼容旧的 POSTGRES_* 变量（未设置 DATABASE_URL 时生效）
+elif os.environ.get("POSTGRES_DB"):
     DATABASES["default"] = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.environ.get("POSTGRES_DB", "test_workorder"),
