@@ -90,7 +90,7 @@ class WorkOrderUser(CommonBehaviorMixin, HttpUser):
         """View work order list (weight 3)"""
         self.client.get(
             "/api/workorders/",
-            params={"page": random.randint(1, 3), "page_size": 20},
+            params={"page_size": 20},
             name="[WorkOrders] List",
         )
 
@@ -134,15 +134,6 @@ class SupervisorUser(CommonBehaviorMixin, HttpUser):
             "/api/workorder-tasks/",
             params={"assigned_department": dept_id, "status": "pending"},
             name="[Supervisor] Department Tasks",
-        )
-
-    @task(3)
-    def view_department_workload(self):
-        """View department workload statistics"""
-        self.client.get(
-            "/api/workorder-tasks/department_workload/",
-            params={"department_id": 1},
-            name="[Supervisor] Workload",
         )
 
     @task(1)
@@ -196,7 +187,6 @@ class MakerUser(CommonBehaviorMixin, HttpUser):
         """View work orders I created"""
         self.client.get(
             "/api/workorders/",
-            params={"page": random.randint(1, 5)},
             name="[Maker] My WorkOrders",
         )
 

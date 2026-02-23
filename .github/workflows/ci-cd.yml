@@ -252,8 +252,9 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        # NOTE: `type=gha` cache occasionally flakes with non-JSON API responses
+        # (seen as "invalid character '<' looking for beginning of value").
+        # Disable it to keep main branch builds stable.
 
   # Deploy to staging
   deploy-staging:
