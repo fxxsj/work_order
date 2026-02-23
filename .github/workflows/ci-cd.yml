@@ -79,7 +79,7 @@ jobs:
     - name: Check code formatting with black
       run: |
         cd backend
-        black --check .
+        black --check --diff .
 
     - name: Check import sorting with isort
       run: |
