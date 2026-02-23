@@ -8,33 +8,24 @@ from decimal import Decimal
 
 from django.db.models import Count, Q, Sum
 from django.utils import timezone
-from django_filters import FilterSet, NumberFilter
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, status, viewsets
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ..models.base import Customer
 from ..models.products import Product
 from ..models.sales import SalesOrder, SalesOrderItem
-from ..permissions import SuperuserFriendlyModelPermissions
 from ..serializers.sales import (
     SalesOrderDetailSerializer,
     SalesOrderItemSerializer,
     SalesOrderListSerializer,
 )
+from .base_viewsets import BaseViewSet
 
 
-class SalesOrderViewSet(viewsets.ModelViewSet):
+class SalesOrderViewSet(BaseViewSet):
     """销售订单视图集"""
 
     queryset = SalesOrder.objects.all()
-    permission_classes = [SuperuserFriendlyModelPermissions]
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
     search_fields = ["order_number", "customer__name"]
     ordering_fields = ["created_at", "order_date", "delivery_date"]
     ordering = ["-created_at"]
@@ -330,26 +321,14 @@ class SalesOrderViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class SalesOrderItemViewSet(viewsets.ModelViewSet):
+class SalesOrderItemViewSet(BaseViewSet):
     """销售订单明细视图集"""
 
     queryset = SalesOrderItem.objects.all()
-    permission_classes = [SuperuserFriendlyModelPermissions]
     serializer_class = SalesOrderItemSerializer
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["sales_order", "product"]
     ordering_fields = ["created_at"]
     ordering = ["sales_order", "id"]
-
-    def get_filterset(self):
-        """延迟创建 FilterSet，避免模块加载时的关系解析问题"""
-        from django_filters import FilterSet
-
-        class SalesOrderItemFilterSet(FilterSet):
-            class Meta:
-                model = SalesOrderItem
-                fields = ["sales_order", "product"]
-
-        return SalesOrderItemFilterSet
 
     def get_queryset(self):
         """优化查询"""
