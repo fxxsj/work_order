@@ -14,8 +14,7 @@ from django.db import models
 from django.db.models import Avg, Count, F, Max, Q, Sum
 from django.utils import timezone
 from django_filters import CharFilter, FilterSet, NumberFilter
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, status, viewsets
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -55,19 +54,15 @@ from ..serializers.core import (
 
 # P1 优化: 导入自定义速率限制
 from ..throttling import ApprovalRateThrottle, CreateRateThrottle, ExportRateThrottle
+from .base_viewsets import BaseViewSet
 
 
-class WorkOrderTaskViewSet(viewsets.ModelViewSet):
+class WorkOrderTaskViewSet(BaseViewSet):
     """施工单任务视图集 - 使用查询优化器"""
 
     permission_classes = [WorkOrderTaskPermission]  # 使用细粒度任务权限
     serializer_class = WorkOrderTaskSerializer
     queryset = WorkOrderTask.objects.all()  # 添加 queryset 属性以便路由器确定 basename
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
     search_fields = ["work_content", "production_requirements"]
     ordering_fields = [
         "created_at",

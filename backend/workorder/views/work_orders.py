@@ -66,6 +66,7 @@ from ..services.task_sync_service import TaskSyncService
 
 # P1 优化: 导入自定义速率限制
 from ..throttling import ApprovalRateThrottle, CreateRateThrottle, ExportRateThrottle
+from .base_viewsets import BaseViewSet
 
 
 @extend_schema_view(
@@ -85,16 +86,11 @@ from ..throttling import ApprovalRateThrottle, CreateRateThrottle, ExportRateThr
         description="获取施工单的完整信息，包括关联的任务、产品和工序。",
     ),
 )
-class WorkOrderViewSet(viewsets.ModelViewSet):
+class WorkOrderViewSet(BaseViewSet):
     """施工单视图集"""
 
     queryset = WorkOrder.objects.all()
     permission_classes = [WorkOrderDataPermission]  # 使用细粒度数据权限
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
     filterset_fields = ["status", "priority", "customer", "manager", "approval_status"]
     search_fields = [
         "order_number",
