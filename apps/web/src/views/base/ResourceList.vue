@@ -25,6 +25,9 @@
     </div>
 
     <el-card>
+      <div v-if="slots.cardTop" class="card-top">
+        <slot name="cardTop" />
+      </div>
       <el-table v-loading="loading" :data="items" style="width: 100%" @row-click="handleRowClick">
         <slot name="columns" />
       </el-table>
@@ -45,7 +48,7 @@
 </template>
 
 <script setup lang="ts" generic="T">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, useSlots } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { PaginatedResult } from '../../api/base'
@@ -76,6 +79,8 @@ const emit = defineEmits<{
   (e: 'create'): void
   (e: 'row-click', item: T): void
 }>()
+
+const slots = useSlots()
 
 const router = useRouter()
 
@@ -168,5 +173,8 @@ onMounted(() => {
   margin-top: 12px;
   display: flex;
   justify-content: flex-end;
+}
+.card-top {
+  margin-bottom: 12px;
 }
 </style>
