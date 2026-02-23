@@ -364,9 +364,7 @@ class StockOutViewSet(viewsets.ModelViewSet):
             )
 
         with transaction.atomic():
-            for item in delivery_order.items.select_related(
-                "product", "sales_order_item"
-            ).all():
+            for item in delivery_order.items.select_related("product", "sales_order_item").all():
                 remaining = item.quantity
 
                 if item.stock_batch:
@@ -381,21 +379,16 @@ class StockOutViewSet(viewsets.ModelViewSet):
                     )
                     if not stock:
                         return Response(
-                            {
-                                "error": (
-                                    f"产品 {item.product.name} 指定批次 {item.stock_batch} 不存在或不可用"
-                                )
-                            },
+                            {"error": f"库存批次不可用: {item.stock_batch}"},
                             status=status.HTTP_400_BAD_REQUEST,
                         )
 
                     available = stock.quantity - stock.reserved_quantity
                     if available < remaining:
+                        missing = remaining - available
                         return Response(
                             {
-                                "error": (
-                                    f"产品 {item.product.name} 批次 {item.stock_batch} 库存不足，缺少 {remaining - available}"
-                                )
+                                "error": f"批次库存不足: {item.stock_batch} 缺少 {missing}",
                             },
                             status=status.HTTP_400_BAD_REQUEST,
                         )
