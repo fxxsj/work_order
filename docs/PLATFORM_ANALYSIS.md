@@ -81,8 +81,8 @@
 
 | 模块 | 后端状态 | 前端状态 | 建议 |
 |------|----------|----------|------|
-| 财务模块 (成本核算) | ✅ 完整 | ❌ 缺失 | 高优先级添加 |
-| 多级审批 | ✅ 完整 | ❌ 缺失 | 评估业务需求 |
+| 成本核算（成本中心/成本项/生产成本/对账单等） | ✅ 完整 | ⚠️ 部分缺失（目前仅发票/收款 UI） | 明确范围后补齐 UI |
+| 多级审批 | ✅ 完整（含初始化命令与最小测试） | ❌ 缺失 | 评估业务需求后补齐前端 |
 | 监控/分析 | ✅ 部分 | ❌ 缺失 | 中优先级 |
 | 报表/导出 | ✅ 完整 | ⚠️ 部分 | 完善导出 UI |
 
@@ -91,19 +91,22 @@
 #### 良好对齐的类型
 
 ```typescript
-// 前端与后端一致的类型定义
-interface WorkOrder {
+// apps/web/src/api/workOrders.ts（列表项已对齐）
+export type WorkOrderListItem = {
   id: number
-  order_no: string
-  customer: number | Customer
-  product: number | Product
+  order_number: string
+  customer_name: string
+  product_name: string | null
   quantity: number
-  status: 'pending' | 'approved' | 'in_production' | 'completed' | 'cancelled'
-  approval_status: 'pending' | 'approved' | 'rejected'
-  priority: 'low' | 'normal' | 'high' | 'urgent'
-  created_at: string
-  updated_at: string
+  unit: string
+  status_display: string
+  priority_display: string
+  delivery_date: string | null
+  progress_percentage: number
 }
+
+// 施工单详情目前在前端仍为动态结构（待用 OpenAPI/SDK 收敛类型）
+export type WorkOrderDetail = Record<string, any>
 ```
 
 #### 需要注意的类型差异
