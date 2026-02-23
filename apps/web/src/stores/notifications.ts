@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
-import { ElMessage } from 'element-plus'
 import { buildNotificationsWsUrl } from '../config'
 import { getAuthToken } from '../lib/authToken'
 import { getUnreadCount, getWsTicket } from '../api/notifications'
+import { notifyInfo } from '../lib/notify'
 
 type WsState = 'disconnected' | 'connecting' | 'connected' | 'error'
 
@@ -85,7 +85,7 @@ export const useNotificationsStore = defineStore('notifications', {
               if (msg.type === 'notification' && msg.data) {
                 this.lastMessageAt = new Date().toISOString()
                 this.unreadCount += 1
-                ElMessage.info(msg.data.title || '收到新通知')
+                notifyInfo(msg.data.title || '收到新通知', { body: msg.data.content || msg.data.message })
               }
             } catch {
               // ignore
