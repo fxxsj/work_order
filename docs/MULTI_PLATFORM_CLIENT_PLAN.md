@@ -1,8 +1,8 @@
 # 多平台客户端规划 - 印刷施工单跟踪系统
 
-> 更新时间：2026-02-22  
+> 更新时间：2026-02-23  
 > 规划版本：v0.2  
-> 适用系统版本：v3.0.0+（Django/DRF 后端 + 前端 legacy(Vue 2.7) 与 vNext(Vue 3) 并行）  
+> 适用系统版本：v3.0.0+（Django/DRF 后端 + Web（Vue 3/Vite/TS）+ Desktop(Tauri) + Android(Capacitor)）  
 > 目标：交付 Web / macOS / Windows / Android 客户端，并最大化代码复用、可维护性与交付效率
 
 ## 1. 背景与现状
@@ -10,7 +10,7 @@
 ### 1.1 当前系统形态（仓库现状）
 
 - **后端**：Django 4.2 + DRF + TokenAuthentication + Channels(WebSocket) + drf-spectacular(OpenAPI)
-- **前端**：Vue 2.7 + Element UI + Vue CLI（SPA）
+- **前端**：Vue 3 + Vite + TypeScript + Pinia + Element Plus（SPA）
 - **通信**：REST API（分页/过滤）+ WebSocket（通知）
 
 ### 1.3 当前实现进展（截至 2026-02-22）
@@ -22,7 +22,8 @@
 - Android 壳：`apps/mobile/`（Capacitor）
 - 端侧运行时配置：登录页「服务器设置」（`API Base URL / WS Base URL`）
 - OpenAPI 导出脚本：`scripts/openapi/export-backend-openapi.sh`
-- SDK 骨架：`packages/sdk/`（基于 OpenAPI 生成 TS 类型/SDK）
+- SDK 骨架：`packages/sdk/`（基于 OpenAPI 生成 TS 类型）
+- Tag 发版：推送 `v*` tag 会在 GitHub Release 产出 Web/桌面/Android 产物（详见 `docs/CLIENT_RELEASE.md`）
 
 ### 1.2 多端诉求拆解
 
@@ -44,9 +45,9 @@
 
 必须回答的工程问题（会直接影响后续返工成本）：
 
-1. **是否接受先“壳化”现有前端**（Vue 2.7）快速出桌面/Android，再迁移到 Vue 3？
-2. **桌面端是否需要深度系统能力**（打印、串口/USB、托盘、开机启动、文件系统权限、自动更新）？
-3. **Android 是否要“强原生体验”**（高帧率复杂动画/大量离线/深度硬件能力）还是以业务效率为主？
+1. **桌面端是否需要深度系统能力**（打印、串口/USB、托盘、开机启动、文件系统权限、自动更新）？
+2. **Android 是否要“强原生体验”**（高帧率复杂动画/大量离线/深度硬件能力）还是以业务效率为主？
+3. **是否需要离线/弱网能力**（仅提示重试 vs 列表缓存 vs 离线草稿队列）？
 
 本规划默认目标为：**企业管理系统**（表单+列表+流程+通知），优先交付效率与可维护性。
 
@@ -79,9 +80,8 @@
 
 ### 3.1 推荐目录形态（分阶段演进）
 
-短期（不打断现有 `frontend/`）：
+短期（在当前 monorepo 目录结构下）：
 
-- `frontend/`：现有 Vue 2.7（继续维护）
 - `apps/web/`：新 Web（Vue 3/Vite）逐步替换
 - `apps/desktop/`：Tauri 容器（指向 `apps/web` 构建产物）
 - `apps/mobile/`：Capacitor 容器（指向 `apps/web` 构建产物）
@@ -145,21 +145,19 @@
 
 ### Phase 2：Web 前端现代化（2–6 周，允许并行）
 
-目标：从 Vue 2.7 迁移到 Vue 3/Vite/TS，提升长期可维护性。
+目标：持续完善 `apps/web`（Vue 3/Vite/TS），提升长期可维护性与交付效率。
 
 实施策略（推荐“绞杀者模式”）：
 - 新功能与新页面优先在 `apps/web`（Vue 3）开发
-- 旧页面逐步迁移，按模块替换
-- 迁移完成后再下线旧 `frontend/`
+- 逐步补齐：统一错误处理/统一 CRUD、页面复用、关键链路测试、发布产物自动化
 
 验收标准：
-- 关键模块迁移完成（至少：登录/权限/菜单、施工单、任务、通知、基础字典）
+- 关键模块可稳定交付（至少：登录/权限/菜单、施工单、任务、通知、基础字典）
 - 单元测试/最小 e2e 可跑（至少覆盖登录与核心链路）
 
 #### 当前落地状态（仓库内）
 
 - 已新增 Web vNext 骨架：`apps/web/`（Vue 3 + Vite + TypeScript），已包含最小登录/路由守卫/运行时 API 配置入口。
-- 现有 `frontend/`（Vue 2.7）继续作为稳定版本运行，迁移采用“逐步替换”。
 - 已在 Web vNext 迁移/实现的模块（截至 2026-02-22）：
   - 施工单：列表 / 详情 / 审核 / 状态更新 / 创建（基础字段）
   - 任务：列表、操作员中心（认领/更新数量/完成）
@@ -188,8 +186,15 @@ Android 优先项：
 
 ### 5.1 Vue 2 → Vue 3 的迁移成本
 
-风险：Element UI 与 Vue 3 不兼容（需切换 Element Plus 或替代 UI）。  
-对策：Phase 1 先“壳化”现有前端出客户端，Phase 2 再迁移 UI/框架。
+现状：仓库已使用 Vue 3 + Element Plus；本条风险从“迁移风险”转为“多端一致性与路由策略风险”。
+
+风险：
+- Web(history) 与 Desktop/Android(hash) 路由策略不一致导致的深链路/刷新 404
+- WebView 场景对 `base`、静态资源路径、跨域配置更敏感
+
+对策：
+- Web 线上使用 history；桌面/Android 构建产物默认用 hash（详见 `docs/CLIENT_RELEASE.md`）
+- 统一运行时配置入口（`API Base URL / WS Base URL`）并在端侧持久化
 
 ### 5.2 Token + WebSocket token in query 的安全性
 
