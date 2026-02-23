@@ -1,11 +1,8 @@
 import { http } from '../lib/http'
+import { createApiWithActions } from './base'
+import type { PaginatedResult } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type QualityInspectionType = 'incoming' | 'process' | 'final' | 'customer'
 export type QualityInspectionResult = 'pending' | 'passed' | 'failed' | 'conditional'
@@ -40,6 +37,16 @@ export type QualityInspection = {
   created_at?: string
 }
 
+export const qualityInspectionApi = createApiWithActions(
+  'quality-inspections',
+  {
+    complete: async (id: number, input: { result: QualityInspectionResult; passed_quantity: number; failed_quantity: number }) =>
+      (await http.post(`/quality-inspections/${id}/complete/`, input)).data,
+    getSummary: async () => (await http.get('/quality-inspections/summary/')).data
+  },
+  { updateMethod: 'patch' }
+)
+
 export async function listQualityInspections(params: {
   page: number
   page_size: number
@@ -49,40 +56,32 @@ export async function listQualityInspections(params: {
   start_date?: string
   end_date?: string
 }) {
-  const res = await http.get<PaginatedResult<QualityInspection>>('/quality-inspections/', { params })
-  return res.data
+  return qualityInspectionApi.list(params)
 }
 
 export async function getQualityInspection(id: number) {
-  const res = await http.get<QualityInspection>(`/quality-inspections/${id}/`)
-  return res.data
+  return qualityInspectionApi.retrieve(id)
 }
 
 export async function createQualityInspection(input: Partial<QualityInspection>) {
-  const res = await http.post<QualityInspection>('/quality-inspections/', input)
-  return res.data
+  return qualityInspectionApi.create(input)
 }
 
 export async function updateQualityInspection(id: number, input: Partial<QualityInspection>) {
-  const res = await http.patch<QualityInspection>(`/quality-inspections/${id}/`, input)
-  return res.data
+  return qualityInspectionApi.update(id, input)
 }
 
 export async function deleteQualityInspection(id: number) {
-  const res = await http.delete(`/quality-inspections/${id}/`)
-  return res.data
+  return qualityInspectionApi.delete(id)
 }
 
 export async function completeQualityInspection(
   id: number,
   input: { result: QualityInspectionResult; passed_quantity: number; failed_quantity: number }
 ) {
-  const res = await http.post(`/quality-inspections/${id}/complete/`, input)
-  return res.data
+  return qualityInspectionApi.complete(id, input)
 }
 
 export async function getQualityInspectionSummary() {
-  const res = await http.get('/quality-inspections/summary/')
-  return res.data
+  return qualityInspectionApi.getSummary()
 }
-
