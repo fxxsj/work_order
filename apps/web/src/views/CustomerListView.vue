@@ -1,26 +1,13 @@
 <template>
   <div class="page">
-    <div class="bar">
-      <div class="left">
-        <el-button size="small" @click="goHome">返回</el-button>
-        <div class="title">客户管理（vNext）</div>
-      </div>
-      <div class="right">
-        <el-input
-          v-model="search"
-          size="small"
-          clearable
-          placeholder="搜索客户名称/电话"
-          style="width: 260px"
-          @keyup.enter="reload"
-        />
-        <el-button size="small" :loading="loading" @click="reload">查询</el-button>
-        <el-button size="small" type="primary" @click="openCreate">新建</el-button>
-      </div>
-    </div>
-
-    <el-card>
-      <el-table :data="items" v-loading="loading" style="width: 100%">
+    <ResourceList
+      ref="listRef"
+      title="客户管理（vNext）"
+      :api="customerApi"
+      search-placeholder="搜索客户名称/电话"
+      @create="openCreate"
+    >
+      <template #columns>
         <el-table-column prop="name" label="客户名称" min-width="180" />
         <el-table-column prop="contact_person" label="联系人" width="120" />
         <el-table-column prop="phone" label="电话" width="140" />
@@ -29,25 +16,18 @@
         <el-table-column label="操作" width="170">
           <template #default="{ row }">
             <el-button size="small" @click="openEdit(row)">编辑</el-button>
-            <el-button size="small" type="danger" :loading="deletingId === row.id" @click="handleDelete(row.id)">
+            <el-button
+              size="small"
+              type="danger"
+              :loading="deletingId === row.id"
+              @click="handleDelete(row.id)"
+            >
               删除
             </el-button>
           </template>
         </el-table-column>
-      </el-table>
-
-      <div class="pager">
-        <el-pagination
-          background
-          layout="total, sizes, prev, pager, next"
-          :total="total"
-          :page-size="pageSize"
-          :current-page="page"
-          @update:current-page="handlePageChange"
-          @update:page-size="handlePageSizeChange"
-        />
-      </div>
-    </el-card>
+      </template>
+    </ResourceList>
 
     <el-dialog v-model="dialogOpen" :title="editing ? '编辑客户' : '新建客户'" width="560px" :close-on-click-modal="false">
       <el-form :model="form" label-width="120px">
@@ -80,23 +60,16 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { Customer } from '../api/customers'
-import { createCustomer, deleteCustomer, listCustomers, updateCustomer } from '../api/customers'
+import { createCustomer, customerApi, deleteCustomer, updateCustomer } from '../api/customers'
+import ResourceList from './base/ResourceList.vue'
 
-const router = useRouter()
-
-const loading = ref(false)
 const submitting = ref(false)
 const deletingId = ref<number | null>(null)
 
-const items = ref<Customer[]>([])
-const total = ref(0)
-const page = ref(1)
-const pageSize = ref(20)
-const search = ref('')
+const listRef = ref<InstanceType<typeof ResourceList> | null>(null)
 
 const dialogOpen = ref(false)
 const editing = ref(false)
@@ -121,36 +94,7 @@ function resetForm() {
 }
 
 async function fetchList() {
-  loading.value = true
-  try {
-    const data = await listCustomers({
-      page: page.value,
-      page_size: pageSize.value,
-      search: search.value || undefined
-    })
-    items.value = data.results
-    total.value = data.count
-  } catch (err: any) {
-    ElMessage.error(err?.response?.data?.error || err?.message || '加载失败')
-  } finally {
-    loading.value = false
-  }
-}
-
-function reload() {
-  page.value = 1
-  fetchList()
-}
-
-function handlePageChange(next: number) {
-  page.value = next
-  fetchList()
-}
-
-function handlePageSizeChange(next: number) {
-  pageSize.value = next
-  page.value = 1
-  fetchList()
+  await listRef.value?.loadData()
 }
 
 function openCreate() {
@@ -214,14 +158,6 @@ async function handleDelete(id: number) {
     deletingId.value = null
   }
 }
-
-function goHome() {
-  router.push({ name: 'dashboard' })
-}
-
-onMounted(() => {
-  fetchList()
-})
 </script>
 
 <style scoped>
@@ -255,4 +191,3 @@ onMounted(() => {
   margin-top: 12px;
 }
 </style>
-
