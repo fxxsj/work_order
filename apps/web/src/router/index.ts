@@ -34,6 +34,7 @@ import StockInListView from '../views/StockInListView.vue'
 import StockOutListView from '../views/StockOutListView.vue'
 import ClientDownloadView from '../views/ClientDownloadView.vue'
 import TaskAssignmentHistoryView from '../views/TaskAssignmentHistoryView.vue'
+import CostCenterListView from '../views/CostCenterListView.vue'
 
 export const router = createRouter({
   history: (import.meta.env.VITE_ROUTER_MODE === 'hash' ? createWebHashHistory() : createWebHistory()),
@@ -69,6 +70,7 @@ export const router = createRouter({
     { path: '/tasks', name: 'tasks', component: TaskListView, meta: { requiresAuth: true } },
     { path: '/tasks/operator', name: 'operator-center', component: OperatorCenterView, meta: { requiresAuth: true } },
     { path: '/tasks/assignment-history', name: 'task-assignment-history', component: TaskAssignmentHistoryView, meta: { requiresAuth: true } },
+    { path: '/cost-centers', name: 'cost-centers', component: CostCenterListView, meta: { requiresAuth: true } },
     { path: '/notifications', name: 'notifications', component: NotificationView, meta: { requiresAuth: true } }
   ]
 })

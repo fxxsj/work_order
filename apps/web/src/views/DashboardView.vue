@@ -28,6 +28,7 @@
         <el-button @click="goSalesOrders">销售订单</el-button>
         <el-button @click="goInvoices">发票</el-button>
         <el-button @click="goPayments">收款</el-button>
+        <el-button @click="goCostCenters">成本中心</el-button>
         <el-button @click="goArtworks">图稿</el-button>
         <el-button @click="goDies">刀模</el-button>
         <el-button @click="goFoilingPlates">烫金版</el-button>
@@ -135,6 +136,10 @@ function goInvoices() {
 
 function goPayments() {
   router.push({ name: 'payments' })
+}
+
+function goCostCenters() {
+  router.push({ name: 'cost-centers' })
 }
 
 function goArtworks() {
