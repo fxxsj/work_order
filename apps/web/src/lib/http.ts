@@ -3,6 +3,20 @@ import { getApiBaseUrl } from '../config'
 import { clearAuthToken, getAuthToken } from './authToken'
 import { redirectToLoginWithRedirect } from '../utils/navigation'
 
+export function getHttpErrorMessage(error: any, fallback: string) {
+  const data = error?.response?.data
+  if (typeof data?.error === 'string') return data.error
+  if (typeof data?.detail === 'string') return data.detail
+  if (data && typeof data === 'object') {
+    try {
+      return JSON.stringify(data)
+    } catch {
+      // ignore
+    }
+  }
+  return error?.message || fallback
+}
+
 export const http = axios.create({
   baseURL: getApiBaseUrl(),
   timeout: 30000,

@@ -49,6 +49,7 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { PaginatedResult } from '../../api/base'
+import { getHttpErrorMessage } from '../../lib/http'
 
 type Api<TItem> = {
   list: (params?: any) => Promise<PaginatedResult<TItem>>
@@ -98,7 +99,7 @@ async function loadData() {
     items.value = data.results
     totalCount.value = data.count
   } catch (err: any) {
-    ElMessage.error(err?.response?.data?.error || err?.message || '加载失败')
+    ElMessage.error(getHttpErrorMessage(err, '加载失败'))
   } finally {
     loading.value = false
   }
