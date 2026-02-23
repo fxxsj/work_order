@@ -34,7 +34,46 @@ fn clear_auth_token() -> Result<(), String> {
 }
 
 fn main() {
+  let show = tauri::CustomMenuItem::new("show".to_string(), "显示窗口");
+  let hide = tauri::CustomMenuItem::new("hide".to_string(), "隐藏窗口");
+  let quit = tauri::CustomMenuItem::new("quit".to_string(), "退出");
+
+  let tray_menu = tauri::SystemTrayMenu::new()
+    .add_item(show)
+    .add_item(hide)
+    .add_native_item(tauri::SystemTrayMenuItem::Separator)
+    .add_item(quit);
+
+  let tray = tauri::SystemTray::new().with_menu(tray_menu);
+
   tauri::Builder::default()
+    .system_tray(tray)
+    .on_system_tray_event(|app, event| match event {
+      tauri::SystemTrayEvent::LeftClick { .. } => {
+        if let Some(window) = app.get_window("main") {
+          let _ = window.show();
+          let _ = window.set_focus();
+        }
+      }
+      tauri::SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
+        "show" => {
+          if let Some(window) = app.get_window("main") {
+            let _ = window.show();
+            let _ = window.set_focus();
+          }
+        }
+        "hide" => {
+          if let Some(window) = app.get_window("main") {
+            let _ = window.hide();
+          }
+        }
+        "quit" => {
+          app.exit(0);
+        }
+        _ => {}
+      },
+      _ => {}
+    })
     .invoke_handler(tauri::generate_handler![set_auth_token, get_auth_token, clear_auth_token])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
