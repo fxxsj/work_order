@@ -659,7 +659,7 @@ export const useWorkOrderStore = defineStore('workOrder', {
 1. **完成缺失的前端功能**
    - [ ] 财务模块界面
    - [ ] 高级任务管理 UI
-   - [ ] 导出功能 UI
+   - [x] 导出功能 UI（施工单/任务列表已接入后端 Excel 导出）
 
 2. **性能优化**
    - [ ] 添加数据库索引
