@@ -1,11 +1,7 @@
 import { http } from '../lib/http'
+import { createApiWithActions } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type Die = {
   id: number
@@ -24,28 +20,29 @@ export type Die = {
   updated_at?: string
 }
 
+export const dieApi = createApiWithActions(
+  'dies',
+  {
+    confirm: async (id: number) => (await http.post<Die>(`/dies/${id}/confirm/`)).data
+  }
+)
+
 export async function listDies(params: { page: number; page_size: number; search?: string; confirmed?: boolean }) {
-  const res = await http.get<PaginatedResult<Die>>('/dies/', { params })
-  return res.data
+  return dieApi.list(params)
 }
 
 export async function createDie(input: Partial<Die>) {
-  const res = await http.post<Die>('/dies/', input)
-  return res.data
+  return dieApi.create(input)
 }
 
 export async function updateDie(id: number, input: Partial<Die>) {
-  const res = await http.put<Die>(`/dies/${id}/`, input)
-  return res.data
+  return dieApi.update(id, input)
 }
 
 export async function deleteDie(id: number) {
-  const res = await http.delete(`/dies/${id}/`)
-  return res.data
+  return dieApi.delete(id)
 }
 
 export async function confirmDie(id: number) {
-  const res = await http.post<Die>(`/dies/${id}/confirm/`)
-  return res.data
+  return dieApi.confirm(id)
 }
-
