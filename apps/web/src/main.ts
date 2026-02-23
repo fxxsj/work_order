@@ -8,6 +8,7 @@ import { router } from './router'
 import { initAuthToken } from './lib/authToken'
 import { registerNetworkStatusHandlers } from './lib/networkStatus'
 import { useNotificationsStore } from './stores/notifications'
+import { initPushNotifications } from './lib/pushNotifications'
 
 async function bootstrap() {
   await initAuthToken()
@@ -17,6 +18,9 @@ async function bootstrap() {
     .use(router)
     .use(ElementPlus)
     .mount('#app')
+
+  // Best-effort: if Capacitor PushNotifications plugin exists, initialize it.
+  void initPushNotifications()
 
   registerNetworkStatusHandlers({
     onOnline: () => {
