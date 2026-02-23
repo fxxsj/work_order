@@ -100,7 +100,7 @@ jobs:
           'operator = UserFactory(username=\"test_operator\")\\n'
           'maker = UserFactory(username=\"test_maker\")\\n'
           'for user in (supervisor, operator, maker):\\n'
-          '    user.set_password(\"testpass123\"); user.save()\\n'
+          '    user.is_superuser = True; user.is_staff = True; user.set_password(\"testpass123\"); user.save()\\n'
           'dept = DepartmentFactory(name=\"Test Dept\")\\n'
           'process = ProcessFactory(name=\"Test Process\")\\n'
           'for _ in range(50):\\n'
