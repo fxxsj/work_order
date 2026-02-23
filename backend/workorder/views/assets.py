@@ -22,7 +22,6 @@ from ..models.assets import (
     FoilingPlateProduct,
 )
 from ..models.core import WorkOrder, WorkOrderProcess, WorkOrderTask
-from ..permissions import SuperuserFriendlyModelPermissions
 from ..serializers.assets import (
     ArtworkProductSerializer,
     ArtworkSerializer,
@@ -33,6 +32,7 @@ from ..serializers.assets import (
     FoilingPlateProductSerializer,
     FoilingPlateSerializer,
 )
+from .base_viewsets import BaseViewSet
 
 
 class PlateMakingConfirmMixin:
@@ -85,22 +85,14 @@ class PlateMakingConfirmMixin:
         return Response(serializer.data)
 
 
-class ArtworkViewSet(PlateMakingConfirmMixin, viewsets.ModelViewSet):
+class ArtworkViewSet(PlateMakingConfirmMixin, BaseViewSet):
     """图稿视图集"""
 
     confirm_fk_field = "artwork"
     confirm_error_message = "该图稿已经确认过了"
 
-    permission_classes = [
-        SuperuserFriendlyModelPermissions
-    ]  # 使用Django模型权限，与客户管理权限逻辑一致
     queryset = Artwork.objects.all()
     serializer_class = ArtworkSerializer
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
     filterset_fields = ["base_code", "version"]
     search_fields = ["base_code", "name", "imposition_size"]
     ordering_fields = ["created_at", "base_code", "version", "name"]
@@ -173,22 +165,14 @@ class ArtworkViewSet(PlateMakingConfirmMixin, viewsets.ModelViewSet):
         ).select_related("confirmed_by")
 
 
-class DieViewSet(PlateMakingConfirmMixin, viewsets.ModelViewSet):
+class DieViewSet(PlateMakingConfirmMixin, BaseViewSet):
     """刀模视图集"""
 
     confirm_fk_field = "die"
     confirm_error_message = "该刀模已经确认过了"
 
-    permission_classes = [
-        SuperuserFriendlyModelPermissions
-    ]  # 使用Django模型权限，与客户管理权限逻辑一致
     queryset = Die.objects.all()
     serializer_class = DieSerializer
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
     filterset_fields = ["confirmed"]
     search_fields = ["code", "name", "size", "material"]
     ordering_fields = ["created_at", "code", "name"]
@@ -202,22 +186,14 @@ class DieViewSet(PlateMakingConfirmMixin, viewsets.ModelViewSet):
         )
 
 
-class FoilingPlateViewSet(PlateMakingConfirmMixin, viewsets.ModelViewSet):
+class FoilingPlateViewSet(PlateMakingConfirmMixin, BaseViewSet):
     """烫金版视图集"""
 
     confirm_fk_field = "foiling_plate"
     confirm_error_message = "该烫金版已经确认过了"
 
-    permission_classes = [
-        SuperuserFriendlyModelPermissions
-    ]  # 使用Django模型权限，与客户管理权限逻辑一致
     queryset = FoilingPlate.objects.all()
     serializer_class = FoilingPlateSerializer
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
     filterset_fields = []
     search_fields = ["code", "name", "size", "material"]
     ordering_fields = ["created_at", "code", "name"]
@@ -231,22 +207,14 @@ class FoilingPlateViewSet(PlateMakingConfirmMixin, viewsets.ModelViewSet):
         )
 
 
-class EmbossingPlateViewSet(PlateMakingConfirmMixin, viewsets.ModelViewSet):
+class EmbossingPlateViewSet(PlateMakingConfirmMixin, BaseViewSet):
     """压凸版视图集"""
 
     confirm_fk_field = "embossing_plate"
     confirm_error_message = "该压凸版已经确认过了"
 
-    permission_classes = [
-        SuperuserFriendlyModelPermissions
-    ]  # 使用Django模型权限，与客户管理权限逻辑一致
     queryset = EmbossingPlate.objects.all()
     serializer_class = EmbossingPlateSerializer
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
     filterset_fields = []
     search_fields = ["code", "name", "size", "material"]
     ordering_fields = ["created_at", "code", "name"]
