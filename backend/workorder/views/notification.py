@@ -175,17 +175,94 @@ class SystemNotificationViewSet(viewsets.GenericViewSet):
     @action(detail=False, methods=["post"])
     def create_announcement(self, request):
         """创建系统公告"""
-        # TODO: 重新实现，暂时禁用
+        title = (request.data.get("title") or "").strip()
+        content = (request.data.get("content") or "").strip()
+        recipient_ids = request.data.get("recipient_ids")
+        only_staff = bool(request.data.get("only_staff", False))
+        expires_in_days = request.data.get("expires_in_days")
+
+        if not title:
+            return Response({"error": "缺少 title"}, status=status.HTTP_400_BAD_REQUEST)
+        if not content:
+            return Response(
+                {"error": "缺少 content"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        recipients = User.objects.all()
+        if only_staff:
+            recipients = recipients.filter(is_staff=True)
+        if recipient_ids:
+            recipients = recipients.filter(id__in=recipient_ids)
+
+        now = timezone.now()
+        expires_at = None
+        if expires_in_days is not None:
+            try:
+                days = int(expires_in_days)
+                expires_at = now + timedelta(days=days)
+            except Exception:
+                return Response(
+                    {"error": "expires_in_days 必须为整数"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        notifications = [
+            Notification(
+                recipient=recipient,
+                notification_type="system",
+                priority="normal",
+                title=title,
+                content=content,
+                expires_at=expires_at,
+                data={"kind": "announcement"},
+            )
+            for recipient in recipients.iterator()
+        ]
+
+        Notification.objects.bulk_create(notifications, batch_size=1000)
+
         return Response(
-            {"error": "功能暂时禁用"}, status=status.HTTP_503_SERVICE_UNAVAILABLE
+            {"message": "系统公告已创建", "count": len(notifications)},
+            status=status.HTTP_201_CREATED,
         )
 
     @action(detail=False, methods=["post"])
     def send_urgent_alert(self, request):
         """发送紧急警报"""
-        # TODO: 重新实现，暂时禁用
+        title = (request.data.get("title") or "").strip()
+        content = (request.data.get("content") or "").strip()
+        recipient_ids = request.data.get("recipient_ids")
+        only_staff = bool(request.data.get("only_staff", False))
+
+        if not title:
+            return Response({"error": "缺少 title"}, status=status.HTTP_400_BAD_REQUEST)
+        if not content:
+            return Response(
+                {"error": "缺少 content"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        recipients = User.objects.all()
+        if only_staff:
+            recipients = recipients.filter(is_staff=True)
+        if recipient_ids:
+            recipients = recipients.filter(id__in=recipient_ids)
+
+        notifications = [
+            Notification(
+                recipient=recipient,
+                notification_type="system",
+                priority="urgent",
+                title=title,
+                content=content,
+                data={"kind": "urgent_alert"},
+            )
+            for recipient in recipients.iterator()
+        ]
+        Notification.objects.bulk_create(notifications, batch_size=1000)
+
         return Response(
-            {"error": "功能暂时禁用"}, status=status.HTTP_503_SERVICE_UNAVAILABLE
+            {"message": "紧急警报已发送", "count": len(notifications)},
+            status=status.HTTP_201_CREATED,
         )
 
     @action(detail=False, methods=["get"])
