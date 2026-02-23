@@ -149,6 +149,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { Process } from '../api/processes'
 import { batchUpdateProcessesActive, createProcess, deleteProcess, listProcesses, updateProcess } from '../api/processes'
+import { formatError } from '../lib/formatError'
 
 const router = useRouter()
 
@@ -215,20 +216,6 @@ function ruleLabel(rule?: string) {
   if (rule === 'product') return '按产品'
   if (rule === 'material') return '按物料'
   return '通用'
-}
-
-function formatError(err: any, fallback: string) {
-  const data = err?.response?.data
-  if (typeof data?.error === 'string') return data.error
-  if (typeof data?.detail === 'string') return data.detail
-  if (data && typeof data === 'object') {
-    try {
-      return JSON.stringify(data)
-    } catch {
-      // ignore
-    }
-  }
-  return err?.message || fallback
 }
 
 async function fetchList() {

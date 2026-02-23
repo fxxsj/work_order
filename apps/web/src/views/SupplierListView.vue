@@ -86,6 +86,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import type { Supplier } from '../api/suppliers'
 import { createSupplier, deleteSupplier, supplierApi, updateSupplier } from '../api/suppliers'
 import ResourceList from './base/ResourceList.vue'
+import { formatError } from '../lib/formatError'
 
 const submitting = ref(false)
 const deletingId = ref<number | null>(null)
@@ -107,20 +108,6 @@ const form = reactive({
   address: '',
   notes: ''
 })
-
-function formatError(err: any, fallback: string) {
-  const data = err?.response?.data
-  if (typeof data?.error === 'string') return data.error
-  if (typeof data?.detail === 'string') return data.detail
-  if (data && typeof data === 'object') {
-    try {
-      return JSON.stringify(data)
-    } catch {
-      // ignore
-    }
-  }
-  return err?.message || fallback
-}
 
 async function fetchList() {
   await listRef.value?.loadData()

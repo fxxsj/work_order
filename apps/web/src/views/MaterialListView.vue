@@ -102,6 +102,7 @@ import type { Material } from '../api/materials'
 import { createMaterial, deleteMaterial, listMaterials, updateMaterial } from '../api/materials'
 import type { Supplier } from '../api/suppliers'
 import { getSupplier, listSuppliers } from '../api/suppliers'
+import { formatError } from '../lib/formatError'
 
 const submitting = ref(false)
 const deletingId = ref<number | null>(null)
@@ -129,20 +130,6 @@ const form = reactive({
   need_cutting: false,
   notes: ''
 })
-
-function formatError(err: any, fallback: string) {
-  const data = err?.response?.data
-  if (typeof data?.error === 'string') return data.error
-  if (typeof data?.detail === 'string') return data.detail
-  if (data && typeof data === 'object') {
-    try {
-      return JSON.stringify(data)
-    } catch {
-      // ignore
-    }
-  }
-  return err?.message || fallback
-}
 
 function supplierLabel(id: number) {
   const s = supplierCache.value[id]

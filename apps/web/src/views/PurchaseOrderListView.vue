@@ -289,6 +289,7 @@ import type { Supplier } from '../api/suppliers'
 import { listSuppliers } from '../api/suppliers'
 import type { Material } from '../api/materials'
 import { listMaterials } from '../api/materials'
+import { formatError } from '../lib/formatError'
 
 const router = useRouter()
 
@@ -341,20 +342,6 @@ const receiveForm = reactive({
   received_date: '' as string | '',
   items: [] as any[]
 })
-
-function formatError(err: any, fallback: string) {
-  const data = err?.response?.data
-  if (typeof data?.error === 'string') return data.error
-  if (typeof data?.detail === 'string') return data.detail
-  if (data && typeof data === 'object') {
-    try {
-      return JSON.stringify(data)
-    } catch {
-      // ignore
-    }
-  }
-  return err?.message || fallback
-}
 
 function statusTagType(s: string) {
   if (s === 'draft') return 'info'

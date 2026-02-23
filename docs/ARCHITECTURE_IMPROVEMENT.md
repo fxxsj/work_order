@@ -25,7 +25,7 @@
 - [x] Release / Tag 产物（`v*` tag：上传 `WorkOrder-<tag>-web.zip` + Desktop bundles/installers + Android APK/AAB 到 GitHub Release）
 - [x] CI：修复 Load Test 误失败（SLA 通过时强制 0 退出码 + 移除无效的 `$?` 检查）
 - [x] 前端：统一运行时配置（已收敛到 `apps/web/src/config/index.ts`，并移除 `utils/runtimeConfig.ts`）
-- [ ] 前端：全局错误处理（Axios 拦截器 / 统一 toast）（已开始：`getHttpErrorMessage` + `ResourceList` 使用）
+- [x] 前端：全局错误处理（统一 `formatError` + Axios 网络异常 toast；`ResourceList`/业务列表页使用同一套错误格式化）
 - [ ] 未完成功能：逐项评估/移除/补齐（剩余：multi-level approval；已补齐：inventory/finance/notification）
 
 ### P2：完成核心功能

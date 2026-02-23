@@ -96,6 +96,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { Artwork } from '../api/artworks'
 import { confirmArtwork, createArtwork, createArtworkVersion, deleteArtwork, listArtworks, updateArtwork } from '../api/artworks'
+import { formatError } from '../lib/formatError'
 
 const router = useRouter()
 
@@ -121,20 +122,6 @@ const form = reactive({
   imposition_size: '',
   notes: ''
 })
-
-function formatError(err: any, fallback: string) {
-  const data = err?.response?.data
-  if (typeof data?.error === 'string') return data.error
-  if (typeof data?.detail === 'string') return data.detail
-  if (data && typeof data === 'object') {
-    try {
-      return JSON.stringify(data)
-    } catch {
-      // ignore
-    }
-  }
-  return err?.message || fallback
-}
 
 function parseOtherColors(text: string) {
   return text
@@ -310,4 +297,3 @@ onMounted(() => fetchList())
   margin-top: 12px;
 }
 </style>
-

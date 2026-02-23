@@ -152,6 +152,7 @@ import type { Material } from '../api/materials'
 import { getMaterial, listMaterials } from '../api/materials'
 import type { Supplier } from '../api/suppliers'
 import { getSupplier, listSuppliers } from '../api/suppliers'
+import { formatError } from '../lib/formatError'
 
 const router = useRouter()
 
@@ -191,20 +192,6 @@ const form = reactive({
   lead_time_days: 7,
   notes: ''
 })
-
-function formatError(err: any, fallback: string) {
-  const data = err?.response?.data
-  if (typeof data?.error === 'string') return data.error
-  if (typeof data?.detail === 'string') return data.detail
-  if (data && typeof data === 'object') {
-    try {
-      return JSON.stringify(data)
-    } catch {
-      // ignore
-    }
-  }
-  return err?.message || fallback
-}
 
 function materialLabel(id: number) {
   const m = materialCache.value[id]

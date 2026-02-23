@@ -191,6 +191,7 @@ import type { SalesOrderListItem } from '../api/salesOrders'
 import { listSalesOrders } from '../api/salesOrders'
 import type { Invoice } from '../api/invoices'
 import { approveInvoice, createInvoice, deleteInvoice, getInvoice, listInvoices, submitInvoice, updateInvoice } from '../api/invoices'
+import { formatError } from '../lib/formatError'
 
 const submitting = ref(false)
 const deletingId = ref<number | null>(null)
@@ -243,20 +244,6 @@ const extraParams = () => ({
 
 function reload() {
   listRef.value?.handleSearch()
-}
-
-function formatError(err: any, fallback: string) {
-  const data = err?.response?.data
-  if (typeof data?.error === 'string') return data.error
-  if (typeof data?.detail === 'string') return data.detail
-  if (data && typeof data === 'object') {
-    try {
-      return JSON.stringify(data)
-    } catch {
-      // ignore
-    }
-  }
-  return err?.message || fallback
 }
 
 function statusTagType(s: string) {

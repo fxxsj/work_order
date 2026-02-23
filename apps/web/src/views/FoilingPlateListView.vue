@@ -103,6 +103,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FoilingPlate } from '../api/foilingPlates'
 import { confirmFoilingPlate, createFoilingPlate, deleteFoilingPlate, listFoilingPlates, updateFoilingPlate } from '../api/foilingPlates'
+import { formatError } from '../lib/formatError'
 
 const router = useRouter()
 
@@ -131,20 +132,6 @@ const form = reactive({
   notes: '',
   confirmed: false
 })
-
-function formatError(err: any, fallback: string) {
-  const data = err?.response?.data
-  if (typeof data?.error === 'string') return data.error
-  if (typeof data?.detail === 'string') return data.detail
-  if (data && typeof data === 'object') {
-    try {
-      return JSON.stringify(data)
-    } catch {
-      // ignore
-    }
-  }
-  return err?.message || fallback
-}
 
 async function fetchList() {
   loading.value = true
@@ -311,4 +298,3 @@ onMounted(() => fetchList())
   margin-top: 12px;
 }
 </style>
-

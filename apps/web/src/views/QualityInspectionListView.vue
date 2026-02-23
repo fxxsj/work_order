@@ -259,6 +259,7 @@ import {
   listQualityInspections,
   updateQualityInspection
 } from '../api/qualityInspections'
+import { formatError } from '../lib/formatError'
 
 const router = useRouter()
 
@@ -313,20 +314,6 @@ const completeForm = reactive({
   passed_quantity: 0,
   failed_quantity: 0
 })
-
-function formatError(err: any, fallback: string) {
-  const data = err?.response?.data
-  if (typeof data?.error === 'string') return data.error
-  if (typeof data?.detail === 'string') return data.detail
-  if (data && typeof data === 'object') {
-    try {
-      return JSON.stringify(data)
-    } catch {
-      // ignore
-    }
-  }
-  return err?.message || fallback
-}
 
 function resultTagType(r: string) {
   if (r === 'pending') return 'warning'
@@ -633,4 +620,3 @@ onMounted(() => {
   margin-bottom: 12px;
 }
 </style>
-

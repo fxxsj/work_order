@@ -115,6 +115,7 @@ import type { Department } from '../api/departments'
 import { createDepartment, deleteDepartment, getDepartmentTree, listAllDepartments, listDepartments, updateDepartment } from '../api/departments'
 import type { Process } from '../api/processes'
 import { listAllProcesses } from '../api/processes'
+import { formatError } from '../lib/formatError'
 
 const router = useRouter()
 
@@ -173,20 +174,6 @@ const processOptions = computed(() => {
     label: `${p.code} - ${p.name}`
   }))
 })
-
-function formatError(err: any, fallback: string) {
-  const data = err?.response?.data
-  if (typeof data?.error === 'string') return data.error
-  if (typeof data?.detail === 'string') return data.detail
-  if (data && typeof data === 'object') {
-    try {
-      return JSON.stringify(data)
-    } catch {
-      // ignore
-    }
-  }
-  return err?.message || fallback
-}
 
 async function ensureOptionsLoaded() {
   try {

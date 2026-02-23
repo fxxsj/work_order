@@ -120,6 +120,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { PurchaseReceiveRecord } from '../api/purchaseReceiveRecords'
 import { confirmInspection, listPendingInspections, listPendingReturn, listPendingStockIn, processReturn, stockIn } from '../api/purchaseReceiveRecords'
+import { formatError } from '../lib/formatError'
 
 const router = useRouter()
 
@@ -149,20 +150,6 @@ const returnForm = reactive({
   return_quantity: 0,
   return_note: ''
 })
-
-function formatError(err: any, fallback: string) {
-  const data = err?.response?.data
-  if (typeof data?.error === 'string') return data.error
-  if (typeof data?.detail === 'string') return data.detail
-  if (data && typeof data === 'object') {
-    try {
-      return JSON.stringify(data)
-    } catch {
-      // ignore
-    }
-  }
-  return err?.message || fallback
-}
 
 function inspectionTagType(s?: string) {
   if (s === 'pending') return 'warning'
@@ -337,4 +324,3 @@ onMounted(() => {
   font-size: 12px;
 }
 </style>
-

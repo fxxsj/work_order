@@ -255,6 +255,7 @@ import {
   submitSalesOrder,
   updateSalesOrder
 } from '../api/salesOrders'
+import { formatError } from '../lib/formatError'
 
 const router = useRouter()
 
@@ -300,20 +301,6 @@ const editForm = reactive({
 const rejectOpen = ref(false)
 const rejectId = ref<number | null>(null)
 const rejectReason = ref('')
-
-function formatError(err: any, fallback: string) {
-  const data = err?.response?.data
-  if (typeof data?.error === 'string') return data.error
-  if (typeof data?.detail === 'string') return data.detail
-  if (data && typeof data === 'object') {
-    try {
-      return JSON.stringify(data)
-    } catch {
-      // ignore
-    }
-  }
-  return err?.message || fallback
-}
 
 function statusTagType(s: string) {
   if (s === 'draft') return 'info'
@@ -674,4 +661,3 @@ onMounted(() => {
   margin-top: 10px;
 }
 </style>
-

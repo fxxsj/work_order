@@ -70,6 +70,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { StockOut } from '../api/stockOuts'
 import { approveStockOut, listStockOuts } from '../api/stockOuts'
+import { formatError } from '../lib/formatError'
 
 const router = useRouter()
 
@@ -82,20 +83,6 @@ const page = ref(1)
 const pageSize = ref(20)
 const status = ref<string | undefined>(undefined)
 const outType = ref<string | undefined>(undefined)
-
-function formatError(err: any, fallback: string) {
-  const data = err?.response?.data
-  if (typeof data?.error === 'string') return data.error
-  if (typeof data?.detail === 'string') return data.detail
-  if (data && typeof data === 'object') {
-    try {
-      return JSON.stringify(data)
-    } catch {
-      // ignore
-    }
-  }
-  return err?.message || fallback
-}
 
 function statusTagType(s: string) {
   if (s === 'draft') return 'info'
@@ -192,4 +179,3 @@ onMounted(() => fetchList())
   margin-top: 12px;
 }
 </style>
-

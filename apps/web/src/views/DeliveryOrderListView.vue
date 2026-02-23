@@ -311,6 +311,7 @@ import {
   shipDeliveryOrder,
   updateDeliveryOrder
 } from '../api/deliveryOrders'
+import { formatError } from '../lib/formatError'
 
 const router = useRouter()
 
@@ -374,20 +375,6 @@ const receiveNotes = ref('')
 const rejectOpen = ref(false)
 const rejectId = ref<number | null>(null)
 const rejectReason = ref('')
-
-function formatError(err: any, fallback: string) {
-  const data = err?.response?.data
-  if (typeof data?.error === 'string') return data.error
-  if (typeof data?.detail === 'string') return data.detail
-  if (data && typeof data === 'object') {
-    try {
-      return JSON.stringify(data)
-    } catch {
-      // ignore
-    }
-  }
-  return err?.message || fallback
-}
 
 function statusTagType(s: string) {
   if (s === 'pending') return 'warning'
@@ -802,4 +789,3 @@ onMounted(() => {
   margin-bottom: 12px;
 }
 </style>
-
