@@ -15,6 +15,7 @@
         <el-button @click="goOperatorCenter">操作员中心</el-button>
         <el-button @click="goNotifications">通知</el-button>
         <el-button @click="goDownload">客户端下载</el-button>
+        <el-button @click="goScan">扫码</el-button>
         <el-button @click="goCustomers">客户</el-button>
         <el-button @click="goProducts">产品</el-button>
         <el-button @click="goDepartments">部门</el-button>
@@ -87,6 +88,10 @@ function goNotifications() {
 
 function goDownload() {
   router.push({ name: 'client-download' })
+}
+
+function goScan() {
+  router.push({ name: 'scan' })
 }
 
 function goCustomers() {
