@@ -1,11 +1,6 @@
-import { http } from '../lib/http'
+import { createCrudApi } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type MaterialSupplier = {
   id: number
@@ -20,6 +15,8 @@ export type MaterialSupplier = {
   created_at?: string
 }
 
+export const materialSupplierApi = createCrudApi<MaterialSupplier>('material-suppliers')
+
 export async function listMaterialSuppliers(params: {
   page: number
   page_size: number
@@ -27,22 +24,17 @@ export async function listMaterialSuppliers(params: {
   supplier?: number
   is_preferred?: boolean
 }) {
-  const res = await http.get<PaginatedResult<MaterialSupplier>>('/material-suppliers/', { params })
-  return res.data
+  return materialSupplierApi.list(params)
 }
 
 export async function createMaterialSupplier(input: Partial<MaterialSupplier>) {
-  const res = await http.post<MaterialSupplier>('/material-suppliers/', input)
-  return res.data
+  return materialSupplierApi.create(input)
 }
 
 export async function updateMaterialSupplier(id: number, input: Partial<MaterialSupplier>) {
-  const res = await http.put<MaterialSupplier>(`/material-suppliers/${id}/`, input)
-  return res.data
+  return materialSupplierApi.update(id, input)
 }
 
 export async function deleteMaterialSupplier(id: number) {
-  const res = await http.delete(`/material-suppliers/${id}/`)
-  return res.data
+  return materialSupplierApi.delete(id)
 }
-
