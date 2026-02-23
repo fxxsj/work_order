@@ -1,26 +1,13 @@
 <template>
   <div class="page">
-    <div class="bar">
-      <div class="left">
-        <el-button size="small" @click="goHome">返回</el-button>
-        <div class="title">产品管理（vNext）</div>
-      </div>
-      <div class="right">
-        <el-input
-          v-model="search"
-          size="small"
-          clearable
-          placeholder="搜索产品编码/名称"
-          style="width: 260px"
-          @keyup.enter="reload"
-        />
-        <el-button size="small" :loading="loading" @click="reload">查询</el-button>
-        <el-button size="small" type="primary" @click="openCreate">新建</el-button>
-      </div>
-    </div>
-
-    <el-card>
-      <el-table :data="items" v-loading="loading" style="width: 100%">
+    <ResourceList
+      ref="listRef"
+      title="产品管理（vNext）"
+      :api="productApi"
+      search-placeholder="搜索产品编码/名称"
+      @create="openCreate"
+    >
+      <template #columns>
         <el-table-column prop="code" label="编码" width="140" />
         <el-table-column prop="name" label="名称" min-width="180" />
         <el-table-column prop="specification" label="规格" min-width="160" show-overflow-tooltip />
@@ -40,20 +27,8 @@
             </el-button>
           </template>
         </el-table-column>
-      </el-table>
-
-      <div class="pager">
-        <el-pagination
-          background
-          layout="total, sizes, prev, pager, next"
-          :total="total"
-          :page-size="pageSize"
-          :current-page="page"
-          @update:current-page="handlePageChange"
-          @update:page-size="handlePageSizeChange"
-        />
-      </div>
-    </el-card>
+      </template>
+    </ResourceList>
 
     <el-dialog v-model="dialogOpen" :title="editing ? '编辑产品' : '新建产品'" width="560px" :close-on-click-modal="false">
       <el-form :model="form" label-width="120px">
@@ -89,23 +64,16 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { Product } from '../api/products'
-import { createProduct, deleteProduct, listProducts, updateProduct } from '../api/products'
+import { createProduct, deleteProduct, productApi, updateProduct } from '../api/products'
+import ResourceList from './base/ResourceList.vue'
 
-const router = useRouter()
-
-const loading = ref(false)
 const submitting = ref(false)
 const deletingId = ref<number | null>(null)
 
-const items = ref<Product[]>([])
-const total = ref(0)
-const page = ref(1)
-const pageSize = ref(20)
-const search = ref('')
+const listRef = ref<InstanceType<typeof ResourceList> | null>(null)
 
 const dialogOpen = ref(false)
 const editing = ref(false)
@@ -132,36 +100,7 @@ function resetForm() {
 }
 
 async function fetchList() {
-  loading.value = true
-  try {
-    const data = await listProducts({
-      page: page.value,
-      page_size: pageSize.value,
-      search: search.value || undefined
-    })
-    items.value = data.results
-    total.value = data.count
-  } catch (err: any) {
-    ElMessage.error(err?.response?.data?.error || err?.message || '加载失败')
-  } finally {
-    loading.value = false
-  }
-}
-
-function reload() {
-  page.value = 1
-  fetchList()
-}
-
-function handlePageChange(next: number) {
-  page.value = next
-  fetchList()
-}
-
-function handlePageSizeChange(next: number) {
-  pageSize.value = next
-  page.value = 1
-  fetchList()
+  await listRef.value?.loadData()
 }
 
 function openCreate() {
@@ -231,44 +170,10 @@ async function handleDelete(id: number) {
   }
 }
 
-function goHome() {
-  router.push({ name: 'dashboard' })
-}
-
-onMounted(() => {
-  fetchList()
-})
 </script>
 
 <style scoped>
 .page {
-  padding: 16px;
-}
-.bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  gap: 12px;
-}
-.left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.title {
-  font-size: 16px;
-  font-weight: 600;
-}
-.pager {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 12px;
+  padding: 0;
 }
 </style>
-

@@ -162,32 +162,6 @@ async function handleDelete(id: number) {
 
 <style scoped>
 .page {
-  padding: 16px;
-}
-.bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  gap: 12px;
-}
-.left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.title {
-  font-size: 16px;
-  font-weight: 600;
-}
-.pager {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 12px;
+  padding: 0;
 }
 </style>
