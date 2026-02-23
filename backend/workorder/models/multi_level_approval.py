@@ -245,13 +245,15 @@ class MultiLevelApprovalService:
 
         config = workflow_configs.get(workflow_type, workflow_configs["standard"])
 
-        workflow = ApprovalWorkflow.objects.create(
-            name=config["name"],
+        workflow, _ = ApprovalWorkflow.objects.update_or_create(
             workflow_type=workflow_type,
-            steps=config["steps"],
-            created_by=user,
+            defaults={
+                "name": config["name"],
+                "steps": {"steps": config["steps"]},
+                "is_active": True,
+                "created_by": user,
+            },
         )
-
         return workflow
 
     @classmethod
@@ -259,24 +261,23 @@ class MultiLevelApprovalService:
         """启动审核流程"""
         workflow_type = cls.determine_workflow_type(work_order)
 
-        # 获取或创建工作流
-        workflow, created = ApprovalWorkflow.objects.get_or_create(
-            workflow_type=workflow_type,
-            defaults={
-                "name": f"{workflow_type}_workflow",
-                "created_by": user,
-            },
+        workflow = (
+            ApprovalWorkflow.objects.filter(workflow_type=workflow_type)
+            .order_by("-created_at")
+            .first()
         )
-
-        if created:
-            # 使用默认配置
+        if not workflow:
             workflow = cls.create_default_workflow(workflow_type, user)
 
         # 创建审核步骤
-        steps_data = workflow.steps
+        steps_data = workflow.steps or {}
+        if isinstance(steps_data, dict):
+            steps_config = steps_data.get("steps", [])
+        else:
+            steps_config = steps_data
         approval_steps = []
 
-        for i, step_data in enumerate(steps_data.get("steps", []), 1):
+        for i, step_data in enumerate(steps_config, 1):
             step = ApprovalStep.objects.create(
                 work_order=work_order,
                 workflow=workflow,
@@ -288,7 +289,8 @@ class MultiLevelApprovalService:
         # 分配第一步给合适的用户
         if approval_steps:
             first_step = approval_steps[0]
-            assigned_user = cls._get_step_assignee(first_step, work_order)
+            role = cls._get_role_for_step(first_step)
+            assigned_user = cls._get_step_assignee(role=role)
             if assigned_user:
                 first_step.assigned_to = assigned_user
                 first_step.save(update_fields=["assigned_to"])
@@ -298,13 +300,13 @@ class MultiLevelApprovalService:
     @classmethod
     def determine_workflow_type(cls, work_order):
         """确定工作流类型"""
+        if work_order.priority == "urgent":
+            return "urgent"
         # 基于价值判断
         if work_order.total_amount >= 50000:
             return "complex"
         elif work_order.total_amount >= 10000:
             return "standard"
-        elif work_order.priority == "urgent":
-            return "urgent"
         else:
             return "simple"
 
@@ -338,7 +340,8 @@ class MultiLevelApprovalService:
 
                 if next_step:
                     # 分配下一步给合适的用户
-                    assigned_user = cls._get_step_assignee(next_step, step.work_order)
+                    role = cls._get_role_for_step(next_step)
+                    assigned_user = cls._get_step_assignee(role=role)
                     if assigned_user:
                         next_step.assigned_to = assigned_user
                         next_step.status = "pending"
@@ -348,11 +351,31 @@ class MultiLevelApprovalService:
         return True
 
     @classmethod
-    def _get_step_assignee(cls, step, work_order):
-        """获取步骤分配对象"""
-        # 这里可以根据角色、部门等规则来分配
-        # 暂时返回第一个有权限的用户
-        return User.objects.filter(is_active=True, groups__name="supervisor").first()
+    def _get_role_for_step(cls, step):
+        """从 workflow.steps 配置中获取当前步骤的角色（best-effort）"""
+        steps_data = step.workflow.steps or {}
+        if isinstance(steps_data, dict):
+            steps_config = steps_data.get("steps", [])
+        else:
+            steps_config = steps_data
+
+        idx = step.step_order - 1
+        if idx < 0 or idx >= len(steps_config):
+            return None
+        return steps_config[idx].get("assigned_role")
+
+    @classmethod
+    def _get_step_assignee(cls, role=None):
+        """获取步骤分配对象（按角色匹配 group；找不到则回退到管理员）"""
+        if role:
+            user = User.objects.filter(is_active=True, groups__name=role).first()
+            if user:
+                return user
+
+        user = User.objects.filter(is_active=True, is_superuser=True).first()
+        if user:
+            return user
+        return User.objects.filter(is_active=True, is_staff=True).first()
 
 
 class UrgentOrderService:
