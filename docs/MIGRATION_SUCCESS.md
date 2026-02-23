@@ -231,11 +231,11 @@ python manage.py runserver
 
 ## 📚 相关文档
 
-- [WORKFLOW_GAPS_ANALYSIS.md](WORKFLOW_GAPS_ANALYSIS.md) - 流程分析
-- [P0_IMPLEMENTATION_SUMMARY.md](P0_IMPLEMENTATION_SUMMARY.md) - 实施总结
+- [WORKFLOW_GAPS_ANALYSIS_2026-02-23.md](archive/WORKFLOW_GAPS_ANALYSIS_2026-02-23.md) - 流程分析（历史归档）
+- [P0_IMPLEMENTATION_SUMMARY_2026-02-23.md](archive/P0_IMPLEMENTATION_SUMMARY_2026-02-23.md) - 实施总结（历史归档）
 - [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) - 迁移指南
-- [P0_API_FRONTEND_GUIDE.md](P0_API_FRONTEND_GUIDE.md) - API与前端指南
-- [P0_FINAL_SUMMARY.md](P0_FINAL_SUMMARY.md) - 最终总结
+- [P0_API_FRONTEND_GUIDE_2026-02-23.md](archive/P0_API_FRONTEND_GUIDE_2026-02-23.md) - API与前端指南（历史归档）
+- [P0_FINAL_SUMMARY_2026-02-23.md](archive/P0_FINAL_SUMMARY_2026-02-23.md) - 最终总结（历史归档）
 
 ---
 
@@ -244,4 +244,4 @@ python manage.py runserver
 **预计完成时间**: 2-3周 (如果按计划推进)
 
 **文档版本**: v1.0.0
-**最后更新**: 2026-01-18
+**最后更新**: 2026-02-23

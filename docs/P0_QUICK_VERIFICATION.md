@@ -2,7 +2,7 @@
 
 > 验证所有P0功能是否正常工作
 
-**更新日期**: 2026-01-18
+**更新日期**: 2026-02-23
 
 ---
 
@@ -11,7 +11,7 @@
 ### 1. 后端服务
 
 ```bash
-cd /home/chenjiaxing/文档/work_order/backend
+cd backend
 
 # 激活虚拟环境
 source venv/bin/activate
@@ -25,13 +25,14 @@ python manage.py runserver
 ### 2. 前端服务
 
 ```bash
-cd /home/chenjiaxing/文档/work_order/frontend
+cd /path/to/work_order
+npm install
 
-# 启动Vue开发服务器
-npm run serve
+# 启动 Web（Vue 3 / Vite）
+npm run web:dev
 ```
 
-前端将运行在：http://localhost:8080
+前端将运行在：http://localhost:5173
 
 ---
 
@@ -132,7 +133,7 @@ curl http://localhost:8000/api/statements/
 
 #### 3.1 检查菜单导航
 
-访问前端：http://localhost:8080
+访问前端：http://localhost:5173
 
 **验证项**：
 - [ ] 登录成功后，看到左侧导航菜单
@@ -153,36 +154,36 @@ curl http://localhost:8000/api/statements/
 逐个点击菜单项，验证页面是否正常加载：
 
 **库存管理页面**：
-- [ ] 成品库存页面：http://localhost:8080/inventory/stocks
+- [ ] 成品库存页面：http://localhost:5173/product-stocks
   - [ ] 显示统计卡片（总库存数、产品种类、低库存、过期批次）
   - [ ] 显示搜索和过滤表单
   - [ ] 显示数据表格
   - [ ] 显示分页组件
-- [ ] 发货管理页面：http://localhost:8080/inventory/delivery
+- [ ] 发货管理页面：http://localhost:5173/delivery-orders
   - [ ] 显示搜索和过滤表单
   - [ ] 显示发货单列表
   - [ ] 状态显示正确（待发货、已发货、运输中、已签收等）
-- [ ] 质量检验页面：http://localhost:8080/inventory/quality
+- [ ] 质量检验页面：http://localhost:5173/quality-inspections
   - [ ] 显示搜索和过滤表单
   - [ ] 显示质检单列表
   - [ ] 检验类型和结果显示正确
 
 **财务管理页面**：
-- [ ] 发票管理页面：http://localhost:8080/finance/invoices
+- [ ] 发票管理页面：http://localhost:5173/invoices
   - [ ] 显示统计卡片（总金额、待收款、已收款）
   - [ ] 显示搜索和过滤表单
   - [ ] 显示发票列表
   - [ ] 状态显示正确（草稿、已开具、已发送等）
-- [ ] 收款管理页面：http://localhost:8080/finance/payments
+- [ ] 收款管理页面：http://localhost:5173/payments
   - [ ] 显示统计卡片（总收款、已核销、未核销、收款笔数）
   - [ ] 显示搜索和过滤表单
   - [ ] 显示收款记录列表
-- [ ] 成本核算页面：http://localhost:8080/finance/costs
+- [ ] 成本核算页面：http://localhost:5173/production-costs
   - [ ] 显示统计卡片（订单数量、平均材料成本等）
   - [ ] 显示搜索和过滤表单
   - [ ] 显示成本列表
   - [ ] 成本差异用颜色标识
-- [ ] 对账管理页面：http://localhost:8080/finance/statements
+- [ ] 对账管理页面：http://localhost:5173/statements
   - [ ] 显示搜索和过滤表单
   - [ ] 显示对账单列表
   - [ ] 余额显示正确

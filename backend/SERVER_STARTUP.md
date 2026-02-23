@@ -102,9 +102,9 @@ Quit the server with CONTROL-C.
 
 ## 📚 相关文档
 
-- [文件拆分指南](../docs/FILE_SPLITTING_GUIDE.md)
-- [优化总览](../docs/OPTIMIZATION_OVERVIEW.md)
-- [P1优化总结](../docs/P1_OPTIMIZATION_SUMMARY.md)
+- 当前架构与目录约定：`../docs/ARCHITECTURE_IMPROVEMENT.md`
+- 平台现状与优化落地：`../docs/PLATFORM_ANALYSIS.md`
+- 历史优化总结（归档）：`../docs/archive/P1_OPTIMIZATION_SUMMARY.md`
 
 ## 🆘 常见问题
 

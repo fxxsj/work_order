@@ -36,8 +36,7 @@
 
 ```
 URL: http://localhost:8000/admin/
-用户名: admin
-密码: admin123
+账号: 使用你通过 `python manage.py createsuperuser` 创建的超级管理员
 ```
 
 ### 首次登录建议
@@ -672,7 +671,7 @@ class YourModelAdmin(admin.ModelAdmin):
 ### D. 相关文档
 
 - [Django Admin 官方文档](https://docs.djangoproject.com/en/stable/ref/contrib/admin/)
-- `docs/ADMIN_FIX_SUMMARY.md` - Admin 修复总结
+- `docs/archive/ADMIN_FIX_SUMMARY_2026-02-23.md` - Admin 修复总结（历史归档）
 - `backend/workorder/admin/` - Admin 模块源码
 - `backend/workorder/models/` - 数据模型定义
 

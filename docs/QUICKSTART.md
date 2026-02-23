@@ -78,9 +78,13 @@ npm run web:dev
 
 打开浏览器访问：http://localhost:5173
 
-**测试账号**（已自动创建）：
-- 用户名：`admin`
-- 密码：`admin123`
+**登录账号**：
+
+- 推荐：先创建超级管理员（用于 Admin / 初始化）：
+  - `cd backend && python manage.py createsuperuser`
+- 可选：加载测试账号（用于演示/联调，默认密码 `123456`）：
+  - `cd backend && python manage.py load_initial_users`
+  - 示例用户名：`business_user` / `production_user` / `finance_user` 等（见管理命令输出）
 
 ### 2. 访问前端系统
 

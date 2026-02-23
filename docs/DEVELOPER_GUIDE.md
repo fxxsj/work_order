@@ -253,208 +253,87 @@ export default {
 
 ### 状态管理
 
-#### Vuex Store模块
+#### Pinia Store（Vue 3）
 
-```javascript
-// store/modules/example.js
-const state = {
-  items: [],
-  loading: false,
-  error: null
-}
+```ts
+// apps/web/src/stores/example.ts
+import { defineStore } from 'pinia'
 
-const getters = {
-  items: state => state.items,
-  loading: state => state.loading,
-  error: state => state.error,
-  itemsById: state => id => state.items.find(item => item.id === id)
-}
+type Item = { id: number; name: string }
 
-const mutations = {
-  SET_ITEMS(state, items) {
-    state.items = items
+export const useExampleStore = defineStore('example', {
+  state: () => ({
+    items: [] as Item[],
+    loading: false,
+    error: null as string | null,
+  }),
+  getters: {
+    itemsById: (state) => (id: number) => state.items.find((item) => item.id === id),
   },
-  SET_LOADING(state, loading) {
-    state.loading = loading
+  actions: {
+    async fetchItems() {
+      this.loading = true
+      this.error = null
+      try {
+        // TODO: 调用 apps/web/src/api/** 的模块化 API
+      } catch (e) {
+        this.error = (e as Error).message
+        throw e
+      } finally {
+        this.loading = false
+      }
+    },
   },
-  SET_ERROR(state, error) {
-    state.error = error
-  },
-  ADD_ITEM(state, item) {
-    state.items.push(item)
-  },
-  UPDATE_ITEM(state, { id, updates }) {
-    const index = state.items.findIndex(item => item.id === id)
-    if (index !== -1) {
-      state.items.splice(index, 1, { ...state.items[index], ...updates })
-    }
-  }
-}
-
-const actions = {
-  async fetchItems({ commit, state }) {
-    commit('SET_LOADING', true)
-    commit('SET_ERROR', null)
-    
-    try {
-      const response = await api.getItems()
-      commit('SET_ITEMS', response.data)
-      return response.data
-    } catch (error) {
-      commit('SET_ERROR', error.message)
-      throw error
-    } finally {
-      commit('SET_LOADING', false)
-    }
-  },
-  
-  async createItem({ commit }, itemData) {
-    try {
-      const response = await api.createItem(itemData)
-      commit('ADD_ITEM', response.data)
-      return response.data
-    } catch (error) {
-      commit('SET_ERROR', error.message)
-      throw error
-    }
-  }
-}
-
-export default {
-  namespaced: true,
-  state,
-  getters,
-  mutations,
-  actions
-}
+})
 ```
 
 ### API调用
 
-#### Service层封装
+#### API 模块（apps/web）
 
-```javascript
-// src/services/ExampleService.js
-import { request } from '@/utils/request'
+项目 Web 端采用“按资源拆分”的 API 模块（`apps/web/src/api/*.ts`），并通过 `createCrudApi()` 生成一致的 CRUD 接口。
 
-class ExampleService {
-  // 获取列表
-  async getItems(params = {}) {
-    return request({
-      url: '/api/v1/examples/',
-      method: 'GET',
-      params
-    })
-  }
-  
-  // 获取详情
-  async getItem(id) {
-    return request({
-      url: `/api/v1/examples/${id}/`,
-      method: 'GET'
-    })
-  }
-  
-  // 创建
-  async createItem(data) {
-    return request({
-      url: '/api/v1/examples/',
-      method: 'POST',
-      data
-    })
-  }
-  
-  // 更新
-  async updateItem(id, data) {
-    return request({
-      url: `/api/v1/examples/${id}/`,
-      method: 'PUT',
-      data
-    })
-  }
-  
-  // 删除
-  async deleteItem(id) {
-    return request({
-      url: `/api/v1/examples/${id}/`,
-      method: 'DELETE'
-    })
-  }
+```ts
+// apps/web/src/api/examples.ts
+import { createCrudApi } from './base'
+
+export type Example = {
+  id: number
+  name: string
 }
 
-export default new ExampleService()
+export const examplesApi = createCrudApi<Example>('examples')
 ```
 
 ### 路由管理
 
 #### 路由配置
 
-```javascript
-// router/index.js
-import { createRouter, createWebHistory } from 'vue-router'
-import store from '@/store'
+```ts
+// apps/web/src/router/index.ts
+import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router'
+import { useUserStore } from '../stores/user'
 
-const routes = [
-  {
-    path: '/',
-    name: 'Dashboard',
-    component: () => import('@/views/Dashboard.vue'),
-    meta: {
-      title: '仪表板',
-      requiresAuth: true
-    }
-  },
-  {
-    path: '/workorders',
-    name: 'WorkOrderList',
-    component: () => import('@/views/workorder/List.vue'),
-    meta: {
-      title: '施工单列表',
-      requiresAuth: true,
-      permission: 'workorder.view_workorder'
-    }
-  },
-  {
-    path: '/workorders/:id',
-    name: 'WorkOrderDetail',
-    component: () => import('@/views/workorder/Detail.vue'),
-    props: true,
-    meta: {
-      title: '施工单详情',
-      requiresAuth: true,
-      permission: 'workorder.view_workorder'
-    }
-  }
-]
+const LoginView = () => import('../views/LoginView.vue')
+const DashboardView = () => import('../views/DashboardView.vue')
+const WorkOrderListView = () => import('../views/WorkOrderListView.vue')
 
-const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
-  routes
+export const router = createRouter({
+  history: (import.meta.env.VITE_ROUTER_MODE === 'hash' ? createWebHashHistory() : createWebHistory()),
+  routes: [
+    { path: '/login', name: 'login', component: LoginView, meta: { requiresAuth: false } },
+    { path: '/', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true } },
+    { path: '/workorders', name: 'workorders', component: WorkOrderListView, meta: { requiresAuth: true } },
+  ]
 })
 
-// 路由守卫
-router.beforeEach((to, from, next) => {
-  // 设置页面标题
-  if (to.meta.title) {
-    document.title = `${to.meta.title} - 印刷施工单系统`
-  }
-  
-  // 认证检查
-  if (to.meta.requiresAuth && !store.getters.isAuthenticated) {
-    next('/login')
-    return
-  }
-  
-  // 权限检查
-  if (to.meta.permission && !store.getters.hasPermission(to.meta.permission)) {
-    next('/403')
-    return
-  }
-  
-  next()
-})
+router.beforeEach(async (to) => {
+  const user = useUserStore()
 
-export default router
+  if (to.meta.requiresAuth === false) return true
+  if (!user.isAuthenticated) return { name: 'login', query: { redirect: to.fullPath } }
+  return true
+})
 ```
 
 ## 🐍 后端开发指南
@@ -1383,9 +1262,10 @@ server {
     listen 80;
     server_name yourdomain.com;
     
-    # 前端静态文件
+    # 前端静态文件（apps/web 构建产物）
     location / {
-        root /var/www/frontend/dist;
+        # 将 apps/web/dist 部署到此目录
+        root /var/www/work_order_web/dist;
         try_files $uri $uri/ /index.html;
     }
     

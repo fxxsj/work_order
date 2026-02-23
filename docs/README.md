@@ -34,7 +34,7 @@
 
 ## 历史归档
 
-- [archive/](archive/) - 历史分析/阶段总结（当前共 65 个文件）
+- [archive/](archive/) - 历史分析/阶段总结（以目录内容为准）
 
 注意：`docs/archive/` 内大量文档对应旧版 `frontend/`（Vue2/webpack）目录结构，仅供追溯，不应作为当前实现依据。
 
