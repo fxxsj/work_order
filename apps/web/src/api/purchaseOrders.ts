@@ -1,11 +1,8 @@
 import { http } from '../lib/http'
+import { createApiWithActions } from './base'
+import type { PaginatedResult } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type PurchaseOrderStatus = 'draft' | 'submitted' | 'approved' | 'ordered' | 'received' | 'cancelled'
 
@@ -58,76 +55,84 @@ export type PurchaseOrderDetail = PurchaseOrderListItem & {
   items?: PurchaseOrderItem[]
 }
 
+export const purchaseOrderApi = createApiWithActions(
+  'purchase-orders',
+  {
+    submit: async (id: number) => (await http.post(`/purchase-orders/${id}/submit/`)).data,
+    approve: async (id: number) => (await http.post(`/purchase-orders/${id}/approve/`)).data,
+    reject: async (id: number, input: { rejection_reason: string }) =>
+      (await http.post(`/purchase-orders/${id}/reject/`, input)).data,
+    placeOrder: async (id: number, input?: { ordered_date?: string }) =>
+      (await http.post(`/purchase-orders/${id}/place_order/`, input || {})).data,
+    receive: async (
+      id: number,
+      input: {
+        received_date?: string
+        items: { item_id: number; received_quantity: number; delivery_note_number?: string; notes?: string }[]
+      }
+    ) => (await http.post(`/purchase-orders/${id}/receive/`, input)).data,
+    getReceiveRecords: async (id: number) => (await http.get(`/purchase-orders/${id}/receive_records/`)).data,
+    getPendingInspections: async (id: number) => (await http.get(`/purchase-orders/${id}/pending_inspections/`)).data,
+    cancel: async (id: number) => (await http.post(`/purchase-orders/${id}/cancel/`)).data,
+    getLowStockMaterials: async () => (await http.get('/purchase-orders/low_stock_materials/')).data
+  }
+)
+
 export async function listPurchaseOrders(params: { page: number; page_size: number; search?: string; status?: string }) {
-  const res = await http.get<PaginatedResult<PurchaseOrderListItem>>('/purchase-orders/', { params })
-  return res.data
+  return purchaseOrderApi.list(params) as Promise<PaginatedResult<PurchaseOrderListItem>>
 }
 
 export async function getPurchaseOrder(id: number) {
-  const res = await http.get<PurchaseOrderDetail>(`/purchase-orders/${id}/`)
-  return res.data
+  return purchaseOrderApi.retrieve(id) as Promise<PurchaseOrderDetail>
 }
 
 export async function createPurchaseOrder(input: Partial<PurchaseOrderDetail> & { items_data?: any[] }) {
-  const res = await http.post<PurchaseOrderDetail>('/purchase-orders/', input)
-  return res.data
+  return purchaseOrderApi.create(input) as Promise<PurchaseOrderDetail>
 }
 
 export async function updatePurchaseOrder(id: number, input: Partial<PurchaseOrderDetail> & { items_data?: any[] }) {
-  const res = await http.put<PurchaseOrderDetail>(`/purchase-orders/${id}/`, input)
-  return res.data
+  return purchaseOrderApi.update(id, input) as Promise<PurchaseOrderDetail>
 }
 
 export async function deletePurchaseOrder(id: number) {
-  const res = await http.delete(`/purchase-orders/${id}/`)
-  return res.data
+  return purchaseOrderApi.delete(id)
 }
 
 export async function submitPurchaseOrder(id: number) {
-  const res = await http.post(`/purchase-orders/${id}/submit/`)
-  return res.data
+  return purchaseOrderApi.submit(id)
 }
 
 export async function approvePurchaseOrder(id: number) {
-  const res = await http.post(`/purchase-orders/${id}/approve/`)
-  return res.data
+  return purchaseOrderApi.approve(id)
 }
 
 export async function rejectPurchaseOrder(id: number, input: { rejection_reason: string }) {
-  const res = await http.post(`/purchase-orders/${id}/reject/`, input)
-  return res.data
+  return purchaseOrderApi.reject(id, input)
 }
 
 export async function placeOrderPurchaseOrder(id: number, input?: { ordered_date?: string }) {
-  const res = await http.post(`/purchase-orders/${id}/place_order/`, input || {})
-  return res.data
+  return purchaseOrderApi.placeOrder(id, input)
 }
 
 export async function receivePurchaseOrder(
   id: number,
   input: { received_date?: string; items: { item_id: number; received_quantity: number; delivery_note_number?: string; notes?: string }[] }
 ) {
-  const res = await http.post(`/purchase-orders/${id}/receive/`, input)
-  return res.data
+  return purchaseOrderApi.receive(id, input)
 }
 
 export async function getPurchaseOrderReceiveRecords(id: number) {
-  const res = await http.get(`/purchase-orders/${id}/receive_records/`)
-  return res.data
+  return purchaseOrderApi.getReceiveRecords(id)
 }
 
 export async function getPurchaseOrderPendingInspections(id: number) {
-  const res = await http.get(`/purchase-orders/${id}/pending_inspections/`)
-  return res.data
+  return purchaseOrderApi.getPendingInspections(id)
 }
 
 export async function cancelPurchaseOrder(id: number) {
-  const res = await http.post(`/purchase-orders/${id}/cancel/`)
-  return res.data
+  return purchaseOrderApi.cancel(id)
 }
 
 export async function getLowStockMaterials() {
-  const res = await http.get('/purchase-orders/low_stock_materials/')
-  return res.data
+  return purchaseOrderApi.getLowStockMaterials()
 }
-
