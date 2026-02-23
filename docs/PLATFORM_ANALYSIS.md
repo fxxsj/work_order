@@ -696,7 +696,7 @@ export const useWorkOrderStore = defineStore('workOrder', {
 
 1. **桌面平台增强**
    - [ ] 原生文件对话框
-   - [ ] 系统托盘
+   - [x] 系统托盘
    - [ ] 自动更新激活
 
 2. **移动平台基础**
@@ -705,7 +705,7 @@ export const useWorkOrderStore = defineStore('workOrder', {
    - [ ] 移动端 UI 适配
 
 3. **代码质量**
-   - [ ] 统一错误处理
+   - [x] 统一错误处理
    - [ ] 消除重复代码
    - [ ] 服务层抽取
 
