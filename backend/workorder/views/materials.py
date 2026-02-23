@@ -33,19 +33,14 @@ from ..serializers.materials import (
     ReturnProcessSerializer,
     SupplierSerializer,
 )
+from .base_viewsets import BaseViewSet
 
 
-class MaterialViewSet(viewsets.ModelViewSet):
+class MaterialViewSet(BaseViewSet):
     """物料视图集（优化版）"""
 
-    permission_classes = [SuperuserFriendlyModelPermissions]
     queryset = Material.objects.all()
     serializer_class = MaterialSerializer
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
     search_fields = ["name", "code", "specification"]
     ordering_fields = ["code", "created_at", "stock_quantity"]
     ordering = ["code"]
@@ -56,18 +51,12 @@ class MaterialViewSet(viewsets.ModelViewSet):
         return queryset.select_related("default_supplier")
 
 
-class SupplierViewSet(viewsets.ModelViewSet):
+class SupplierViewSet(BaseViewSet):
     """供应商视图集（优化版）"""
 
     queryset = Supplier.objects.all()
-    permission_classes = [SuperuserFriendlyModelPermissions]
     serializer_class = SupplierSerializer
     pagination_class = pagination.PageNumberPagination
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
     filterset_fields = ["status"]
     search_fields = ["name", "code", "contact_person", "phone", "email"]
     ordering_fields = ["created_at", "name", "code"]
@@ -81,11 +70,10 @@ class SupplierViewSet(viewsets.ModelViewSet):
         return queryset
 
 
-class MaterialSupplierViewSet(viewsets.ModelViewSet):
+class MaterialSupplierViewSet(BaseViewSet):
     """物料供应商关联视图集"""
 
     queryset = MaterialSupplier.objects.all()
-    permission_classes = [SuperuserFriendlyModelPermissions]
     serializer_class = MaterialSupplierSerializer
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ["material", "supplier", "is_preferred"]
