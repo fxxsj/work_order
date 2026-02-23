@@ -508,44 +508,94 @@ class StatementViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # 查询相关订单
-        from workorder.models import SalesOrder
+        statement_type = None
+        opening_balance = 0
+        total_debit = 0
+        total_credit = 0
 
         if customer_id:
-            # 客户对账单
-            orders = SalesOrder.objects.filter(
+            statement_type = "customer"
+
+            previous = (
+                Statement.objects.filter(
+                    statement_type="customer",
+                    customer_id=customer_id,
+                    period__lt=period,
+                )
+                .order_by("-period")
+                .only("closing_balance")
+                .first()
+            )
+            opening_balance = previous.closing_balance if previous else 0
+
+            from workorder.models import SalesOrder
+
+            orders = (
+                SalesOrder.objects.filter(
+                    customer_id=customer_id,
+                    order_date__gte=start_date,
+                    order_date__lte=end_date,
+                )
+                .exclude(status__in=["draft", "rejected", "cancelled"])
+                .only("total_amount")
+            )
+            total_debit = orders.aggregate(total=Sum("total_amount"))["total"] or 0
+
+            payments = Payment.objects.filter(
                 customer_id=customer_id,
-                created_at__gte=start_date,
-                created_at__lte=end_date,
-            )
-
-            # 计算金额
-            total_debit = (
-                orders.aggregate(total=Sum(F("total_amount") - F("paid_amount")))[
-                    "total"
-                ]
-                or 0
-            )
-
-            # 期初余额 (上月未结清)
-            opening_balance = 0  # TODO: 从上月对账单获取
+                payment_date__gte=start_date,
+                payment_date__lte=end_date,
+            ).only("amount")
+            total_credit = payments.aggregate(total=Sum("amount"))["total"] or 0
 
         elif supplier_id:
-            # 供应商对账单
-            # TODO: 实现供应商对账单逻辑
-            return Response({"error": "供应商对账单暂未实现"})
+            statement_type = "supplier"
+
+            previous = (
+                Statement.objects.filter(
+                    statement_type="supplier",
+                    supplier_id=supplier_id,
+                    period__lt=period,
+                )
+                .order_by("-period")
+                .only("closing_balance")
+                .first()
+            )
+            opening_balance = previous.closing_balance if previous else 0
+
+            from workorder.models import PurchaseOrder
+
+            purchase_orders = (
+                PurchaseOrder.objects.filter(
+                    supplier_id=supplier_id,
+                    created_at__date__gte=start_date,
+                    created_at__date__lte=end_date,
+                )
+                .exclude(status="cancelled")
+                .only("total_amount")
+            )
+            total_debit = (
+                purchase_orders.aggregate(total=Sum("total_amount"))["total"] or 0
+            )
+
+            # NOTE: 当前系统未建模“供应商付款”记录，本期贷方暂不计算。
+            total_credit = 0
         else:
             return Response(
                 {"error": "必须指定客户或供应商"}, status=status.HTTP_400_BAD_REQUEST
             )
 
+        closing_balance = opening_balance + total_debit - total_credit
+
         return Response(
             {
+                "statement_type": statement_type,
                 "period": period,
                 "start_date": start_date,
                 "end_date": end_date,
                 "opening_balance": opening_balance,
                 "total_debit": total_debit,
-                "total_credit": 0,  # TODO: 计算已付款
+                "total_credit": total_credit,
+                "closing_balance": closing_balance,
             }
         )
