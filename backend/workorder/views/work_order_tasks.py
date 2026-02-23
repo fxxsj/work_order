@@ -73,8 +73,12 @@ class WorkOrderTaskViewSet(BaseViewSet):
     ordering = ["-created_at"]
 
     def get_queryset(self):
-        """根据用户权限过滤查询集"""
-        queryset = super().get_queryset()
+        """根据用户权限过滤查询集，尽量避免 N+1 查询"""
+        from ..services.query_optimizer import QueryOptimizer
+
+        queryset = QueryOptimizer.optimize_task_queryset(
+            super().get_queryset(), include_work_order=True
+        )
         user = self.request.user
 
         # 管理员可以查看所有任务
