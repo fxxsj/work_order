@@ -1,5 +1,5 @@
 import { http } from '../lib/http'
-import { createCrudApi } from './base'
+import { createApiWithActions, createCrudApi } from './base'
 
 export type { PaginatedResult } from './base'
 
@@ -31,14 +31,32 @@ export async function listWorkOrders(params: {
 
 export type WorkOrderDetail = Record<string, any>
 
+export const workOrderApi = createApiWithActions(
+  'workorders',
+  {
+    updateStatus: async (id: number, status: string) => (await http.post(`/workorders/${id}/update_status/`, { status })).data,
+    approve: async (input: {
+      id: number
+      approval_status: 'approved' | 'rejected'
+      approval_comment?: string
+      rejection_reason?: string
+    }) =>
+      (
+        await http.post(`/workorders/${input.id}/approve/`, {
+          approval_status: input.approval_status,
+          approval_comment: input.approval_comment || '',
+          rejection_reason: input.rejection_reason || ''
+        })
+      ).data
+  }
+)
+
 export async function getWorkOrder(id: number) {
-  const res = await http.get<WorkOrderDetail>(`/workorders/${id}/`)
-  return res.data
+  return workOrderApi.retrieve(id)
 }
 
 export async function updateWorkOrderStatus(id: number, status: string) {
-  const res = await http.post(`/workorders/${id}/update_status/`, { status })
-  return res.data
+  return workOrderApi.updateStatus(id, status)
 }
 
 export async function approveWorkOrder(input: {
@@ -47,12 +65,7 @@ export async function approveWorkOrder(input: {
   approval_comment?: string
   rejection_reason?: string
 }) {
-  const res = await http.post(`/workorders/${input.id}/approve/`, {
-    approval_status: input.approval_status,
-    approval_comment: input.approval_comment || '',
-    rejection_reason: input.rejection_reason || ''
-  })
-  return res.data
+  return workOrderApi.approve(input)
 }
 
 export async function createWorkOrder(input: {
@@ -68,6 +81,5 @@ export async function createWorkOrder(input: {
     sort_order?: number
   }>
 }) {
-  const res = await http.post('/workorders/', input)
-  return res.data
+  return workOrderApi.create(input)
 }
