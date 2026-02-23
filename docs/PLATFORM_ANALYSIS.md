@@ -18,7 +18,7 @@
 
 - [x] 添加数据库索引（任务/任务日志等高频列表：`backend/workorder/migrations/0036_add_performance_indexes.py`、`0037_add_tasklog_indexes.py`）
 - [x] 优化 N+1 查询（WorkOrderTask/WorkOrder 列表）
-- [ ] 实现基础缓存（静态字典/统计类接口）
+- [x] 实现基础缓存（静态字典/统计类接口：`departments/all|tree`、`processes/all`、`dashboard:metrics` + 信号失效）
 
 ### P2：平台增强
 
@@ -685,7 +685,7 @@ export const useWorkOrderStore = defineStore('workOrder', {
 2. **性能优化**
    - [x] 添加数据库索引
    - [x] 优化 N+1 查询
-   - [ ] 实现基础缓存
+   - [x] 实现基础缓存（静态字典/统计类接口）
 
 ### 优先级 P1 (3-4 周)
 
