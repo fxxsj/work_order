@@ -988,16 +988,11 @@ class WorkOrderViewSet(BaseViewSet):
         )
 
 
-class DraftTaskViewSet(viewsets.ModelViewSet):
+class DraftTaskViewSet(BaseViewSet):
     """草稿任务视图集（允许编辑和删除草稿状态的任务）"""
 
     serializer_class = DraftTaskSerializer
     permission_classes = [WorkOrderTaskPermission]
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
     filterset_fields = ["status", "task_type", "work_order_process"]
     search_fields = ["work_content", "description"]
     ordering_fields = ["created_at", "production_quantity", "estimated_hours"]
