@@ -15,6 +15,7 @@
           @keyup.enter="reload"
         />
         <el-button size="small" :loading="loading" @click="reload">查询</el-button>
+        <el-button size="small" :loading="exporting" @click="handleExport">导出</el-button>
         <el-button size="small" type="primary" @click="goCreate">新建</el-button>
       </div>
     </div>
@@ -56,7 +57,8 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { listWorkOrders, type WorkOrderListItem } from '../api/workorders'
+import { exportWorkOrders, listWorkOrders, type WorkOrderListItem } from '../api/workorders'
+import { downloadBlob, getFilenameFromContentDisposition } from '../lib/download'
 
 const router = useRouter()
 
@@ -66,6 +68,7 @@ const total = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
 const search = ref('')
+const exporting = ref(false)
 
 async function fetchList() {
   loading.value = true
@@ -110,6 +113,24 @@ function handleRowClick(row: WorkOrderListItem) {
 
 function goCreate() {
   router.push({ name: 'workorder-create' })
+}
+
+async function handleExport() {
+  exporting.value = true
+  try {
+    const res = await exportWorkOrders({
+      search: search.value || undefined
+    })
+    const cd = (res.headers?.['content-disposition'] || res.headers?.['Content-Disposition']) as
+      | string
+      | undefined
+    const filename = getFilenameFromContentDisposition(cd) || 'workorders.xlsx'
+    downloadBlob(res.data as Blob, filename)
+  } catch (err: any) {
+    ElMessage.error(err?.response?.data?.error || err?.message || '导出失败')
+  } finally {
+    exporting.value = false
+  }
 }
 
 onMounted(() => {

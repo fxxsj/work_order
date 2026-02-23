@@ -15,6 +15,7 @@
           @keyup.enter="reload"
         />
         <el-button size="small" :loading="loading" @click="reload">查询</el-button>
+        <el-button size="small" :loading="exporting" @click="handleExport">导出</el-button>
       </div>
     </div>
 
@@ -57,7 +58,8 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { listTasks, type WorkOrderTaskListItem } from '../api/tasks'
+import { exportTasks, listTasks, type WorkOrderTaskListItem } from '../api/tasks'
+import { downloadBlob, getFilenameFromContentDisposition } from '../lib/download'
 
 const router = useRouter()
 
@@ -67,6 +69,7 @@ const total = ref(0)
 const page = ref(1)
 const pageSize = ref(20)
 const search = ref('')
+const exporting = ref(false)
 
 async function fetchList() {
   loading.value = true
@@ -105,6 +108,24 @@ function goHome() {
   router.push({ name: 'dashboard' })
 }
 
+async function handleExport() {
+  exporting.value = true
+  try {
+    const res = await exportTasks({
+      search: search.value || undefined
+    })
+    const cd = (res.headers?.['content-disposition'] || res.headers?.['Content-Disposition']) as
+      | string
+      | undefined
+    const filename = getFilenameFromContentDisposition(cd) || 'tasks.xlsx'
+    downloadBlob(res.data as Blob, filename)
+  } catch (err: any) {
+    ElMessage.error(err?.response?.data?.error || err?.message || '导出失败')
+  } finally {
+    exporting.value = false
+  }
+}
+
 onMounted(() => {
   fetchList()
 })
@@ -141,4 +162,3 @@ onMounted(() => {
   margin-top: 12px;
 }
 </style>
-
