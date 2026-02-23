@@ -1,11 +1,7 @@
 import { http } from '../lib/http'
+import { createCrudApi } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type WorkOrderListItem = {
   id: number
@@ -20,6 +16,8 @@ export type WorkOrderListItem = {
   progress_percentage: number
 }
 
+export const workOrderListApi = createCrudApi<WorkOrderListItem>('workorders')
+
 export async function listWorkOrders(params: {
   page: number
   page_size: number
@@ -28,8 +26,7 @@ export async function listWorkOrders(params: {
   status?: string
   priority?: string
 }) {
-  const res = await http.get<PaginatedResult<WorkOrderListItem>>('/workorders/', { params })
-  return res.data
+  return workOrderListApi.list(params)
 }
 
 export type WorkOrderDetail = Record<string, any>
