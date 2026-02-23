@@ -1,5 +1,8 @@
 import { http } from '../lib/http'
-import type { PaginatedResult } from './workorders'
+import { createApiWithActions } from './base'
+import type { PaginatedResult } from './base'
+
+export type { PaginatedResult } from './base'
 
 export type NotificationItem = {
   id: number
@@ -14,27 +17,32 @@ export type NotificationItem = {
   task_id: number | null
 }
 
+export const notificationApi = createApiWithActions(
+  'notifications',
+  {
+    unreadCount: async () => (await http.get<{ unread_count: number }>('/notifications/unread_count/')).data.unread_count,
+    markRead: async (id: number) => (await http.post(`/notifications/${id}/mark_read/`)).data,
+    markAllRead: async () => (await http.post('/notifications/mark_all_read/')).data,
+    wsTicket: async () => (await http.post<{ ticket: string; expires_in: number }>('/notifications/ws_ticket/')).data.ticket
+  }
+)
+
 export async function listNotifications(params: { page: number; page_size: number }) {
-  const res = await http.get<PaginatedResult<NotificationItem>>('/notifications/', { params })
-  return res.data
+  return notificationApi.list(params)
 }
 
 export async function getUnreadCount() {
-  const res = await http.get<{ unread_count: number }>('/notifications/unread_count/')
-  return res.data.unread_count
+  return notificationApi.unreadCount()
 }
 
 export async function markRead(id: number) {
-  const res = await http.post(`/notifications/${id}/mark_read/`)
-  return res.data
+  return notificationApi.markRead(id)
 }
 
 export async function markAllRead() {
-  const res = await http.post('/notifications/mark_all_read/')
-  return res.data
+  return notificationApi.markAllRead()
 }
 
 export async function getWsTicket() {
-  const res = await http.post<{ ticket: string; expires_in: number }>('/notifications/ws_ticket/')
-  return res.data.ticket
+  return notificationApi.wsTicket()
 }

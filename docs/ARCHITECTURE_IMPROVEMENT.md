@@ -11,7 +11,7 @@
 ### P0：减少代码冗余
 
 - [x] 前端：通用 CRUD API 工厂（`apps/web/src/api/base.ts`）
-- [x] 前端：迁移部分 API 模块到工厂（已完成：`customers/departments/materials/products/suppliers/payments/invoices/tasks/workorders(list)/processes/catalog/productGroups/salesOrders/purchaseOrders/stockIns/stockOuts/deliveryOrders/productStocks/qualityInspections/purchaseReceiveRecords/materialSuppliers`）
+- [x] 前端：迁移部分 API 模块到工厂（已完成：`customers/departments/materials/products/suppliers/payments/invoices/tasks/workorders(list)/processes/catalog/productGroups/salesOrders/purchaseOrders/stockIns/stockOuts/deliveryOrders/productStocks/qualityInspections/purchaseReceiveRecords/materialSuppliers/notifications`）
 - [x] 前端：通用列表组件（`apps/web/src/views/base/ResourceList.vue`）
 - [x] 前端：迁移部分列表页到通用组件（已完成：`Customer/Product/Supplier/Material/Payment/Invoice`）
 - [x] 后端：落地 `BaseViewSet` 并迁移部分 ViewSet（已完成：`base.py/products.py/materials.py` 的核心 CRUD + `system.py(TaskAssignmentRule)` + `sales.py(SalesOrder/SalesOrderItem)`）
