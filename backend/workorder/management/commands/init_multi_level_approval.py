@@ -36,9 +36,13 @@ class Command(BaseCommand):
 
         if not force:
             if reset_existing:
-                self.stdout.write("⚠️  这将删除所有现有的多级审核数据并重新创建默认数据。")
+                self.stdout.write(
+                    "⚠️  这将删除所有现有的多级审核数据并重新创建默认数据。"
+                )
             else:
-                self.stdout.write("ℹ️  这将创建/更新默认多级审核数据（不删除现有数据）。")
+                self.stdout.write(
+                    "ℹ️  这将创建/更新默认多级审核数据（不删除现有数据）。"
+                )
             response = input("确认继续执行吗？(y/N): ").strip()
             if response.lower() != "y":
                 self.stdout.write("操作已取消。")
@@ -71,7 +75,9 @@ class Command(BaseCommand):
         user = User.objects.filter(is_active=True, is_staff=True).first()
         if user:
             return user
-        raise CommandError("未找到可用的 superuser/staff 用户，请先创建用户或使用 --username 指定。")
+        raise CommandError(
+            "未找到可用的 superuser/staff 用户，请先创建用户或使用 --username 指定。"
+        )
 
     def _reset_existing_workflows(self):
         """重置现有的审核工作流数据"""
@@ -82,10 +88,9 @@ class Command(BaseCommand):
         ApprovalWorkflow.objects.all().delete()
         ApprovalRule.objects.all().delete()
 
-        updated_count = WorkOrder.objects.filter(multi_level_approval_enabled=True).update(
-            multi_level_approval_enabled=False,
-            current_workflow=None,
-        )
+        updated_count = WorkOrder.objects.filter(
+            multi_level_approval_enabled=True
+        ).update(multi_level_approval_enabled=False, current_workflow=None)
 
         self.stdout.write(f"   - 重置了{updated_count}个施工单的多级审核状态")
 
@@ -111,7 +116,11 @@ class Command(BaseCommand):
                 "name": "紧急订单 -> urgent 工作流",
                 "rule_type": "value_based",
                 "workflow_type": "urgent",
-                "conditions": {"field": "priority", "operator": "eq", "value": "urgent"},
+                "conditions": {
+                    "field": "priority",
+                    "operator": "eq",
+                    "value": "urgent",
+                },
             },
             {
                 "name": "金额>=50000 -> complex 工作流",
@@ -137,7 +146,11 @@ class Command(BaseCommand):
                 "name": "默认 -> simple 工作流",
                 "rule_type": "value_based",
                 "workflow_type": "simple",
-                "conditions": {"field": "total_amount", "operator": "lt", "value": 10000},
+                "conditions": {
+                    "field": "total_amount",
+                    "operator": "lt",
+                    "value": 10000,
+                },
             },
         ]
 
