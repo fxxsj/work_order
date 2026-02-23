@@ -1368,6 +1368,11 @@ class TaskLog(models.Model):
         verbose_name = "任务操作日志"
         verbose_name_plural = "任务操作日志"
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["log_type", "created_at"]),
+            models.Index(fields=["operator", "created_at"]),
+            models.Index(fields=["task", "created_at"]),
+        ]
 
     def __str__(self):
         return f"{self.task} - {self.get_log_type_display()}"
