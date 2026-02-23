@@ -364,7 +364,10 @@ class StockOutViewSet(viewsets.ModelViewSet):
             )
 
         with transaction.atomic():
-            for item in delivery_order.items.select_related("product", "sales_order_item").all():
+            for item in delivery_order.items.select_related(
+                "product",
+                "sales_order_item",
+            ).all():
                 remaining = item.quantity
 
                 if item.stock_batch:
