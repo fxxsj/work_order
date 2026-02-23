@@ -1,11 +1,6 @@
-import { http } from '../lib/http'
+import { createCrudApi } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type PaymentMethod = 'cash' | 'transfer' | 'check' | 'acceptance'
 
@@ -31,6 +26,8 @@ export type Payment = {
   created_at?: string
 }
 
+export const paymentApi = createCrudApi<Payment>('payments')
+
 export async function listPayments(params: {
   page: number
   page_size: number
@@ -40,17 +37,13 @@ export async function listPayments(params: {
   start_date?: string
   end_date?: string
 }) {
-  const res = await http.get<PaginatedResult<Payment>>('/payments/', { params })
-  return res.data
+  return paymentApi.list(params)
 }
 
 export async function createPayment(input: Partial<Payment>) {
-  const res = await http.post<Payment>('/payments/', input)
-  return res.data
+  return paymentApi.create(input)
 }
 
 export async function deletePayment(id: number) {
-  const res = await http.delete(`/payments/${id}/`)
-  return res.data
+  return paymentApi.delete(id)
 }
-
