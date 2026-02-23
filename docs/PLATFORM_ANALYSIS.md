@@ -282,9 +282,9 @@ function isCapacitorNative(): boolean {
 
 // 统一的 Token API
 export async function initAuthToken(): Promise<void>
-export function setAuthToken(token: string): Promise<void>
 export function getAuthToken(): string | null
-export function clearAuthToken(): Promise<void>
+export function setAuthToken(token: string): void
+export function clearAuthToken(): void
 ```
 
 #### 平台差异处理
@@ -292,9 +292,9 @@ export function clearAuthToken(): Promise<void>
 | 特性 | Web | 桌面 (Tauri) | 移动 (Capacitor) |
 |------|-----|--------------|------------------|
 | Token 存储 | localStorage | OS Keychain | Preferences |
-| 路由模式 | history | hash | history |
-| 协议 | HTTP/HTTPS | file:// | HTTP/HTTPS |
-| 更新机制 | 刷新页面 | 原生更新 | App Store |
+| 路由模式 | history（默认） | hash（打包默认，可配置） | hash（打包默认，可配置） |
+| 协议 | HTTP/HTTPS | 本地 scheme（Tauri） | 本地 WebView scheme（Capacitor） |
+| 更新机制 | 刷新页面 | GitHub Release /（可选）Tauri Updater | GitHub Release /（可选）应用商店 |
 | 文件访问 | 浏览器 API | Tauri API | Capacitor API |
 
 ---
@@ -562,70 +562,11 @@ class ApiResponse:
 
 #### 错误处理统一
 
-**前端全局错误处理**
+**前端全局错误处理（已落地）**
 
-```typescript
-// apps/web/src/lib/errorHandler.ts
-import { ElMessage, ElMessageBox } from 'element-plus'
-import type { AxiosError } from 'axios'
-
-interface ApiError {
-  message: string
-  code?: string
-  details?: any
-}
-
-export class ErrorHandler {
-  static handle(error: AxiosError<ApiError>): void {
-    if (error.response) {
-      const { status, data } = error.response
-
-      switch (status) {
-        case 401:
-          ElMessageBox.alert('登录已过期，请重新登录', '提示', {
-            confirmButtonText: '确定',
-            callback: () => {
-              window.location.href = '/login'
-            }
-          })
-          break
-
-        case 403:
-          ElMessage.error('没有权限执行此操作')
-          break
-
-        case 404:
-          ElMessage.error('请求的资源不存在')
-          break
-
-        case 400:
-          ElMessage.error(data?.message || '请求参数错误')
-          break
-
-        case 500:
-          ElMessage.error('服务器错误，请稍后重试')
-          break
-
-        default:
-          ElMessage.error(data?.message || '请求失败')
-      }
-    } else if (error.request) {
-      ElMessage.error('网络连接失败，请检查网络')
-    } else {
-      ElMessage.error('请求配置错误')
-    }
-  }
-
-  static async withErrorHandling<T>(fn: () => Promise<T>): Promise<T | null> {
-    try {
-      return await fn()
-    } catch (error) {
-      this.handle(error as AxiosError)
-      return null
-    }
-  }
-}
-```
+当前实现已收敛到：
+- `apps/web/src/lib/formatError.ts`：统一把 Axios/后端错误格式化为可展示文案；
+- `apps/web/src/lib/http.ts`：Axios 实例统一拦截网络异常并 toast（带节流，避免刷屏）。
 
 ### 架构改进
 
