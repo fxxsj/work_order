@@ -17,7 +17,7 @@
 ### P1：性能与体验
 
 - [ ] 添加数据库索引（以慢查询/高频列表为准）
-- [ ] 优化 N+1 查询（WorkOrderTask/WorkOrder 列表）
+- [x] 优化 N+1 查询（WorkOrderTask/WorkOrder 列表）
 - [ ] 实现基础缓存（静态字典/统计类接口）
 
 ### P2：平台增强
