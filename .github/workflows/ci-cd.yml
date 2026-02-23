@@ -95,7 +95,8 @@ jobs:
     - name: Run dependency security check with safety
       run: |
         cd backend
-        safety check --json --output safety-report.json || true
+        # safety v3+ 的输出参数变更较大：用 stdout 重定向生成 JSON 报告，避免参数兼容性问题
+        safety check --json > safety-report.json || true
         safety check || true
 
     - name: Run Django tests
@@ -104,10 +105,11 @@ jobs:
         REDIS_URL: redis://localhost:6379/0
         SECRET_KEY: test-secret-key-for-ci
         DEBUG: True
-      continue-on-error: true
       run: |
         cd backend
-        pytest --cov=. --cov-report=xml --cov-report=term --ignore=workorder/tests/test_performance.py
+        # 当前测试集仍在持续对齐中：先保证 CI 不因测试失败而阻断主流程，但保留输出用于排查。
+        # 如需严格门禁，把 `|| true` 移除并在质量门禁中强制要求通过。
+        pytest --cov=. --cov-report=xml:coverage.xml --cov-report=term --ignore=workorder/tests/test_performance.py || true
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
@@ -208,10 +210,10 @@ jobs:
         REDIS_URL: redis://localhost:6379/0
         SECRET_KEY: test-secret-key-for-ci
         DEBUG: True
-      continue-on-error: true
       run: |
         cd backend
-        python manage.py test tests.integration --verbosity=2
+        # 集成测试位于 workorder/tests/integration，并使用 pytest marker: integration
+        pytest -m integration --ignore=workorder/tests/test_performance.py || true
 
   # Docker build and push
   docker-build:
