@@ -64,10 +64,6 @@ from .views.monitoring import (
     DashboardMonitoringViewSet,
     PerformanceMonitoringViewSet,
 )
-
-# 多级审批端点已启用。
-# 确保已执行数据库迁移，并可运行 `python manage.py init_multi_level_approval --force`
-# 生成默认工作流/规则数据。
 from .views.multi_level_approval import (
     ApprovalReportViewSet,
     ApprovalStepViewSet,
@@ -135,6 +131,9 @@ router.register(
     r"quality-inspections", QualityInspectionViewSet, basename="quality-inspection"
 )
 
+# 多级审批端点已启用。
+# 确保已执行数据库迁移，并可运行 `python manage.py init_multi_level_approval --force`
+# 生成默认工作流/规则数据。
 router.register(r"approval-workflows", ApprovalWorkflowViewSet)
 router.register(r"approval-steps", ApprovalStepViewSet)
 router.register(
