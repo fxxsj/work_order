@@ -4,6 +4,8 @@
 包含客户、部门、工序等基础数据的视图集。
 """
 
+from django.conf import settings
+from django.core.cache import cache
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -125,6 +127,12 @@ class DepartmentViewSet(BaseViewSet):
 
         返回按层级组织的部门树，便于前端展示。
         """
+        cache_timeout = getattr(settings, "DICT_CACHE_TIMEOUT", 300)
+        cache_key = "dict:departments:tree"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return Response(cached_data)
+
         # 获取所有顶级部门（没有上级的部门）
         root_departments = self.get_queryset().filter(parent__isnull=True)
 
@@ -141,6 +149,7 @@ class DepartmentViewSet(BaseViewSet):
 
         tree_data = [build_tree(dept) for dept in root_departments]
 
+        cache.set(cache_key, tree_data, timeout=cache_timeout)
         return Response(tree_data)
 
     @action(detail=False, methods=["get"])
@@ -149,15 +158,27 @@ class DepartmentViewSet(BaseViewSet):
 
         返回所有启用的部门列表，不分页。
         """
+        cache_timeout = getattr(settings, "DICT_CACHE_TIMEOUT", 300)
+        is_active = request.query_params.get("is_active")
+        if is_active is None:
+            key_suffix = "any"
+        else:
+            key_suffix = "true" if is_active.lower() == "true" else "false"
+        cache_key = f"dict:departments:all:{key_suffix}"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return Response(cached_data)
+
         queryset = self.get_queryset()
 
         # 可选：只返回启用的部门
-        is_active = request.query_params.get("is_active")
         if is_active is not None:
             queryset = queryset.filter(is_active=is_active.lower() == "true")
 
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        data = serializer.data
+        cache.set(cache_key, data, timeout=cache_timeout)
+        return Response(data)
 
 
 class ProcessViewSet(BaseViewSet):
@@ -172,6 +193,32 @@ class ProcessViewSet(BaseViewSet):
     search_fields = ["name", "code", "description"]
     ordering_fields = ["sort_order", "code", "created_at"]
     ordering = ["sort_order", "code"]
+
+    @action(detail=False, methods=["get"])
+    def all(self, request):
+        """获取所有工序（简化版，用于下拉选择）
+
+        返回工序列表，不分页。
+        """
+        cache_timeout = getattr(settings, "DICT_CACHE_TIMEOUT", 300)
+        is_active = request.query_params.get("is_active")
+        if is_active is None:
+            key_suffix = "any"
+        else:
+            key_suffix = "true" if is_active.lower() == "true" else "false"
+        cache_key = f"dict:processes:all:{key_suffix}"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return Response(cached_data)
+
+        queryset = self.get_queryset().order_by("sort_order", "code")
+        if is_active is not None:
+            queryset = queryset.filter(is_active=is_active.lower() == "true")
+
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+        cache.set(cache_key, data, timeout=cache_timeout)
+        return Response(data)
 
     def destroy(self, request, *args, **kwargs):
         """删除工序，内置工序和使用中的工序不可删除"""

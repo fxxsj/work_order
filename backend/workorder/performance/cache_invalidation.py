@@ -10,6 +10,9 @@ from django.core.cache import cache
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
+from ..models.base import Department, Process
+from ..models.core import WorkOrder, WorkOrderTask
+
 logger = logging.getLogger(__name__)
 
 # Cache key patterns
@@ -18,9 +21,21 @@ DEPT_WORKLOAD_KEY_PATTERN = "dept_workload:{dept_id}"
 OPERATOR_STATS_KEY_PATTERN = "operator_stats:{operator_id}"
 DASHBOARD_PATTERN = "dashboard:*"
 
+DEPARTMENT_DICT_KEYS = [
+    "dict:departments:tree",
+    "dict:departments:all:any",
+    "dict:departments:all:true",
+    "dict:departments:all:false",
+]
+PROCESS_DICT_KEYS = [
+    "dict:processes:all:any",
+    "dict:processes:all:true",
+    "dict:processes:all:false",
+]
 
-@receiver(post_save, sender="workorder.WorkOrderTask")
-@receiver(post_delete, sender="workorder.WorkOrderTask")
+
+@receiver(post_save, sender=WorkOrderTask)
+@receiver(post_delete, sender=WorkOrderTask)
 def invalidate_task_cache_on_change(sender, instance, **kwargs):
     """
     Invalidate task-related cache when a task is saved or deleted
@@ -64,6 +79,39 @@ def invalidate_task_cache_on_change(sender, instance, **kwargs):
 
     except Exception as e:
         logger.error(f"Error invalidating cache for task {instance.id}: {e}")
+
+
+@receiver(post_save, sender=WorkOrder)
+@receiver(post_delete, sender=WorkOrder)
+def invalidate_dashboard_cache_on_workorder_change(sender, instance, **kwargs):
+    """Invalidate dashboard cache when a work order changes."""
+    try:
+        try:
+            cache._cache.get_client().delete_pattern(DASHBOARD_PATTERN)
+        except AttributeError:
+            cache.delete("dashboard:metrics:v1")
+    except Exception as e:
+        logger.error(f"Error invalidating dashboard cache for work order {instance.id}: {e}")
+
+
+@receiver(post_save, sender=Department)
+@receiver(post_delete, sender=Department)
+def invalidate_department_dict_cache(sender, instance, **kwargs):
+    """Invalidate department dictionary caches on changes."""
+    try:
+        cache.delete_many(DEPARTMENT_DICT_KEYS)
+    except Exception as e:
+        logger.error(f"Error invalidating department dict cache for {instance.id}: {e}")
+
+
+@receiver(post_save, sender=Process)
+@receiver(post_delete, sender=Process)
+def invalidate_process_dict_cache(sender, instance, **kwargs):
+    """Invalidate process dictionary caches on changes."""
+    try:
+        cache.delete_many(PROCESS_DICT_KEYS)
+    except Exception as e:
+        logger.error(f"Error invalidating process dict cache for {instance.id}: {e}")
 
 
 def invalidate_department_stats(department_id: int) -> None:

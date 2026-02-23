@@ -1,6 +1,5 @@
 import { http } from '../lib/http'
 import { createApiWithActions } from './base'
-import type { PaginatedResult } from './base'
 
 export type { PaginatedResult } from './base'
 
@@ -29,10 +28,8 @@ export const processApi = createApiWithActions(
   'processes',
   {
     listAll: async () => {
-      const res = await http.get<PaginatedResult<Process>>('/processes/', {
-        params: { page: 1, page_size: 1000, ordering: 'sort_order,code' }
-      })
-      return res.data.results
+      const res = await http.get<Process[]>('/processes/all/')
+      return res.data
     },
     batchUpdateActive: async (input: { ids: number[]; is_active: boolean }) => {
       const res = await http.post('/processes/batch_update_active/', input)

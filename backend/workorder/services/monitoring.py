@@ -464,13 +464,21 @@ class MonitoringService:
 
     def get_dashboard_metrics(self) -> Dict[str, Any]:
         """获取仪表板指标"""
-        return {
+        cache_timeout = getattr(settings, "DASHBOARD_CACHE_TIMEOUT", 30)
+        cache_key = "dashboard:metrics:v1"
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        data = {
             "performance": self.performance_monitor.get_performance_stats(),
             "business_workorder": self.business_metrics.get_workorder_metrics("24h"),
             "business_task": self.business_metrics.get_task_metrics("24h"),
             "system": self.business_metrics.get_system_metrics(),
             "health": self.health_check(),
         }
+        cache.set(cache_key, data, timeout=cache_timeout)
+        return data
 
 
 # 全局监控实例
