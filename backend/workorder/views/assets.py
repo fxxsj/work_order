@@ -35,8 +35,61 @@ from ..serializers.assets import (
 )
 
 
-class ArtworkViewSet(viewsets.ModelViewSet):
+class PlateMakingConfirmMixin:
+    confirm_fk_field: str = ""
+    confirm_error_message: str = "该资产已经确认过了"
+
+    def _confirm_select_for_update(self, pk):
+        return self.get_queryset().select_for_update().get(pk=pk)
+
+    @action(detail=True, methods=["post"])
+    def confirm(self, request, pk=None):
+        """设计部确认资产，并尝试完成对应制版任务"""
+        from django.db import transaction
+
+        if not self.confirm_fk_field:
+            return Response(
+                {"error": "未配置 confirm_fk_field"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        with transaction.atomic():
+            asset = self._confirm_select_for_update(pk)
+
+            if asset.confirmed:
+                return Response(
+                    {"error": self.confirm_error_message},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            asset.confirmed = True
+            asset.confirmed_by = request.user
+            asset.confirmed_at = timezone.now()
+            asset.save()
+
+            tasks = WorkOrderTask.objects.filter(
+                **{self.confirm_fk_field: asset},
+                task_type="plate_making",
+                work_order_process__status="in_progress",
+            )
+
+            for task in tasks:
+                related = getattr(task, self.confirm_fk_field, None)
+                if related and related.confirmed:
+                    task.status = "completed"
+                    task.quantity_completed = 1
+                    task.save()
+                    task.work_order_process.check_and_update_status()
+
+        serializer = self.get_serializer(asset)
+        return Response(serializer.data)
+
+
+class ArtworkViewSet(PlateMakingConfirmMixin, viewsets.ModelViewSet):
     """图稿视图集"""
+
+    confirm_fk_field = "artwork"
+    confirm_error_message = "该图稿已经确认过了"
 
     permission_classes = [
         SuperuserFriendlyModelPermissions
@@ -112,45 +165,6 @@ class ArtworkViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(new_artwork)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=["post"])
-    def confirm(self, request, pk=None):
-        """设计部确认图稿"""
-        from django.db import transaction
-
-        artwork = self.get_object()
-
-        if artwork.confirmed:
-            return Response(
-                {"error": "该图稿已经确认过了"}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        with transaction.atomic():
-            artwork.confirmed = True
-            artwork.confirmed_by = request.user
-            artwork.confirmed_at = timezone.now()
-            artwork.save()
-
-            # 检查相关的制版工序任务是否全部完成
-            # 找到所有包含该图稿的任务（制版任务类型为plate_making）
-            tasks = WorkOrderTask.objects.filter(
-                artwork=artwork,
-                task_type="plate_making",
-                work_order_process__status="in_progress",
-            )
-
-            for task in tasks:
-                # 如果图稿已确认，可以标记任务为完成
-                if task.artwork.confirmed:
-                    task.status = "completed"
-                    task.quantity_completed = 1
-                    task.save()
-
-                    # 检查工序是否完成
-                    task.work_order_process.check_and_update_status()
-
-        serializer = self.get_serializer(artwork)
-        return Response(serializer.data)
-
     def get_queryset(self):
         """优化查询性能：预加载关联数据"""
         queryset = super().get_queryset()
@@ -159,8 +173,11 @@ class ArtworkViewSet(viewsets.ModelViewSet):
         ).select_related("confirmed_by")
 
 
-class DieViewSet(viewsets.ModelViewSet):
+class DieViewSet(PlateMakingConfirmMixin, viewsets.ModelViewSet):
     """刀模视图集"""
+
+    confirm_fk_field = "die"
+    confirm_error_message = "该刀模已经确认过了"
 
     permission_classes = [
         SuperuserFriendlyModelPermissions
@@ -177,46 +194,6 @@ class DieViewSet(viewsets.ModelViewSet):
     ordering_fields = ["created_at", "code", "name"]
     ordering = ["-created_at"]
 
-    @action(detail=True, methods=["post"])
-    def confirm(self, request, pk=None):
-        """设计部确认刀模"""
-        from django.db import transaction
-
-        with transaction.atomic():
-            # 使用 select_for_update 防止并发修改
-            die = Die.objects.select_for_update().get(pk=pk)
-
-            if die.confirmed:
-                return Response(
-                    {"error": "该刀模已经确认过了"}, status=status.HTTP_400_BAD_REQUEST
-                )
-
-            die.confirmed = True
-            die.confirmed_by = request.user
-            die.confirmed_at = timezone.now()
-            die.save()
-
-            # 检查相关的制版工序任务是否全部完成
-            # 找到所有包含该刀模的制版任务（task_type='plate_making'）
-            tasks = WorkOrderTask.objects.filter(
-                die=die,
-                task_type="plate_making",
-                work_order_process__status="in_progress",
-            )
-
-            for task in tasks:
-                # 如果刀模已确认，可以标记任务为完成
-                if task.die and task.die.confirmed:
-                    task.status = "completed"
-                    task.quantity_completed = 1
-                    task.save()
-
-                    # 检查工序是否完成
-                    task.work_order_process.check_and_update_status()
-
-        serializer = self.get_serializer(die)
-        return Response(serializer.data)
-
     def get_queryset(self):
         """优化查询性能：预加载关联数据"""
         queryset = super().get_queryset()
@@ -225,8 +202,11 @@ class DieViewSet(viewsets.ModelViewSet):
         )
 
 
-class FoilingPlateViewSet(viewsets.ModelViewSet):
+class FoilingPlateViewSet(PlateMakingConfirmMixin, viewsets.ModelViewSet):
     """烫金版视图集"""
+
+    confirm_fk_field = "foiling_plate"
+    confirm_error_message = "该烫金版已经确认过了"
 
     permission_classes = [
         SuperuserFriendlyModelPermissions
@@ -243,47 +223,6 @@ class FoilingPlateViewSet(viewsets.ModelViewSet):
     ordering_fields = ["created_at", "code", "name"]
     ordering = ["-created_at"]
 
-    @action(detail=True, methods=["post"])
-    def confirm(self, request, pk=None):
-        """设计部确认烫金版"""
-        from django.db import transaction
-
-        with transaction.atomic():
-            # 使用 select_for_update 防止并发修改
-            foiling_plate = FoilingPlate.objects.select_for_update().get(pk=pk)
-
-            if foiling_plate.confirmed:
-                return Response(
-                    {"error": "该烫金版已经确认过了"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            foiling_plate.confirmed = True
-            foiling_plate.confirmed_by = request.user
-            foiling_plate.confirmed_at = timezone.now()
-            foiling_plate.save()
-
-            # 检查相关的制版工序任务是否全部完成
-            # 找到所有包含该烫金版的制版任务（task_type='plate_making'）
-            tasks = WorkOrderTask.objects.filter(
-                foiling_plate=foiling_plate,
-                task_type="plate_making",
-                work_order_process__status="in_progress",
-            )
-
-            for task in tasks:
-                # 如果烫金版已确认，可以标记任务为完成
-                if task.foiling_plate and task.foiling_plate.confirmed:
-                    task.status = "completed"
-                    task.quantity_completed = 1
-                    task.save()
-
-                    # 检查工序是否完成
-                    task.work_order_process.check_and_update_status()
-
-        serializer = self.get_serializer(foiling_plate)
-        return Response(serializer.data)
-
     def get_queryset(self):
         """优化查询性能：预加载关联数据"""
         queryset = super().get_queryset()
@@ -292,8 +231,11 @@ class FoilingPlateViewSet(viewsets.ModelViewSet):
         )
 
 
-class EmbossingPlateViewSet(viewsets.ModelViewSet):
+class EmbossingPlateViewSet(PlateMakingConfirmMixin, viewsets.ModelViewSet):
     """压凸版视图集"""
+
+    confirm_fk_field = "embossing_plate"
+    confirm_error_message = "该压凸版已经确认过了"
 
     permission_classes = [
         SuperuserFriendlyModelPermissions
@@ -309,47 +251,6 @@ class EmbossingPlateViewSet(viewsets.ModelViewSet):
     search_fields = ["code", "name", "size", "material"]
     ordering_fields = ["created_at", "code", "name"]
     ordering = ["-created_at"]
-
-    @action(detail=True, methods=["post"])
-    def confirm(self, request, pk=None):
-        """设计部确认压凸版"""
-        from django.db import transaction
-
-        with transaction.atomic():
-            # 使用 select_for_update 防止并发修改
-            embossing_plate = EmbossingPlate.objects.select_for_update().get(pk=pk)
-
-            if embossing_plate.confirmed:
-                return Response(
-                    {"error": "该压凸版已经确认过了"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            embossing_plate.confirmed = True
-            embossing_plate.confirmed_by = request.user
-            embossing_plate.confirmed_at = timezone.now()
-            embossing_plate.save()
-
-            # 检查相关的制版工序任务是否全部完成
-            # 找到所有包含该压凸版的制版任务（task_type='plate_making'）
-            tasks = WorkOrderTask.objects.filter(
-                embossing_plate=embossing_plate,
-                task_type="plate_making",
-                work_order_process__status="in_progress",
-            )
-
-            for task in tasks:
-                # 如果压凸版已确认，可以标记任务为完成
-                if task.embossing_plate and task.embossing_plate.confirmed:
-                    task.status = "completed"
-                    task.quantity_completed = 1
-                    task.save()
-
-                    # 检查工序是否完成
-                    task.work_order_process.check_and_update_status()
-
-        serializer = self.get_serializer(embossing_plate)
-        return Response(serializer.data)
 
     def get_queryset(self):
         """优化查询性能：预加载关联数据"""
