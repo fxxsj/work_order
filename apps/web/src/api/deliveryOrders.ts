@@ -1,11 +1,8 @@
 import { http } from '../lib/http'
+import { createApiWithActions } from './base'
+import type { PaginatedResult } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type DeliveryOrderStatus = 'pending' | 'shipped' | 'in_transit' | 'received' | 'rejected' | 'returned'
 
@@ -53,6 +50,19 @@ export type DeliveryOrderDetail = DeliveryOrderListItem & {
   items?: DeliveryItem[]
 }
 
+export const deliveryOrderApi = createApiWithActions(
+  'delivery-orders',
+  {
+    ship: async (id: number, input?: { logistics_company?: string; tracking_number?: string }) =>
+      (await http.post(`/delivery-orders/${id}/ship/`, input || {})).data,
+    receive: async (id: number, input?: { received_notes?: string }) =>
+      (await http.post(`/delivery-orders/${id}/receive/`, input || {})).data,
+    reject: async (id: number, input: { reject_reason: string }) =>
+      (await http.post(`/delivery-orders/${id}/reject/`, input)).data,
+    summary: async () => (await http.get('/delivery-orders/summary/')).data
+  }
+)
+
 export async function listDeliveryOrders(params: {
   page: number
   page_size: number
@@ -62,47 +72,37 @@ export async function listDeliveryOrders(params: {
   start_date?: string
   end_date?: string
 }) {
-  const res = await http.get<PaginatedResult<DeliveryOrderListItem>>('/delivery-orders/', { params })
-  return res.data
+  return deliveryOrderApi.list(params) as Promise<PaginatedResult<DeliveryOrderListItem>>
 }
 
 export async function getDeliveryOrder(id: number) {
-  const res = await http.get<DeliveryOrderDetail>(`/delivery-orders/${id}/`)
-  return res.data
+  return deliveryOrderApi.retrieve(id) as Promise<DeliveryOrderDetail>
 }
 
 export async function createDeliveryOrder(input: any) {
-  const res = await http.post('/delivery-orders/', input)
-  return res.data
+  return deliveryOrderApi.create(input)
 }
 
 export async function updateDeliveryOrder(id: number, input: any) {
-  const res = await http.put(`/delivery-orders/${id}/`, input)
-  return res.data
+  return deliveryOrderApi.update(id, input)
 }
 
 export async function deleteDeliveryOrder(id: number) {
-  const res = await http.delete(`/delivery-orders/${id}/`)
-  return res.data
+  return deliveryOrderApi.delete(id)
 }
 
 export async function shipDeliveryOrder(id: number, input?: { logistics_company?: string; tracking_number?: string }) {
-  const res = await http.post(`/delivery-orders/${id}/ship/`, input || {})
-  return res.data
+  return deliveryOrderApi.ship(id, input)
 }
 
 export async function receiveDeliveryOrder(id: number, input?: { received_notes?: string }) {
-  const res = await http.post(`/delivery-orders/${id}/receive/`, input || {})
-  return res.data
+  return deliveryOrderApi.receive(id, input)
 }
 
 export async function rejectDeliveryOrder(id: number, input: { reject_reason: string }) {
-  const res = await http.post(`/delivery-orders/${id}/reject/`, input)
-  return res.data
+  return deliveryOrderApi.reject(id, input)
 }
 
 export async function getDeliveryOrderSummary() {
-  const res = await http.get('/delivery-orders/summary/')
-  return res.data
+  return deliveryOrderApi.summary()
 }
-
