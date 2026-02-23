@@ -1,11 +1,7 @@
 import { http } from '../lib/http'
+import { createApiWithActions } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type StockInStatus = 'draft' | 'submitted' | 'approved' | 'completed' | 'cancelled'
 
@@ -25,28 +21,30 @@ export type StockIn = {
   created_at?: string
 }
 
+export const stockInApi = createApiWithActions(
+  'stock-ins',
+  {
+    submit: async (id: number) => (await http.post(`/stock-ins/${id}/submit/`)).data,
+    approve: async (id: number) => (await http.post(`/stock-ins/${id}/approve/`)).data
+  }
+)
+
 export async function listStockIns(params: { page: number; page_size: number; status?: string; start_date?: string; end_date?: string }) {
-  const res = await http.get<PaginatedResult<StockIn>>('/stock-ins/', { params })
-  return res.data
+  return stockInApi.list(params)
 }
 
 export async function createStockIn(input: { work_order: number; stock_in_date?: string; notes?: string }) {
-  const res = await http.post<StockIn>('/stock-ins/', input)
-  return res.data
+  return stockInApi.create(input)
 }
 
 export async function submitStockIn(id: number) {
-  const res = await http.post(`/stock-ins/${id}/submit/`)
-  return res.data
+  return stockInApi.submit(id)
 }
 
 export async function approveStockIn(id: number) {
-  const res = await http.post(`/stock-ins/${id}/approve/`)
-  return res.data
+  return stockInApi.approve(id)
 }
 
 export async function deleteStockIn(id: number) {
-  const res = await http.delete(`/stock-ins/${id}/`)
-  return res.data
+  return stockInApi.delete(id)
 }
-
