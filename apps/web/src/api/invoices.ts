@@ -1,11 +1,7 @@
 import { http } from '../lib/http'
+import { createApiWithActions } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type InvoiceStatus = 'draft' | 'issued' | 'sent' | 'received' | 'cancelled' | 'refunded'
 export type InvoiceType = 'vat_special' | 'vat_normal' | 'electronic'
@@ -40,6 +36,21 @@ export type Invoice = {
   approved_by_name?: string | null
 }
 
+export const invoiceApi = createApiWithActions(
+  'invoices',
+  {
+    submit: async (id: number) => {
+      const res = await http.post(`/invoices/${id}/submit/`)
+      return res.data
+    },
+    approve: async (id: number, input: { approved: boolean; approval_comment?: string }) => {
+      const res = await http.post(`/invoices/${id}/approve/`, input)
+      return res.data
+    }
+  },
+  { updateMethod: 'patch' }
+)
+
 export async function listInvoices(params: {
   page: number
   page_size: number
@@ -49,37 +60,29 @@ export async function listInvoices(params: {
   start_date?: string
   end_date?: string
 }) {
-  const res = await http.get<PaginatedResult<Invoice>>('/invoices/', { params })
-  return res.data
+  return invoiceApi.list(params)
 }
 
 export async function getInvoice(id: number) {
-  const res = await http.get<Invoice>(`/invoices/${id}/`)
-  return res.data
+  return invoiceApi.retrieve(id)
 }
 
 export async function createInvoice(input: Partial<Invoice>) {
-  const res = await http.post<Invoice>('/invoices/', input)
-  return res.data
+  return invoiceApi.create(input)
 }
 
 export async function updateInvoice(id: number, input: Partial<Invoice>) {
-  const res = await http.patch<Invoice>(`/invoices/${id}/`, input)
-  return res.data
+  return invoiceApi.update(id, input)
 }
 
 export async function deleteInvoice(id: number) {
-  const res = await http.delete(`/invoices/${id}/`)
-  return res.data
+  return invoiceApi.delete(id)
 }
 
 export async function submitInvoice(id: number) {
-  const res = await http.post(`/invoices/${id}/submit/`)
-  return res.data
+  return invoiceApi.submit(id)
 }
 
 export async function approveInvoice(id: number, input: { approved: boolean; approval_comment?: string }) {
-  const res = await http.post(`/invoices/${id}/approve/`, input)
-  return res.data
+  return invoiceApi.approve(id, input)
 }
-
