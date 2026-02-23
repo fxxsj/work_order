@@ -86,6 +86,20 @@ export async function batchCompleteTasks(input: {
   ).data
 }
 
+export async function batchCancelTasks(input: {
+  task_ids: number[]
+  cancellation_reason: string
+  notes?: string
+}) {
+  return (
+    await http.post('/workorder-tasks/batch_cancel/', {
+      task_ids: input.task_ids,
+      cancellation_reason: input.cancellation_reason,
+      notes: input.notes || ''
+    })
+  ).data
+}
+
 export type OperatorCenterResponse = {
   my_tasks: WorkOrderTaskListItem[]
   claimable_tasks: WorkOrderTaskListItem[]

@@ -25,6 +25,9 @@
           <el-button size="small" type="success" :disabled="!selected.length" :loading="batchCompleting" @click="openBatchComplete">
             批量完成
           </el-button>
+          <el-button size="small" type="danger" :disabled="!selected.length" :loading="batchCancelling" @click="openBatchCancel">
+            批量取消
+          </el-button>
           <div style="font-size: 12px; color: #666">已选 {{ selected.length }} 项</div>
         </div>
       </div>
@@ -82,6 +85,21 @@
         <el-button size="small" type="primary" :loading="batchCompleting" @click="submitBatchComplete">确定</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="batchCancelOpen" title="批量取消任务" width="520px">
+      <el-form label-width="90px">
+        <el-form-item label="取消原因" required>
+          <el-input v-model="batchCancelReason" placeholder="必填" />
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="batchCancelNotes" type="textarea" :rows="3" placeholder="可选" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button size="small" @click="batchCancelOpen = false">取消</el-button>
+        <el-button size="small" type="danger" :loading="batchCancelling" @click="submitBatchCancel">确定取消</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -89,7 +107,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { batchCompleteTasks, exportTasks, listTasks, type WorkOrderTaskListItem } from '../api/tasks'
+import { batchCancelTasks, batchCompleteTasks, exportTasks, listTasks, type WorkOrderTaskListItem } from '../api/tasks'
 import { downloadBlob, getFilenameFromContentDisposition } from '../lib/download'
 
 const router = useRouter()
@@ -106,6 +124,10 @@ const batchCompleteOpen = ref(false)
 const batchCompleteReason = ref('')
 const batchCompleteNotes = ref('')
 const batchCompleting = ref(false)
+const batchCancelOpen = ref(false)
+const batchCancelReason = ref('')
+const batchCancelNotes = ref('')
+const batchCancelling = ref(false)
 
 async function fetchList() {
   loading.value = true
@@ -155,6 +177,13 @@ function openBatchComplete() {
   batchCompleteOpen.value = true
 }
 
+function openBatchCancel() {
+  if (!selected.value.length) return
+  batchCancelReason.value = ''
+  batchCancelNotes.value = ''
+  batchCancelOpen.value = true
+}
+
 async function submitBatchComplete() {
   if (!selected.value.length) {
     batchCompleteOpen.value = false
@@ -175,6 +204,34 @@ async function submitBatchComplete() {
     ElMessage.error(err?.response?.data?.error || err?.message || '批量完成失败')
   } finally {
     batchCompleting.value = false
+  }
+}
+
+async function submitBatchCancel() {
+  if (!selected.value.length) {
+    batchCancelOpen.value = false
+    return
+  }
+
+  if (!batchCancelReason.value.trim()) {
+    ElMessage.error('请填写取消原因')
+    return
+  }
+
+  batchCancelling.value = true
+  try {
+    await batchCancelTasks({
+      task_ids: selected.value.map((t) => t.id),
+      cancellation_reason: batchCancelReason.value.trim(),
+      notes: batchCancelNotes.value
+    })
+    ElMessage.success('批量取消已提交')
+    batchCancelOpen.value = false
+    await fetchList()
+  } catch (err: any) {
+    ElMessage.error(err?.response?.data?.error || err?.message || '批量取消失败')
+  } finally {
+    batchCancelling.value = false
   }
 }
 
