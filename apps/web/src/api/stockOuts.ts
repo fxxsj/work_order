@@ -1,11 +1,7 @@
 import { http } from '../lib/http'
+import { createApiWithActions } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type StockOutStatus = 'draft' | 'submitted' | 'approved' | 'completed' | 'cancelled'
 export type StockOutType = 'delivery' | 'production' | 'adjustment' | 'other'
@@ -27,13 +23,17 @@ export type StockOut = {
   created_at?: string
 }
 
+export const stockOutApi = createApiWithActions(
+  'stock-outs',
+  {
+    approve: async (id: number) => (await http.post(`/stock-outs/${id}/approve/`)).data
+  }
+)
+
 export async function listStockOuts(params: { page: number; page_size: number; status?: string; out_type?: string }) {
-  const res = await http.get<PaginatedResult<StockOut>>('/stock-outs/', { params })
-  return res.data
+  return stockOutApi.list(params)
 }
 
 export async function approveStockOut(id: number) {
-  const res = await http.post(`/stock-outs/${id}/approve/`)
-  return res.data
+  return stockOutApi.approve(id)
 }
-
