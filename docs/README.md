@@ -24,6 +24,8 @@
 - [TESTING.md](TESTING.md) - 测试与验证
 - [PERMISSIONS.md](PERMISSIONS.md) / [PERMISSIONS_BEST_PRACTICES.md](PERMISSIONS_BEST_PRACTICES.md) - 权限与最佳实践
 - [DATA_INITIALIZATION_ANALYSIS.md](DATA_INITIALIZATION_ANALYSIS.md) - 初始化数据与迁移说明
+- [USER_GUIDE.md](USER_GUIDE.md) - 用户操作指南（vNext）
+- [ADMIN_GUIDE.md](ADMIN_GUIDE.md) - Django Admin 管理指南
 
 ## 项目规划（GSD）
 

@@ -901,7 +901,7 @@
 3. ✅ **批量操作功能** - 已完成（批量更新、批量分派、批量完成、批量取消）
 4. ✅ **数据导出功能** - 已完成（Excel 导出）
 
-**实施文档**：详见 [DOCUMENTATION_UPDATE_LOG.md](./DOCUMENTATION_UPDATE_LOG.md)
+**实施文档**：详见 [DOCUMENTATION_UPDATE_LOG.md](../DOCUMENTATION_UPDATE_LOG.md)
 
 ---
 
@@ -1035,4 +1035,4 @@
 - [任务自动分派逻辑说明](./TASK_ASSIGNMENT_LOGIC.md)
 - [施工单审核流程分析](./WORKORDER_APPROVAL_ANALYSIS.md)
 - [第一阶段实施总结](./PHASE1_IMPLEMENTATION_SUMMARY.md)
-- [文档更新日志](./DOCUMENTATION_UPDATE_LOG.md)
+- [文档更新日志](../DOCUMENTATION_UPDATE_LOG.md)

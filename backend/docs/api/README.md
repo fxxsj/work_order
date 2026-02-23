@@ -166,5 +166,5 @@ openapi-generator-cli generate -i openapi.yaml -g typescript-axios -o ./client-t
 
 如需技术支持，请查看：
 - 系统文档: `/docs/`
-- 用户手册: `/docs/USER_MANUAL.md`
+- 用户操作指南: `/docs/USER_GUIDE.md`
 - 部署指南: `/docs/DEPLOYMENT.md`

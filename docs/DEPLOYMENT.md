@@ -684,7 +684,7 @@ DATABASES = {
 ### 文档和支持
 
 - [ ] API 文档已生成（/api/docs/）
-- [ ] 用户手册已交付（USER_MANUAL.md）
+- [ ] 用户文档已交付（USER_GUIDE.md / ADMIN_GUIDE.md）
 - [ ] 部署文档已更新
 - [ ] 技术支持联系方式已确认
 - [ ] 应急响应流程已制定
