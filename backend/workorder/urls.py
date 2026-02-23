@@ -11,9 +11,11 @@ from .auth_views import (
     register_view,
     update_profile,
 )
-from .views import ArtworkViewSet  # 财务视图集; 库存视图集
+
+# 财务/库存/基础等视图集
 from .views import (
     ArtworkProductViewSet,
+    ArtworkViewSet,
     CostCenterViewSet,
     CostItemViewSet,
     CustomerViewSet,
@@ -36,10 +38,10 @@ from .views import (
     ProcessViewSet,
     ProductGroupItemViewSet,
     ProductGroupViewSet,
-    ProductionCostViewSet,
     ProductMaterialViewSet,
     ProductStockViewSet,
     ProductViewSet,
+    ProductionCostViewSet,
     PurchaseOrderItemViewSet,
     PurchaseOrderViewSet,
     PurchaseReceiveRecordViewSet,
@@ -57,6 +59,11 @@ from .views import (
     WorkOrderTaskViewSet,
     WorkOrderViewSet,
 )
+from .views.monitoring import (
+    BusinessMetricsViewSet,
+    DashboardMonitoringViewSet,
+    PerformanceMonitoringViewSet,
+)
 
 # 多级审批端点已启用。
 # 确保已执行数据库迁移，并可运行 `python manage.py init_multi_level_approval --force`
@@ -73,11 +80,6 @@ from .views.notification import (
     NotificationViewSet,
     SystemNotificationViewSet,
     UserNotificationSettingsViewSet,
-)
-from .views.monitoring import (
-    BusinessMetricsViewSet,
-    DashboardMonitoringViewSet,
-    PerformanceMonitoringViewSet,
 )
 
 router = DefaultRouter()
