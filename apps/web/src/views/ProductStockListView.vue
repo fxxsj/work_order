@@ -1,181 +1,160 @@
 <template>
-  <div class="page">
-    <div class="bar">
-      <div class="left">
-        <el-button size="small" @click="goHome">返回</el-button>
-        <div class="title">成品库存（vNext）</div>
-      </div>
-      <div class="right">
-        <el-select
-          v-model="productId"
-          size="small"
-          clearable
-          filterable
-          remote
-          :remote-method="remoteSearchProducts"
-          :loading="productSearching"
-          placeholder="产品"
-          style="width: 220px"
-          @change="reload"
-        >
-          <el-option v-for="p in productOptions" :key="p.id" :label="`${p.code} - ${p.name}`" :value="p.id" />
-        </el-select>
-        <el-select v-model="status" size="small" clearable placeholder="状态" style="width: 140px" @change="reload">
-          <el-option label="在库" value="in_stock" />
-          <el-option label="已出库" value="out_stock" />
-          <el-option label="已过期" value="expired" />
-          <el-option label="已损坏" value="damaged" />
-        </el-select>
-        <el-input
-          v-model="search"
-          size="small"
-          clearable
-          placeholder="搜索批次/库位/产品"
-          style="width: 260px"
-          @keyup.enter="reload"
-        />
-        <el-button size="small" :loading="loading" @click="reload">查询</el-button>
-      </div>
-    </div>
+  <ResourceList
+    ref="listRef"
+    title="成品库存（vNext）"
+    :api="productStockListApi"
+    :extra-params="extraParams"
+    :can-create="false"
+    search-placeholder="搜索批次/库位/产品"
+  >
+    <template #filters>
+      <el-select
+        v-model="productId"
+        size="small"
+        clearable
+        filterable
+        remote
+        :remote-method="remoteSearchProducts"
+        :loading="productSearching"
+        placeholder="产品"
+        style="width: 220px"
+        @change="reload"
+      >
+        <el-option v-for="p in productOptions" :key="p.id" :label="`${p.code} - ${p.name}`" :value="p.id" />
+      </el-select>
+      <el-select v-model="status" size="small" clearable placeholder="状态" style="width: 140px" @change="reload">
+        <el-option label="在库" value="in_stock" />
+        <el-option label="已出库" value="out_stock" />
+        <el-option label="已过期" value="expired" />
+        <el-option label="已损坏" value="damaged" />
+      </el-select>
+    </template>
 
-    <el-card>
+    <template #cardTop>
       <div class="summary" v-if="summary">
         <el-tag type="info">总数量：{{ summary.total_quantity }}</el-tag>
         <el-tag type="warning">低库存：{{ summary.low_stock_count }}</el-tag>
         <el-tag type="danger">已过期：{{ summary.expired_count }}</el-tag>
         <el-tag type="success">产品数：{{ summary.total_products }}</el-tag>
       </div>
+    </template>
 
-      <el-table :data="items" v-loading="loading" style="width: 100%">
-        <el-table-column label="产品" min-width="220">
-          <template #default="{ row }">
-            <span class="muted">{{ row.product_code }} - {{ row.product_name }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="batch_no" label="批次" width="160" />
-        <el-table-column prop="location" label="库位" width="120" />
-        <el-table-column label="状态" width="120">
-          <template #default="{ row }">
-            <el-tag :type="row.is_expired ? 'danger' : row.is_low_stock ? 'warning' : 'info'">
-              {{ row.status_display || row.status }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="quantity" label="库存" width="110" />
-        <el-table-column prop="reserved_quantity" label="预留" width="110" />
-        <el-table-column prop="available_quantity" label="可用" width="110" />
-        <el-table-column prop="min_stock_level" label="最小库存" width="110" />
-        <el-table-column prop="unit_cost" label="单位成本" width="110" />
-        <el-table-column prop="total_value" label="总价值" width="110" />
-        <el-table-column label="有效期" width="150">
-          <template #default="{ row }">
-            <span class="muted">{{ row.expiry_date || '—' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="170" fixed="right">
-          <template #default="{ row }">
-            <el-button size="small" @click="openAdjust(row)">调整</el-button>
-            <el-button size="small" @click="openEdit(row)">编辑</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+    <template #columns>
+      <el-table-column label="产品" min-width="220">
+        <template #default="{ row }">
+          <span class="muted">{{ row.product_code }} - {{ row.product_name }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="batch_no" label="批次" width="160" />
+      <el-table-column prop="location" label="库位" width="120" />
+      <el-table-column label="状态" width="120">
+        <template #default="{ row }">
+          <el-tag :type="row.is_expired ? 'danger' : row.is_low_stock ? 'warning' : 'info'">
+            {{ row.status_display || row.status }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="quantity" label="库存" width="110" />
+      <el-table-column prop="reserved_quantity" label="预留" width="110" />
+      <el-table-column prop="available_quantity" label="可用" width="110" />
+      <el-table-column prop="min_stock_level" label="最小库存" width="110" />
+      <el-table-column prop="unit_cost" label="单位成本" width="110" />
+      <el-table-column prop="total_value" label="总价值" width="110" />
+      <el-table-column label="有效期" width="150">
+        <template #default="{ row }">
+          <span class="muted">{{ row.expiry_date || '—' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="170" fixed="right">
+        <template #default="{ row }">
+          <el-button size="small" @click="openAdjust(row)">调整</el-button>
+          <el-button size="small" @click="openEdit(row)">编辑</el-button>
+        </template>
+      </el-table-column>
+    </template>
+  </ResourceList>
 
-      <div class="pager">
-        <el-pagination
-          background
-          layout="total, sizes, prev, pager, next"
-          :total="total"
-          :page-size="pageSize"
-          :current-page="page"
-          @update:current-page="handlePageChange"
-          @update:page-size="handlePageSizeChange"
-        />
-      </div>
-    </el-card>
+  <el-dialog v-model="adjustOpen" title="库存调整" width="620px" :close-on-click-modal="false">
+    <div v-if="adjustTarget" class="muted">
+      {{ adjustTarget.product_code }} - {{ adjustTarget.product_name }}（当前库存：{{ adjustTarget.quantity }}）
+    </div>
+    <el-form :model="adjustForm" label-width="140px" style="margin-top: 10px">
+      <el-form-item label="调整类型" required>
+        <el-select v-model="adjustForm.adjust_type" style="width: 200px">
+          <el-option label="增加" value="add" />
+          <el-option label="减少" value="subtract" />
+          <el-option label="设置为" value="set" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="数量" required>
+        <el-input-number v-model="adjustForm.quantity" :min="0" :precision="2" :step="1" />
+      </el-form-item>
+      <el-form-item label="原因" required>
+        <el-input v-model="adjustForm.reason" type="textarea" :rows="2" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="adjustOpen = false">取消</el-button>
+      <el-button type="primary" :loading="submitting" @click="confirmAdjust">确定</el-button>
+    </template>
+  </el-dialog>
 
-    <el-dialog v-model="adjustOpen" title="库存调整" width="620px" :close-on-click-modal="false">
-      <div v-if="adjustTarget" class="muted">
-        {{ adjustTarget.product_code }} - {{ adjustTarget.product_name }}（当前库存：{{ adjustTarget.quantity }}）
-      </div>
-      <el-form :model="adjustForm" label-width="140px" style="margin-top: 10px">
-        <el-form-item label="调整类型" required>
-          <el-select v-model="adjustForm.adjust_type" style="width: 200px">
-            <el-option label="增加" value="add" />
-            <el-option label="减少" value="subtract" />
-            <el-option label="设置为" value="set" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="数量" required>
-          <el-input-number v-model="adjustForm.quantity" :min="0" :precision="2" :step="1" />
-        </el-form-item>
-        <el-form-item label="原因" required>
-          <el-input v-model="adjustForm.reason" type="textarea" :rows="2" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="adjustOpen = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="confirmAdjust">确定</el-button>
-      </template>
-    </el-dialog>
-
-    <el-dialog v-model="editOpen" title="编辑库存" width="760px" :close-on-click-modal="false">
-      <div v-if="editTarget" class="muted">
-        {{ editTarget.product_code }} - {{ editTarget.product_name }}（批次：{{ editTarget.batch_no || '—' }}）
-      </div>
-      <el-form :model="editForm" label-width="140px" style="margin-top: 10px">
-        <el-form-item label="预留数量">
-          <el-input-number v-model="editForm.reserved_quantity" :min="0" :precision="2" :step="1" />
-        </el-form-item>
-        <el-form-item label="最小库存">
-          <el-input-number v-model="editForm.min_stock_level" :min="0" :precision="2" :step="1" />
-        </el-form-item>
-        <el-form-item label="单位成本">
-          <el-input-number v-model="editForm.unit_cost" :min="0" :precision="2" :step="0.1" />
-        </el-form-item>
-        <el-form-item label="库位">
-          <el-input v-model="editForm.location" />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="editForm.status" style="width: 200px">
-            <el-option label="在库" value="in_stock" />
-            <el-option label="已出库" value="out_stock" />
-            <el-option label="已过期" value="expired" />
-            <el-option label="已损坏" value="damaged" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="备注">
-          <el-input v-model="editForm.notes" type="textarea" :rows="2" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="editOpen = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="confirmEdit">保存</el-button>
-      </template>
-    </el-dialog>
-  </div>
+  <el-dialog v-model="editOpen" title="编辑库存" width="760px" :close-on-click-modal="false">
+    <div v-if="editTarget" class="muted">
+      {{ editTarget.product_code }} - {{ editTarget.product_name }}（批次：{{ editTarget.batch_no || '—' }}）
+    </div>
+    <el-form :model="editForm" label-width="140px" style="margin-top: 10px">
+      <el-form-item label="预留数量">
+        <el-input-number v-model="editForm.reserved_quantity" :min="0" :precision="2" :step="1" />
+      </el-form-item>
+      <el-form-item label="最小库存">
+        <el-input-number v-model="editForm.min_stock_level" :min="0" :precision="2" :step="1" />
+      </el-form-item>
+      <el-form-item label="单位成本">
+        <el-input-number v-model="editForm.unit_cost" :min="0" :precision="2" :step="0.1" />
+      </el-form-item>
+      <el-form-item label="库位">
+        <el-input v-model="editForm.location" />
+      </el-form-item>
+      <el-form-item label="状态">
+        <el-select v-model="editForm.status" style="width: 200px">
+          <el-option label="在库" value="in_stock" />
+          <el-option label="已出库" value="out_stock" />
+          <el-option label="已过期" value="expired" />
+          <el-option label="已损坏" value="damaged" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="备注">
+        <el-input v-model="editForm.notes" type="textarea" :rows="2" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="editOpen = false">取消</el-button>
+      <el-button type="primary" :loading="submitting" @click="confirmEdit">保存</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { getHttpErrorMessage } from '../lib/http'
+import ResourceList from './base/ResourceList.vue'
 import type { Product } from '../api/products'
 import { listProducts } from '../api/products'
 import type { ProductStock } from '../api/productStocks'
 import { adjustProductStock, getProductStockSummary, listProductStocks, updateProductStock } from '../api/productStocks'
 
-const router = useRouter()
+const listRef = ref<{ loadData: () => Promise<void>; handleSearch: () => void } | null>(null)
 
-const loading = ref(false)
 const submitting = ref(false)
 
-const items = ref<ProductStock[]>([])
-const total = ref(0)
-const page = ref(1)
-const pageSize = ref(20)
-const search = ref('')
 const productId = ref<number | null>(null)
 const status = ref<string | undefined>(undefined)
+const extraParams = () => ({
+  product: productId.value || undefined,
+  status: status.value || undefined
+})
 
 const summary = ref<any>(null)
 
@@ -201,20 +180,6 @@ const editForm = reactive({
   notes: ''
 })
 
-function formatError(err: any, fallback: string) {
-  const data = err?.response?.data
-  if (typeof data?.error === 'string') return data.error
-  if (typeof data?.detail === 'string') return data.detail
-  if (data && typeof data === 'object') {
-    try {
-      return JSON.stringify(data)
-    } catch {
-      // ignore
-    }
-  }
-  return err?.message || fallback
-}
-
 async function fetchSummary() {
   try {
     summary.value = await getProductStockSummary()
@@ -223,40 +188,16 @@ async function fetchSummary() {
   }
 }
 
-async function fetchList() {
-  loading.value = true
-  try {
-    const data = await listProductStocks({
-      page: page.value,
-      page_size: pageSize.value,
-      search: search.value || undefined,
-      product: productId.value || undefined,
-      status: status.value || undefined,
-      batch_number: undefined
-    })
-    items.value = data.results
-    total.value = data.count
-  } catch (err: any) {
-    ElMessage.error(formatError(err, '加载失败'))
-  } finally {
-    loading.value = false
+const productStockListApi = {
+  list: async (params: any) => {
+    const data = await listProductStocks(params)
+    void fetchSummary()
+    return data
   }
 }
 
 function reload() {
-  page.value = 1
-  fetchList()
-}
-
-function handlePageChange(next: number) {
-  page.value = next
-  fetchList()
-}
-
-function handlePageSizeChange(next: number) {
-  pageSize.value = next
-  page.value = 1
-  fetchList()
+  listRef.value?.handleSearch()
 }
 
 async function remoteSearchProducts(query: string) {
@@ -298,10 +239,10 @@ async function confirmAdjust() {
     })
     ElMessage.success('调整成功')
     adjustOpen.value = false
-    await fetchList()
-    fetchSummary()
+    await listRef.value?.loadData()
+    await fetchSummary()
   } catch (err: any) {
-    ElMessage.error(formatError(err, '调整失败'))
+    ElMessage.error(getHttpErrorMessage(err, '调整失败'))
   } finally {
     submitting.value = false
   }
@@ -325,57 +266,21 @@ async function confirmEdit() {
     await updateProductStock(editTarget.value.id, { ...editForm })
     ElMessage.success('已保存')
     editOpen.value = false
-    await fetchList()
-    fetchSummary()
+    await listRef.value?.loadData()
+    await fetchSummary()
   } catch (err: any) {
-    ElMessage.error(formatError(err, '保存失败'))
+    ElMessage.error(getHttpErrorMessage(err, '保存失败'))
   } finally {
     submitting.value = false
   }
 }
 
-function goHome() {
-  router.push({ name: 'dashboard' })
-}
-
 onMounted(() => {
-  fetchSummary()
-  fetchList()
+  void fetchSummary()
 })
 </script>
 
 <style scoped>
-.page {
-  padding: 16px;
-}
-.bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  gap: 12px;
-}
-.left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-.title {
-  font-size: 16px;
-  font-weight: 600;
-}
-.pager {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 12px;
-}
 .muted {
   color: #666;
   font-size: 12px;
@@ -384,7 +289,5 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 12px;
 }
 </style>
-

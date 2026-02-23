@@ -13,7 +13,7 @@
 - [x] 前端：通用 CRUD API 工厂（`apps/web/src/api/base.ts`）
 - [x] 前端：迁移 API 模块到工厂（`apps/web/src/api/` 业务模块均已使用 `createCrudApi/createApiWithActions`，并移除重复 `PaginatedResult` 定义）
 - [x] 前端：通用列表组件（`apps/web/src/views/base/ResourceList.vue`）
-- [x] 前端：迁移部分列表页到通用组件（已完成：`Customer/Product/Supplier/Material/Payment/Invoice/ProductGroup`）
+- [x] 前端：迁移部分列表页到通用组件（已完成：`Customer/Product/Supplier/Material/Payment/Invoice/ProductGroup/ProductStock`）
 - [x] 后端：落地 `BaseViewSet` 并迁移部分 ViewSet（已完成：`base.py/products.py/materials.py` 的核心 CRUD + `system.py(TaskAssignmentRule)` + `sales.py(SalesOrder/SalesOrderItem)`）
 - [ ] 后端：继续迁移剩余 ViewSet（目标：大多数简单 CRUD 继承 `BaseViewSet`）
 - [ ] 后端：资产确认逻辑抽象（`assets.py` 的 confirm 重复）
