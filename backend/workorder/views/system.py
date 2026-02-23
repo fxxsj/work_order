@@ -12,8 +12,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from ..models.system import Notification, TaskAssignmentRule
-from ..permissions import SuperuserFriendlyModelPermissions
 from ..serializers.system import NotificationSerializer, TaskAssignmentRuleSerializer
+from .base_viewsets import BaseViewSet
 
 
 class NotificationViewSet(viewsets.ModelViewSet):
@@ -71,17 +71,11 @@ class NotificationViewSet(viewsets.ModelViewSet):
 # ==================== 采购管理视图集 ====================
 
 
-class TaskAssignmentRuleViewSet(viewsets.ModelViewSet):
+class TaskAssignmentRuleViewSet(BaseViewSet):
     """任务分派规则视图集"""
 
     queryset = TaskAssignmentRule.objects.select_related("process", "department").all()
     serializer_class = TaskAssignmentRuleSerializer
-    permission_classes = [SuperuserFriendlyModelPermissions]
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
     filterset_fields = ["process", "department", "is_active"]
     search_fields = [
         "process__name",
