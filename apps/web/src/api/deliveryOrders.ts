@@ -45,6 +45,7 @@ export type DeliveryOrderDetail = DeliveryOrderListItem & {
   package_count?: number
   package_weight?: string | number | null
   received_date?: string | null
+  receiver_signature?: string | null
   received_notes?: string
   notes?: string
   items?: DeliveryItem[]
@@ -55,8 +56,15 @@ export const deliveryOrderApi = createApiWithActions(
   {
     ship: async (id: number, input?: { logistics_company?: string; tracking_number?: string }) =>
       (await http.post(`/delivery-orders/${id}/ship/`, input || {})).data,
-    receive: async (id: number, input?: { received_notes?: string }) =>
-      (await http.post(`/delivery-orders/${id}/receive/`, input || {})).data,
+    receive: async (id: number, input?: { received_notes?: string; receiver_signature?: File }) => {
+      if (input?.receiver_signature) {
+        const form = new FormData()
+        if (input.received_notes) form.append('received_notes', input.received_notes)
+        form.append('receiver_signature', input.receiver_signature)
+        return (await http.post(`/delivery-orders/${id}/receive/`, form)).data
+      }
+      return (await http.post(`/delivery-orders/${id}/receive/`, input || {})).data
+    },
     reject: async (id: number, input: { reject_reason: string }) =>
       (await http.post(`/delivery-orders/${id}/reject/`, input)).data,
     summary: async () => (await http.get('/delivery-orders/summary/')).data
@@ -95,7 +103,7 @@ export async function shipDeliveryOrder(id: number, input?: { logistics_company?
   return deliveryOrderApi.ship(id, input)
 }
 
-export async function receiveDeliveryOrder(id: number, input?: { received_notes?: string }) {
+export async function receiveDeliveryOrder(id: number, input?: { received_notes?: string; receiver_signature?: File }) {
   return deliveryOrderApi.receive(id, input)
 }
 

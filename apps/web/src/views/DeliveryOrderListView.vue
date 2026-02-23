@@ -273,6 +273,19 @@
 
     <el-dialog v-model="receiveOpen" title="确认签收" width="560px" :close-on-click-modal="false">
       <el-input v-model="receiveNotes" type="textarea" :rows="3" placeholder="签收备注（可选）" />
+      <div style="margin-top: 10px; display: flex; gap: 8px; align-items: center">
+        <input
+          ref="receiveFileInput"
+          type="file"
+          accept="image/*"
+          capture="environment"
+          style="display: none"
+          @change="onReceiveFileChange"
+        />
+        <el-button size="small" @click="triggerReceiveFile">上传签收照片</el-button>
+        <span v-if="receiveSignatureFile" style="font-size: 12px; color: #606266">{{ receiveSignatureFile.name }}</span>
+        <el-button v-if="receiveSignatureFile" size="small" text type="danger" @click="clearReceiveFile">移除</el-button>
+      </div>
       <template #footer>
         <el-button @click="receiveOpen = false">取消</el-button>
         <el-button type="primary" :loading="submitting" @click="confirmReceive">确定</el-button>
@@ -371,6 +384,8 @@ const shipForm = reactive({
 const receiveOpen = ref(false)
 const receiveId = ref<number | null>(null)
 const receiveNotes = ref('')
+const receiveFileInput = ref<HTMLInputElement | null>(null)
+const receiveSignatureFile = ref<File | null>(null)
 
 const rejectOpen = ref(false)
 const rejectId = ref<number | null>(null)
@@ -670,7 +685,25 @@ async function confirmShip() {
 function openReceive(id: number) {
   receiveId.value = id
   receiveNotes.value = ''
+  receiveSignatureFile.value = null
   receiveOpen.value = true
+}
+
+function triggerReceiveFile() {
+  receiveFileInput.value?.click()
+}
+
+function onReceiveFileChange(e: Event) {
+  const input = e.target as HTMLInputElement | null
+  const file = input?.files?.[0]
+  receiveSignatureFile.value = file || null
+}
+
+function clearReceiveFile() {
+  receiveSignatureFile.value = null
+  if (receiveFileInput.value) {
+    receiveFileInput.value.value = ''
+  }
 }
 
 async function confirmReceive() {
@@ -678,7 +711,10 @@ async function confirmReceive() {
   actioningId.value = receiveId.value
   submitting.value = true
   try {
-    await receiveDeliveryOrder(receiveId.value, receiveNotes.value ? { received_notes: receiveNotes.value } : {})
+    await receiveDeliveryOrder(receiveId.value, {
+      received_notes: receiveNotes.value || undefined,
+      receiver_signature: receiveSignatureFile.value || undefined
+    })
     ElMessage.success('签收成功')
     receiveOpen.value = false
     await fetchList()
