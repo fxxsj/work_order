@@ -1,33 +1,38 @@
-# 系统管理员操作指南
+# Django Admin 管理指南
 
-> 版本：v2.0.0  
-> 更新时间：2026-01-17
+> 版本: 1.0
+> 更新日期: 2026-02-23
+> 状态: 最新
 
-## 📋 目录
+---
 
-- [管理员权限](#管理员权限)
-- [系统配置](#系统配置)
-- [用户管理](#用户管理)
-- [权限管理](#权限管理)
-- [数据备份与恢复](#数据备份与恢复)
-- [性能监控](#性能监控)
-- [安全管理](#安全管理)
-- [故障排查](#故障排查)
+## 进度总览
 
-## 🔐 管理员权限
+### Admin 模块化状态
 
-### 超级管理员权限
+- [x] Admin 配置按业务领域拆分为 13 个独立模块
+- [x] 修复所有字段引用错误（65个 → 0个）
+- [x] 实现通用工具函数（状态徽章、优先级徽章等）
+- [x] 39 个 Admin 类定义（31 个已启用，8 个待启用）
+- [x] 通过 Django 系统检查验证
 
-系统管理员拥有最高权限，包括：
+---
 
-- ✅ **用户管理**：创建、修改、删除用户账号
-- ✅ **权限配置**：设置用户角色和权限
-- ✅ **系统设置**：修改系统参数和配置
-- ✅ **数据管理**：数据导入导出、备份恢复
-- ✅ **监控查看**：查看系统运行状态和日志
-- ✅ **审核管理**：管理全局审核策略
+## 目录
 
-### 登录管理后台
+1. [快速开始](#快速开始)
+2. [Admin 模块架构](#admin-模块架构)
+3. [基础管理](#基础管理)
+4. [业务管理](#业务管理)
+5. [高级功能](#高级功能)
+6. [常见操作](#常见操作)
+7. [故障排查](#故障排查)
+
+---
+
+## 快速开始
+
+### 访问管理后台
 
 ```
 URL: http://localhost:8000/admin/
@@ -35,84 +40,403 @@ URL: http://localhost:8000/admin/
 密码: admin123
 ```
 
-## ⚙️ 系统配置
+### 首次登录建议
 
-### 基础设置
+1. **修改默认密码**
+   ```python
+   # 通过管理后台修改
+   用户 → Admin → 更改密码
+   ```
 
-#### 公司信息配置
-```python
-# 在系统设置中配置
-COMPANYY_NAME = "印刷公司名称"
-COMPANYY_ADDRESS = "公司详细地址"
-COMPANYY_PHONE = "联系电话"
-COMPANYY_EMAIL = "公司邮箱"
+2. **创建管理员账号**
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+3. **验证系统状态**
+   ```bash
+   python manage.py check
+   # 输出: System check identified no issues (0 silenced).
+   ```
+
+---
+
+## Admin 模块架构
+
+### 模块划分
+
+```
+backend/workorder/admin/
+│
+├── __init__.py         # 模块入口，统一导出
+├── mixins.py           # 通用混入类
+├── utils.py            # 工具函数
+│
+├── base.py             # 基础管理 (3 个 Admin)
+│   ├── CustomerAdmin
+│   ├── DepartmentAdmin
+│   └── ProcessAdmin
+│
+├── products.py         # 产品管理 (3 个 Admin)
+│   ├── ProductAdmin
+│   ├── ProductGroupAdmin
+│   └── ProductGroupItemAdmin
+│
+├── materials.py        # 物料管理 (5 个 Admin)
+│   ├── MaterialAdmin
+│   ├── SupplierAdmin
+│   ├── MaterialSupplierAdmin
+│   ├── PurchaseOrderAdmin
+│   └── PurchaseOrderItemAdmin
+│
+├── assets.py           # 资产管理 (4 个 Admin)
+│   ├── ArtworkAdmin
+│   ├── DieAdmin
+│   ├── FoilingPlateAdmin
+│   └── EmbossingPlateAdmin
+│
+├── core.py             # 核心业务 (5 个 Admin + 3 Inline)
+│   ├── WorkOrderAdmin
+│   ├── WorkOrderProcessAdmin
+│   ├── WorkOrderMaterialAdmin
+│   ├── ProcessLogAdmin
+│   └── WorkOrderTaskAdmin
+│
+├── sales.py            # 销售管理 (2 个 Admin)
+│   ├── SalesOrderAdmin
+│   └── SalesOrderItemAdmin
+│
+├── finance.py          # 财务管理 (7 个 Admin，4 个已启用)
+│   ├── CostCenterAdmin ✅
+│   ├── CostItemAdmin ✅
+│   ├── ProductionCostAdmin ✅
+│   ├── InvoiceAdmin ✅
+│   ├── PaymentAdmin (待启用)
+│   ├── PaymentPlanAdmin (待启用)
+│   └── StatementAdmin (待启用)
+│
+├── inventory.py        # 库存管理 (6 个 Admin，2 个已启用)
+│   ├── ProductStockAdmin (待启用)
+│   ├── StockInAdmin (待启用)
+│   ├── StockOutAdmin (待启用)
+│   ├── DeliveryOrderAdmin ✅
+│   ├── DeliveryItemAdmin ✅
+│   └── QualityInspectionAdmin (待启用)
+│
+├── system.py           # 系统管理 (4 个 Admin)
+│   ├── UserProfileAdmin
+│   ├── NotificationAdmin
+│   ├── TaskAssignmentRuleAdmin
+│   └── WorkOrderApprovalLogAdmin
+│
+└── disabled/           # 历史备份
+    ├── finance.py
+    └── inventory.py
 ```
 
-#### 系统参数设置
-```python
-# 关键系统参数
-WORKORDER_AUTO_NUMBERING = True  # 自动生成施工单号
-WORKORDER_NUMBER_PREFIX = "WO"   # 施工单号前缀
-WORKORDER_APPROVAL_REQUIRED = True  # 需要审核
-MAX_FILE_UPLOAD_SIZE = 10485760  # 最大文件上传大小(10MB)
+### Admin 类统计
+
+| 模块 | Admin 类 | Inline 类 | 启用状态 |
+|------|----------|-----------|----------|
+| base | 3 | 0 | ✅ 全部启用 |
+| products | 3 | 0 | ✅ 全部启用 |
+| materials | 5 | 0 | ✅ 全部启用 |
+| assets | 4 | 0 | ✅ 全部启用 |
+| core | 5 | 3 | ✅ 全部启用 |
+| sales | 2 | 0 | ✅ 全部启用 |
+| finance | 7 | 0 | ⚠️ 4/7 启用 |
+| inventory | 6 | 1 | ⚠️ 2/6 启用 |
+| system | 4 | 0 | ✅ 全部启用 |
+| **总计** | **39** | **4** | **31/39 启用** |
+
+---
+
+## 基础管理
+
+### 客户管理 (CustomerAdmin)
+
+**位置**: 基础管理 → 客户
+
+**功能**:
+- 客户信息维护（名称、联系人、电话、邮箱）
+- 业务员分配
+- 客户地址和备注管理
+
+**字段说明**:
+| 字段 | 说明 | 必填 |
+|------|------|------|
+| name | 客户名称 | ✅ |
+| contact_person | 联系人 | ❌ |
+| phone | 联系电话 | ❌ |
+| email | 邮箱地址 | ❌ |
+| salesperson | 业务员 | ❌ |
+| address | 地址 | ❌ |
+| notes | 备注 | ❌ |
+
+**搜索字段**: 客户名称、联系人、电话、邮箱、业务员
+
+**列表过滤**: 创建时间、业务员
+
+### 部门管理 (DepartmentAdmin)
+
+**位置**: 基础管理 → 部门
+
+**功能**:
+- 部门层级结构维护
+- 工序关联配置
+- 显示子部门数量
+
+**字段说明**:
+| 字段 | 说明 | 必填 |
+|------|------|------|
+| code | 部门编码 | ✅ |
+| name | 部门名称 | ✅ |
+| parent | 上级部门 | ❌ |
+| sort_order | 排序 | ❌ |
+| is_active | 是否启用 | ❌ |
+| processes | 关联工序 | ❌ |
+
+**特殊功能**:
+- 支持树形结构显示
+- 显示子部门数量
+- 可编辑排序和启用状态
+
+### 工序管理 (ProcessAdmin)
+
+**位置**: 基础管理 → 工序
+
+**功能**:
+- 工序基础信息维护
+- 工序与版的关系配置
+- 标准工期设置
+
+**字段说明**:
+| 字段 | 说明 | 必填 |
+|------|------|------|
+| code | 工序编码 | ✅ |
+| name | 工序名称 | ✅ |
+| description | 描述 | ❌ |
+| standard_duration | 标准工期(小时) | ❌ |
+| sort_order | 排序 | ❌ |
+| is_active | 是否启用 | ❌ |
+| is_builtin | 是否内置 | 🔒 只读 |
+
+**特殊功能**:
+- 内置工序不可删除
+- 内置工序的编码不可编辑
+- 配置工序需要哪些版（图稿/刀模/烫金版/压凸版）
+
+**工序与版的关系配置**:
+- `requires_artwork` / `artwork_required`: 是否需要图稿及是否必选
+- `requires_die` / `die_required`: 是否需要刀模及是否必选
+- `requires_foiling_plate` / `foiling_plate_required`: 是否需要烫金版及是否必选
+- `requires_embossing_plate` / `embossing_plate_required`: 是否需要压凸版及是否必选
+
+---
+
+## 业务管理
+
+### 施工单管理 (WorkOrderAdmin)
+
+**位置**: 核心业务 → 施工单
+
+**核心功能**:
+- 施工单创建与编辑
+- 状态跟踪（待审核/已审核/生产中/已完成/已取消）
+- 优先级管理
+- 进度监控
+- 内联编辑工序和物料
+
+**列表显示**:
+- 施工单号、客户、产品、数量
+- 状态徽章、优先级徽章
+- 下单日期、交付日期
+- 进度百分比
+
+**内联编辑**:
+- 工序内联 (WorkOrderProcessInline)
+- 产品内联 (WorkOrderProductInline)
+- 物料内联 (WorkOrderMaterialInline)
+
+**状态说明**:
+| 状态 | 颜色 | 说明 |
+|------|------|------|
+| pending | 灰色 | 待审核 |
+| approved | 蓝色 | 已审核 |
+| in_production | 橙色 | 生产中 |
+| completed | 绿色 | 已完成 |
+| cancelled | 红色 | 已取消 |
+
+**优先级说明**:
+| 优先级 | 颜色 | 说明 |
+|--------|------|------|
+| low | 灰色 | 低 |
+| normal | 蓝色 | 普通 |
+| high | 橙色 | 高 |
+| urgent | 红色 | 紧急 |
+
+### 任务管理 (WorkOrderTaskAdmin)
+
+**位置**: 核心业务 → 施工单任务
+
+**核心功能**:
+- 任务分配与管理
+- 状态跟踪
+- 数量完成情况
+- 不良品数量记录
+
+**列表显示**:
+- 任务名称、施工单、工序
+- 状态徽章、负责人
+- 计划/实际时间
+- 完成数量、不良数量
+
+**批量操作**:
+- 批量完成任务
+- 批量取消任务
+- 批量分配任务
+
+### 销售单管理 (SalesOrderAdmin)
+
+**位置**: 销售管理 → 销售单
+
+**核心功能**:
+- 销售单创建与审核
+- 订单状态管理
+- 付款跟踪
+- 发货记录
+
+**状态流程**:
+```
+draft → submitted → approved → in_production → completed
+                    ↓ rejected
 ```
 
-### 安全配置
+### 采购单管理 (PurchaseOrderAdmin)
 
-#### 密码策略
-```python
-# 密码复杂度要求
-PASSWORD_MIN_LENGTH = 8
-PASSWORD_REQUIRE_UPPERCASE = True
-PASSWORD_REQUIRE_LOWERCASE = True
-PASSWORD_REQUIRE_DIGITS = True
-PASSWORD_REQUIRE_SPECIAL = False
+**位置**: 物料管理 → 采购单
+
+**核心功能**:
+- 采购申请与审批
+- 供应商管理
+- 收货记录
+- 质检管理
+
+**状态流程**:
+```
+draft → submitted → approved → ordered → received
+                    ↓ rejected
 ```
 
-#### 会话管理
+---
+
+## 高级功能
+
+### 工具函数使用
+
+#### 状态徽章
+
 ```python
-# 会话安全设置
-SESSION_COOKIE_AGE = 86400  # 会话有效期(24小时)
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = True  # 生产环境启用
+from .utils import create_status_badge_method, WORKORDER_STATUS_COLORS
+
+@admin.register(YourModel)
+class YourModelAdmin(admin.ModelAdmin):
+    # 创建状态徽章方法
+    status_badge = create_status_badge_method(WORKORDER_STATUS_COLORS)
+
+    list_display = ['name', 'status_badge']
 ```
 
-### 邮件配置
+**预定义状态颜色**:
+- `WORKORDER_STATUS_COLORS`: 施工单状态
+- `TASK_STATUS_COLORS`: 任务状态
+- `INVOICE_STATUS_COLORS`: 发票状态
+- `DELIVERY_STATUS_COLORS`: 发货状态
+- `PURCHASE_STATUS_COLORS`: 采购状态
+- `STOCK_STATUS_COLORS`: 库存状态
+- `QUALITY_STATUS_COLORS`: 质检状态
 
-#### SMTP设置
+#### 优先级徽章
+
 ```python
-# 邮件服务器配置
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.company.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'system@company.com'
-EMAIL_HOST_PASSWORD = 'your_email_password'
-DEFAULT_FROM_EMAIL = 'system@company.com'
+from .utils import create_priority_badge_method
+
+@admin.register(YourModel)
+class YourModelAdmin(admin.ModelAdmin):
+    # 创建优先级徽章方法（使用默认颜色）
+    priority_badge = create_priority_badge_method()
+
+    list_display = ['name', 'priority_badge']
 ```
 
-## 👥 用户管理
+**优先级颜色**:
+- low: 灰色 (#909399)
+- normal: 蓝色 (#409EFF)
+- high: 橙色 (#E6A23C)
+- urgent: 红色 (#F56C6C)
 
-### 创建用户账号
+### Inline 编辑
 
-#### 方法一：通过管理后台
+#### TabularInline
+
+```python
+from django.contrib import admin
+from .mixins import FixedInlineModelAdminMixin
+
+class YourInlineAdmin(FixedInlineModelAdminMixin, admin.TabularInline):
+    model = RelatedModel
+    extra = 1
+    fields = ['field1', 'field2', 'field3']
+
+@admin.register(MainModel)
+class MainModelAdmin(admin.ModelAdmin):
+    inlines = [YourInlineAdmin]
+```
+
+### autocomplete_fields
+
+用于优化外键选择体验：
+
+```python
+@admin.register(YourModel)
+class YourModelAdmin(admin.ModelAdmin):
+    autocomplete_fields = ['customer', 'product', 'salesperson']
+
+    # 确保相关 Admin 也设置了 search_fields
+    # CustomerAdmin.search_fields = ['name', 'code']
+```
+
+### 自定义方法示例
+
+```python
+@admin.register(YourModel)
+class YourModelAdmin(admin.ModelAdmin):
+    list_display = ['name', 'get_children_count', 'is_active']
+
+    def get_children_count(self, obj):
+        """显示子记录数量"""
+        return obj.children.count()
+
+    get_children_count.short_description = '子记录数'
+    get_children_count.admin_order_field = 'children__count'
+```
+
+---
+
+## 常见操作
+
+### 用户管理
+
+#### 创建用户
+
+**方法一：管理后台**
 ```
 1. 访问 /admin/
-2. 进入"用户"管理界面
-3. 点击"增加用户"
-4. 填写用户信息：
-   - 用户名：唯一标识符
-   - 密码：初始密码
-   - 确认密码：重复输入
-   - 姓名：用户真实姓名
-   - 邮箱：用户邮箱
-   - 是否活跃：勾选
-   - 是否为员工：勾选
-   - 是否为超级用户：谨慎选择
-5. 保存用户信息
+2. 用户 → 增加用户
+3. 填写信息并保存
 ```
 
-#### 方法二：通过命令行
+**方法二：命令行**
 ```bash
 # 创建超级用户
 python manage.py createsuperuser
@@ -125,42 +449,18 @@ python manage.py shell
 >>> user.save()
 ```
 
-### 用户信息管理
+#### 重置密码
 
-#### 批量创建用户
-```python
-# 使用自定义命令
-python manage.py load_initial_users
-
-# 或通过Excel导入
-python manage.py import_users users.xlsx
+**方法一：管理后台**
+```
+用户 → 选择用户 → 更改密码
 ```
 
-#### 用户状态管理
-```
-用户状态类型：
-- 活跃：可以正常登录使用系统
-- 停用：无法登录，保留数据
-- 锁定：安全原因临时锁定
-```
-
-### 重置用户密码
-
-#### 方法一：管理后台重置
-```
-1. 进入用户管理界面
-2. 选择要重置的用户
-3. 点击"修改"
-4. 设置新密码
-5. 保存修改
-```
-
-#### 方法二：命令行重置
+**方法二：命令行**
 ```bash
-# 重置指定用户密码
 python manage.py changepassword username
 
-# 或使用shell模式
+# 或使用 shell
 python manage.py shell
 >>> from django.contrib.auth.models import User
 >>> user = User.objects.get(username='username')
@@ -168,411 +468,216 @@ python manage.py shell
 >>> user.save()
 ```
 
-## 🔑 权限管理
+### 数据管理
 
-### 用户组管理
+#### 批量导入
 
-#### 创建用户组
-```
-1. 进入"用户组"管理界面
-2. 点击"增加用户组"
-3. 填写组信息：
-   - 名称：业务员、生产经理、部门主管等
-   - 权限：选择对应的功能权限
-4. 保存用户组
-```
-
-#### 权限分配
-```python
-# 主要权限类别
-权限类型：
-- 施工单权限：add_workorder, change_workorder, delete_workorder
-- 任务权限：add_task, change_task, delete_task
-- 客户权限：add_customer, change_customer, delete_customer
-- 产品权限：add_product, change_product, delete_product
-- 物料权限：add_material, change_material, delete_material
-- 用户权限：add_user, change_user, delete_user
-```
-
-### 权限检查工具
-
-#### 查看用户权限
-```python
-# 检查用户权限
-python manage.py shell
->>> from django.contrib.auth.models import User, Permission
->>> user = User.objects.get(username='username')
->>> user.get_all_permissions()
->>> user.has_perm('workorder.add_workorder')
-```
-
-#### 权限分配脚本
-```python
-# 批量权限分配
-def assign_permissions():
-    from django.contrib.auth.models import User, Permission, Group
-    
-    # 创建权限组
-    group, created = Group.objects.get_or_create(name='业务员')
-    
-    # 添加权限
-    permissions = [
-        Permission.objects.get(codename='add_workorder'),
-        Permission.objects.get(codename='change_workorder'),
-        Permission.objects.get(codename='add_customer'),
-        Permission.objects.get(codename='change_customer'),
-    ]
-    
-    group.permissions.set(permissions)
-    group.save()
-```
-
-## 💾 数据备份与恢复
-
-### 自动备份配置
-
-#### 数据库备份
-```python
-# 数据库备份设置
-DATABASE_BACKUP_SCHEDULE = 'daily'  # 每日备份
-DATABASE_BACKUP_RETENTION = 30  # 保留30天
-DATABASE_BACKUP_PATH = '/var/backups/database/'
-```
-
-#### 文件备份
-```python
-# 文件系统备份
-MEDIA_BACKUP_SCHEDULE = 'weekly'
-MEDIA_BACKUP_RETENTION = 12  # 保留12周
-MEDIA_BACKUP_PATH = '/var/backups/media/'
-```
-
-### 手动备份操作
-
-#### 数据库备份
 ```bash
-# PostgreSQL备份
+# 导入初始数据
+python manage.py load_initial_data
+
+# 加载样品数据
+python manage.py load_sample_data
+```
+
+#### 数据导出
+
+```bash
+# 导出为 JSON
+python manage.py dumpdata workorder > workorder.json
+
+# 导出特定模型
+python manage.py dumpdata workorder.Customer > customers.json
+```
+
+#### 数据备份
+
+```bash
+# PostgreSQL
 pg_dump -h localhost -U username -d database_name > backup.sql
 
-# SQLite备份
+# SQLite
 cp db.sqlite3 backup_$(date +%Y%m%d).sqlite3
-
-# 使用Django管理命令
-python manage.py dbbackup --name manual_backup
 ```
 
-#### 媒体文件备份
+### 系统维护
+
+#### 清理会话
+
 ```bash
-# 备份媒体文件
-tar -czf media_backup_$(date +%Y%m%d).tar.gz media/
-
-# 或使用rsync同步
-rsync -av --delete media/ /backup/media/
+# 清理过期的会话
+python manage.py clearsessions
 ```
 
-### 数据恢复
+#### 数据库优化
 
-#### 数据库恢复
 ```bash
-# PostgreSQL恢复
-psql -h localhost -U username -d database_name < backup.sql
+# PostgreSQL
+VACUUM ANALYZE;
 
-# SQLite恢复
-cp backup_20231201.sqlite3 db.sqlite3
-
-# 使用Django管理命令
-python manage.py dbrestore --name manual_backup
-```
-
-#### 媒体文件恢复
-```bash
-# 解压媒体文件备份
-tar -xzf media_backup_20231201.tar.gz
-
-# 或使用rsync恢复
-rsync -av --delete /backup/media/ media/
-```
-
-## 📊 性能监控
-
-### 系统监控指标
-
-#### 数据库性能
-```python
-# 数据库监控指标
-指标类型：
-- 连接数：当前活跃连接数
-- 查询时间：平均查询响应时间
-- 慢查询：执行时间超过1秒的查询
-- 缓存命中率：查询缓存命中率
-```
-
-#### 应用性能
-```python
-# 应用监控指标
-关键指标：
-- 响应时间：API平均响应时间
-- 错误率：系统错误发生率
-- 并发用户：同时在线用户数
-- 内存使用：系统内存占用情况
-```
-
-### 监控配置
-
-#### 日志监控
-```python
-# 日志配置
-LOGGING = {
-    'handlers': {
-        'error_file': {
-            'level': 'ERROR',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'logs/errors.log',
-            'maxBytes': 1024*1024*10,  # 10MB
-            'backupCount': 10,
-        },
-        'access_file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'logs/access.log',
-            'maxBytes': 1024*1024*50,  # 50MB
-            'backupCount': 20,
-        }
-    }
-}
-```
-
-#### 性能监控
-```python
-# 性能监控设置
-MIDDLEWARE = [
-    'django.middleware.common.CommonMiddleware',
-    'workorder.monitoring.PerformanceMonitoringMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-]
-```
-
-### 监控脚本
-
-#### 系统健康检查
-```bash
-#!/bin/bash
-# system_health_check.sh
-echo "=== 系统健康检查 ==="
-
-# 检查数据库连接
-python manage.py check --database default
-
-# 检查缓存连接
-python -c "import redis; r = redis.Redis(); print('Redis连接正常' if r.ping() else 'Redis连接失败')"
-
-# 检查磁盘空间
-df -h | grep -E "/$|/var"
-
-# 检查内存使用
-free -h
-
-# 检查服务状态
-systemctl status nginx
-systemctl status gunicorn
-```
-
-## 🔒 安全管理
-
-### 安全策略配置
-
-#### 访问控制
-```python
-# 安全头设置
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_HSTS_SECONDS = 31536000  # 1年
-SECURE_SSL_REDIRECT = True  # 强制HTTPS
-```
-
-#### API安全
-```python
-# API安全配置
-REST_FRAMEWORK = {
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle'
-    ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/hour',
-        'user': '1000/hour',
-        'admin': '500/hour'
-    }
-}
-```
-
-### 安全审计
-
-#### 登录审计
-```python
-# 记录登录日志
-class LoginHistory(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    login_time = models.DateTimeField(auto_now_add=True)
-    ip_address = models.GenericIPAddressField()
-    user_agent = models.TextField()
-    login_result = models.CharField(max_length=20)  # success/failed
-```
-
-#### 操作审计
-```python
-# 操作日志记录
-def audit_operation(user, action, object_type, object_id, details):
-    AuditLog.objects.create(
-        user=user,
-        action=action,
-        object_type=object_type,
-        object_id=object_id,
-        details=details,
-        timestamp=timezone.now()
-    )
-```
-
-### 安全最佳实践
-
-#### 密码管理
-```
-✅ 推荐做法：
-- 定期更换密码（90天）
-- 使用强密码策略
-- 启用多因素认证
-- 记录密码更改历史
-
-❌ 禁止做法：
-- 使用简单密码
-- 共享账号密码
-- 在不安全的地方记录密码
-- 长期不更换密码
-```
-
-#### 数据保护
-```
-✅ 推荐做法：
-- 敏感数据加密存储
-- 定期数据备份
-- 限制数据访问权限
-- 监控数据访问日志
-
-❌ 禁止做法：
-- 明文存储敏感信息
-- 忽略数据备份
-- 过度授权访问权限
-- 不记录数据访问日志
-```
-
-## 🔧 故障排查
-
-### 常见问题诊断
-
-#### 数据库问题
-```
-问题：数据库连接失败
-排查步骤：
-1. 检查数据库服务状态
-2. 验证连接配置
-3. 检查网络连通性
-4. 查看数据库错误日志
-5. 测试手动连接
-
-解决方法：
-- 重启数据库服务
-- 修正连接配置
-- 检查防火墙设置
-- 联系数据库管理员
-```
-
-#### 应用问题
-```
-问题：应用无法启动
-排查步骤：
-1. 检查依赖包安装
-2. 查看环境变量配置
-3. 检查端口占用情况
-4. 查看应用启动日志
-5. 检查配置文件语法
-
-解决方法：
-- 安装缺失依赖
-- 修正环境变量
-- 更换端口
-- 修复配置错误
-- 清理日志文件
-```
-
-#### 性能问题
-```
-问题：系统响应缓慢
-排查步骤：
-1. 检查系统资源使用
-2. 分析数据库查询性能
-3. 检查网络延迟
-4. 查看缓存命中率
-5. 分析慢查询日志
-
-解决方法：
-- 优化数据库查询
-- 增加缓存
-- 升级硬件资源
-- 优化网络配置
-- 重启相关服务
-```
-
-### 日志分析
-
-#### 错误日志分析
-```bash
-# 查看最近的错误日志
-tail -f logs/errors.log | grep ERROR
-
-# 统计错误类型
-grep ERROR logs/errors.log | awk '{print $4}' | sort | uniq -c
-
-# 查看特定时间的错误
-grep "2024-01-17" logs/errors.log
-```
-
-#### 访问日志分析
-```bash
-# 统计API访问量
-grep "POST\|GET" logs/access.log | wc -l
-
-# 分析响应时间
-awk '{print $NF}' logs/access.log | sort -n | tail -10
-
-# 查看热门API端点
-awk '{print $7}' logs/access.log | sort | uniq -c | sort -nr | head -10
-```
-
-### 应急处理
-
-#### 系统宕机处理流程
-```
-1. 立即评估影响范围
-2. 通知相关人员和用户
-3. 启动应急服务流程
-4. 开始故障排查
-5. 记录处理过程和结果
-6. 制定预防措施
-```
-
-#### 数据丢失应急处理
-```
-1. 立即停止相关服务
-2. 保护现场数据
-3. 启动数据恢复程序
-4. 通知相关人员
-5. 分析数据丢失原因
-6. 加强数据保护措施
+# SQLite
+python manage.py dbshell
+VACUUM;
 ```
 
 ---
 
-**文档版本**：v2.0.0  
-**更新时间**：2026-01-17  
-**维护团队**：技术支持团队  
-**紧急联系**：tech-support@company.com
+## 故障排查
+
+### 常见问题
+
+#### Admin 类注册错误
+
+**问题**: `django.core.exceptions.ImproperlyConfigured: 'AdminSite' not registered`
+
+**解决**: 确保 Admin 类已正确注册
+```python
+@admin.register(YourModel)
+class YourModelAdmin(admin.ModelAdmin):
+    pass
+```
+
+#### 字段引用错误
+
+**问题**: `django.core.exceptions.FieldError: Unknown field(s)`
+
+**解决**: 检查 Admin 类中的字段名是否与模型定义一致
+```python
+# 检查模型字段
+python manage.py shell
+>>> from workorder.models import YourModel
+>>> [f.name for f in YourModel._meta.get_fields()]
+```
+
+#### Inline 检查错误
+
+**问题**: Inline 相关的系统检查报错
+
+**解决**: 使用 `FixedInlineModelAdminMixin`
+```python
+from .mixins import FixedInlineModelAdminMixin
+
+class YourInline(FixedInlineModelAdminMixin, admin.TabularInline):
+    pass
+```
+
+### 验证与调试
+
+#### 系统检查
+
+```bash
+# 完整系统检查
+python manage.py check
+
+# 检查特定应用
+python manage.py check workorder
+
+# 详细输出
+python manage.py check --verbosity 2
+```
+
+#### 测试 Admin 配置
+
+```python
+# 测试 Admin 类是否正确注册
+python manage.py shell
+>>> from django.contrib.admin.sites import site
+>>> site._registry.keys()
+```
+
+#### 查看注册的 Admin 类
+
+```python
+from workorder.admin import *
+
+# 查看 __all__ 导出的 Admin 类
+print(__all__)
+```
+
+---
+
+## 附录
+
+### A. Admin 配置最佳实践
+
+#### 1. 使用 fieldsets 组织字段
+
+```python
+fieldsets = (
+    ("基本信息", {"fields": ("field1", "field2")}),
+    ("详细信息", {"fields": ("field3", "field4")}),
+    ("系统信息", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
+)
+```
+
+#### 2. 使用 autocomplete_fields 优化外键
+
+```python
+autocomplete_fields = ["customer", "product", "salesperson"]
+```
+
+#### 3. 使用 list_editable 提高效率
+
+```python
+list_editable = ["is_active", "sort_order"]
+```
+
+#### 4. 合理使用 search_fields
+
+```python
+search_fields = ["name", "code", "contact_person"]
+```
+
+#### 5. 使用 list_filter 优化筛选
+
+```python
+list_filter = ["status", "created_at", "category"]
+```
+
+### B. 自定义 Admin 模板
+
+#### 覆盖默认模板
+
+```
+templates/
+└── admin/
+    ├── base_site.html          # 基础模板
+    ├── index.html              # 首页
+    ├── change_list.html        # 列表页
+    └── change_form.html         # 表单页
+```
+
+### C. Admin 动作
+
+#### 自定义批量操作
+
+```python
+@admin.register(YourModel)
+class YourModelAdmin(admin.ModelAdmin):
+    actions = ['make_active', 'make_inactive']
+
+    def make_active(self, request, queryset):
+        queryset.update(is_active=True)
+        self.message_user(request, f"已激活 {queryset.count()} 条记录")
+
+    make_active.short_description = "批量激活"
+
+    def make_inactive(self, request, queryset):
+        queryset.update(is_active=False)
+        self.message_user(request, f"已停用 {queryset.count()} 条记录")
+
+    make_inactive.short_description = "批量停用"
+```
+
+### D. 相关文档
+
+- [Django Admin 官方文档](https://docs.djangoproject.com/en/stable/ref/contrib/admin/)
+- `docs/ADMIN_FIX_SUMMARY.md` - Admin 修复总结
+- `backend/workorder/admin/` - Admin 模块源码
+- `backend/workorder/models/` - 数据模型定义
+
+---
+
+*文档版本: 1.0*
+*最后更新: 2026-02-23*
+*维护者: 开发团队*
