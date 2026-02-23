@@ -93,11 +93,16 @@ npm run android:open
 
 ### 3.1 GitHub Release（tag 触发）
 
-推送 tag（例如 `android-v1.0.0`）会触发 `.github/workflows/android-release.yml`，构建 Android release APK 并发布到 GitHub Releases。
+推送 tag（例如 `v1.0.0` 或 `android-v1.0.0`）会触发 `.github/workflows/android-release.yml`，构建 Android release APK/AAB 并发布到 GitHub Releases。
+当使用 `v1.0.0` 时，会与桌面端/Web 的 Release（`.github/workflows/release.yml`）共用同一个 GitHub Release 并追加上传 Android 产物。
 默认会生成 `app-release-unsigned.apk` 与 `app-release-unsigned.aab`；配置 keystore secrets 后会额外输出签名后的 `app-release-signed.apk` 与 `app-release-signed.aab`。
 版本号从 tag 注入到 Android 工程（`versionName/versionCode`），确保每次发布递增（稳定版 suffix=9，预发布 alpha/beta/rc suffix=1/2/3）。
 
 ```bash
+git tag v1.0.0
+git push origin v1.0.0
+
+# 或者（兼容旧 tag 前缀）
 git tag android-v1.0.0
 git push origin android-v1.0.0
 ```

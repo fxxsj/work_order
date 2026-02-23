@@ -3,11 +3,12 @@ name: Release (Android)
 on:
   push:
     tags:
+      - 'v*'
       - 'android-v*'
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag name (e.g. android-v1.2.3). If empty, uses current ref.'
+        description: 'Tag name (e.g. v1.2.3 or android-v1.2.3). If empty, uses current ref.'
         required: false
 
 permissions:

@@ -18,10 +18,12 @@ if (kind === 'desktop') {
 }
 
 if (kind === 'android') {
-  const re = new RegExp(`^android-v${semver}$`)
-  if (!re.test(tag)) fail(`invalid android tag: ${tag} (expected android-vX.Y.Z)`)
+  const reAndroid = new RegExp(`^android-v${semver}$`)
+  const reRelease = new RegExp(`^v${semver}$`)
+  if (!reAndroid.test(tag) && !reRelease.test(tag)) {
+    fail(`invalid android tag: ${tag} (expected vX.Y.Z or android-vX.Y.Z)`)
+  }
   process.exit(0)
 }
 
 fail(`unknown kind: ${kind}`)
-

@@ -9,8 +9,10 @@ function fail(msg) {
 function parseAndroidTag(raw) {
   const tag = String(raw || '').trim()
   if (!tag) fail('missing android tag')
-  if (!tag.startsWith('android-v')) fail(`invalid tag: ${tag} (expected android-vX.Y.Z)`)
-  const version = tag.slice('android-v'.length)
+  let version = ''
+  if (tag.startsWith('android-v')) version = tag.slice('android-v'.length)
+  else if (tag.startsWith('v')) version = tag.slice('v'.length)
+  else fail(`invalid tag: ${tag} (expected vX.Y.Z or android-vX.Y.Z)`)
   const m = version.match(/^(\d+)\.(\d+)\.(\d+)(-[0-9A-Za-z.-]+)?$/)
   if (!m) fail(`invalid version in tag: ${tag}`)
   const major = Number(m[1])
