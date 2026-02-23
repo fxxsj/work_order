@@ -1,11 +1,8 @@
 import { http } from '../lib/http'
+import { createApiWithActions } from './base'
+import type { PaginatedResult } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type SalesOrderStatus =
   | 'draft'
@@ -65,48 +62,50 @@ export type SalesOrderDetail = SalesOrderListItem & {
   work_order_numbers?: string[]
 }
 
+export const salesOrderApi = createApiWithActions(
+  'sales-orders',
+  {
+    submit: async (id: number) => (await http.post(`/sales-orders/${id}/submit/`)).data,
+    approve: async (id: number, input?: { approval_comment?: string }) =>
+      (await http.post(`/sales-orders/${id}/approve/`, input || {})).data,
+    reject: async (id: number, input: { reason: string; approval_comment?: string }) =>
+      (await http.post(`/sales-orders/${id}/reject/`, input)).data,
+    startProduction: async (id: number) => (await http.post(`/sales-orders/${id}/start_production/`)).data
+  }
+)
+
 export async function listSalesOrders(params: { page: number; page_size: number; search?: string; status?: string; payment_status?: string }) {
-  const res = await http.get<PaginatedResult<SalesOrderListItem>>('/sales-orders/', { params })
-  return res.data
+  return salesOrderApi.list(params) as Promise<PaginatedResult<SalesOrderListItem>>
 }
 
 export async function getSalesOrder(id: number) {
-  const res = await http.get<SalesOrderDetail>(`/sales-orders/${id}/`)
-  return res.data
+  return salesOrderApi.retrieve(id) as Promise<SalesOrderDetail>
 }
 
 export async function createSalesOrder(input: Partial<SalesOrderDetail>) {
-  const res = await http.post<SalesOrderDetail>('/sales-orders/', input)
-  return res.data
+  return salesOrderApi.create(input) as Promise<SalesOrderDetail>
 }
 
 export async function updateSalesOrder(id: number, input: Partial<SalesOrderDetail>) {
-  const res = await http.put<SalesOrderDetail>(`/sales-orders/${id}/`, input)
-  return res.data
+  return salesOrderApi.update(id, input) as Promise<SalesOrderDetail>
 }
 
 export async function deleteSalesOrder(id: number) {
-  const res = await http.delete(`/sales-orders/${id}/`)
-  return res.data
+  return salesOrderApi.delete(id)
 }
 
 export async function submitSalesOrder(id: number) {
-  const res = await http.post(`/sales-orders/${id}/submit/`)
-  return res.data
+  return salesOrderApi.submit(id)
 }
 
 export async function approveSalesOrder(id: number, input?: { approval_comment?: string }) {
-  const res = await http.post(`/sales-orders/${id}/approve/`, input || {})
-  return res.data
+  return salesOrderApi.approve(id, input)
 }
 
 export async function rejectSalesOrder(id: number, input: { reason: string; approval_comment?: string }) {
-  const res = await http.post(`/sales-orders/${id}/reject/`, input)
-  return res.data
+  return salesOrderApi.reject(id, input)
 }
 
 export async function startProductionSalesOrder(id: number) {
-  const res = await http.post(`/sales-orders/${id}/start_production/`)
-  return res.data
+  return salesOrderApi.startProduction(id)
 }
-
