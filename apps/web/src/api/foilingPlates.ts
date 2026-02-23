@@ -1,11 +1,7 @@
 import { http } from '../lib/http'
+import { createApiWithActions } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type FoilingPlate = {
   id: number
@@ -23,28 +19,29 @@ export type FoilingPlate = {
   updated_at?: string
 }
 
+export const foilingPlateApi = createApiWithActions(
+  'foiling-plates',
+  {
+    confirm: async (id: number) => (await http.post<FoilingPlate>(`/foiling-plates/${id}/confirm/`)).data
+  }
+)
+
 export async function listFoilingPlates(params: { page: number; page_size: number; search?: string }) {
-  const res = await http.get<PaginatedResult<FoilingPlate>>('/foiling-plates/', { params })
-  return res.data
+  return foilingPlateApi.list(params)
 }
 
 export async function createFoilingPlate(input: Partial<FoilingPlate>) {
-  const res = await http.post<FoilingPlate>('/foiling-plates/', input)
-  return res.data
+  return foilingPlateApi.create(input)
 }
 
 export async function updateFoilingPlate(id: number, input: Partial<FoilingPlate>) {
-  const res = await http.put<FoilingPlate>(`/foiling-plates/${id}/`, input)
-  return res.data
+  return foilingPlateApi.update(id, input)
 }
 
 export async function deleteFoilingPlate(id: number) {
-  const res = await http.delete(`/foiling-plates/${id}/`)
-  return res.data
+  return foilingPlateApi.delete(id)
 }
 
 export async function confirmFoilingPlate(id: number) {
-  const res = await http.post<FoilingPlate>(`/foiling-plates/${id}/confirm/`)
-  return res.data
+  return foilingPlateApi.confirm(id)
 }
-
