@@ -158,7 +158,8 @@ if DATABASE_URL:
         query = dict(parse_qsl(parsed.query or ""))
         DATABASES["default"] = {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": (parsed.path or "/").lstrip("/") or os.environ.get("POSTGRES_DB", ""),
+            "NAME": (parsed.path or "/").lstrip("/")
+            or os.environ.get("POSTGRES_DB", ""),
             "USER": parsed.username or os.environ.get("POSTGRES_USER", ""),
             "PASSWORD": parsed.password or os.environ.get("POSTGRES_PASSWORD", ""),
             "HOST": parsed.hostname or os.environ.get("POSTGRES_HOST", "localhost"),
