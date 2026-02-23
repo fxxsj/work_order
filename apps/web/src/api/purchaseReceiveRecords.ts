@@ -1,11 +1,8 @@
 import { http } from '../lib/http'
+import { createApiWithActions } from './base'
+import type { PaginatedResult } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type PurchaseReceiveRecord = {
   id: number
@@ -36,36 +33,48 @@ export type PurchaseReceiveRecord = {
   returned_at?: string | null
 }
 
+export const purchaseReceiveRecordApi = createApiWithActions(
+  'purchase-receive-records',
+  {
+    listPendingInspections: async (params: { page: number; page_size: number; search?: string }) =>
+      (await http.get<PaginatedResult<PurchaseReceiveRecord>>('/purchase-receive-records/pending_list/', { params })).data,
+    listPendingStockIn: async (params: { page: number; page_size: number; search?: string }) =>
+      (await http.get<PaginatedResult<PurchaseReceiveRecord>>('/purchase-receive-records/pending_stock_in/', { params })).data,
+    listPendingReturn: async (params: { page: number; page_size: number; search?: string }) =>
+      (await http.get<PaginatedResult<PurchaseReceiveRecord>>('/purchase-receive-records/pending_return/', { params })).data,
+    confirmInspection: async (
+      id: number,
+      input: { qualified_quantity: number; unqualified_quantity: number; unqualified_reason?: string }
+    ) => (await http.post(`/purchase-receive-records/${id}/confirm_inspection/`, input)).data,
+    stockIn: async (id: number) => (await http.post(`/purchase-receive-records/${id}/stock_in/`)).data,
+    processReturn: async (id: number, input: { return_quantity: number; return_note?: string }) =>
+      (await http.post(`/purchase-receive-records/${id}/process_return/`, input)).data
+  }
+)
+
 export async function listPendingInspections(params: { page: number; page_size: number; search?: string }) {
-  const res = await http.get<PaginatedResult<PurchaseReceiveRecord>>('/purchase-receive-records/pending_list/', { params })
-  return res.data
+  return purchaseReceiveRecordApi.listPendingInspections(params)
 }
 
 export async function listPendingStockIn(params: { page: number; page_size: number; search?: string }) {
-  const res = await http.get<PaginatedResult<PurchaseReceiveRecord>>('/purchase-receive-records/pending_stock_in/', { params })
-  return res.data
+  return purchaseReceiveRecordApi.listPendingStockIn(params)
 }
 
 export async function listPendingReturn(params: { page: number; page_size: number; search?: string }) {
-  const res = await http.get<PaginatedResult<PurchaseReceiveRecord>>('/purchase-receive-records/pending_return/', { params })
-  return res.data
+  return purchaseReceiveRecordApi.listPendingReturn(params)
 }
 
 export async function confirmInspection(
   id: number,
   input: { qualified_quantity: number; unqualified_quantity: number; unqualified_reason?: string }
 ) {
-  const res = await http.post(`/purchase-receive-records/${id}/confirm_inspection/`, input)
-  return res.data
+  return purchaseReceiveRecordApi.confirmInspection(id, input)
 }
 
 export async function stockIn(id: number) {
-  const res = await http.post(`/purchase-receive-records/${id}/stock_in/`)
-  return res.data
+  return purchaseReceiveRecordApi.stockIn(id)
 }
 
 export async function processReturn(id: number, input: { return_quantity: number; return_note?: string }) {
-  const res = await http.post(`/purchase-receive-records/${id}/process_return/`, input)
-  return res.data
+  return purchaseReceiveRecordApi.processReturn(id, input)
 }
-
