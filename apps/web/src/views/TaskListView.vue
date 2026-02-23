@@ -28,6 +28,9 @@
           <el-button size="small" type="danger" :disabled="!selected.length" :loading="batchCancelling" @click="openBatchCancel">
             批量取消
           </el-button>
+          <el-button size="small" type="warning" :disabled="!selected.length" :loading="batchAssigning" @click="openBatchAssign">
+            批量分派
+          </el-button>
           <div style="font-size: 12px; color: #666">已选 {{ selected.length }} 项</div>
         </div>
       </div>
@@ -100,15 +103,42 @@
         <el-button size="small" type="danger" :loading="batchCancelling" @click="submitBatchCancel">确定取消</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog v-model="batchAssignOpen" title="批量分派任务" width="560px">
+      <el-form label-width="90px">
+        <el-form-item label="部门">
+          <el-select v-model="batchAssignDepartmentId" filterable clearable placeholder="可选">
+            <el-option v-for="d in departments" :key="d.id" :label="d.name" :value="d.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="操作员">
+          <el-select v-model="batchAssignOperatorId" filterable clearable placeholder="可选">
+            <el-option v-for="u in users" :key="u.id" :label="u.username" :value="u.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="原因">
+          <el-input v-model="batchAssignReason" placeholder="可选" />
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="batchAssignNotes" type="textarea" :rows="3" placeholder="可选" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button size="small" @click="batchAssignOpen = false">取消</el-button>
+        <el-button size="small" type="warning" :loading="batchAssigning" @click="submitBatchAssign">确定分派</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { batchCancelTasks, batchCompleteTasks, exportTasks, listTasks, type WorkOrderTaskListItem } from '../api/tasks'
+import { batchAssignTasks, batchCancelTasks, batchCompleteTasks, exportTasks, listTasks, type WorkOrderTaskListItem } from '../api/tasks'
 import { downloadBlob, getFilenameFromContentDisposition } from '../lib/download'
+import { listAllDepartments, type Department } from '../api/departments'
+import { listUsersByDepartment, type UserItem } from '../api/users'
 
 const router = useRouter()
 
@@ -128,6 +158,14 @@ const batchCancelOpen = ref(false)
 const batchCancelReason = ref('')
 const batchCancelNotes = ref('')
 const batchCancelling = ref(false)
+const batchAssignOpen = ref(false)
+const batchAssignDepartmentId = ref<number | null>(null)
+const batchAssignOperatorId = ref<number | null>(null)
+const batchAssignReason = ref('')
+const batchAssignNotes = ref('')
+const batchAssigning = ref(false)
+const departments = ref<Department[]>([])
+const users = ref<UserItem[]>([])
 
 async function fetchList() {
   loading.value = true
@@ -184,6 +222,15 @@ function openBatchCancel() {
   batchCancelOpen.value = true
 }
 
+function openBatchAssign() {
+  if (!selected.value.length) return
+  batchAssignDepartmentId.value = null
+  batchAssignOperatorId.value = null
+  batchAssignReason.value = ''
+  batchAssignNotes.value = ''
+  batchAssignOpen.value = true
+}
+
 async function submitBatchComplete() {
   if (!selected.value.length) {
     batchCompleteOpen.value = false
@@ -235,6 +282,36 @@ async function submitBatchCancel() {
   }
 }
 
+async function submitBatchAssign() {
+  if (!selected.value.length) {
+    batchAssignOpen.value = false
+    return
+  }
+
+  if (!batchAssignDepartmentId.value && !batchAssignOperatorId.value) {
+    ElMessage.error('请选择部门或操作员（至少一项）')
+    return
+  }
+
+  batchAssigning.value = true
+  try {
+    await batchAssignTasks({
+      task_ids: selected.value.map((t) => t.id),
+      assigned_department: batchAssignDepartmentId.value,
+      assigned_operator: batchAssignOperatorId.value,
+      reason: batchAssignReason.value,
+      notes: batchAssignNotes.value
+    })
+    ElMessage.success('批量分派已提交')
+    batchAssignOpen.value = false
+    await fetchList()
+  } catch (err: any) {
+    ElMessage.error(err?.response?.data?.error || err?.message || '批量分派失败')
+  } finally {
+    batchAssigning.value = false
+  }
+}
+
 async function handleExport() {
   exporting.value = true
   try {
@@ -254,8 +331,29 @@ async function handleExport() {
 }
 
 onMounted(() => {
+  listAllDepartments()
+    .then((rows) => {
+      departments.value = rows
+    })
+    .catch(() => {
+      // ignore
+    })
   fetchList()
 })
+
+watch(
+  () => batchAssignDepartmentId.value,
+  async (departmentId) => {
+    try {
+      users.value = await listUsersByDepartment(
+        departmentId ? { department_id: departmentId } : undefined
+      )
+    } catch {
+      users.value = []
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>
