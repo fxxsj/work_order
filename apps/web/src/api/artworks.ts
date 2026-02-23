@@ -1,11 +1,7 @@
 import { http } from '../lib/http'
+import { createApiWithActions } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type Artwork = {
   id: number
@@ -31,33 +27,34 @@ export type Artwork = {
   embossing_plate_names?: string[]
 }
 
+export const artworkApi = createApiWithActions(
+  'artworks',
+  {
+    confirm: async (id: number) => (await http.post<Artwork>(`/artworks/${id}/confirm/`)).data,
+    createVersion: async (id: number) => (await http.post<Artwork>(`/artworks/${id}/create_version/`)).data
+  }
+)
+
 export async function listArtworks(params: { page: number; page_size: number; search?: string; base_code?: string; version?: number }) {
-  const res = await http.get<PaginatedResult<Artwork>>('/artworks/', { params })
-  return res.data
+  return artworkApi.list(params)
 }
 
 export async function createArtwork(input: Partial<Artwork>) {
-  const res = await http.post<Artwork>('/artworks/', input)
-  return res.data
+  return artworkApi.create(input)
 }
 
 export async function updateArtwork(id: number, input: Partial<Artwork>) {
-  const res = await http.put<Artwork>(`/artworks/${id}/`, input)
-  return res.data
+  return artworkApi.update(id, input)
 }
 
 export async function deleteArtwork(id: number) {
-  const res = await http.delete(`/artworks/${id}/`)
-  return res.data
+  return artworkApi.delete(id)
 }
 
 export async function confirmArtwork(id: number) {
-  const res = await http.post<Artwork>(`/artworks/${id}/confirm/`)
-  return res.data
+  return artworkApi.confirm(id)
 }
 
 export async function createArtworkVersion(id: number) {
-  const res = await http.post<Artwork>(`/artworks/${id}/create_version/`)
-  return res.data
+  return artworkApi.createVersion(id)
 }
-
