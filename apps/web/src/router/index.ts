@@ -37,6 +37,7 @@ import TaskAssignmentHistoryView from '../views/TaskAssignmentHistoryView.vue'
 import CostCenterListView from '../views/CostCenterListView.vue'
 import CostItemListView from '../views/CostItemListView.vue'
 import ProductionCostListView from '../views/ProductionCostListView.vue'
+import StatementListView from '../views/StatementListView.vue'
 
 export const router = createRouter({
   history: (import.meta.env.VITE_ROUTER_MODE === 'hash' ? createWebHashHistory() : createWebHistory()),
@@ -75,6 +76,7 @@ export const router = createRouter({
     { path: '/cost-centers', name: 'cost-centers', component: CostCenterListView, meta: { requiresAuth: true } },
     { path: '/cost-items', name: 'cost-items', component: CostItemListView, meta: { requiresAuth: true } },
     { path: '/production-costs', name: 'production-costs', component: ProductionCostListView, meta: { requiresAuth: true } },
+    { path: '/statements', name: 'statements', component: StatementListView, meta: { requiresAuth: true } },
     { path: '/notifications', name: 'notifications', component: NotificationView, meta: { requiresAuth: true } }
   ]
 })
