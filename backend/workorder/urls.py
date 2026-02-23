@@ -1,6 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from . import views
 from .auth_views import (
     LoginView,
     change_password,
@@ -11,7 +12,6 @@ from .auth_views import (
     register_view,
     update_profile,
 )
-from . import views
 from .views.monitoring import (
     BusinessMetricsViewSet,
     DashboardMonitoringViewSet,
