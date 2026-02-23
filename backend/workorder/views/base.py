@@ -4,33 +4,24 @@
 包含客户、部门、工序等基础数据的视图集。
 """
 
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, status, viewsets
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from ..models.base import Customer, Department, Process
-from ..permissions import SuperuserFriendlyModelPermissions
 from ..serializers.base import (
     CustomerSerializer,
     DepartmentSerializer,
     ProcessSerializer,
 )
+from .base_viewsets import BaseViewSet
 
 
-class CustomerViewSet(viewsets.ModelViewSet):
+class CustomerViewSet(BaseViewSet):
     """客户视图集"""
 
     queryset = Customer.objects.all()
-    permission_classes = [
-        SuperuserFriendlyModelPermissions
-    ]  # 使用超级用户友好的模型权限
     serializer_class = CustomerSerializer
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
     search_fields = ["name", "contact_person", "phone"]
     ordering_fields = ["created_at", "name"]
     ordering = ["-created_at"]
@@ -80,20 +71,14 @@ class CustomerViewSet(viewsets.ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
 
-class DepartmentViewSet(viewsets.ModelViewSet):
+class DepartmentViewSet(BaseViewSet):
     """部门视图集
 
     提供部门的 CRUD 操作、搜索、过滤和排序功能。
     """
 
-    permission_classes = [SuperuserFriendlyModelPermissions]
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
     filterset_fields = ["is_active", "parent"]
     search_fields = ["name", "code"]
     ordering_fields = ["sort_order", "code"]
@@ -175,20 +160,14 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class ProcessViewSet(viewsets.ModelViewSet):
+class ProcessViewSet(BaseViewSet):
     """工序视图集
 
     提供工序的 CRUD 操作、搜索、过滤和排序功能。
     """
 
-    permission_classes = [SuperuserFriendlyModelPermissions]
     queryset = Process.objects.all()
     serializer_class = ProcessSerializer
-    filter_backends = [
-        DjangoFilterBackend,
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
     filterset_fields = ["is_active", "is_builtin", "task_generation_rule"]
     search_fields = ["name", "code", "description"]
     ordering_fields = ["sort_order", "code", "created_at"]
