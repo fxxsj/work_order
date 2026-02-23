@@ -350,12 +350,98 @@ class StockOutViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        stock_out.status = "completed"
-        stock_out.approved_by = request.user
-        stock_out.approved_at = timezone.now()
-        stock_out.save()
+        if stock_out.out_type != "delivery" or not stock_out.delivery_order_id:
+            return Response(
+                {"error": "当前仅支持【发货出库】的审核扣减库存"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        # TODO: 扣减库存
+        delivery_order = stock_out.delivery_order
+        if delivery_order.status != "pending":
+            return Response(
+                {"error": "发货单不是【待发货】状态，无法再次扣减库存"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        with transaction.atomic():
+            for item in delivery_order.items.select_related(
+                "product", "sales_order_item"
+            ).all():
+                remaining = item.quantity
+
+                if item.stock_batch:
+                    stock = (
+                        ProductStock.objects.select_for_update()
+                        .filter(
+                            batch_no=item.stock_batch,
+                            product=item.product,
+                            status="in_stock",
+                        )
+                        .first()
+                    )
+                    if not stock:
+                        return Response(
+                            {
+                                "error": (
+                                    f"产品 {item.product.name} 指定批次 {item.stock_batch} 不存在或不可用"
+                                )
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                    available = stock.quantity - stock.reserved_quantity
+                    if available < remaining:
+                        return Response(
+                            {
+                                "error": (
+                                    f"产品 {item.product.name} 批次 {item.stock_batch} 库存不足，缺少 {remaining - available}"
+                                )
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                    stock.quantity -= remaining
+                    stock.save(update_fields=["quantity", "updated_at"])
+                    remaining = 0
+                else:
+                    stocks = (
+                        ProductStock.objects.select_for_update()
+                        .filter(product=item.product, status="in_stock")
+                        .order_by("created_at")
+                    )
+
+                    for stock in stocks:
+                        if remaining <= 0:
+                            break
+                        available = stock.quantity - stock.reserved_quantity
+                        if available <= 0:
+                            continue
+                        deduct = min(available, remaining)
+                        stock.quantity -= deduct
+                        stock.save(update_fields=["quantity", "updated_at"])
+                        remaining -= deduct
+
+                if remaining > 0:
+                    return Response(
+                        {"error": f"产品 {item.product.name} 库存不足，缺少 {remaining}"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                if item.sales_order_item:
+                    item.sales_order_item.delivered_quantity += item.quantity
+                    item.sales_order_item.save(update_fields=["delivered_quantity"])
+
+            stock_out.status = "completed"
+            stock_out.approved_by = request.user
+            stock_out.approved_at = timezone.now()
+            if not stock_out.operator_id:
+                stock_out.operator = request.user
+            stock_out.save()
+
+            delivery_order.status = "shipped"
+            if not delivery_order.delivery_date:
+                delivery_order.delivery_date = timezone.now().date()
+            delivery_order.save(update_fields=["status", "delivery_date", "updated_at"])
 
         serializer = self.get_serializer(stock_out)
         return Response({"message": "出库单审核成功", "data": serializer.data})
@@ -546,7 +632,6 @@ class DeliveryOrderViewSet(viewsets.ModelViewSet):
         if received_notes:
             delivery_order.received_notes = received_notes
 
-        # TODO: 上传签收照片
         receiver_signature = request.FILES.get("receiver_signature")
         if receiver_signature:
             delivery_order.receiver_signature = receiver_signature
