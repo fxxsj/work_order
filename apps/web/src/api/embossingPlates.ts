@@ -1,11 +1,7 @@
 import { http } from '../lib/http'
+import { createApiWithActions } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type EmbossingPlate = {
   id: number
@@ -22,28 +18,29 @@ export type EmbossingPlate = {
   updated_at?: string
 }
 
+export const embossingPlateApi = createApiWithActions(
+  'embossing-plates',
+  {
+    confirm: async (id: number) => (await http.post<EmbossingPlate>(`/embossing-plates/${id}/confirm/`)).data
+  }
+)
+
 export async function listEmbossingPlates(params: { page: number; page_size: number; search?: string }) {
-  const res = await http.get<PaginatedResult<EmbossingPlate>>('/embossing-plates/', { params })
-  return res.data
+  return embossingPlateApi.list(params)
 }
 
 export async function createEmbossingPlate(input: Partial<EmbossingPlate>) {
-  const res = await http.post<EmbossingPlate>('/embossing-plates/', input)
-  return res.data
+  return embossingPlateApi.create(input)
 }
 
 export async function updateEmbossingPlate(id: number, input: Partial<EmbossingPlate>) {
-  const res = await http.put<EmbossingPlate>(`/embossing-plates/${id}/`, input)
-  return res.data
+  return embossingPlateApi.update(id, input)
 }
 
 export async function deleteEmbossingPlate(id: number) {
-  const res = await http.delete(`/embossing-plates/${id}/`)
-  return res.data
+  return embossingPlateApi.delete(id)
 }
 
 export async function confirmEmbossingPlate(id: number) {
-  const res = await http.post<EmbossingPlate>(`/embossing-plates/${id}/confirm/`)
-  return res.data
+  return embossingPlateApi.confirm(id)
 }
-
