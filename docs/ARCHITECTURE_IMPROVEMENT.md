@@ -26,7 +26,7 @@
 - [x] CI：修复 Load Test 误失败（SLA 通过时强制 0 退出码 + 移除无效的 `$?` 检查）
 - [x] 前端：统一运行时配置（已收敛到 `apps/web/src/config/index.ts`，并移除 `utils/runtimeConfig.ts`）
 - [x] 前端：全局错误处理（统一 `formatError` + Axios 网络异常 toast；`ResourceList`/业务列表页使用同一套错误格式化）
-- [ ] 未完成功能：逐项评估/移除/补齐（剩余：multi-level approval；已补齐：inventory/finance/notification）
+- [ ] 未完成功能：逐项评估/移除/补齐（剩余：multi-level approval（初始化脚本/路由注释已修复，待最小集成测试与验收）；已补齐：inventory/finance/notification）
 
 ### P2：完成核心功能
 
@@ -696,7 +696,7 @@ echo "*.backup" >> .gitignore
 
 | 功能 | 决策 | 行动 |
 |------|------|------|
-| 多级审批 | 待评估 | 与业务确认需求，或移除 |
+| 多级审批 | 保留 | 修复初始化脚本/数据模型一致性，补最小集成测试，清理重复旧实现 |
 | 库存管理 | 保留 | 完成 TODO 项 |
 | 财务模块 | 保留 | 优先完成对账单逻辑 |
 | 通知功能 | 保留 | 重新实现或替换为第三方服务 |

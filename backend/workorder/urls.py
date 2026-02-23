@@ -58,15 +58,9 @@ from .views import (
     WorkOrderViewSet,
 )
 
-# TODO: 多级审批功能待恢复（等待模型迁移完成）
-# 暂时注释掉有问题的导入，避免自动重载错误
-# 恢复步骤：
-# 1. 取消注释下面的导入语句
-# 2. 取消注释下面的路由注册（第85-94行附近）
-# 3. 运行数据库迁移: python manage.py migrate
-# 4. 测试多级审批功能是否正常
-# 相关 issue: #XXX
-#
+# 多级审批端点已启用。
+# 确保已执行数据库迁移，并可运行 `python manage.py init_multi_level_approval --force`
+# 生成默认工作流/规则数据。
 from .views.multi_level_approval import (
     ApprovalReportViewSet,
     ApprovalStepViewSet,
@@ -134,8 +128,6 @@ router.register(
     r"quality-inspections", QualityInspectionViewSet, basename="quality-inspection"
 )
 
-# TODO: 多级审批功能待恢复（见上方第22-30行的详细说明）
-# 暂时注释掉有问题的路由注册，直到模型迁移完成
 router.register(r"approval-workflows", ApprovalWorkflowViewSet)
 router.register(r"approval-steps", ApprovalStepViewSet)
 router.register(
