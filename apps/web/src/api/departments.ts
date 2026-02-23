@@ -1,11 +1,8 @@
 import { http } from '../lib/http'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+import { createCrudApi } from './base'
+
+export type { PaginatedResult } from './base'
 
 export type Department = {
   id: number
@@ -21,9 +18,10 @@ export type Department = {
   level?: number
 }
 
+export const departmentApi = createCrudApi<Department>('departments')
+
 export async function listDepartments(params: { page: number; page_size: number; search?: string }) {
-  const res = await http.get<PaginatedResult<Department>>('/departments/', { params })
-  return res.data
+  return departmentApi.list(params)
 }
 
 export async function listAllDepartments(params?: { is_active?: boolean }) {
@@ -37,16 +35,13 @@ export async function getDepartmentTree() {
 }
 
 export async function createDepartment(input: Partial<Department>) {
-  const res = await http.post<Department>('/departments/', input)
-  return res.data
+  return departmentApi.create(input)
 }
 
 export async function updateDepartment(id: number, input: Partial<Department>) {
-  const res = await http.put<Department>(`/departments/${id}/`, input)
-  return res.data
+  return departmentApi.update(id, input)
 }
 
 export async function deleteDepartment(id: number) {
-  const res = await http.delete(`/departments/${id}/`)
-  return res.data
+  return departmentApi.delete(id)
 }

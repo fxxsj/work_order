@@ -1,11 +1,6 @@
-import { http } from '../lib/http'
+import { createCrudApi } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type Product = {
   id: number
@@ -18,23 +13,20 @@ export type Product = {
   description?: string
 }
 
+export const productApi = createCrudApi<Product>('products')
+
 export async function listProducts(params: { page: number; page_size: number; search?: string }) {
-  const res = await http.get<PaginatedResult<Product>>('/products/', { params })
-  return res.data
+  return productApi.list(params)
 }
 
 export async function createProduct(input: Partial<Product>) {
-  const res = await http.post<Product>('/products/', input)
-  return res.data
+  return productApi.create(input)
 }
 
 export async function updateProduct(id: number, input: Partial<Product>) {
-  const res = await http.put<Product>(`/products/${id}/`, input)
-  return res.data
+  return productApi.update(id, input)
 }
 
 export async function deleteProduct(id: number) {
-  const res = await http.delete(`/products/${id}/`)
-  return res.data
+  return productApi.delete(id)
 }
-

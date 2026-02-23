@@ -1,11 +1,6 @@
-import { http } from '../lib/http'
+import { createCrudApi } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type Customer = {
   id: number
@@ -19,23 +14,20 @@ export type Customer = {
   updated_at?: string
 }
 
+export const customerApi = createCrudApi<Customer>('customers')
+
 export async function listCustomers(params: { page: number; page_size: number; search?: string }) {
-  const res = await http.get<PaginatedResult<Customer>>('/customers/', { params })
-  return res.data
+  return customerApi.list(params)
 }
 
 export async function createCustomer(input: Partial<Customer>) {
-  const res = await http.post<Customer>('/customers/', input)
-  return res.data
+  return customerApi.create(input)
 }
 
 export async function updateCustomer(id: number, input: Partial<Customer>) {
-  const res = await http.put<Customer>(`/customers/${id}/`, input)
-  return res.data
+  return customerApi.update(id, input)
 }
 
 export async function deleteCustomer(id: number) {
-  const res = await http.delete(`/customers/${id}/`)
-  return res.data
+  return customerApi.delete(id)
 }
-

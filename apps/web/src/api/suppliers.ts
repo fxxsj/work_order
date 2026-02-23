@@ -1,11 +1,6 @@
-import { http } from '../lib/http'
+import { createCrudApi } from './base'
 
-export type PaginatedResult<T> = {
-  count: number
-  next: string | null
-  previous: string | null
-  results: T[]
-}
+export type { PaginatedResult } from './base'
 
 export type Supplier = {
   id: number
@@ -23,28 +18,24 @@ export type Supplier = {
   updated_at?: string
 }
 
+export const supplierApi = createCrudApi<Supplier>('suppliers')
+
 export async function listSuppliers(params: { page: number; search?: string; status?: string }) {
-  const res = await http.get<PaginatedResult<Supplier>>('/suppliers/', { params })
-  return res.data
+  return supplierApi.list(params)
 }
 
 export async function getSupplier(id: number) {
-  const res = await http.get<Supplier>(`/suppliers/${id}/`)
-  return res.data
+  return supplierApi.retrieve(id)
 }
 
 export async function createSupplier(input: Partial<Supplier>) {
-  const res = await http.post<Supplier>('/suppliers/', input)
-  return res.data
+  return supplierApi.create(input)
 }
 
 export async function updateSupplier(id: number, input: Partial<Supplier>) {
-  const res = await http.put<Supplier>(`/suppliers/${id}/`, input)
-  return res.data
+  return supplierApi.update(id, input)
 }
 
 export async function deleteSupplier(id: number) {
-  const res = await http.delete(`/suppliers/${id}/`)
-  return res.data
+  return supplierApi.delete(id)
 }
-
