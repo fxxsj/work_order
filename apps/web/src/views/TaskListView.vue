@@ -20,7 +20,23 @@
     </div>
 
     <el-card>
-      <el-table :data="items" v-loading="loading" style="width: 100%">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px">
+        <div style="display: flex; gap: 8px; align-items: center">
+          <el-button size="small" type="success" :disabled="!selected.length" :loading="batchCompleting" @click="openBatchComplete">
+            批量完成
+          </el-button>
+          <div style="font-size: 12px; color: #666">已选 {{ selected.length }} 项</div>
+        </div>
+      </div>
+
+      <el-table
+        :data="items"
+        v-loading="loading"
+        style="width: 100%"
+        row-key="id"
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column type="selection" width="48" />
         <el-table-column label="施工单" min-width="140">
           <template #default="{ row }">{{ row.work_order_process_info?.work_order?.order_number || '-' }}</template>
         </el-table-column>
@@ -51,6 +67,21 @@
         />
       </div>
     </el-card>
+
+    <el-dialog v-model="batchCompleteOpen" title="批量完成任务" width="520px">
+      <el-form label-width="90px">
+        <el-form-item label="完成理由">
+          <el-input v-model="batchCompleteReason" placeholder="可选" />
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="batchCompleteNotes" type="textarea" :rows="3" placeholder="可选" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button size="small" @click="batchCompleteOpen = false">取消</el-button>
+        <el-button size="small" type="primary" :loading="batchCompleting" @click="submitBatchComplete">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -58,7 +89,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { exportTasks, listTasks, type WorkOrderTaskListItem } from '../api/tasks'
+import { batchCompleteTasks, exportTasks, listTasks, type WorkOrderTaskListItem } from '../api/tasks'
 import { downloadBlob, getFilenameFromContentDisposition } from '../lib/download'
 
 const router = useRouter()
@@ -70,6 +101,11 @@ const page = ref(1)
 const pageSize = ref(20)
 const search = ref('')
 const exporting = ref(false)
+const selected = ref<WorkOrderTaskListItem[]>([])
+const batchCompleteOpen = ref(false)
+const batchCompleteReason = ref('')
+const batchCompleteNotes = ref('')
+const batchCompleting = ref(false)
 
 async function fetchList() {
   loading.value = true
@@ -106,6 +142,40 @@ function handlePageSizeChange(next: number) {
 
 function goHome() {
   router.push({ name: 'dashboard' })
+}
+
+function handleSelectionChange(rows: WorkOrderTaskListItem[]) {
+  selected.value = rows
+}
+
+function openBatchComplete() {
+  if (!selected.value.length) return
+  batchCompleteReason.value = ''
+  batchCompleteNotes.value = ''
+  batchCompleteOpen.value = true
+}
+
+async function submitBatchComplete() {
+  if (!selected.value.length) {
+    batchCompleteOpen.value = false
+    return
+  }
+
+  batchCompleting.value = true
+  try {
+    await batchCompleteTasks({
+      task_ids: selected.value.map((t) => t.id),
+      completion_reason: batchCompleteReason.value,
+      notes: batchCompleteNotes.value
+    })
+    ElMessage.success('批量完成已提交')
+    batchCompleteOpen.value = false
+    await fetchList()
+  } catch (err: any) {
+    ElMessage.error(err?.response?.data?.error || err?.message || '批量完成失败')
+  } finally {
+    batchCompleting.value = false
+  }
 }
 
 async function handleExport() {

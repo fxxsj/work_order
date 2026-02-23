@@ -72,6 +72,20 @@ export async function exportTasks(params?: { search?: string; ordering?: string;
   return http.get('/workorder-tasks/export/', { params, responseType: 'blob' })
 }
 
+export async function batchCompleteTasks(input: {
+  task_ids: number[]
+  completion_reason?: string
+  notes?: string
+}) {
+  return (
+    await http.post('/workorder-tasks/batch_complete/', {
+      task_ids: input.task_ids,
+      completion_reason: input.completion_reason || '',
+      notes: input.notes || ''
+    })
+  ).data
+}
+
 export type OperatorCenterResponse = {
   my_tasks: WorkOrderTaskListItem[]
   claimable_tasks: WorkOrderTaskListItem[]
