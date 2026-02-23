@@ -1,6 +1,6 @@
 # 多平台客户端交付（Web / macOS / Windows / Android）
 
-> 更新时间：2026-02-22  
+> 更新时间：2026-02-23  
 > 目标：把同一套 `apps/web` 业务代码交付到 Web、Tauri 桌面端、Capacitor Android。
 
 ## 0. 约定
@@ -93,8 +93,8 @@ npm run android:open
 
 ### 3.1 GitHub Release（tag 触发）
 
-推送 tag（例如 `v1.0.0` 或 `android-v1.0.0`）会触发 `.github/workflows/android-release.yml`，构建 Android release APK/AAB 并发布到 GitHub Releases。
-当使用 `v1.0.0` 时，会与桌面端/Web 的 Release（`.github/workflows/release.yml`）共用同一个 GitHub Release 并追加上传 Android 产物。
+推送 tag（例如 `v1.0.0` 或 `android-v1.0.0`）会触发 `.github/workflows/android-release.yml`，构建 Android release APK/AAB 并上传到 GitHub Releases。
+当使用 `v1.0.0` 时，会等待桌面端/Web 的 Release（`.github/workflows/release.yml`）创建同 tag 的 GitHub Release 后再追加上传 Android 产物；当 tag 为 `android-v*`（或 release 尚不存在）时会兜底创建 release 再上传。
 默认会生成 `app-release-unsigned.apk` 与 `app-release-unsigned.aab`；配置 keystore secrets 后会额外输出签名后的 `app-release-signed.apk` 与 `app-release-signed.aab`。
 版本号从 tag 注入到 Android 工程（`versionName/versionCode`），确保每次发布递增（稳定版 suffix=9，预发布 alpha/beta/rc suffix=1/2/3）。
 
