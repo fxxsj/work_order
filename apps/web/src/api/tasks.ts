@@ -72,6 +72,46 @@ export async function exportTasks(params?: { search?: string; ordering?: string;
   return http.get('/workorder-tasks/export/', { params, responseType: 'blob' })
 }
 
+export type AssignmentHistoryItem = {
+  id?: number
+  log_type?: string
+  content?: string
+  created_at?: string
+  operator_name?: string
+  task_info?: {
+    id: number
+    work_content: string
+    assigned_department?: string | null
+    assigned_operator?: string | null
+  }
+  work_order_info?: {
+    id: number
+    order_number: string
+    customer_name?: string | null
+  }
+}
+
+export type AssignmentHistoryResponse = {
+  results: AssignmentHistoryItem[]
+  total: number
+  page: number
+  page_size: number
+  total_pages: number
+}
+
+export async function getAssignmentHistory(params: {
+  page: number
+  page_size: number
+  task_id?: number | string
+  department_id?: number | string
+  operator_id?: number | string
+  start_date?: string
+  end_date?: string
+}) {
+  const res = await http.get<AssignmentHistoryResponse>('/workorder-tasks/assignment_history/', { params })
+  return res.data
+}
+
 export async function batchCompleteTasks(input: {
   task_ids: number[]
   completion_reason?: string

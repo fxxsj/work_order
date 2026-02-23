@@ -11,6 +11,7 @@
       <div class="actions">
         <el-button type="primary" @click="goWorkOrders">施工单</el-button>
         <el-button @click="goTasks">任务</el-button>
+        <el-button @click="goTaskAssignmentHistory">任务分派历史</el-button>
         <el-button @click="goOperatorCenter">操作员中心</el-button>
         <el-button @click="goNotifications">通知</el-button>
         <el-button @click="goDownload">客户端下载</el-button>
@@ -66,6 +67,10 @@ function goWorkOrders() {
 
 function goTasks() {
   router.push({ name: 'tasks' })
+}
+
+function goTaskAssignmentHistory() {
+  router.push({ name: 'task-assignment-history' })
 }
 
 function goOperatorCenter() {
