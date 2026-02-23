@@ -78,7 +78,7 @@ class RealtimeNotificationService:
     """实时通知服务"""
 
     def __init__(self):
-        self.channel_layer = get_channel_layer()
+        self.channel_layer = None
 
     def send_notification(
         self,
@@ -152,10 +152,15 @@ class RealtimeNotificationService:
     ):
         """发送WebSocket通知"""
         try:
+            channel_layer = self.channel_layer
+            if channel_layer is None:
+                channel_layer = get_channel_layer()
+                self.channel_layer = channel_layer
+
             for recipient in recipients:
                 group_name = f"user_{recipient.id}_notifications"
 
-                async_to_sync(self.channel_layer.group_send)(
+                async_to_sync(channel_layer.group_send)(
                     group_name, {"type": "notification_message", "notification": data}
                 )
         except Exception as e:

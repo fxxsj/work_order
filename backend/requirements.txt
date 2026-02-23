@@ -24,7 +24,9 @@ pytest-xdist==3.5.0
 # pylint==3.0.3
 channels>=4.0.0
 daphne>=4.0.0
+channels-redis>=4.2.0
 redis>=5.0.0
+django-redis>=5.4.0
 
 # API Documentation
 drf-spectacular==0.27.0

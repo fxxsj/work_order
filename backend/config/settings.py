@@ -107,16 +107,26 @@ ASGI_APPLICATION = "config.asgi.application"
 REDIS_URL = os.environ.get("REDIS_URL")
 
 if REDIS_URL:
-    # Production: Use Redis channel layer
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels_redis.core.RedisChannelLayer",
-            "CONFIG": {
-                "hosts": [REDIS_URL],
-                "symmetric_encryption_keys": [SECRET_KEY],
+    # Use Redis channel layer if available; otherwise fall back to in-memory so the
+    # app can still boot in minimal environments (e.g. CI smoke runs).
+    try:
+        import channels_redis  # noqa: F401
+
+        CHANNEL_LAYERS = {
+            "default": {
+                "BACKEND": "channels_redis.core.RedisChannelLayer",
+                "CONFIG": {
+                    "hosts": [REDIS_URL],
+                    "symmetric_encryption_keys": [SECRET_KEY],
+                },
             },
-        },
-    }
+        }
+    except ImportError:
+        CHANNEL_LAYERS = {
+            "default": {
+                "BACKEND": "channels.layers.InMemoryChannelLayer",
+            },
+        }
 else:
     # Development: Use in-memory channel layer
     CHANNEL_LAYERS = {
