@@ -91,7 +91,9 @@ def invalidate_dashboard_cache_on_workorder_change(sender, instance, **kwargs):
         except AttributeError:
             cache.delete("dashboard:metrics:v1")
     except Exception as e:
-        logger.error(f"Error invalidating dashboard cache for work order {instance.id}: {e}")
+        logger.error(
+            f"Error invalidating dashboard cache for work order {instance.id}: {e}"
+        )
 
 
 @receiver(post_save, sender=Department)

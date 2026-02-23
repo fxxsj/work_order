@@ -9,15 +9,23 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddIndex(
             model_name="tasklog",
-            index=models.Index(fields=["log_type", "created_at"], name="tasklog_type_created_idx"),
+            index=models.Index(
+                fields=["log_type", "created_at"],
+                name="tasklog_type_created_idx",
+            ),
         ),
         migrations.AddIndex(
             model_name="tasklog",
-            index=models.Index(fields=["operator", "created_at"], name="tasklog_operator_created_idx"),
+            index=models.Index(
+                fields=["operator", "created_at"],
+                name="tasklog_operator_created_idx",
+            ),
         ),
         migrations.AddIndex(
             model_name="tasklog",
-            index=models.Index(fields=["task", "created_at"], name="tasklog_task_created_idx"),
+            index=models.Index(
+                fields=["task", "created_at"],
+                name="tasklog_task_created_idx",
+            ),
         ),
     ]
-
