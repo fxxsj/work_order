@@ -30,16 +30,33 @@ export function clearRuntimeConfig() {
   localStorage.removeItem(STORAGE_KEY)
 }
 
+function ensureHttpProtocol(url: string) {
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(url)) return url
+  if (url.startsWith('/') || url.startsWith('./') || url.startsWith('../')) return url
+  if (url.startsWith('//')) {
+    const protocol =
+      typeof window !== 'undefined' && window.location?.protocol ? window.location.protocol : 'http:'
+    return `${protocol}${url}`
+  }
+  const protocol =
+    typeof window !== 'undefined' && window.location?.protocol === 'https:' ? 'https://' : 'http://'
+  return `${protocol}${url}`
+}
+
 export function normalizeApiBaseUrl(input: string) {
   const value = String(input || '').trim().replace(/\/+$/, '')
   if (!value) return ''
-  if (/\/api(\/|$)/.test(value)) return value
-  return `${value}/api`
+  const withProtocol = ensureHttpProtocol(value)
+  if (/\/api(\/|$)/.test(withProtocol)) return withProtocol
+  return `${withProtocol}/api`
 }
 
 export function getApiBaseUrl() {
   const runtime = getRuntimeConfig()
-  return runtime.apiBaseUrl || (import.meta.env.VITE_API_BASE_URL as string | undefined) || '/api'
+  if (runtime.apiBaseUrl) return normalizeApiBaseUrl(runtime.apiBaseUrl) || '/api'
+  const env = import.meta.env.VITE_API_BASE_URL as string | undefined
+  if (env) return normalizeApiBaseUrl(env) || '/api'
+  return '/api'
 }
 
 function normalizeWsBaseUrlProtocol(url: string) {
@@ -95,4 +112,3 @@ export function buildNotificationsWsUrl(auth: { token?: string; ticket?: string 
   const wsPrefix = base.endsWith('/ws') ? base : `${base}/ws`
   return `${wsPrefix}/notifications/?${query}`
 }
-

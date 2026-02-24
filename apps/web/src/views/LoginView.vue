@@ -27,7 +27,7 @@
       </el-form>
 
       <div class="footer">
-        <el-link type="primary" :underline="false" @click="showConfig = true">服务器设置</el-link>
+        <el-link type="primary" underline="never" @click="showConfig = true">服务器设置</el-link>
       </div>
     </div>
 
@@ -103,4 +103,3 @@ async function handleLogin() {
   text-align: center;
 }
 </style>
-

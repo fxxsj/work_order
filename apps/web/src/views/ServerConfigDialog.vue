@@ -7,8 +7,8 @@
   >
     <el-form :model="form" label-width="120px">
       <el-form-item label="API Base URL">
-        <el-input v-model="form.apiBaseUrl" placeholder="例如：http://127.0.0.1:8000/api 或 /api" />
-        <div class="hint">建议包含 <code>/api</code>。未包含时会自动补全。</div>
+        <el-input v-model="form.apiBaseUrl" placeholder="例如：http://127.0.0.1:8000/api、127.0.0.1:8000 或 /api" />
+        <div class="hint">建议包含 <code>/api</code>。未包含时会自动补全；未包含协议时会自动补全为 http/https。</div>
       </el-form-item>
       <el-form-item label="WS Base URL">
         <el-input v-model="form.wsBaseUrl" placeholder="例如：ws://127.0.0.1:8001 或 wss://example.com" />
