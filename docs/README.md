@@ -1,6 +1,6 @@
 # docs/ 文档索引
 
-> 最后更新：2026-02-23  
+> 最后更新：2026-02-24  
 > 目标：只保留“与当前代码一致”的核心文档；历史分析/阶段总结统一放入 `docs/archive/`。
 
 ## 推荐阅读顺序（核心）
@@ -10,6 +10,7 @@
 3. [PLATFORM_ANALYSIS.md](PLATFORM_ANALYSIS.md) - 现状盘点与已落地优化项（以代码为准）
 4. [API_DOCUMENTATION.md](API_DOCUMENTATION.md) - API 约定与主要端点说明
 5. [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) - 开发规范与本地开发/部署注意事项
+6. [FRONTEND_ANALYSIS.md](FRONTEND_ANALYSIS.md) - 前端 UI/UX 现状与增量优化路线（以 `apps/web` 为准）
 
 ## 交付与发布
 
