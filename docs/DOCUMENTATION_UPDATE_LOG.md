@@ -14,6 +14,7 @@
    - 按 `apps/web/` 实际代码校准“现状快照”（router/stores/api/views 等）
    - 修正文档示例的可落地性（例如：移除不存在的 Element Plus 组件示例）
    - 将实施路线图调整为可小步提交的 P0-P4 增量计划，并补充验收口径
+   - 后续同步：已落地 P1-P3（`AuthedLayout/SideNav/PageLayout`、核心列表页移动端卡片化、`viewport-fit=cover`）
 
 2. **`docs/README.md`**
    - 更新最后更新时间：2026-02-23 → 2026-02-24

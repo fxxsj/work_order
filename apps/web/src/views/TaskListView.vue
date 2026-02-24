@@ -1,67 +1,89 @@
 <template>
-  <div class="page">
-    <div class="bar">
-      <div class="left">
-        <el-button size="small" @click="goHome">返回</el-button>
-        <div class="title">任务列表（vNext）</div>
-      </div>
-      <div class="right">
-        <el-input
-          v-model="search"
-          size="small"
-          clearable
-          placeholder="搜索：内容/要求"
-          style="width: 260px"
-          @keyup.enter="reload"
-        />
-        <el-button size="small" :loading="loading" @click="reload">查询</el-button>
-        <el-button size="small" :loading="exporting" @click="handleExport">导出</el-button>
-      </div>
-    </div>
+  <PageLayout title="任务列表（vNext）" @back="goHome">
+    <template #actions>
+      <el-input
+        v-model="search"
+        class="wo-pagebar__search"
+        size="small"
+        clearable
+        placeholder="搜索：内容/要求"
+        @keyup.enter="reload"
+      />
+      <el-button size="small" :loading="loading" @click="reload">查询</el-button>
+      <el-button size="small" :loading="exporting" @click="handleExport">导出</el-button>
+    </template>
 
-    <el-card>
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px">
-        <div style="display: flex; gap: 8px; align-items: center">
-          <el-button size="small" type="success" :disabled="!selected.length" :loading="batchCompleting" @click="openBatchComplete">
+    <el-card v-loading="loading">
+      <div class="batch-bar">
+        <div class="batch-bar__left">
+          <el-button size="small" type="success" :disabled="!selectedCount" :loading="batchCompleting" @click="openBatchComplete">
             批量完成
           </el-button>
-          <el-button size="small" type="danger" :disabled="!selected.length" :loading="batchCancelling" @click="openBatchCancel">
+          <el-button size="small" type="danger" :disabled="!selectedCount" :loading="batchCancelling" @click="openBatchCancel">
             批量取消
           </el-button>
-          <el-button size="small" type="warning" :disabled="!selected.length" :loading="batchAssigning" @click="openBatchAssign">
+          <el-button size="small" type="warning" :disabled="!selectedCount" :loading="batchAssigning" @click="openBatchAssign">
             批量分派
           </el-button>
-          <div style="font-size: 12px; color: #666">已选 {{ selected.length }} 项</div>
+          <div class="batch-bar__count">已选 {{ selectedCount }} 项</div>
         </div>
       </div>
 
-      <el-table
-        :data="items"
-        v-loading="loading"
-        style="width: 100%"
-        row-key="id"
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column type="selection" width="48" />
-        <el-table-column label="施工单" min-width="140">
-          <template #default="{ row }">{{ row.work_order_process_info?.work_order?.order_number || '-' }}</template>
-        </el-table-column>
-        <el-table-column label="工序" width="120">
-          <template #default="{ row }">{{ row.work_order_process_info?.process?.name || '-' }}</template>
-        </el-table-column>
-        <el-table-column prop="task_type_display" label="类型" width="120" />
-        <el-table-column prop="work_content" label="内容" min-width="220" show-overflow-tooltip />
-        <el-table-column prop="status_display" label="状态" width="110" />
-        <el-table-column label="完成" width="140">
-          <template #default="{ row }">
-            {{ row.quantity_completed ?? 0 }} / {{ row.production_quantity ?? '-' }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="assigned_department_name" label="部门" width="120" />
-        <el-table-column prop="assigned_operator_name" label="操作员" width="120" />
-      </el-table>
+      <template v-if="isMobile">
+        <div class="mobile-list">
+          <el-card v-for="row in items" :key="row.id" class="mobile-card" shadow="hover">
+            <div class="mobile-card__top">
+              <el-checkbox
+                :model-value="isSelected(row.id)"
+                @update:model-value="(v: boolean) => setSelected(row.id, v)"
+              />
+              <div class="mobile-card__order">
+                {{ row.work_order_process_info?.work_order?.order_number || '-' }}
+              </div>
+              <el-tag size="small">{{ row.status_display || '-' }}</el-tag>
+            </div>
 
-      <div class="pager">
+            <div class="mobile-card__meta">
+              <div class="mobile-card__line">工序：{{ row.work_order_process_info?.process?.name || '-' }}</div>
+              <div class="mobile-card__line">类型：{{ row.task_type_display || '-' }}</div>
+              <div class="mobile-card__line">完成：{{ row.quantity_completed ?? 0 }} / {{ row.production_quantity ?? '-' }}</div>
+              <div class="mobile-card__line">部门：{{ row.assigned_department_name || '-' }}</div>
+              <div class="mobile-card__line">操作员：{{ row.assigned_operator_name || '-' }}</div>
+            </div>
+
+            <div class="mobile-card__content">{{ row.work_content || '-' }}</div>
+          </el-card>
+        </div>
+      </template>
+
+      <template v-else>
+        <el-table
+          :data="items"
+          style="width: 100%"
+          row-key="id"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="48" />
+          <el-table-column label="施工单" min-width="140">
+            <template #default="{ row }">{{ row.work_order_process_info?.work_order?.order_number || '-' }}</template>
+          </el-table-column>
+          <el-table-column label="工序" width="120">
+            <template #default="{ row }">{{ row.work_order_process_info?.process?.name || '-' }}</template>
+          </el-table-column>
+          <el-table-column prop="task_type_display" label="类型" width="120" />
+          <el-table-column prop="work_content" label="内容" min-width="220" show-overflow-tooltip />
+          <el-table-column prop="status_display" label="状态" width="110" />
+          <el-table-column label="完成" width="140">
+            <template #default="{ row }">
+              {{ row.quantity_completed ?? 0 }} / {{ row.production_quantity ?? '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="assigned_department_name" label="部门" width="120" />
+          <el-table-column prop="assigned_operator_name" label="操作员" width="120" />
+        </el-table>
+      </template>
+
+      <div class="wo-pager">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next"
@@ -74,7 +96,7 @@
       </div>
     </el-card>
 
-    <el-dialog v-model="batchCompleteOpen" title="批量完成任务" width="520px">
+    <el-dialog v-model="batchCompleteOpen" title="批量完成任务" :width="isMobile ? '92%' : '520px'">
       <el-form label-width="90px">
         <el-form-item label="完成理由">
           <el-input v-model="batchCompleteReason" placeholder="可选" />
@@ -89,7 +111,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="batchCancelOpen" title="批量取消任务" width="520px">
+    <el-dialog v-model="batchCancelOpen" title="批量取消任务" :width="isMobile ? '92%' : '520px'">
       <el-form label-width="90px">
         <el-form-item label="取消原因" required>
           <el-input v-model="batchCancelReason" placeholder="必填" />
@@ -104,7 +126,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="batchAssignOpen" title="批量分派任务" width="560px">
+    <el-dialog v-model="batchAssignOpen" title="批量分派任务" :width="isMobile ? '96%' : '560px'">
       <el-form label-width="90px">
         <el-form-item label="部门">
           <el-select v-model="batchAssignDepartmentId" filterable clearable placeholder="可选">
@@ -128,19 +150,22 @@
         <el-button size="small" type="warning" :loading="batchAssigning" @click="submitBatchAssign">确定分派</el-button>
       </template>
     </el-dialog>
-  </div>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import PageLayout from '../components/PageLayout.vue'
+import { useBreakpoints } from '../composables/useBreakpoints'
 import { batchAssignTasks, batchCancelTasks, batchCompleteTasks, exportTasks, listTasks, type WorkOrderTaskListItem } from '../api/tasks'
 import { downloadBlob, getFilenameFromContentDisposition } from '../lib/download'
 import { listAllDepartments, type Department } from '../api/departments'
 import { listUsersByDepartment, type UserItem } from '../api/users'
 
 const router = useRouter()
+const { isMobile } = useBreakpoints()
 
 const loading = ref(false)
 const items = ref<WorkOrderTaskListItem[]>([])
@@ -149,7 +174,7 @@ const page = ref(1)
 const pageSize = ref(20)
 const search = ref('')
 const exporting = ref(false)
-const selected = ref<WorkOrderTaskListItem[]>([])
+const selectedIds = reactive(new Set<number>())
 const batchCompleteOpen = ref(false)
 const batchCompleteReason = ref('')
 const batchCompleteNotes = ref('')
@@ -167,6 +192,8 @@ const batchAssigning = ref(false)
 const departments = ref<Department[]>([])
 const users = ref<UserItem[]>([])
 
+const selectedCount = computed(() => selectedIds.size)
+
 async function fetchList() {
   loading.value = true
   try {
@@ -177,6 +204,7 @@ async function fetchList() {
     })
     items.value = data.results
     total.value = data.count
+    selectedIds.clear()
   } catch (err: any) {
     ElMessage.error(err?.response?.data?.error || err?.message || '加载失败')
   } finally {
@@ -205,25 +233,39 @@ function goHome() {
 }
 
 function handleSelectionChange(rows: WorkOrderTaskListItem[]) {
-  selected.value = rows
+  selectedIds.clear()
+  for (const row of rows) selectedIds.add(row.id)
+}
+
+function isSelected(id: number) {
+  return selectedIds.has(id)
+}
+
+function setSelected(id: number, v: boolean) {
+  if (v) selectedIds.add(id)
+  else selectedIds.delete(id)
+}
+
+function getSelectedTaskIds() {
+  return Array.from(selectedIds.values())
 }
 
 function openBatchComplete() {
-  if (!selected.value.length) return
+  if (!selectedIds.size) return
   batchCompleteReason.value = ''
   batchCompleteNotes.value = ''
   batchCompleteOpen.value = true
 }
 
 function openBatchCancel() {
-  if (!selected.value.length) return
+  if (!selectedIds.size) return
   batchCancelReason.value = ''
   batchCancelNotes.value = ''
   batchCancelOpen.value = true
 }
 
 function openBatchAssign() {
-  if (!selected.value.length) return
+  if (!selectedIds.size) return
   batchAssignDepartmentId.value = null
   batchAssignOperatorId.value = null
   batchAssignReason.value = ''
@@ -232,7 +274,8 @@ function openBatchAssign() {
 }
 
 async function submitBatchComplete() {
-  if (!selected.value.length) {
+  const taskIds = getSelectedTaskIds()
+  if (!taskIds.length) {
     batchCompleteOpen.value = false
     return
   }
@@ -240,7 +283,7 @@ async function submitBatchComplete() {
   batchCompleting.value = true
   try {
     await batchCompleteTasks({
-      task_ids: selected.value.map((t) => t.id),
+      task_ids: taskIds,
       completion_reason: batchCompleteReason.value,
       notes: batchCompleteNotes.value
     })
@@ -255,7 +298,8 @@ async function submitBatchComplete() {
 }
 
 async function submitBatchCancel() {
-  if (!selected.value.length) {
+  const taskIds = getSelectedTaskIds()
+  if (!taskIds.length) {
     batchCancelOpen.value = false
     return
   }
@@ -268,7 +312,7 @@ async function submitBatchCancel() {
   batchCancelling.value = true
   try {
     await batchCancelTasks({
-      task_ids: selected.value.map((t) => t.id),
+      task_ids: taskIds,
       cancellation_reason: batchCancelReason.value.trim(),
       notes: batchCancelNotes.value
     })
@@ -283,7 +327,8 @@ async function submitBatchCancel() {
 }
 
 async function submitBatchAssign() {
-  if (!selected.value.length) {
+  const taskIds = getSelectedTaskIds()
+  if (!taskIds.length) {
     batchAssignOpen.value = false
     return
   }
@@ -296,7 +341,7 @@ async function submitBatchAssign() {
   batchAssigning.value = true
   try {
     await batchAssignTasks({
-      task_ids: selected.value.map((t) => t.id),
+      task_ids: taskIds,
       assigned_department: batchAssignDepartmentId.value,
       assigned_operator: batchAssignOperatorId.value,
       reason: batchAssignReason.value,
@@ -357,33 +402,56 @@ watch(
 </script>
 
 <style scoped>
-.page {
-  padding: 16px;
+.batch-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
-.bar {
+.batch-bar__left {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.batch-bar__count {
+  font-size: 12px;
+  color: #666;
+}
+.mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mobile-card__top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
-  gap: 12px;
-}
-.left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.right {
-  display: flex;
-  align-items: center;
   gap: 8px;
+  margin-bottom: 8px;
 }
-.title {
-  font-size: 16px;
+.mobile-card__order {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: 600;
 }
-.pager {
+.mobile-card__meta {
   display: flex;
-  justify-content: flex-end;
-  margin-top: 12px;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  color: #606266;
+  font-size: 13px;
+}
+.mobile-card__content {
+  color: #303133;
+  font-size: 13px;
+  line-height: 1.4;
+  word-break: break-word;
 }
 </style>

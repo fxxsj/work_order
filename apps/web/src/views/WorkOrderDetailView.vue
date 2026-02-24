@@ -22,7 +22,7 @@
     </div>
 
     <el-card v-if="workOrder">
-      <el-descriptions title="基本信息" :column="3" border>
+      <el-descriptions title="基本信息" :column="infoColumns" border>
         <el-descriptions-item label="施工单号">{{ workOrder.order_number }}</el-descriptions-item>
         <el-descriptions-item label="客户">{{ workOrder.customer_name }}</el-descriptions-item>
         <el-descriptions-item label="业务员">{{ workOrder.salesperson_name || '-' }}</el-descriptions-item>
@@ -40,7 +40,7 @@
 
       <el-divider />
 
-      <el-descriptions title="产品" :column="2" border>
+      <el-descriptions title="产品" :column="productColumns" border>
         <el-descriptions-item label="产品名称">{{ workOrder.product_name || '-' }}</el-descriptions-item>
         <el-descriptions-item label="数量">{{ workOrder.quantity }} {{ workOrder.unit }}</el-descriptions-item>
       </el-descriptions>
@@ -96,12 +96,14 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useBreakpoints } from '../composables/useBreakpoints'
 import { approveWorkOrder, getWorkOrder, updateWorkOrderStatus } from '../api/workorders'
 import { useUserStore } from '../stores/user'
 
 const route = useRoute()
 const router = useRouter()
 const user = useUserStore()
+const { isMobile } = useBreakpoints()
 
 const id = computed(() => Number(route.params.id))
 const loading = ref(false)
@@ -115,6 +117,8 @@ const approveForm = reactive({
 })
 
 const canApprove = computed(() => user.hasRole('业务员'))
+const infoColumns = computed(() => (isMobile.value ? 1 : 3))
+const productColumns = computed(() => (isMobile.value ? 1 : 2))
 
 async function load() {
   loading.value = true
@@ -205,4 +209,3 @@ onMounted(() => {
   font-weight: 600;
 }
 </style>
-

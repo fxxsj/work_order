@@ -1,0 +1,56 @@
+.wo-authed {
+  height: 100vh;
+}
+
+.wo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #ebeef5;
+  background: #fff;
+}
+
+.wo-header__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.wo-header__brand {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wo-header__right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.wo-header__user {
+  color: #606266;
+  font-size: 13px;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wo-main {
+  background: #f5f7fa;
+}
+
+.wo-sider {
+  border-right: 1px solid #ebeef5;
+  background: #fff;
+}
+
+.wo-sidenav {
+  border-right: 0;
+}
+

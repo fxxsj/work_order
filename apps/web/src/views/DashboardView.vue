@@ -1,10 +1,5 @@
 <template>
-  <div class="page">
-    <div class="bar">
-      <div class="title">工作台（vNext）</div>
-      <el-button size="small" @click="logout">退出登录</el-button>
-    </div>
-
+  <PageLayout title="工作台（vNext）" :show-back="false">
     <el-card>
       <p>这里将逐步迁移现有模块（施工单、任务、通知等）。</p>
       <p v-if="user.currentUser" class="muted">当前用户：{{ user.currentUser.username }}（ID: {{ user.currentUser.id }}）</p>
@@ -47,12 +42,13 @@
         <el-button @click="goStockOuts">出库单</el-button>
       </div>
     </el-card>
-  </div>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import PageLayout from '../components/PageLayout.vue'
 import { useUserStore } from '../stores/user'
 
 const router = useRouter()
@@ -63,11 +59,6 @@ onMounted(() => {
     // ignore; 401 will be handled globally
   })
 })
-
-function logout() {
-  user.logout()
-  router.push({ name: 'login' })
-}
 
 function goWorkOrders() {
   router.push({ name: 'workorders' })
@@ -215,19 +206,6 @@ function goStockOuts() {
 </script>
 
 <style scoped>
-.page {
-  padding: 16px;
-}
-.bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-.title {
-  font-size: 16px;
-  font-weight: 600;
-}
 .muted {
   margin-top: 8px;
   color: #666;
