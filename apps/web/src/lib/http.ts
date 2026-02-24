@@ -21,7 +21,10 @@ export function getHttpErrorMessage(error: any, fallback: string) {
 export const http = axios.create({
   baseURL: getApiBaseUrl(),
   timeout: 30000,
-  withCredentials: true
+  // 本项目主要使用 Token 认证（Authorization: Token ...）。
+  // 跨域请求开启 withCredentials 会触发更严格的 CORS 校验（不允许 ACAO=*）。
+  // 如需 Cookie/Session 登录，再按需开启。
+  withCredentials: false
 })
 
 http.interceptors.request.use((config) => {
