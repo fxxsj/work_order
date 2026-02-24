@@ -130,7 +130,8 @@ router.register(
 )
 
 urlpatterns = [
-    path("", include(router.urls)),
+    # Auth endpoints should be defined before router include; otherwise the empty-prefix
+    # router include may capture the path and return a DRF 404.
     path("auth/login/", LoginView.as_view(), name="login"),
     path("auth/logout/", logout_view, name="logout"),
     path("auth/user/", get_current_user, name="current-user"),
@@ -139,4 +140,5 @@ urlpatterns = [
     path("auth/users/", get_users_by_department, name="users-by-department"),
     path("auth/change-password/", change_password, name="change-password"),
     path("auth/update-profile/", update_profile, name="update-profile"),
+    path("", include(router.urls)),
 ]
