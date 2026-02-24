@@ -1,22 +1,60 @@
 # 前端 UI/UX 分析报告
 
-> 版本: 1.1  
+> 版本: 1.2  
 > 更新日期: 2026-02-24  
-> 状态: 与当前代码一致（以 `apps/web/` 为准）
+> 状态: 进行中（P1/P2/P3 已落地；P0/P4 待补）
 
 ---
 
+## 进度总览（持续更新）
+
+阶段完成度（按 P0-P4 阶段计）：**3 / 5 = 60%**  
+本次目标完成度（P1-P3）：**3 / 3 = 100%**
+
+### P0：基线与可观测（待补）
+
+- [ ] UI 基线：关键页面截图清单 + 回归路径（登录/工作台/施工单/任务/扫码）
+- [ ] 性能基线：记录构建体积与首屏加载（Lighthouse/DevTools）
+
+### P1：减少页面重复 ✅
+
+- [x] 抽取页面级布局：`apps/web/src/components/PageLayout.vue`
+- [x] 抽取通用样式：`apps/web/src/styles/app.css`（替代多处 `.page/.bar/...` 重复）
+- [x] 迁移高频页面（示例）：`apps/web/src/views/WorkOrderListView.vue`、`apps/web/src/views/TaskListView.vue`、`apps/web/src/views/DashboardView.vue`
+
+### P2：布局与导航 ✅
+
+- [x] 引入认证布局：`apps/web/src/layouts/AuthedLayout.vue`（Header + 桌面侧边栏 + 移动端抽屉）
+- [x] 引入主导航组件：`apps/web/src/components/SideNav.vue`
+- [x] 路由按元信息生成导航：`apps/web/src/router/index.ts`（`meta.title/group/order/nav`）
+
+### P3：移动端可用性 ✅（核心路径已覆盖）
+
+- [x] Viewport：补齐 `viewport-fit=cover`：`apps/web/index.html`
+- [x] 列表页小屏可用：施工单/任务列表小屏降级为卡片（`WorkOrderListView`/`TaskListView`）
+- [x] 详情页小屏信息密度：施工单详情列数随屏幕调整：`apps/web/src/views/WorkOrderDetailView.vue`
+- [x] 响应式能力：`apps/web/src/composables/useBreakpoints.ts`（当前以 768px 二分）
+
+### P4：UI 细节与性能（待做）
+
+- [ ] 图标系统：引入 `@element-plus/icons-vue` 并增量替换关键按钮
+- [ ] Element Plus 按需：引入 `unplugin-auto-import` / `unplugin-vue-components` 并验证体积收益
+- [ ] 长列表体验：虚拟滚动/更优分页策略（按收益评估）
+
+对应提交：`web: implement P1-P3 layout/nav/mobile improvements`（2026-02-24，commit `3b06e36`）
+
 ## 目录
 
-1. [执行摘要](#执行摘要)
-2. [当前架构概述](#当前架构概述)
-3. [布局结构分析](#布局结构分析)
-4. [移动端适配分析](#移动端适配分析)
-5. [UI框架使用分析](#ui框架使用分析)
-6. [与主流方案对比](#与主流方案对比)
-7. [存在问题列表](#存在问题列表)
-8. [改进建议](#改进建议)
-9. [实施路线图](#实施路线图)
+1. [进度总览](#进度总览持续更新)
+2. [执行摘要](#执行摘要)
+3. [当前架构概述](#当前架构概述)
+4. [布局结构分析](#布局结构分析)
+5. [移动端适配分析](#移动端适配分析)
+6. [UI框架使用分析](#ui框架使用分析)
+7. [与主流方案对比](#与主流方案对比)
+8. [存在问题列表](#存在问题列表)
+9. [改进建议](#改进建议)
+10. [实施路线图](#实施路线图)
 
 ---
 
@@ -697,17 +735,18 @@ export const useTabsStore = defineStore('tabs', {
 ### B. 响应式断点参考
 
 ```typescript
-// （建议新增）apps/web/src/composables/useBreakpoints.ts
+// apps/web/src/composables/useBreakpoints.ts
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 export function useBreakpoints() {
-  const width = ref(window.innerWidth)
+  const width = ref(typeof window === 'undefined' ? 1024 : window.innerWidth)
 
   const update = () => {
     width.value = window.innerWidth
   }
 
   onMounted(() => {
+    update()
     window.addEventListener('resize', update)
   })
 
@@ -717,9 +756,7 @@ export function useBreakpoints() {
 
   return {
     width,
-    isMobile: computed(() => width.value < 768),
-    isTablet: computed(() => width.value >= 768 && width.value < 992),
-    isDesktop: computed(() => width.value >= 992)
+    isMobile: computed(() => width.value < 768)
   }
 }
 ```
@@ -736,6 +773,6 @@ export function useBreakpoints() {
 
 ---
 
-*文档版本: 1.1*
+*文档版本: 1.2*
 *最后更新: 2026-02-24*
 *维护者: 开发团队*
