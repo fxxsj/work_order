@@ -6,6 +6,7 @@
           {{ backLabel }}
         </el-button>
         <div class="wo-pagebar__title" :title="title">{{ title }}</div>
+        <slot name="titleExtra" />
       </div>
       <div v-if="$slots.actions" class="wo-pagebar__right">
         <slot name="actions" />
@@ -35,4 +36,3 @@ defineEmits<{
   (e: 'back'): void
 }>()
 </script>
-

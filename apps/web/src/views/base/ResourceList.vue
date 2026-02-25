@@ -1,38 +1,34 @@
 <template>
-  <div class="resource-list">
-    <div class="bar">
-      <div class="left">
-        <el-button v-if="showBack" size="small" @click="goHome">返回</el-button>
-        <div class="title">{{ title }}</div>
-        <el-tag v-if="totalCount !== null" type="info" size="small">共 {{ totalCount }} 条</el-tag>
-      </div>
+  <PageLayout :title="title" :show-back="showBack" :loading="loading" @back="goHome">
+    <template v-if="totalCount !== null" #titleExtra>
+      <el-tag type="info" size="small">共 {{ totalCount }} 条</el-tag>
+    </template>
 
-      <div class="right">
-        <slot name="filters" />
-        <el-input
-          v-model="searchQuery"
-          :placeholder="searchPlaceholder"
-          size="small"
-          clearable
-          style="width: 260px"
-          @clear="handleSearch"
-          @keyup.enter="handleSearch"
-        />
-        <el-button size="small" :loading="loading" @click="handleSearch">查询</el-button>
-        <el-button v-if="canCreate" size="small" type="primary" @click="emit('create')">新建</el-button>
-        <slot name="actions" />
-      </div>
-    </div>
+    <template #actions>
+      <slot name="filters" />
+      <el-input
+        v-model="searchQuery"
+        class="wo-pagebar__search"
+        :placeholder="searchPlaceholder"
+        size="small"
+        clearable
+        @clear="handleSearch"
+        @keyup.enter="handleSearch"
+      />
+      <el-button size="small" :loading="loading" @click="handleSearch">查询</el-button>
+      <el-button v-if="canCreate" size="small" type="primary" @click="emit('create')">新建</el-button>
+      <slot name="actions" />
+    </template>
 
     <el-card>
       <div v-if="slots.cardTop" class="card-top">
         <slot name="cardTop" />
       </div>
-      <el-table v-loading="loading" :data="items" style="width: 100%" @row-click="handleRowClick">
+      <el-table :data="items" style="width: 100%" @row-click="handleRowClick">
         <slot name="columns" />
       </el-table>
 
-      <div class="pager">
+      <div class="wo-pager">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next"
@@ -44,7 +40,7 @@
         />
       </div>
     </el-card>
-  </div>
+  </PageLayout>
 </template>
 
 <script setup lang="ts" generic="T">
@@ -53,6 +49,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import type { PaginatedResult } from '../../api/base'
 import { getHttpErrorMessage } from '../../lib/http'
+import PageLayout from '../../components/PageLayout.vue'
 
 type Api<TItem> = {
   list: (params?: any) => Promise<PaginatedResult<TItem>>
@@ -142,38 +139,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.resource-list {
-  padding: 16px;
-}
-.bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  gap: 12px;
-}
-.left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 220px;
-}
-.right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-.title {
-  font-size: 14px;
-  font-weight: 600;
-}
-.pager {
-  margin-top: 12px;
-  display: flex;
-  justify-content: flex-end;
-}
 .card-top {
   margin-bottom: 12px;
 }
