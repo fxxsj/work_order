@@ -3,7 +3,6 @@
  * 管理用户信息和认证状态
  */
 
-import { login } from '@/api/auth'
 import { authAPI } from '@/api/modules'
 import { permissionService } from '@/services'
 
@@ -143,7 +142,7 @@ const actions = {
   async login({ commit }, { username, password }) {
     try {
       // 调用认证 API
-      const response = await login({ username, password })
+      const response = await authAPI.login({ username, password })
 
       if (response.id) {
         // 登录成功，提取用户信息

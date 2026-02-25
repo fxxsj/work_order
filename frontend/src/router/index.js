@@ -2,7 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Layout from '@/views/Layout.vue'
 import store from '@/store'
-import { getCurrentUser } from '@/api/auth'
+import { authAPI } from '@/api/modules'
 
 Vue.use(VueRouter)
 
@@ -315,7 +315,7 @@ router.beforeEach(async (to, from, next) => {
       isAuthChecking = true
       authCheckPromise = (async () => {
         try {
-          const userInfo = await getCurrentUser()
+          const userInfo = await authAPI.getCurrentUser()
           if (userInfo && userInfo.id) {
             store.dispatch('user/initUser', userInfo)
             return true
