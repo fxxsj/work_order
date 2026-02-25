@@ -33,20 +33,24 @@
     <el-drawer v-model="drawerOpen" direction="ltr" size="80%" title="导航">
       <SideNav :groups="navGroups" @navigate="drawerOpen = false" />
     </el-drawer>
+
+    <MobileTabBar v-if="isMobile && !hideTabBar" :unread-count="unreadCount" />
   </el-container>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import SideNav from '../components/SideNav.vue'
 import { authedNavGroups } from '../router'
 import { useBreakpoints } from '../composables/useBreakpoints'
 import { useNotificationsStore } from '../stores/notifications'
 import { useUserStore } from '../stores/user'
 import BreadcrumbNav from '../components/BreadcrumbNav.vue'
+import MobileTabBar from '../components/MobileTabBar.vue'
 
 const router = useRouter()
+const route = useRoute()
 const user = useUserStore()
 const notifications = useNotificationsStore()
 const { isMobile } = useBreakpoints()
@@ -54,6 +58,7 @@ const { isMobile } = useBreakpoints()
 const drawerOpen = ref(false)
 const navGroups = authedNavGroups
 const unreadCount = computed(() => notifications.unreadCount)
+const hideTabBar = computed(() => route.meta?.hideTabBar === true)
 
 onMounted(() => {
   user.fetchCurrentUser().catch(() => {

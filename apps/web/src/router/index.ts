@@ -59,7 +59,7 @@ const authedChildren: RouteRecordRaw[] = [
   { path: 'workorders/create', name: 'workorder-create', component: WorkOrderCreateView, meta: { requiresAuth: true, title: '新建施工单', group: '生产', order: 2, nav: false } satisfies AppRouteMeta },
   { path: 'workorders/:id', name: 'workorder-detail', component: WorkOrderDetailView, meta: { requiresAuth: true, title: '施工单详情', group: '生产', order: 3, nav: false } satisfies AppRouteMeta },
   { path: 'tasks', name: 'tasks', component: TaskListView, meta: { requiresAuth: true, title: '任务', group: '生产', order: 2, nav: true } satisfies AppRouteMeta },
-  { path: 'scan', name: 'scan', component: ScanView, meta: { requiresAuth: true, title: '扫码', group: '生产', order: 3, nav: true } satisfies AppRouteMeta },
+  { path: 'scan', name: 'scan', component: ScanView, meta: { requiresAuth: true, title: '扫码', group: '生产', order: 3, nav: true, hideTabBar: true } satisfies AppRouteMeta },
   { path: 'notifications', name: 'notifications', component: NotificationView, meta: { requiresAuth: true, title: '通知', group: '生产', order: 4, nav: true } satisfies AppRouteMeta },
   { path: 'customers', name: 'customers', component: CustomerListView, meta: { requiresAuth: true, title: '客户', group: '基础数据', order: 1, nav: true } satisfies AppRouteMeta },
   { path: 'products', name: 'products', component: ProductListView, meta: { requiresAuth: true, title: '产品', group: '基础数据', order: 2, nav: true } satisfies AppRouteMeta },
