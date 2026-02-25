@@ -7,18 +7,25 @@
     <el-container>
       <el-header class="wo-header" height="56px">
         <div class="wo-header__left">
-          <el-button v-if="isMobile" size="small" @click="drawerOpen = true">菜单</el-button>
+          <el-button v-if="isMobile" size="small" @click="drawerOpen = true">
+            <el-icon><Menu /></el-icon>
+            菜单
+          </el-button>
           <div class="wo-header__brand">印刷施工单</div>
         </div>
 
         <div class="wo-header__right">
           <el-button size="small" @click="goNotifications">
+            <el-icon><Bell /></el-icon>
             通知<span v-if="unreadCount">（{{ unreadCount }}）</span>
           </el-button>
           <div class="wo-header__user" v-if="user.currentUser">
             {{ user.currentUser.username }}
           </div>
-          <el-button size="small" @click="logout">退出</el-button>
+          <el-button size="small" @click="logout">
+            <el-icon><SwitchButton /></el-icon>
+            退出
+          </el-button>
         </div>
       </el-header>
 
@@ -60,6 +67,7 @@ import { useUserStore } from '../stores/user'
 import BreadcrumbNav from '../components/BreadcrumbNav.vue'
 import MobileTabBar from '../components/MobileTabBar.vue'
 import ErrorBoundary from '../components/ErrorBoundary.vue'
+import { Bell, Menu, SwitchButton } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()

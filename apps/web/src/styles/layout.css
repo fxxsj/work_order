@@ -68,6 +68,11 @@
   font-size: 12px;
   color: #909399;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
 }
 
 .wo-tabbar__item.active {

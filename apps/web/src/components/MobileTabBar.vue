@@ -1,7 +1,8 @@
 <template>
   <nav class="wo-tabbar">
     <button type="button" class="wo-tabbar__item" :class="{ active: isActive('/') }" @click="go('/')">
-      工作台
+      <el-icon :size="18"><HomeFilled /></el-icon>
+      <span>工作台</span>
     </button>
     <button
       type="button"
@@ -9,10 +10,12 @@
       :class="{ active: isActive('/workorders') }"
       @click="go('/workorders')"
     >
-      施工单
+      <el-icon :size="18"><Document /></el-icon>
+      <span>施工单</span>
     </button>
     <button type="button" class="wo-tabbar__item" :class="{ active: isActive('/tasks') }" @click="go('/tasks')">
-      任务
+      <el-icon :size="18"><List /></el-icon>
+      <span>任务</span>
     </button>
     <button
       type="button"
@@ -20,16 +23,21 @@
       :class="{ active: isActive('/notifications') }"
       @click="go('/notifications')"
     >
-      通知<span v-if="unreadCount" class="wo-tabbar__badge">{{ unreadCount }}</span>
+      <el-icon :size="18"><Bell /></el-icon>
+      <span>
+        通知<span v-if="unreadCount" class="wo-tabbar__badge">{{ unreadCount }}</span>
+      </span>
     </button>
     <button type="button" class="wo-tabbar__item" :class="{ active: isActive('/scan') }" @click="go('/scan')">
-      扫码
+      <el-icon :size="18"><Camera /></el-icon>
+      <span>扫码</span>
     </button>
   </nav>
 </template>
 
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
+import { Bell, Camera, Document, HomeFilled, List } from '@element-plus/icons-vue'
 
 defineProps<{
   unreadCount: number
@@ -47,4 +55,3 @@ function isActive(path: string) {
   return route.path.startsWith(path)
 }
 </script>
-
