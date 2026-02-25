@@ -13,150 +13,23 @@
       <!-- 基本信息 -->
       <WorkOrderBasicInfo :work-order="workOrder" />
 
-      <!-- 业务员审核操作 -->
-      <el-card v-if="canApprove && workOrder.approval_status === 'pending'" style="margin-top: 20px;">
-        <div slot="header" class="card-header">
-          <span>业务员审核</span>
-        </div>
-        <el-form
-          ref="approvalForm"
-          :model="approvalForm"
-          label-width="100px"
-          :rules="approvalRules"
-        >
-          <el-form-item label="审核意见" prop="comment">
-            <el-input
-              v-model="approvalForm.comment"
-              type="textarea"
-              :rows="3"
-              placeholder="请输入审核意见（可选）"
-            />
-          </el-form-item>
-          <el-form-item v-if="showRejectionReason" label="拒绝原因" prop="rejection_reason">
-            <el-input
-              v-model="approvalForm.rejection_reason"
-              type="textarea"
-              :rows="3"
-              placeholder="请填写拒绝原因（必填）"
-            />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="success" :loading="approving" @click="handleApprove('approved')">
-              <i class="el-icon-check"></i> 通过审核
-            </el-button>
-            <el-button
-              type="danger"
-              :loading="approving"
-              style="margin-left: 10px;"
-              @click="handleApprove('rejected')"
-            >
-              <i class="el-icon-close"></i> 拒绝审核
-            </el-button>
-          </el-form-item>
-        </el-form>
-      </el-card>
-
-      <!-- 重新提交审核操作（审核拒绝后） -->
-      <el-card v-if="canResubmit && workOrder.approval_status === 'rejected'" style="margin-top: 20px;">
-        <div slot="header" class="card-header">
-          <span>重新提交审核</span>
-        </div>
-        <el-alert
-          type="warning"
-          :closable="false"
-          style="margin-bottom: 15px;"
-        >
-          <div slot="title">
-            <p>该施工单已被拒绝审核。请修改施工单内容后，点击"重新提交审核"按钮。</p>
-            <p v-if="workOrder.approval_comment" style="margin-top: 5px;">
-              <strong>审核意见：</strong>{{ workOrder.approval_comment }}
-            </p>
-            <p v-if="workOrder.approval_logs && workOrder.approval_logs.length > 0">
-              <strong>拒绝原因：</strong>
-              <span v-for="(log, index) in workOrder.approval_logs" :key="index">
-                <span v-if="log.approval_status === 'rejected' && log.rejection_reason">
-                  {{ log.rejection_reason }}
-                </span>
-              </span>
-            </p>
-          </div>
-        </el-alert>
-        <el-form-item>
-          <el-button type="primary" :loading="resubmitting" @click="handleResubmitForApproval">
-            <i class="el-icon-refresh"></i> 重新提交审核
-          </el-button>
-          <span style="margin-left: 10px; color: #909399; font-size: 12px;">
-            提示：修改施工单内容后，审核状态会自动重置为"待审核"
-          </span>
-        </el-form-item>
-      </el-card>
-
-      <!-- 请求重新审核操作（审核通过后） -->
-      <el-card v-if="canRequestReapproval && workOrder.approval_status === 'approved'" style="margin-top: 20px;">
-        <div slot="header" class="card-header">
-          <span>请求重新审核</span>
-        </div>
-        <el-alert
-          type="info"
-          :closable="false"
-          style="margin-bottom: 15px;"
-        >
-          <div slot="title">
-            <p>该施工单已审核通过。如果发现需要修改核心字段（产品、工序、版等），可以请求重新审核。</p>
-            <p style="margin-top: 5px; color: #E6A23C;">
-              <strong>注意：</strong>请求重新审核后，施工单状态将重置为"待审核"，需要重新审核后才能开始生产。
-            </p>
-          </div>
-        </el-alert>
-        <el-form ref="reapprovalForm" :model="reapprovalForm" label-width="120px">
-          <el-form-item label="请求原因" prop="reason">
-            <el-input
-              v-model="reapprovalForm.reason"
-              type="textarea"
-              :rows="3"
-              placeholder="请填写请求重新审核的原因（可选，但建议填写）"
-            />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="warning" :loading="requestingReapproval" @click="handleRequestReapproval">
-              <i class="el-icon-refresh-left"></i> 请求重新审核
-            </el-button>
-            <span style="margin-left: 10px; color: #909399; font-size: 12px;">
-              提示：请求重新审核后，原审核人会收到通知
-            </span>
-          </el-form-item>
-        </el-form>
-      </el-card>
-
-      <!-- 审核历史记录 -->
-      <el-card v-if="workOrder.approval_logs && workOrder.approval_logs.length > 0" style="margin-top: 20px;">
-        <div slot="header" class="card-header">
-          <span>审核历史</span>
-        </div>
-        <el-timeline>
-          <el-timeline-item
-            v-for="(log, index) in workOrder.approval_logs"
-            :key="index"
-            :timestamp="log.approved_at | formatDateTime"
-            placement="top"
-          >
-            <el-card>
-              <h4>
-                <span :class="'status-badge approval-' + log.approval_status">
-                  {{ log.approval_status_display }}
-                </span>
-                <span style="margin-left: 10px; color: #909399;">审核人：{{ log.approved_by_name || '-' }}</span>
-              </h4>
-              <p v-if="log.approval_comment" style="margin-top: 10px;">
-                <strong>审核意见：</strong>{{ log.approval_comment }}
-              </p>
-              <p v-if="log.rejection_reason" style="margin-top: 10px; color: #F56C6C;">
-                <strong>拒绝原因：</strong>{{ log.rejection_reason }}
-              </p>
-            </el-card>
-          </el-timeline-item>
-        </el-timeline>
-      </el-card>
+      <!-- 审核流程 -->
+      <WorkOrderApproval
+        :work-order="workOrder"
+        :can-approve="canApprove"
+        :can-resubmit="canResubmit"
+        :can-request-reapproval="canRequestReapproval"
+        :approving="approving"
+        :resubmitting="resubmitting"
+        :requesting-reapproval="requestingReapproval"
+        :approval-form="approvalForm"
+        :reapproval-form="reapprovalForm"
+        :approval-rules="approvalRules"
+        :show-rejection-reason="showRejectionReason"
+        @approve="handleApprove"
+        @resubmit="handleResubmitForApproval"
+        @request-reapproval="handleRequestReapproval"
+      />
 
 
       <!-- 图稿和刀模信息 -->
@@ -1634,6 +1507,7 @@ import WorkOrderArtworkDie from './components/WorkOrderArtworkDie.vue'
 import WorkOrderNotes from './components/WorkOrderNotes.vue'
 import WorkOrderProducts from './components/WorkOrderProducts.vue'
 import WorkOrderMaterials from './components/WorkOrderMaterials.vue'
+import WorkOrderApproval from './components/WorkOrderApproval.vue'
 // 配置文件（默认值）
 const config = {
   companyName: '肇庆市高要区新西彩包装有限公司'
@@ -1650,7 +1524,8 @@ export default {
     WorkOrderArtworkDie,
     WorkOrderNotes,
     WorkOrderProducts,
-    WorkOrderMaterials
+    WorkOrderMaterials,
+    WorkOrderApproval
   },
   filters: {
     formatDate(value) {
