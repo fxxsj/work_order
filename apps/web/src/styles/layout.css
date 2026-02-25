@@ -45,6 +45,15 @@
   background: #f5f7fa;
 }
 
+.wo-breadcrumb-wrap {
+  padding: 10px 16px 0 16px;
+}
+
+.wo-breadcrumb {
+  font-size: 12px;
+  color: #606266;
+}
+
 .wo-sider {
   border-right: 1px solid #ebeef5;
   background: #fff;
@@ -53,4 +62,3 @@
 .wo-sidenav {
   border-right: 0;
 }
-

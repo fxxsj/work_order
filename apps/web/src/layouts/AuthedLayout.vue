@@ -23,6 +23,9 @@
       </el-header>
 
       <el-main class="wo-main">
+        <div v-if="!isMobile" class="wo-breadcrumb-wrap">
+          <BreadcrumbNav />
+        </div>
         <router-view />
       </el-main>
     </el-container>
@@ -41,6 +44,7 @@ import { authedNavGroups } from '../router'
 import { useBreakpoints } from '../composables/useBreakpoints'
 import { useNotificationsStore } from '../stores/notifications'
 import { useUserStore } from '../stores/user'
+import BreadcrumbNav from '../components/BreadcrumbNav.vue'
 
 const router = useRouter()
 const user = useUserStore()
@@ -69,4 +73,3 @@ function logout() {
   router.push({ name: 'login' })
 }
 </script>
-
