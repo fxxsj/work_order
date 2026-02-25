@@ -16,15 +16,16 @@
 - [x] 认证布局（Header + 桌面侧边栏 + 移动端抽屉）：`apps/web/src/layouts/AuthedLayout.vue`
 - [x] 导航从路由元信息生成（`meta.title/group/order/nav`）：`apps/web/src/router/index.ts`
 - [x] 页面级统一头部（返回/标题/操作区）：`apps/web/src/components/PageLayout.vue`
-- [x] 基础断点能力（当前以 768px 二分）：`apps/web/src/composables/useBreakpoints.ts`
+- [x] 断点能力（mobile/tablet/desktop + current）：`apps/web/src/composables/useBreakpoints.ts`
 - [x] 核心列表页移动端降级（卡片化）：`apps/web/src/views/WorkOrderListView.vue`、`apps/web/src/views/TaskListView.vue`
 - [x] 安全区域基础支持：`apps/web/index.html`（`viewport-fit=cover`）+ 全局 CSS（`env(safe-area-inset-*)`）
+- [x] 面包屑导航（桌面端）：`apps/web/src/components/BreadcrumbNav.vue`
+- [x] 移动端底部 TabBar（核心入口；扫码页隐藏）：`apps/web/src/components/MobileTabBar.vue`
+- [x] 列表页模板进一步收敛：`apps/web/src/views/base/ResourceList.vue` 内部对齐 `PageLayout`
 
 ### 待补（优先级从高到低） ⏳
 
-- [ ] 面包屑导航（基于 `route.matched` + `meta.title`）
-- [ ] 移动端更轻量导航（底部 TabBar，覆盖核心入口）
-- [ ] 列表页模板化（`ListPageLayout` + `useListPage()`）以继续消除重复
+- [ ] 列表页模板化增强（可选）：补齐移动端卡片列表的通用组件/slot 规范
 - [ ] 页面缓存策略（`keep-alive` 的 include/keys 体系 + `meta.keepAlive`）
 - [ ] 长列表性能（虚拟滚动：Table V2 / useVirtualList 等）
 - [ ] 全局体验（骨架屏/错误边界/图标系统/主题与暗色）
@@ -148,4 +149,3 @@
 
 - 当前前端现状与整体路线：`docs/FRONTEND_ANALYSIS.md`
 - 平台整体完成度与优化方向：`docs/PLATFORM_ANALYSIS.md`
-
