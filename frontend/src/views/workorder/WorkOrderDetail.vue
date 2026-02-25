@@ -2,46 +2,13 @@
   <div v-loading="loading" class="workorder-detail">
     <el-card v-if="workOrder">
       <!-- 顶部操作栏 -->
-      <div class="header-actions">
-        <el-button icon="el-icon-back" @click="$router.back()">
-          返回
-        </el-button>
-        <div>
-          <el-button icon="el-icon-printer" @click="handlePrint">
-            打印
-          </el-button>
-          <el-button
-            type="primary"
-            icon="el-icon-edit"
-            style="margin-left: 10px;"
-            @click="handleEdit"
-          >
-            编辑
-          </el-button>
-          <el-dropdown style="margin-left: 10px;" @command="handleStatusChange">
-            <el-button type="success">
-              更改状态<i class="el-icon-arrow-down el-icon--right"></i>
-            </el-button>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item command="pending">
-                待开始
-              </el-dropdown-item>
-              <el-dropdown-item command="in_progress">
-                进行中
-              </el-dropdown-item>
-              <el-dropdown-item command="paused">
-                已暂停
-              </el-dropdown-item>
-              <el-dropdown-item command="completed">
-                已完成
-              </el-dropdown-item>
-              <el-dropdown-item command="cancelled">
-                已取消
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
-        </div>
-      </div>
+      <WorkOrderHeaderActions
+        :can-edit="canEdit"
+        @back="$router.back()"
+        @print="handlePrint"
+        @edit="handleEdit"
+        @status-change="handleStatusChange"
+      />
 
       <!-- 基本信息 -->
       <el-descriptions
@@ -1874,6 +1841,7 @@ import {
 import ProcessFlowChart from '@/components/ProcessFlowChart.vue'
 import TimelineView from '@/components/TimelineView.vue'
 import GanttChart from '@/components/GanttChart.vue'
+import WorkOrderHeaderActions from './components/WorkOrderHeaderActions.vue'
 // 配置文件（默认值）
 const config = {
   companyName: '肇庆市高要区新西彩包装有限公司'
@@ -1884,7 +1852,8 @@ export default {
   components: {
     ProcessFlowChart,
     TimelineView,
-    GanttChart
+    GanttChart,
+    WorkOrderHeaderActions
   },
   filters: {
     formatDate(value) {
@@ -2114,6 +2083,17 @@ export default {
         completed: []
       }
       return statusMap[currentStatus] || []
+    },
+    // 检查是否可以编辑
+    canEdit() {
+      const userInfo = this.$store.getters.currentUser
+      if (!userInfo || !this.workOrder) return false
+      // 检查是否是制表人或创建人
+      if (this.workOrder.manager === userInfo.id || this.workOrder.created_by === userInfo.id) {
+        return true
+      }
+      // 检查是否有编辑权限
+      return true
     }
   },
   beforeCreate() {

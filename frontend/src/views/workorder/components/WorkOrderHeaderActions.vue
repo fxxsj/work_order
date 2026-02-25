@@ -8,10 +8,10 @@
         打印
       </el-button>
       <el-button
+        v-if="canEdit"
         type="primary"
         icon="el-icon-edit"
         style="margin-left: 10px;"
-        :disabled="!canEdit"
         @click="$emit('edit')"
       >
         编辑
