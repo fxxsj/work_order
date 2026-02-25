@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@capacitor/preferences": "^5.0.8",
+    "@element-plus/icons-vue": "^2.3.2",
     "axios": "^1.7.9",
     "element-plus": "^2.8.4",
     "pinia": "^2.2.6",
