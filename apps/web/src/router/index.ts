@@ -51,19 +51,21 @@ type AppRouteMeta = {
   group?: string
   order?: number
   nav?: boolean
+  keepAlive?: boolean
+  hideTabBar?: boolean
 }
 
 const authedChildren: RouteRecordRaw[] = [
-  { path: '', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true, title: '工作台', group: '工作台', order: 1, nav: true } satisfies AppRouteMeta },
-  { path: 'workorders', name: 'workorders', component: WorkOrderListView, meta: { requiresAuth: true, title: '施工单', group: '生产', order: 1, nav: true } satisfies AppRouteMeta },
+  { path: '', name: 'dashboard', component: DashboardView, meta: { requiresAuth: true, title: '工作台', group: '工作台', order: 1, nav: true, keepAlive: true } satisfies AppRouteMeta },
+  { path: 'workorders', name: 'workorders', component: WorkOrderListView, meta: { requiresAuth: true, title: '施工单', group: '生产', order: 1, nav: true, keepAlive: true } satisfies AppRouteMeta },
   { path: 'workorders/create', name: 'workorder-create', component: WorkOrderCreateView, meta: { requiresAuth: true, title: '新建施工单', group: '生产', order: 2, nav: false } satisfies AppRouteMeta },
   { path: 'workorders/:id', name: 'workorder-detail', component: WorkOrderDetailView, meta: { requiresAuth: true, title: '施工单详情', group: '生产', order: 3, nav: false } satisfies AppRouteMeta },
-  { path: 'tasks', name: 'tasks', component: TaskListView, meta: { requiresAuth: true, title: '任务', group: '生产', order: 2, nav: true } satisfies AppRouteMeta },
+  { path: 'tasks', name: 'tasks', component: TaskListView, meta: { requiresAuth: true, title: '任务', group: '生产', order: 2, nav: true, keepAlive: true } satisfies AppRouteMeta },
   { path: 'scan', name: 'scan', component: ScanView, meta: { requiresAuth: true, title: '扫码', group: '生产', order: 3, nav: true, hideTabBar: true } satisfies AppRouteMeta },
-  { path: 'notifications', name: 'notifications', component: NotificationView, meta: { requiresAuth: true, title: '通知', group: '生产', order: 4, nav: true } satisfies AppRouteMeta },
-  { path: 'customers', name: 'customers', component: CustomerListView, meta: { requiresAuth: true, title: '客户', group: '基础数据', order: 1, nav: true } satisfies AppRouteMeta },
-  { path: 'products', name: 'products', component: ProductListView, meta: { requiresAuth: true, title: '产品', group: '基础数据', order: 2, nav: true } satisfies AppRouteMeta },
-  { path: 'materials', name: 'materials', component: MaterialListView, meta: { requiresAuth: true, title: '物料', group: '基础数据', order: 3, nav: true } satisfies AppRouteMeta },
+  { path: 'notifications', name: 'notifications', component: NotificationView, meta: { requiresAuth: true, title: '通知', group: '生产', order: 4, nav: true, keepAlive: true } satisfies AppRouteMeta },
+  { path: 'customers', name: 'customers', component: CustomerListView, meta: { requiresAuth: true, title: '客户', group: '基础数据', order: 1, nav: true, keepAlive: true } satisfies AppRouteMeta },
+  { path: 'products', name: 'products', component: ProductListView, meta: { requiresAuth: true, title: '产品', group: '基础数据', order: 2, nav: true, keepAlive: true } satisfies AppRouteMeta },
+  { path: 'materials', name: 'materials', component: MaterialListView, meta: { requiresAuth: true, title: '物料', group: '基础数据', order: 3, nav: true, keepAlive: true } satisfies AppRouteMeta },
 
   // Other routes (keep accessible via dashboard until nav is expanded)
   { path: 'monitoring', name: 'monitoring', component: MonitoringView, meta: { requiresAuth: true, title: '监控', group: '生产', order: 99, nav: false } satisfies AppRouteMeta },

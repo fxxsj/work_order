@@ -26,7 +26,16 @@
         <div v-if="!isMobile" class="wo-breadcrumb-wrap">
           <BreadcrumbNav />
         </div>
-        <router-view />
+        <router-view v-slot="{ Component, route: viewRoute }">
+          <template v-if="viewRoute?.meta?.keepAlive">
+            <keep-alive>
+              <component :is="Component" :key="String(viewRoute.name || viewRoute.path)" />
+            </keep-alive>
+          </template>
+          <template v-else>
+            <component :is="Component" :key="String(viewRoute.fullPath || viewRoute.path)" />
+          </template>
+        </router-view>
       </el-main>
     </el-container>
 
