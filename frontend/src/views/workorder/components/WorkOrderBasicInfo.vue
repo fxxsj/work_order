@@ -22,24 +22,24 @@
       ¥{{ workOrder.total_amount }}
     </el-descriptions-item>
     <el-descriptions-item label="状态">
-      <el-tag :type="statusType" size="small">
-        {{ statusText }}
-      </el-tag>
+      <span :class="'status-badge status-' + workOrder.status">
+        {{ workOrder.status_display || statusText }}
+      </span>
     </el-descriptions-item>
     <el-descriptions-item label="审核状态">
-      <el-tag :type="approvalStatusType" size="small">
-        {{ approvalStatusText }}
-      </el-tag>
+      <span :class="'status-badge approval-' + workOrder.approval_status">
+        {{ workOrder.approval_status_display || approvalStatusText }}
+      </span>
     </el-descriptions-item>
     <el-descriptions-item label="优先级">
-      <el-tag :type="priorityType" size="small">
-        {{ priorityText }}
-      </el-tag>
+      <span :class="'status-badge priority-' + workOrder.priority">
+        {{ workOrder.priority_display || priorityText }}
+      </span>
     </el-descriptions-item>
     <el-descriptions-item label="进度">
       <el-progress
-        :percentage="progress"
-        :color="progressColor"
+        :percentage="workOrder.progress_percentage !== undefined ? workOrder.progress_percentage : progress"
+        :color="workOrder.progress_percentage === 100 ? '#67C23A' : '#409EFF'"
       />
     </el-descriptions-item>
     <el-descriptions-item label="下单日期">
@@ -132,7 +132,7 @@ export default {
       const year = date.getFullYear()
       const month = String(date.getMonth() + 1).padStart(2, '0')
       const day = String(date.getDate()).padStart(2, '0')
-      return `${year}/${month}/${day}`
+      return `${year}-${month}-${day}`
     },
     formatDateTime(dateStr) {
       if (!dateStr) return '-'
@@ -143,7 +143,7 @@ export default {
       const hours = String(date.getHours()).padStart(2, '0')
       const minutes = String(date.getMinutes()).padStart(2, '0')
       const seconds = String(date.getSeconds()).padStart(2, '0')
-      return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
     }
   }
 }

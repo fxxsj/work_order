@@ -11,76 +11,7 @@
       />
 
       <!-- 基本信息 -->
-      <el-descriptions
-        title="基本信息"
-        :column="3"
-        border
-        style="margin-top: 20px;"
-      >
-        <el-descriptions-item label="施工单号">
-          {{ workOrder.order_number }}
-        </el-descriptions-item>
-        <el-descriptions-item label="客户">
-          {{ workOrder.customer_name }}
-        </el-descriptions-item>
-        <el-descriptions-item label="业务员">
-          {{ workOrder.customer_detail && workOrder.customer_detail.salesperson_name ? workOrder.customer_detail.salesperson_name : '-' }}
-        </el-descriptions-item>
-        <el-descriptions-item label="制表人">
-          {{ workOrder.manager_name || '-' }}
-        </el-descriptions-item>
-        <el-descriptions-item v-if="workOrder.product_name" label="产品名称">
-          {{ workOrder.product_name }}
-        </el-descriptions-item>
-        <el-descriptions-item v-if="workOrder.production_quantity !== null || workOrder.defective_quantity !== null" label="生产数量">
-          {{ ((workOrder.production_quantity || 0) + (workOrder.defective_quantity || 0)) }} 车
-        </el-descriptions-item>
-        <el-descriptions-item label="总金额">
-          ¥{{ workOrder.total_amount }}
-        </el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <span :class="'status-badge status-' + workOrder.status">
-            {{ workOrder.status_display }}
-          </span>
-        </el-descriptions-item>
-        <el-descriptions-item label="审核状态">
-          <span :class="'status-badge approval-' + workOrder.approval_status">
-            {{ workOrder.approval_status_display || '待审核' }}
-          </span>
-        </el-descriptions-item>
-        <el-descriptions-item label="优先级">
-          <span :class="'status-badge priority-' + workOrder.priority">
-            {{ workOrder.priority_display }}
-          </span>
-        </el-descriptions-item>
-        <el-descriptions-item label="进度">
-          <el-progress
-            :percentage="workOrder.progress_percentage"
-            :color="workOrder.progress_percentage === 100 ? '#67C23A' : '#409EFF'"
-          />
-        </el-descriptions-item>
-        <el-descriptions-item label="下单日期">
-          {{ workOrder.order_date | formatDate }}
-        </el-descriptions-item>
-        <el-descriptions-item label="交货日期">
-          {{ workOrder.delivery_date | formatDate }}
-        </el-descriptions-item>
-        <el-descriptions-item label="实际交货日期">
-          {{ formatDate(workOrder.actual_delivery_date) }}
-        </el-descriptions-item>
-        <el-descriptions-item v-if="workOrder.approved_by_name" label="审核人">
-          {{ workOrder.approved_by_name }}
-        </el-descriptions-item>
-        <el-descriptions-item v-if="workOrder.approved_at" label="审核时间">
-          {{ workOrder.approved_at | formatDateTime }}
-        </el-descriptions-item>
-        <el-descriptions-item v-if="workOrder.approval_comment" label="审核意见" :span="3">
-          {{ workOrder.approval_comment }}
-        </el-descriptions-item>
-        <el-descriptions-item v-if="workOrder.specification" label="产品规格" :span="3">
-          {{ workOrder.specification }}
-        </el-descriptions-item>
-      </el-descriptions>
+      <WorkOrderBasicInfo :work-order="workOrder" />
 
       <!-- 业务员审核操作 -->
       <el-card v-if="canApprove && workOrder.approval_status === 'pending'" style="margin-top: 20px;">
@@ -1809,6 +1740,7 @@ import ProcessFlowChart from '@/components/ProcessFlowChart.vue'
 import TimelineView from '@/components/TimelineView.vue'
 import GanttChart from '@/components/GanttChart.vue'
 import WorkOrderHeaderActions from './components/WorkOrderHeaderActions.vue'
+import WorkOrderBasicInfo from './components/WorkOrderBasicInfo.vue'
 import WorkOrderArtworkDie from './components/WorkOrderArtworkDie.vue'
 import WorkOrderNotes from './components/WorkOrderNotes.vue'
 // 配置文件（默认值）
@@ -1823,6 +1755,7 @@ export default {
     TimelineView,
     GanttChart,
     WorkOrderHeaderActions,
+    WorkOrderBasicInfo,
     WorkOrderArtworkDie,
     WorkOrderNotes
   },
