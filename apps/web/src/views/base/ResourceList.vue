@@ -24,7 +24,7 @@
       <div v-if="slots.cardTop" class="card-top">
         <slot name="cardTop" />
       </div>
-      <el-table :data="items" style="width: 100%" @row-click="handleRowClick">
+      <el-table :data="items" :row-key="props.rowKey" style="width: 100%" @row-click="handleRowClick">
         <slot name="columns" />
       </el-table>
 
@@ -63,13 +63,15 @@ type Props = {
   defaultPageSize?: number
   searchPlaceholder?: string
   showBack?: boolean
+  rowKey?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   canCreate: true,
   defaultPageSize: 20,
   searchPlaceholder: '搜索...',
-  showBack: true
+  showBack: true,
+  rowKey: 'id'
 })
 
 const emit = defineEmits<{

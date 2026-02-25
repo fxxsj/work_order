@@ -59,8 +59,8 @@
       <template v-else>
         <el-table
           :data="items"
-          style="width: 100%"
           row-key="id"
+          style="width: 100%"
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="48" />

@@ -40,7 +40,7 @@
       </template>
 
       <template v-else>
-        <el-table :data="items" style="width: 100%" @row-click="handleRowClick">
+        <el-table :data="items" row-key="id" style="width: 100%" @row-click="handleRowClick">
           <el-table-column prop="order_number" label="单号" min-width="140" />
           <el-table-column prop="customer_name" label="客户" min-width="140" />
           <el-table-column prop="product_name" label="产品" min-width="140" />
