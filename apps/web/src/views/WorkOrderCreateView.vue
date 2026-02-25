@@ -1,14 +1,8 @@
 <template>
-  <div class="page">
-    <div class="bar">
-      <div class="left">
-        <el-button size="small" @click="goBack">返回</el-button>
-        <div class="title">新建施工单（vNext）</div>
-      </div>
-      <div class="right">
-        <el-button type="primary" :loading="submitting" @click="submit">提交</el-button>
-      </div>
-    </div>
+  <PageLayout title="新建施工单（vNext）" @back="goBack">
+    <template #actions>
+      <el-button size="small" type="primary" :loading="submitting" @click="submit">提交</el-button>
+    </template>
 
     <el-card>
       <el-form :model="form" label-width="120px">
@@ -113,13 +107,14 @@
         </el-alert>
       </el-form>
     </el-card>
-  </div>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import PageLayout from '../components/PageLayout.vue'
 import { listCustomers, listProducts, type CustomerOption, type ProductOption } from '../api/catalog'
 import { createWorkOrder } from '../api/workorders'
 
@@ -242,33 +237,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page {
-  padding: 16px;
-}
-.bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  gap: 12px;
-}
-.left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.title {
-  font-size: 16px;
-  font-weight: 600;
-}
 .section-title {
   font-weight: 600;
   margin: 8px 0;
 }
 </style>
-
