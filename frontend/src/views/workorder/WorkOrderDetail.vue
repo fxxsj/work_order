@@ -229,39 +229,15 @@
 
 
       <!-- 图稿和刀模信息 -->
-      <el-descriptions
-        title="图稿和刀模"
-        :column="1"
-        border
-        style="margin-top: 20px;"
-      >
-        <el-descriptions-item label="图稿（CTP版）">
-          <span v-if="workOrder.artwork_codes && workOrder.artwork_codes.length > 0">
-            <span v-for="(code, index) in workOrder.artwork_codes" :key="index">
-              {{ code }}<span v-if="workOrder.artwork_names && workOrder.artwork_names[index]"> - {{ workOrder.artwork_names[index] }}</span>
-              <span v-if="index < workOrder.artwork_codes.length - 1">、</span>
-            </span>
-          </span>
-          <span v-else style="color: #909399;">-</span>
-        </el-descriptions-item>
-        <el-descriptions-item v-if="workOrder.printing_type && workOrder.printing_type !== 'none'" label="印刷要求">
-          <span v-if="workOrder.printing_colors_display || workOrder.artwork_colors">
-            {{ workOrder.printing_colors_display || workOrder.artwork_colors }} {{ getPrintingTypeDisplay(workOrder.printing_type) }}
-          </span>
-          <span v-else>
-            {{ getPrintingTypeDisplay(workOrder.printing_type) }}
-          </span>
-        </el-descriptions-item>
-        <el-descriptions-item label="刀模">
-          <span v-if="workOrder.die_codes && workOrder.die_codes.length > 0">
-            <span v-for="(code, index) in workOrder.die_codes" :key="index">
-              {{ code }}<span v-if="workOrder.die_names && workOrder.die_names[index]"> - {{ workOrder.die_names[index] }}</span>
-              <span v-if="index < workOrder.die_codes.length - 1">、</span>
-            </span>
-          </span>
-          <span v-else style="color: #909399;">-</span>
-        </el-descriptions-item>
-      </el-descriptions>
+      <WorkOrderArtworkDie
+        :artwork-codes="workOrder.artwork_codes"
+        :artwork-names="workOrder.artwork_names"
+        :die-codes="workOrder.die_codes"
+        :die-names="workOrder.die_names"
+        :printing-type="workOrder.printing_type"
+        :printing-colors-display="workOrder.printing_colors_display"
+        :artwork-colors="workOrder.artwork_colors"
+      />
 
       <!-- 物料信息 -->
       <div style="margin-top: 20px;">
@@ -1842,6 +1818,7 @@ import ProcessFlowChart from '@/components/ProcessFlowChart.vue'
 import TimelineView from '@/components/TimelineView.vue'
 import GanttChart from '@/components/GanttChart.vue'
 import WorkOrderHeaderActions from './components/WorkOrderHeaderActions.vue'
+import WorkOrderArtworkDie from './components/WorkOrderArtworkDie.vue'
 // 配置文件（默认值）
 const config = {
   companyName: '肇庆市高要区新西彩包装有限公司'
@@ -1853,7 +1830,8 @@ export default {
     ProcessFlowChart,
     TimelineView,
     GanttChart,
-    WorkOrderHeaderActions
+    WorkOrderHeaderActions,
+    WorkOrderArtworkDie
   },
   filters: {
     formatDate(value) {
