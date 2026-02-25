@@ -26,16 +26,18 @@
         <div v-if="!isMobile" class="wo-breadcrumb-wrap">
           <BreadcrumbNav />
         </div>
-        <router-view v-slot="{ Component, route: viewRoute }">
-          <template v-if="viewRoute?.meta?.keepAlive">
-            <keep-alive>
-              <component :is="Component" :key="String(viewRoute.name || viewRoute.path)" />
-            </keep-alive>
-          </template>
-          <template v-else>
-            <component :is="Component" :key="String(viewRoute.fullPath || viewRoute.path)" />
-          </template>
-        </router-view>
+        <ErrorBoundary>
+          <router-view v-slot="{ Component, route: viewRoute }">
+            <template v-if="viewRoute?.meta?.keepAlive">
+              <keep-alive>
+                <component :is="Component" :key="String(viewRoute.name || viewRoute.path)" />
+              </keep-alive>
+            </template>
+            <template v-else>
+              <component :is="Component" :key="String(viewRoute.fullPath || viewRoute.path)" />
+            </template>
+          </router-view>
+        </ErrorBoundary>
       </el-main>
     </el-container>
 
@@ -57,6 +59,7 @@ import { useNotificationsStore } from '../stores/notifications'
 import { useUserStore } from '../stores/user'
 import BreadcrumbNav from '../components/BreadcrumbNav.vue'
 import MobileTabBar from '../components/MobileTabBar.vue'
+import ErrorBoundary from '../components/ErrorBoundary.vue'
 
 const router = useRouter()
 const route = useRoute()
