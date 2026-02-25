@@ -1141,9 +1141,6 @@ import {
   processAPI,
   authAPI
 } from '@/api/modules'
-import ProcessFlowChart from '@/components/ProcessFlowChart.vue'
-import TimelineView from '@/components/TimelineView.vue'
-import GanttChart from '@/components/GanttChart.vue'
 import WorkOrderHeaderActions from './components/WorkOrderHeaderActions.vue'
 import WorkOrderBasicInfo from './components/WorkOrderBasicInfo.vue'
 import WorkOrderArtworkDie from './components/WorkOrderArtworkDie.vue'
@@ -1160,9 +1157,6 @@ const config = {
 export default {
   name: 'WorkOrderDetail',
   components: {
-    ProcessFlowChart,
-    TimelineView,
-    GanttChart,
     WorkOrderHeaderActions,
     WorkOrderBasicInfo,
     WorkOrderArtworkDie,
@@ -2059,24 +2053,6 @@ export default {
         }
       })
     },
-    getProcessStatusType(status) {
-      const types = {
-        pending: 'info',
-        in_progress: 'warning',
-        completed: 'success',
-        skipped: 'info'
-      }
-      return types[status] || 'info'
-    },
-    getTaskStatusType(status) {
-      const types = {
-        pending: 'info',
-        in_progress: 'warning',
-        completed: 'success',
-        cancelled: 'danger'
-      }
-      return types[status] || 'info'
-    },
     getStatusText(status) {
       const statusMap = {
         pending: '待开始',
@@ -2085,67 +2061,6 @@ export default {
         cancelled: '已取消'
       }
       return statusMap[status] || status
-    },
-    // 判断是否为制版工序（使用编码匹配）
-    isPlateMakingProcess(process) {
-      return process.process_code === 'CTP'
-    },
-    // 判断是否为物料相关工序（开料，使用编码匹配）
-    // 注意：采购不属于施工单工序，采购任务通过其他系统管理
-    isMaterialProcess(process) {
-      return process.process_code === 'CUT'
-    },
-    // 根据状态获取物料状态标签类型
-    getMaterialStatusTagTypeByStatus(status) {
-      const statusMap = {
-        pending: 'info',
-        ordered: 'primary',
-        received: 'success',
-        cut: 'warning',
-        completed: 'success'
-      }
-      return statusMap[status] || 'info'
-    },
-    // 根据状态获取物料状态文本
-    getMaterialStatusTextByStatus(status) {
-      const statusMap = {
-        pending: '待采购',
-        ordered: '已下单',
-        received: '已回料',
-        cut: '已开料',
-        completed: '已完成'
-      }
-      return statusMap[status] || status
-    },
-    // 判断任务是否可以完成
-    canCompleteTask(task, process) {
-      // 制版任务：需要图稿已确认（如果是图稿任务）
-      if (task.task_type === 'plate_making' && task.artwork && !task.artwork_confirmed) {
-        return false
-      }
-      // 开料任务：需要物料已开料（如果存在开料工序，使用编码匹配）
-      // 注意：采购不属于施工单工序，采购任务通过其他系统管理
-      if (task.task_type === 'cutting' && process.process_code === 'CUT') {
-        if (task.material_purchase_status !== 'cut') {
-          return false
-        }
-      }
-      return true
-    },
-    // 获取任务被阻止的原因
-    getTaskBlockReason(task, process) {
-      // 制版任务：需要图稿确认（如果是图稿任务）
-      if (task.task_type === 'plate_making' && task.artwork && !task.artwork_confirmed) {
-        return '需确认图稿'
-      }
-      // 开料任务：需要物料开料（如果存在开料工序，使用编码匹配）
-      // 注意：采购不属于施工单工序，采购任务通过其他系统管理
-      if (task.task_type === 'cutting' && process.process_code === 'CUT') {
-        if (task.material_purchase_status !== 'cut') {
-          return '需物料开料'
-        }
-      }
-      return ''
     },
     showUpdateTaskDialog(task) {
       this.currentUpdateTask = { ...task }
@@ -2237,42 +2152,6 @@ export default {
         this.$message.error('添加失败')
         console.error(error)
       }
-    },
-    getProcessColor(status) {
-      const colorMap = {
-        pending: '#909399',
-        in_progress: '#409EFF',
-        completed: '#67C23A',
-        skipped: '#E6A23C'
-      }
-      return colorMap[status] || '#909399'
-    },
-    getProcessDisplayDepartment(process) {
-      // 如果有任务，根据任务的分派情况显示
-      if (process.tasks && process.tasks.length > 0) {
-        // 获取所有任务的分派部门（去重）
-        const departments = process.tasks
-          .map(task => task.assigned_department_name)
-          .filter(dept => dept && dept.trim() !== '')
-
-        if (departments.length === 0) {
-          // 所有任务都未分派，显示工序级别的部门
-          return process.department_name || '未分配部门'
-        } else {
-          // 去重
-          const uniqueDepartments = [...new Set(departments)]
-          if (uniqueDepartments.length === 1) {
-            // 所有任务都分派到同一部门
-            return uniqueDepartments[0]
-          } else {
-            // 任务分派到多个部门
-            return uniqueDepartments.join('、') + ` (${uniqueDepartments.length}个部门)`
-          }
-        }
-      }
-
-      // 没有任务时，显示工序级别的部门
-      return process.department_name || '未分配部门'
     },
     getPurchaseStatusType(status) {
       const typeMap = {
@@ -2748,44 +2627,6 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.process-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.process-header h3 {
-  margin: 0 0 10px 0;
-  font-size: 16px;
-}
-
-.process-logs {
-  list-style: none;
-  padding: 0;
-  margin: 10px 0 0 0;
-}
-
-.process-logs li {
-  padding: 5px 0;
-  font-size: 13px;
-  color: #606266;
-}
-
-.log-time {
-  color: #909399;
-  margin-right: 10px;
-}
-
-.log-type {
-  margin-right: 10px;
-  font-weight: bold;
-}
-
-.log-operator {
-  color: #909399;
-  margin-left: 10px;
 }
 
 /* 打印区域样式（屏幕显示时隐藏） */
