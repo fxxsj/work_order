@@ -548,52 +548,11 @@
       <!-- 其他信息 -->
       <WorkOrderNotes :notes="workOrder.notes" />
 
-      <!-- 产品列表（场景2：一个施工单包含多个产品） -->
-      <div v-if="workOrder.products && workOrder.products.length > 0" style="margin-top: 20px;">
-        <div class="detail-section-title">
-          产品列表
-        </div>
-        <el-table :data="workOrder.products" border style="width: 100%">
-          <el-table-column prop="product_name" label="产品名称" width="200">
-            <template slot-scope="scope">
-              {{ scope.row.product_name }} ({{ scope.row.product_code }})
-            </template>
-          </el-table-column>
-          <el-table-column prop="specification" label="规格" show-overflow-tooltip>
-            <template slot-scope="scope">
-              {{ scope.row.specification || '-' }}
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="imposition_quantity"
-            label="拼版"
-            width="100"
-            align="center"
-          >
-            <template slot-scope="scope">
-              {{ (scope.row.imposition_quantity || 1) }}拼
-            </template>
-          </el-table-column>
-          <el-table-column
-            prop="quantity"
-            label="数量"
-            width="120"
-            align="right"
-          >
-            <template slot-scope="scope">
-              {{ scope.row.quantity }} {{ scope.row.unit }}
-            </template>
-          </el-table-column>
-          <el-table-column label="小计" width="150" align="right">
-            <template slot-scope="scope">
-              <span v-if="scope.row.product_detail">
-                ¥{{ parseFloat((scope.row.product_detail.unit_price * scope.row.quantity).toFixed(2)) }}
-              </span>
-              <span v-else>-</span>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
+      <!-- 产品列表 -->
+      <WorkOrderProducts
+        v-if="workOrder.products && workOrder.products.length > 0"
+        :products="workOrder.products"
+      />
     </el-card>
 
     <!-- 打印区域（隐藏，仅在打印时显示） -->
@@ -1743,6 +1702,7 @@ import WorkOrderHeaderActions from './components/WorkOrderHeaderActions.vue'
 import WorkOrderBasicInfo from './components/WorkOrderBasicInfo.vue'
 import WorkOrderArtworkDie from './components/WorkOrderArtworkDie.vue'
 import WorkOrderNotes from './components/WorkOrderNotes.vue'
+import WorkOrderProducts from './components/WorkOrderProducts.vue'
 // 配置文件（默认值）
 const config = {
   companyName: '肇庆市高要区新西彩包装有限公司'
@@ -1757,7 +1717,8 @@ export default {
     WorkOrderHeaderActions,
     WorkOrderBasicInfo,
     WorkOrderArtworkDie,
-    WorkOrderNotes
+    WorkOrderNotes,
+    WorkOrderProducts
   },
   filters: {
     formatDate(value) {
