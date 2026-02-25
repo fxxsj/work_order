@@ -26,6 +26,7 @@
 - [x] 全局错误兜底（基础 errorHandler）：`apps/web/src/main.ts`
 - [x] 组件级错误边界（路由视图兜底）：`apps/web/src/components/ErrorBoundary.vue`
 - [x] 通知中心移动端体验：`apps/web/src/views/NotificationView.vue`（移动端卡片化）
+- [x] 图标体系（基础）：`apps/web/package.json`（`@element-plus/icons-vue`）+ `AuthedLayout/MobileTabBar` 使用示例
 
 ### 待补（优先级从高到低） ⏳
 
@@ -111,7 +112,7 @@
 | 多标签页（Tabs） | `TabsBar` | ❌ 未落地 | 多任务切换成本高 | 先别做，等面包屑/缓存稳定后再评估 |
 | 骨架屏 | `SkeletonLoader` | ❌ 未系统化 | 感知慢 | 先在核心列表页落地 |
 | 错误边界 | `ComponentError` | ✅ 已落地（基础版） | 路由视图级兜底 + 全局 errorHandler | 后续按需细化“局部错误边界”与更友好恢复动作 |
-| 图标体系 | ElementUI 内置 | ❌ 未引入 | 可读性/可扫读性弱 | 引入 `@element-plus/icons-vue`，关键按钮优先 |
+| 图标体系 | ElementUI 内置 | ✅ 已引入（基础版） | 可读性/可扫读性提升（关键入口） | 按需扩展：SideNav、列表页关键操作、空状态等 |
 | 主题/暗色模式 | 自定义或依赖框架 | ❌ 未落地 | 夜间/工位屏体验一般 | 若需要再做，先用 CSS variables 打底 |
 
 ---
