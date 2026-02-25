@@ -1,19 +1,15 @@
 <template>
-  <div class="page">
-    <div class="bar">
-      <div class="left">
-        <el-button size="small" @click="goHome">返回</el-button>
-        <div class="title">通知中心（vNext）</div>
-      </div>
-      <div class="right">
-        <el-tag type="info">未读：{{ store.unreadCount }}</el-tag>
-        <el-button size="small" :loading="loading" @click="reload">刷新</el-button>
-        <el-button size="small" type="primary" :disabled="store.unreadCount === 0" @click="handleMarkAllRead">全部已读</el-button>
-      </div>
-    </div>
+  <PageLayout title="通知中心（vNext）" @back="goHome">
+    <template #actions>
+      <el-tag type="info">未读：{{ store.unreadCount }}</el-tag>
+      <el-button size="small" :loading="loading" @click="reload">刷新</el-button>
+      <el-button size="small" type="primary" :disabled="store.unreadCount === 0" @click="handleMarkAllRead">
+        全部已读
+      </el-button>
+    </template>
 
-    <el-card>
-      <el-table :data="items" v-loading="loading" style="width: 100%">
+    <el-card v-loading="loading">
+      <el-table :data="items" style="width: 100%">
         <el-table-column prop="created_at" label="时间" width="200" />
         <el-table-column prop="title" label="标题" min-width="200" />
         <el-table-column prop="content" label="内容" min-width="260" show-overflow-tooltip />
@@ -31,7 +27,7 @@
         </el-table-column>
       </el-table>
 
-      <div class="pager">
+      <div class="wo-pager">
         <el-pagination
           background
           layout="total, sizes, prev, pager, next"
@@ -43,13 +39,14 @@
         />
       </div>
     </el-card>
-  </div>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import PageLayout from '../components/PageLayout.vue'
 import { listNotifications, markAllRead, markRead, type NotificationItem } from '../api/notifications'
 import { useNotificationsStore } from '../stores/notifications'
 
@@ -126,37 +123,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page {
-  padding: 16px;
-}
-.bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  gap: 12px;
-}
-.left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.title {
-  font-size: 16px;
-  font-weight: 600;
-}
-.pager {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 12px;
-}
 .muted {
   color: #999;
 }
 </style>
-
