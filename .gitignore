@@ -53,6 +53,7 @@ yarn-error.log*
 .env
 .env.local
 .env.*.local
+.env.backup
 
 # Frontend config
 frontend/src/config/index.js
