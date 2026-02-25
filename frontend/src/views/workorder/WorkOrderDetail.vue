@@ -171,81 +171,11 @@
       />
 
       <!-- 物料信息 -->
-      <div style="margin-top: 20px;">
-        <div class="detail-section-title card-header">
-          <span>物料信息</span>
-          <el-button
-            size="small"
-            type="primary"
-            icon="el-icon-plus"
-            @click="showAddMaterialDialog"
-          >
-            添加物料
-          </el-button>
-        </div>
-
-        <el-table
-          v-if="workOrder.materials && workOrder.materials.length > 0"
-          :data="workOrder.materials"
-          border
-          style="width: 100%"
-        >
-          <el-table-column prop="material_name" label="物料名称" width="200">
-            <template slot-scope="scope">
-              {{ scope.row.material_name }} ({{ scope.row.material_code }})
-            </template>
-          </el-table-column>
-          <el-table-column prop="material_size" label="尺寸" width="150" />
-          <el-table-column prop="material_usage" label="用量" width="150" />
-          <el-table-column
-            prop="notes"
-            label="备注"
-            min-width="200"
-            show-overflow-tooltip
-          >
-            <template slot-scope="scope">
-              {{ scope.row.notes || '-' }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="purchase_status_display" label="采购状态" width="120">
-            <template slot-scope="scope">
-              <el-tag :type="getPurchaseStatusType(scope.row.purchase_status)" size="small">
-                {{ scope.row.purchase_status_display }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="purchase_date" label="采购日期" width="120">
-            <template slot-scope="scope">
-              {{ scope.row.purchase_date | formatDate }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="received_date" label="回料日期" width="120">
-            <template slot-scope="scope">
-              {{ scope.row.received_date | formatDate }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="cut_date" label="开料日期" width="120">
-            <template slot-scope="scope">
-              {{ scope.row.cut_date | formatDate }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="notes" label="备注" show-overflow-tooltip />
-          <el-table-column label="操作" width="150" fixed="right">
-            <template slot-scope="scope">
-              <el-button
-                type="primary"
-                size="mini"
-                :disabled="scope.row.purchase_status === 'completed'"
-                @click="handleUpdateMaterialStatus(scope.row)"
-              >
-                更新状态
-              </el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-
-        <el-empty v-else-if="workOrder && (!workOrder.materials || workOrder.materials.length === 0)" description="暂无物料信息" />
-      </div>
+      <WorkOrderMaterials
+        :materials="workOrder.materials"
+        @add-material="showAddMaterialDialog"
+        @update-status="handleUpdateMaterialStatus"
+      />
 
       <!-- 物料状态更新对话框 -->
       <el-dialog
@@ -1703,6 +1633,7 @@ import WorkOrderBasicInfo from './components/WorkOrderBasicInfo.vue'
 import WorkOrderArtworkDie from './components/WorkOrderArtworkDie.vue'
 import WorkOrderNotes from './components/WorkOrderNotes.vue'
 import WorkOrderProducts from './components/WorkOrderProducts.vue'
+import WorkOrderMaterials from './components/WorkOrderMaterials.vue'
 // 配置文件（默认值）
 const config = {
   companyName: '肇庆市高要区新西彩包装有限公司'
@@ -1718,7 +1649,8 @@ export default {
     WorkOrderBasicInfo,
     WorkOrderArtworkDie,
     WorkOrderNotes,
-    WorkOrderProducts
+    WorkOrderProducts,
+    WorkOrderMaterials
   },
   filters: {
     formatDate(value) {
