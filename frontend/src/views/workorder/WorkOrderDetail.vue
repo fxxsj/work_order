@@ -615,16 +615,7 @@
       </el-dialog>
 
       <!-- 其他信息 -->
-      <el-descriptions
-        title="其他信息"
-        :column="1"
-        border
-        style="margin-top: 20px;"
-      >
-        <el-descriptions-item label="备注">
-          {{ workOrder.notes || '-' }}
-        </el-descriptions-item>
-      </el-descriptions>
+      <WorkOrderNotes :notes="workOrder.notes" />
 
       <!-- 产品列表（场景2：一个施工单包含多个产品） -->
       <div v-if="workOrder.products && workOrder.products.length > 0" style="margin-top: 20px;">
@@ -1819,6 +1810,7 @@ import TimelineView from '@/components/TimelineView.vue'
 import GanttChart from '@/components/GanttChart.vue'
 import WorkOrderHeaderActions from './components/WorkOrderHeaderActions.vue'
 import WorkOrderArtworkDie from './components/WorkOrderArtworkDie.vue'
+import WorkOrderNotes from './components/WorkOrderNotes.vue'
 // 配置文件（默认值）
 const config = {
   companyName: '肇庆市高要区新西彩包装有限公司'
@@ -1831,7 +1823,8 @@ export default {
     TimelineView,
     GanttChart,
     WorkOrderHeaderActions,
-    WorkOrderArtworkDie
+    WorkOrderArtworkDie,
+    WorkOrderNotes
   },
   filters: {
     formatDate(value) {
