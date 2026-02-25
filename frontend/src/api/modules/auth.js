@@ -100,6 +100,23 @@ class AuthAPI extends BaseAPI {
   }
 
   /**
+   * 获取用户列表（兼容旧 API）
+   * @param {Object} params - 查询参数 { department, ... }
+   * @returns {Promise} 用户列表
+   */
+  getUserList(params = {}) {
+    const queryParams = {}
+    if (params.department) {
+      queryParams.department_id = params.department
+    }
+    return this.request({
+      url: `${this.baseUrl}users/`,
+      method: 'get',
+      params: queryParams
+    })
+  }
+
+  /**
    * 更新个人信息
    * @param {Object} data - 用户信息 { name, email, phone, ... }
    * @returns {Promise} 更新结果

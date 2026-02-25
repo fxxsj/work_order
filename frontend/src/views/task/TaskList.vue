@@ -418,8 +418,7 @@
 </template>
 
 <script>
-import { workOrderTaskAPI, departmentAPI, processAPI } from '@/api/modules'
-import { getUserList } from '@/api/user'
+import { workOrderTaskAPI, departmentAPI, processAPI, authAPI } from '@/api/modules'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 import exportMixin from '@/mixins/exportMixin'
@@ -628,7 +627,7 @@ export default {
       this.loadingUsers = true
       try {
         const params = departmentId ? { department: departmentId } : {}
-        const response = await getUserList(params)
+        const response = await authAPI.getUserList(params)
         this.userList = response.results || []
       } catch (error) {
         ErrorHandler.showMessage(error, '加载用户列表')

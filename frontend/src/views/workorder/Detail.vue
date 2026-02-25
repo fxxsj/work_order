@@ -1868,9 +1868,9 @@ import {
   departmentAPI,
   artworkAPI,
   dieAPI,
-  processAPI
+  processAPI,
+  authAPI
 } from '@/api/modules'
-import { getUsersByDepartment } from '@/api/auth'
 import ProcessFlowChart from '@/components/ProcessFlowChart.vue'
 import TimelineView from '@/components/TimelineView.vue'
 import GanttChart from '@/components/GanttChart.vue'
@@ -2308,11 +2308,11 @@ export default {
       try {
         // 如果指定了部门，根据部门获取用户列表
         if (departmentId) {
-          const response = await getUsersByDepartment(departmentId)
+          const response = await authAPI.getUsersByDepartment(departmentId)
           this.userList = response || []
         } else {
           // 如果没有指定部门，获取所有用户（排除超级管理员）
-          const response = await getUsersByDepartment(null)
+          const response = await authAPI.getUsersByDepartment(null)
           this.userList = response || []
         }
       } catch (error) {

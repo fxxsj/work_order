@@ -85,8 +85,7 @@
 </template>
 
 <script>
-import { departmentAPI } from '@/api/modules'
-import { getUserList } from '@/api/user'
+import { departmentAPI, authAPI } from '@/api/modules'
 import ErrorHandler from '@/utils/errorHandler'
 
 export default {
@@ -168,7 +167,7 @@ export default {
       }
       this.loadingOperators = true
       try {
-        const response = await getUserList({ department: departmentId })
+        const response = await authAPI.getUserList({ department: departmentId })
         this.operatorList = response.results || []
       } catch (error) {
         ErrorHandler.showMessage(error, '加载操作员列表')
