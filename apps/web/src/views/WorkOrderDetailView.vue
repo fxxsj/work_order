@@ -1,25 +1,19 @@
 <template>
-  <div class="page" v-loading="loading">
-    <div class="bar">
-      <div class="left">
-        <el-button size="small" @click="goBack">返回</el-button>
-        <div class="title">施工单详情（vNext）</div>
-      </div>
-      <div class="right" v-if="workOrder">
-        <el-dropdown @command="handleStatusCommand">
-          <el-button size="small" type="success">更改状态</el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="pending">待开始</el-dropdown-item>
-              <el-dropdown-item command="in_progress">进行中</el-dropdown-item>
-              <el-dropdown-item command="paused">已暂停</el-dropdown-item>
-              <el-dropdown-item command="completed">已完成</el-dropdown-item>
-              <el-dropdown-item command="cancelled">已取消</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </div>
-    </div>
+  <PageLayout title="施工单详情（vNext）" :loading="loading" @back="goBack">
+    <template v-if="workOrder" #actions>
+      <el-dropdown @command="handleStatusCommand">
+        <el-button size="small" type="success">更改状态</el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="pending">待开始</el-dropdown-item>
+            <el-dropdown-item command="in_progress">进行中</el-dropdown-item>
+            <el-dropdown-item command="paused">已暂停</el-dropdown-item>
+            <el-dropdown-item command="completed">已完成</el-dropdown-item>
+            <el-dropdown-item command="cancelled">已取消</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+    </template>
 
     <el-card v-if="workOrder">
       <el-descriptions title="基本信息" :column="infoColumns" border>
@@ -89,13 +83,14 @@
         </el-table>
       </el-card>
     </el-card>
-  </div>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import PageLayout from '../components/PageLayout.vue'
 import { useBreakpoints } from '../composables/useBreakpoints'
 import { approveWorkOrder, getWorkOrder, updateWorkOrderStatus } from '../api/workorders'
 import { useUserStore } from '../stores/user'
@@ -178,30 +173,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page {
-  padding: 16px;
-}
-.bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  gap: 12px;
-}
-.left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.title {
-  font-size: 16px;
-  font-weight: 600;
-}
 .approve-card {
   border: 1px solid #ebeef5;
 }
