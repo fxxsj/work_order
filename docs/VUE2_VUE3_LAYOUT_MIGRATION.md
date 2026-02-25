@@ -22,11 +22,12 @@
 - [x] 面包屑导航（桌面端）：`apps/web/src/components/BreadcrumbNav.vue`
 - [x] 移动端底部 TabBar（核心入口；扫码页隐藏）：`apps/web/src/components/MobileTabBar.vue`
 - [x] 列表页模板进一步收敛：`apps/web/src/views/base/ResourceList.vue` 内部对齐 `PageLayout`
+- [x] 页面缓存（keep-alive）：`apps/web/src/layouts/AuthedLayout.vue` + `apps/web/src/router/index.ts`（`meta.keepAlive`）
+- [x] 全局错误兜底（基础 errorHandler）：`apps/web/src/main.ts`
 
 ### 待补（优先级从高到低） ⏳
 
 - [ ] 列表页模板化增强（可选）：补齐移动端卡片列表的通用组件/slot 规范
-- [ ] 页面缓存策略（`keep-alive` 的 include/keys 体系 + `meta.keepAlive`）
 - [ ] 长列表性能（虚拟滚动：Table V2 / useVirtualList 等）
 - [ ] 全局体验（骨架屏/错误边界/图标系统/主题与暗色）
 
@@ -103,11 +104,11 @@
 | 能力 | Vue2 可能实现形态（历史参考） | Vue3 当前状态 | 风险/影响 | 建议 |
 |---|---|---|---|---|
 | 虚拟滚动（表格/列表） | `VirtualTable/VirtuaList` 等 | ❌ 未落地 | 数据量大时卡顿 | 先选 1 个高频列表验证收益（任务/通知/施工单） |
-| 页面缓存（keep-alive） | `keep-alive + tabs` | ❌ 未落地 | 返回列表重刷、切换成本高 | 增加 `meta.keepAlive` + include 列表 |
+| 页面缓存（keep-alive） | `keep-alive + tabs` | ✅ 已落地（基础版） | 返回列表体验改善（核心页） | 按页面补齐 `meta.keepAlive`，避免详情页缓存导致数据错乱 |
 | 面包屑导航 | `Breadcrumb` | ❌ 未落地 | 深层页面定位难 | 基于 `route.matched` + `meta.title` 实现 |
 | 多标签页（Tabs） | `TabsBar` | ❌ 未落地 | 多任务切换成本高 | 先别做，等面包屑/缓存稳定后再评估 |
 | 骨架屏 | `SkeletonLoader` | ❌ 未系统化 | 感知慢 | 先在核心列表页落地 |
-| 错误边界 | `ComponentError` | ❌ 未落地 | 单点异常可能影响整页 | 先用全局 errorHandler + 关键区块兜底 |
+| 错误边界 | `ComponentError` | ⚠️ 部分（全局 errorHandler） | 单点异常的“崩溃不可见”风险下降 | 后续再补关键区块级兜底组件 |
 | 图标体系 | ElementUI 内置 | ❌ 未引入 | 可读性/可扫读性弱 | 引入 `@element-plus/icons-vue`，关键按钮优先 |
 | 主题/暗色模式 | 自定义或依赖框架 | ❌ 未落地 | 夜间/工位屏体验一般 | 若需要再做，先用 CSS variables 打底 |
 
