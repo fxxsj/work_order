@@ -1,4 +1,16 @@
 {
+  "scripts": {
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,vue,css,scss,md,json}": [
+      "prettier --write"
+    ]
+  },
   "dependencies": {
     "vuedraggable": "^2.24.3",
     "vuex-persistedstate": "^4.1.0",
