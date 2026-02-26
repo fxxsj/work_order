@@ -729,78 +729,14 @@
     </el-dialog>
 
     <!-- 任务分派对话框 -->
-    <el-dialog
-      title="调整任务分派"
+    <TaskAssignDialog
       :visible.sync="taskAssignDialogVisible"
-      width="600px"
-    >
-      <el-form
-        ref="taskAssignForm"
-        :model="taskAssignForm"
-        label-width="120px"
-      >
-        <el-form-item label="任务内容">
-          <el-input :value="currentTask?.work_content" disabled />
-        </el-form-item>
-        <el-form-item label="分派部门">
-          <el-select
-            v-model="taskAssignForm.assigned_department"
-            placeholder="请选择部门"
-            filterable
-            clearable
-            style="width: 100%;"
-            @change="handleTaskAssignDepartmentChange"
-          >
-            <el-option
-              v-for="dept in departmentList"
-              :key="dept.id"
-              :label="dept.name"
-              :value="dept.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="分派操作员">
-          <el-select
-            v-model="taskAssignForm.assigned_operator"
-            placeholder="请选择操作员"
-            filterable
-            clearable
-            style="width: 100%;"
-          >
-            <el-option
-              v-for="user in userList"
-              :key="user.id"
-              :label="user.username || `${(user.first_name || '')}${(user.last_name || '')}`.trim() || user.id"
-              :value="user.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="调整原因">
-          <el-input
-            v-model="taskAssignForm.reason"
-            type="textarea"
-            :rows="2"
-            placeholder="请输入调整原因（可选）"
-          />
-        </el-form-item>
-        <el-form-item label="备注">
-          <el-input
-            v-model="taskAssignForm.notes"
-            type="textarea"
-            :rows="2"
-            placeholder="请输入备注（可选）"
-          />
-        </el-form-item>
-      </el-form>
-      <div slot="footer">
-        <el-button @click="taskAssignDialogVisible = false">
-          取消
-        </el-button>
-        <el-button type="primary" :loading="assigningTask" @click="handleTaskAssign">
-          确定
-        </el-button>
-      </div>
-    </el-dialog>
+      :task="currentTask"
+      :department-list="departmentList"
+      :user-list="userList"
+      :loading="assigningTask"
+      @submit="handleTaskAssignSubmit"
+    />
 
     <!-- 拆分任务对话框 -->
     <el-dialog
@@ -952,6 +888,7 @@ import AddMaterialDialog from './components/AddMaterialDialog.vue'
 import AddProcessDialog from './components/AddProcessDialog.vue'
 import MaterialStatusDialog from './components/MaterialStatusDialog.vue'
 import CompleteProcessDialog from './components/CompleteProcessDialog.vue'
+import TaskAssignDialog from './components/TaskAssignDialog.vue'
 // 配置文件（默认值）
 const config = {
   companyName: '肇庆市高要区新西彩包装有限公司'
@@ -971,7 +908,8 @@ export default {
     AddMaterialDialog,
     AddProcessDialog,
     MaterialStatusDialog,
-    CompleteProcessDialog
+    CompleteProcessDialog,
+    TaskAssignDialog
   },
   filters: {
     formatDate(value) {
@@ -1071,12 +1009,6 @@ export default {
       // 任务分派对话框
       taskAssignDialogVisible: false,
       assigningTask: false,
-      taskAssignForm: {
-        assigned_department: null,
-        assigned_operator: null,
-        reason: '',
-        notes: ''
-      },
       currentReassignProcess: null,
       // 拆分任务对话框
       splitDialogVisible: false,
@@ -1428,51 +1360,27 @@ export default {
     },
     showTaskAssignDialog(task) {
       this.currentTask = { ...task }
-      this.taskAssignForm = {
-        assigned_department: task.assigned_department || null,
-        assigned_operator: task.assigned_operator || null,
-        reason: '',
-        notes: ''
-      }
       // 根据工序过滤部门列表
       this.loadDepartmentListForProcess(task)
       // 如果任务已有部门，根据部门加载用户列表
       this.loadUserList(task.assigned_department || null)
       this.taskAssignDialogVisible = true
-      this.$nextTick(() => {
-        if (this.$refs.taskAssignForm) {
-          this.$refs.taskAssignForm.clearValidate()
-        }
-      })
     },
-    async handleTaskAssign() {
-      this.$refs.taskAssignForm.validate(async (valid) => {
-        if (!valid) {
-          return false
-        }
-
-        this.assigningTask = true
-        try {
-          const data = {
-            assigned_department: this.taskAssignForm.assigned_department,
-            assigned_operator: this.taskAssignForm.assigned_operator,
-            reason: this.taskAssignForm.reason || '',
-            notes: this.taskAssignForm.notes || ''
-          }
-
-          await workOrderTaskAPI.assign(this.currentTask.id, data)
-          this.$message.success('任务分派已更新')
-          this.taskAssignDialogVisible = false
-          this.loadData()
-        } catch (error) {
-          const errorMessage = error.response?.data?.error || error.response?.data?.detail ||
-                             (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
-          this.$message.error(errorMessage)
-          console.error('分派任务失败:', error)
-        } finally {
-          this.assigningTask = false
-        }
-      })
+    async handleTaskAssignSubmit({ taskId, data }) {
+      this.assigningTask = true
+      try {
+        await workOrderTaskAPI.assign(taskId, data)
+        this.$message.success('任务分派已更新')
+        this.taskAssignDialogVisible = false
+        this.loadData()
+      } catch (error) {
+        const errorMessage = error.response?.data?.error || error.response?.data?.detail ||
+                           (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
+        this.$message.error(errorMessage)
+        console.error('分派任务失败:', error)
+      } finally {
+        this.assigningTask = false
+      }
     },
     showTaskSplitDialog(task) {
       this.currentSplitTask = { ...task }
