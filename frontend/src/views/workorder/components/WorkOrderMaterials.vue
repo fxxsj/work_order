@@ -25,7 +25,12 @@
       </el-table-column>
       <el-table-column prop="material_size" label="尺寸" width="150" />
       <el-table-column prop="material_usage" label="用量" width="150" />
-      <el-table-column prop="notes" label="备注" min-width="200" show-overflow-tooltip>
+      <el-table-column
+        prop="notes"
+        label="备注"
+        min-width="200"
+        show-overflow-tooltip
+      >
         <template slot-scope="scope">
           {{ scope.row.notes || '-' }}
         </template>

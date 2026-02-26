@@ -3,7 +3,12 @@
     <div slot="header" class="card-header">
       <span>工序和任务管理</span>
       <div>
-        <el-radio-group :value="viewMode" @input="$emit('view-mode-change', $event)" size="small" style="margin-right: 10px;">
+        <el-radio-group
+          :value="viewMode"
+          size="small"
+          style="margin-right: 10px;"
+          @input="$emit('view-mode-change', $event)"
+        >
           <el-radio-button label="timeline">
             时间线
           </el-radio-button>
@@ -386,20 +391,6 @@ export default {
     TimelineView,
     GanttChart
   },
-  props: {
-    workOrder: {
-      type: Object,
-      required: true
-    },
-    viewMode: {
-      type: String,
-      default: 'list'
-    },
-    allTasks: {
-      type: Array,
-      default: () => []
-    }
-  },
   filters: {
     formatDateTime(value) {
       if (!value) return '-'
@@ -412,6 +403,20 @@ export default {
       const minutes = String(date.getMinutes()).padStart(2, '0')
       const seconds = String(date.getSeconds()).padStart(2, '0')
       return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+    }
+  },
+  props: {
+    workOrder: {
+      type: Object,
+      required: true
+    },
+    viewMode: {
+      type: String,
+      default: 'list'
+    },
+    allTasks: {
+      type: Array,
+      default: () => []
     }
   },
   methods: {

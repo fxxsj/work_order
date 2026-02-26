@@ -29,6 +29,8 @@
         @approve="handleApprove"
         @resubmit="handleResubmitForApproval"
         @request-reapproval="handleRequestReapproval"
+        @update:approvalForm="approvalForm = $event"
+        @update:reapprovalForm="reapprovalForm = $event"
       />
 
 

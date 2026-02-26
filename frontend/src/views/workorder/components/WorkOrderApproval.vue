@@ -13,18 +13,20 @@
       >
         <el-form-item label="审核意见" prop="comment">
           <el-input
-            v-model="approvalForm.comment"
+            :value="approvalForm.comment"
             type="textarea"
             :rows="3"
             placeholder="请输入审核意见（可选）"
+            @input="updateApprovalForm('comment', $event)"
           />
         </el-form-item>
         <el-form-item v-if="showRejectionReason" label="拒绝原因" prop="rejection_reason">
           <el-input
-            v-model="approvalForm.rejection_reason"
+            :value="approvalForm.rejection_reason"
             type="textarea"
             :rows="3"
             placeholder="请填写拒绝原因（必填）"
+            @input="updateApprovalForm('rejection_reason', $event)"
           />
         </el-form-item>
         <el-form-item>
@@ -98,10 +100,11 @@
       <el-form ref="reapprovalForm" :model="reapprovalForm" label-width="120px">
         <el-form-item label="请求原因" prop="reason">
           <el-input
-            v-model="reapprovalForm.reason"
+            :value="reapprovalForm.reason"
             type="textarea"
             :rows="3"
             placeholder="请填写请求重新审核的原因（可选，但建议填写）"
+            @input="updateReapprovalForm('reason', $event)"
           />
         </el-form-item>
         <el-form-item>
@@ -203,6 +206,14 @@ export default {
     }
   },
   methods: {
+    updateApprovalForm(field, value) {
+      const updatedForm = { ...this.approvalForm, [field]: value }
+      this.$emit('update:approvalForm', updatedForm)
+    },
+    updateReapprovalForm(field, value) {
+      const updatedForm = { ...this.reapprovalForm, [field]: value }
+      this.$emit('update:reapprovalForm', updatedForm)
+    },
     formatDateTime(dateStr) {
       if (!dateStr) return '-'
       const date = new Date(dateStr)
