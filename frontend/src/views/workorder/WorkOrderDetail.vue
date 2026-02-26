@@ -188,89 +188,12 @@
       </el-dialog>
 
       <!-- 完成工序对话框 -->
-      <el-dialog
-        title="完成工序"
+      <CompleteProcessDialog
         :visible.sync="completeProcessDialogVisible"
-        width="600px"
-      >
-        <el-form
-          ref="completeProcessForm"
-          :model="completeProcessForm"
-          label-width="120px"
-          :rules="completeProcessRules"
-        >
-          <el-form-item label="工序名称">
-            <el-input :value="currentProcess ? currentProcess.process_name : ''" disabled />
-          </el-form-item>
-          <el-form-item label="任务完成情况">
-            <div v-if="currentProcess && currentProcess.tasks">
-              <div style="margin-bottom: 10px;">
-                <span>总任务数：{{ currentProcess.tasks.length }}</span>
-                <span style="margin-left: 20px;">已完成：{{ getCompletedTaskCount(currentProcess.tasks) }}</span>
-                <span v-if="getIncompleteTaskCount(currentProcess.tasks) > 0" style="margin-left: 20px; color: #E6A23C;">
-                  未完成：{{ getIncompleteTaskCount(currentProcess.tasks) }}
-                </span>
-              </div>
-              <el-alert
-                v-if="getIncompleteTaskCount(currentProcess.tasks) > 0"
-                type="warning"
-                :closable="false"
-                style="margin-bottom: 10px;"
-              >
-                <div slot="title">
-                  <p>该工序还有 {{ getIncompleteTaskCount(currentProcess.tasks) }} 个任务未完成。</p>
-                  <p style="margin-top: 5px;">
-                    建议：先完成所有任务，工序会自动完成。如需强制完成，请勾选下方选项并填写原因。
-                  </p>
-                </div>
-              </el-alert>
-            </div>
-          </el-form-item>
-          <el-form-item label="完成数量">
-            <el-input-number
-              v-model="completeProcessForm.quantity_completed"
-              :min="0"
-              style="width: 100%;"
-            />
-          </el-form-item>
-          <el-form-item label="不良品数量">
-            <el-input-number
-              v-model="completeProcessForm.quantity_defective"
-              :min="0"
-              style="width: 100%;"
-            />
-          </el-form-item>
-          <el-form-item v-if="currentProcess && getIncompleteTaskCount(currentProcess.tasks) > 0">
-            <el-checkbox v-model="completeProcessForm.force_complete">
-              强制完成（即使任务未完成）
-            </el-checkbox>
-            <div style="color: #909399; font-size: 12px; margin-top: 5px;">
-              强制完成会将所有未完成的任务标记为已完成，请谨慎使用
-            </div>
-          </el-form-item>
-          <el-form-item
-            v-if="completeProcessForm.force_complete"
-            label="强制完成原因"
-            prop="force_reason"
-            :rules="[{ required: true, message: '请填写强制完成原因', trigger: 'blur' }]"
-          >
-            <el-input
-              v-model="completeProcessForm.force_reason"
-              type="textarea"
-              :rows="3"
-              placeholder="请说明为什么需要强制完成工序（必填）"
-            />
-          </el-form-item>
-        </el-form>
-        <div slot="footer" class="dialog-footer">
-          <el-button @click="completeProcessDialogVisible = false">
-            取消
-          </el-button>
-          <el-button type="primary" :loading="completingProcess" @click="handleCompleteProcess">
-            确定
-          </el-button>
-        </div>
-      </el-dialog>
+        :process="currentProcess"
+        :loading="completingProcess"
+        @submit="handleCompleteProcessSubmit"
+      />
 
       <!-- 其他信息 -->
       <WorkOrderNotes :notes="workOrder.notes" />
@@ -1028,6 +951,7 @@ import WorkOrderProcessTasks from './components/WorkOrderProcessTasks.vue'
 import AddMaterialDialog from './components/AddMaterialDialog.vue'
 import AddProcessDialog from './components/AddProcessDialog.vue'
 import MaterialStatusDialog from './components/MaterialStatusDialog.vue'
+import CompleteProcessDialog from './components/CompleteProcessDialog.vue'
 // 配置文件（默认值）
 const config = {
   companyName: '肇庆市高要区新西彩包装有限公司'
@@ -1046,7 +970,8 @@ export default {
     WorkOrderProcessTasks,
     AddMaterialDialog,
     AddProcessDialog,
-    MaterialStatusDialog
+    MaterialStatusDialog,
+    CompleteProcessDialog
   },
   filters: {
     formatDate(value) {
@@ -1084,17 +1009,6 @@ export default {
       completeProcessDialogVisible: false,
       completingProcess: false,
       currentProcess: null,
-      completeProcessForm: {
-        quantity_completed: 0,
-        quantity_defective: 0,
-        force_complete: false,
-        force_reason: ''
-      },
-      completeProcessRules: {
-        force_reason: [
-          { required: true, message: '请填写强制完成原因', trigger: 'blur' }
-        ]
-      },
       materialStatusDialogVisible: false,
       updatingMaterialStatus: false,
       currentMaterialStatus: {},
@@ -1695,18 +1609,7 @@ export default {
     },
     showCompleteProcessDialog(process) {
       this.currentProcess = process
-      this.completeProcessForm = {
-        quantity_completed: process.quantity_completed || 0,
-        quantity_defective: process.quantity_defective || 0,
-        force_complete: false,
-        force_reason: ''
-      }
       this.completeProcessDialogVisible = true
-      this.$nextTick(() => {
-        if (this.$refs.completeProcessForm) {
-          this.$refs.completeProcessForm.clearValidate()
-        }
-      })
     },
     getCompletedTaskCount(tasks) {
       if (!tasks || !Array.isArray(tasks)) return 0
@@ -1716,58 +1619,35 @@ export default {
       if (!tasks || !Array.isArray(tasks)) return 0
       return tasks.filter(task => task.status !== 'completed').length
     },
-    async handleCompleteProcess() {
-      this.$refs.completeProcessForm.validate(async (valid) => {
-        if (!valid) {
-          return false
+    async handleCompleteProcessSubmit({ processId, data }) {
+      try {
+        if (!this.currentProcess || !this.currentProcess.id) {
+          this.$message.error('工序信息不存在')
+          return
         }
 
-        try {
-          if (!this.currentProcess || !this.currentProcess.id) {
-            this.$message.error('工序信息不存在')
-            return
-          }
-
-          this.completingProcess = true
-
-          // 检查是否有未完成任务
-          const incompleteCount = this.getIncompleteTaskCount(this.currentProcess.tasks)
-          if (incompleteCount > 0 && !this.completeProcessForm.force_complete) {
-            this.$message.warning(`该工序还有 ${incompleteCount} 个任务未完成，请先完成任务或选择强制完成`)
-            this.completingProcess = false
-            return
-          }
-
-          const data = {
-            quantity_completed: this.completeProcessForm.quantity_completed,
-            quantity_defective: this.completeProcessForm.quantity_defective
-          }
-
-          if (this.completeProcessForm.force_complete) {
-            data.force_complete = true
-            data.force_reason = this.completeProcessForm.force_reason
-          }
-
-          await workOrderProcessAPI.complete(this.currentProcess.id, data)
-          this.$message.success('工序已完成')
-          this.completeProcessDialogVisible = false
-          this.loadData()
-        } catch (error) {
-          const errorMessage = error.response?.data?.error || error.response?.data?.detail || error.message || '操作失败'
-
-          // 如果是需要强制完成的错误，提示用户
-          if (error.response?.data?.requires_force) {
-            this.$message.warning(error.response.data.message || errorMessage)
-            // 自动勾选强制完成选项
-            this.completeProcessForm.force_complete = true
-          } else {
-            this.$message.error(errorMessage)
-          }
-          console.error('完成工序失败:', error)
-        } finally {
-          this.completingProcess = false
+        // 检查是否有未完成任务
+        const incompleteCount = this.getIncompleteTaskCount(this.currentProcess.tasks)
+        if (incompleteCount > 0 && !data.force_complete) {
+          this.$message.warning(`该工序还有 ${incompleteCount} 个任务未完成，请先完成任务或选择强制完成`)
+          return
         }
-      })
+
+        await workOrderProcessAPI.complete(processId, data)
+        this.$message.success('工序已完成')
+        this.completeProcessDialogVisible = false
+        this.loadData()
+      } catch (error) {
+        const errorMessage = error.response?.data?.error || error.response?.data?.detail || error.message || '操作失败'
+
+        // 如果是需要强制完成的错误，提示用户
+        if (error.response?.data?.requires_force) {
+          this.$message.warning(error.response.data.message || errorMessage)
+        } else {
+          this.$message.error(errorMessage)
+        }
+        console.error('完成工序失败:', error)
+      }
     },
     async handleUpdateTask(task) {
       try {
