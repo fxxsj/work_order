@@ -2,6 +2,7 @@
  * Cache Module - 缓存模块
  * 管理临时数据和缓存
  */
+import logger from '@/utils/logger'
 
 // 缓存配置
 const CACHE_CONFIG = {
@@ -247,7 +248,7 @@ const actions = {
       commit(mutationMap[cacheKey], data)
       return { success: true, data }
     } catch (error) {
-      console.error(`刷新缓存 ${cacheKey} 失败:`, error)
+      logger.error('刷新缓存失败', { cacheKey, error })
       return { success: false, error }
     }
   }

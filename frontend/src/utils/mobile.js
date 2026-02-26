@@ -2,6 +2,7 @@
  * 移动端响应式工具类
  * 提供移动端适配的工具函数和组件
  */
+import logger from '@/utils/logger'
 
 // 设备检测
 export const DeviceDetector = {
@@ -307,7 +308,7 @@ export const MobileStorage = {
     try {
       localStorage.setItem(key, JSON.stringify(value))
     } catch (e) {
-      console.warn('localStorage not available:', e)
+      logger.warn('localStorage not available', e)
     }
   },
 
@@ -316,7 +317,7 @@ export const MobileStorage = {
       const item = localStorage.getItem(key)
       return item ? JSON.parse(item) : defaultValue
     } catch (e) {
-      console.warn('localStorage not available:', e)
+      logger.warn('localStorage not available', e)
       return defaultValue
     }
   },
@@ -326,7 +327,7 @@ export const MobileStorage = {
     try {
       sessionStorage.setItem(key, JSON.stringify(value))
     } catch (e) {
-      console.warn('sessionStorage not available:', e)
+      logger.warn('sessionStorage not available', e)
     }
   },
 
@@ -335,7 +336,7 @@ export const MobileStorage = {
       const item = sessionStorage.getItem(key)
       return item ? JSON.parse(item) : defaultValue
     } catch (e) {
-      console.warn('sessionStorage not available:', e)
+      logger.warn('sessionStorage not available', e)
       return defaultValue
     }
   }

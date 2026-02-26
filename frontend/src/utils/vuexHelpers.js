@@ -2,6 +2,7 @@
  * Vuex 性能优化工具
  * P2 性能优化 - 减少 Vuex 响应式开销
  */
+import logger from '@/utils/logger'
 
 /**
  * 创建冻结状态（不可变数据）
@@ -184,7 +185,7 @@ export function createAction(handler) {
       )
       return { success: true, data: result }
     } catch (error) {
-      console.error('Action error:', error)
+      logger.error('Action error', error)
       return { success: false, error }
     }
   }

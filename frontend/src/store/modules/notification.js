@@ -3,6 +3,7 @@
  * 管理通知状态和未读计数，支持 localStorage 持久化
  */
 import { notificationAPI } from '@/api/modules'
+import logger from '@/utils/logger'
 
 const STATE_KEY = 'notification_state'
 
@@ -16,7 +17,7 @@ const loadState = () => {
       }
     }
   } catch (e) {
-    console.error('Failed to load notification state:', e)
+    logger.warn('Failed to load notification state', e)
   }
   return {}
 }
@@ -27,7 +28,7 @@ const saveState = (state) => {
       unreadCount: state.unreadCount
     }))
   } catch (e) {
-    console.error('Failed to save notification state:', e)
+    logger.warn('Failed to save notification state', e)
   }
 }
 
@@ -123,7 +124,7 @@ export default {
         commit('SET_UNREAD_COUNT', data.unread_count)
         return data.unread_count
       } catch (error) {
-        console.error('Failed to fetch unread count:', error)
+        logger.error('Failed to fetch unread count', error)
       }
     },
 
@@ -135,7 +136,7 @@ export default {
         bc.postMessage({ type: 'mark_read' })
         bc.close()
       } catch (error) {
-        console.error('Failed to mark as read:', error)
+        logger.error('Failed to mark as read', error)
         throw error
       }
     },
@@ -145,7 +146,7 @@ export default {
         await notificationAPI.markAllAsRead()
         commit('MARK_ALL_AS_READ')
       } catch (error) {
-        console.error('Failed to mark all as read:', error)
+        logger.error('Failed to mark all as read', error)
         throw error
       }
     },
@@ -155,7 +156,7 @@ export default {
         await notificationAPI.delete(notificationId)
         commit('REMOVE_NOTIFICATION', notificationId)
       } catch (error) {
-        console.error('Failed to delete notification:', error)
+        logger.error('Failed to delete notification', error)
         throw error
       }
     },

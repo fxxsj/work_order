@@ -106,6 +106,10 @@
 - `mixins/exportMixin.js`：移除 `console.error`，改为 `ErrorHandler.handle`
 - `mixins/formDialogMixin.js`：移除 `console.error`，改为 `ErrorHandler.handle`
 - `components/common/DataSelector.vue`：移除 `console.error`，改为 `ErrorHandler.handle`
+- `store/modules/notification.js`：移除 `console.*`，改为 `logger`
+- `store/modules/cache.js`：移除 `console.error`，改为 `logger.error`
+- `utils/mobile.js`：移除 `console.warn`，改为 `logger.warn`
+- `utils/vuexHelpers.js`：移除 `console.error`，改为 `logger.error`
 
 ### 3.4 下一步建议（优先级）
 
