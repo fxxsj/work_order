@@ -1880,7 +1880,6 @@ export default {
         this.$message.error('更新物料状态失败: ' + (error.response?.data?.detail || error.message))
       }
     },
-    },
     async handleApprove(status) {
       // status: 'approved' 或 'rejected'
       if (!this.workOrder) return
@@ -2200,7 +2199,6 @@ export default {
       }
     }
   }
-}
 </script>
 
 <style scoped>
