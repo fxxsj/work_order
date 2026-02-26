@@ -6,6 +6,8 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
+import ErrorHandler from '@/utils/errorHandler'
+import logger from '@/utils/logger'
 
 // 导入模块
 import user from './modules/user'
@@ -63,7 +65,7 @@ const store = new Vuex.Store({
 
         return { success: true }
       } catch (error) {
-        console.error('应用初始化失败:', error)
+        ErrorHandler.handle(error, 'store.initApp')
         return { success: false, error }
       }
     },
@@ -118,7 +120,7 @@ const store = new Vuex.Store({
             Object.keys(parsed.cache).forEach(cacheKey => {
               const cache = parsed.cache[cacheKey]
               if (cache.timestamp && now - cache.timestamp > cache.ttl) {
-                console.log(`缓存 ${cacheKey} 已过期，清除中...`)
+                logger.info('缓存过期，清除中', { cacheKey })
                 delete parsed.cache[cacheKey]
               }
             })
@@ -126,7 +128,7 @@ const store = new Vuex.Store({
 
           return parsed
         } catch (error) {
-          console.error('解析持久化数据失败:', error)
+          ErrorHandler.handle(error, 'store.getState')
           return null
         }
       }
@@ -140,12 +142,18 @@ const store = new Vuex.Store({
 // ============ 开发环境提示 ============
 // 提示开发者使用新的模块化 API
 if (process.env.NODE_ENV !== 'production') {
-  console.info(
-    '[Vuex Store] 模块化架构已启用。\n' +
-    '使用命名空间访问模块：\n' +
-    '  - store.getters["user/currentUser"]\n' +
-    '  - store.getters["user/isAuthenticated"]\n' +
-    '  - store.dispatch("user/initUser", data)\n'
+  logger.info(
+    '[Vuex Store] 模块化架构已启用。' +
+    '使用命名空间访问模块。',
+    {
+      getters: [
+        'store.getters["user/currentUser"]',
+        'store.getters["user/isAuthenticated"]'
+      ],
+      actions: [
+        'store.dispatch("user/initUser", data)'
+      ]
+    }
   )
 }
 

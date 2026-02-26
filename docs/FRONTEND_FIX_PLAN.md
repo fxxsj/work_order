@@ -95,6 +95,7 @@
 - `views/Dashboard.vue`：移除 `console.error`，改为 `ErrorHandler.handle`
 - `components/NotificationCenter.vue`：移除 `console.error`，改为 `ErrorHandler.handle`
 - `composables/useWebSocket.js`：保留连接/重连关键日志，使用 `VUE_APP_WS_LOG` 控制输出
+- `store/index.js`：移除 `console.*`，统一到 `ErrorHandler` + `logger`
 
 ### 3.4 下一步建议（优先级）
 
