@@ -62,6 +62,7 @@ frontend/src/config/index.js
 .coverage
 htmlcov/
 .pytest_cache/
+test-results/
 
 # Coverage Reports (P1 Optimization)
 backend/htmlcov/
