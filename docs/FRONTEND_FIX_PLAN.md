@@ -1,7 +1,7 @@
 # 前端代码规范修复计划
 
-> 版本：v1.0.1  
-> 更新时间：2026-02-25
+> 版本：v1.0.3  
+> 更新时间：2026-02-26
 
 ## 概述
 
@@ -24,7 +24,7 @@
 | 文件 | 修改 |
 |------|------|
 | `api/modules/auth.js` | 添加 getUserList 兼容函数 |
-| `views/workorder/Detail.vue` | 迁移到 authAPI |
+| `views/workorder/Detail.vue` | 迁移到 authAPI（文件已删除） |
 | `views/task/TaskList.vue` | 迁移到 authAPI |
 | `views/task/components/BatchAssignDialog.vue` | 迁移到 authAPI |
 | `router/index.js` | 迁移到 authAPI |
@@ -60,14 +60,10 @@
 - 使用统一的组件名称
 
 **状态**：✅ 完成
-3. 测试各功能正常
-4. 删除 Detail.vue
-
-**状态**：⏳ 待执行
 
 ---
 
-## 阶段三：Console 语句清理 ⏳ 待执行
+## 阶段三：Console 语句清理 ⏳ 进行中
 
 ### 3.1 统一错误处理
 
@@ -79,17 +75,31 @@
 
 | 文件 | 当前数量 | 建议 |
 |------|---------|------|
-| `views/workorder/Detail.vue` | ~35处 | 优先清理 |
-| `views/Dashboard.vue` | ~10处 | 使用 ErrorHandler |
-| `composables/useWebSocket.js` | ~8处 | 保留连接日志，清理其他 |
-| 其他 | ~60处 | 按需清理 |
+| `views/workorder/WorkOrderDetail.vue` | 多处 | 优先清理 |
+| `views/Dashboard.vue` | 多处 | 使用 ErrorHandler |
+| `composables/useWebSocket.js` | 多处 | 保留连接日志，清理其他 |
+| `components/NotificationCenter.vue` | 多处 | 使用 ErrorHandler |
+| `store/index.js` | 多处 | 缩减 info/log，统一错误处理 |
+| 其他 | 分散 | 按需清理 |
 
 **建议**：
 - 生产环境完全移除 console
 - 开发环境保留必要的日志
 - 使用统一的 `ErrorHandler` 进行错误处理
 
-**状态**：⏳ 待执行
+**状态**：⏳ 进行中
+
+### 3.3 已完成清理
+
+- `views/workorder/WorkOrderDetail.vue`：移除 `console.error`，改为 `ErrorHandler.handle`
+- `views/Dashboard.vue`：移除 `console.error`，改为 `ErrorHandler.handle`
+- `components/NotificationCenter.vue`：移除 `console.error`，改为 `ErrorHandler.handle`
+
+### 3.4 下一步建议（优先级）
+
+1. 先清理 `WorkOrderDetail.vue`、`Dashboard.vue`、`NotificationCenter.vue` 的 `console.error`，全部迁移到 `utils/errorHandler.js`
+2. WebSocket 相关日志仅保留连接/重连关键路径，并通过环境变量开关控制
+3. API / Service / Store 层统一通过 `errorHandler` + `logger`，减少直接 `console.*`
 
 ---
 
@@ -111,9 +121,9 @@
 ```
 阶段一 ✅ 已完成
     ↓
-阶段二 ⏳ 待执行
+阶段二 ✅ 已完成
     ↓
-阶段三 ⏳ 待执行
+阶段三 ⏳ 进行中
     ↓
 阶段四 ⏳ 待执行
 ```
@@ -126,7 +136,7 @@
 |------|------|
 | 阶段一 | ✅ 已完成 |
 | 阶段二 | ✅ 已完成（简化方案：删除重复文件） |
-| 阶段三 | ⏳ 待执行 |
+| 阶段三 | ⏳ 进行中 |
 | 阶段四 | ⏳ 待执行 |
 
 ---
@@ -137,7 +147,7 @@
 |------|---------|------|
 | 阶段一 | 10分钟 | ✅ 已完成 |
 | 阶段二 | 30分钟 | ✅ 已完成 |
-| 阶段三 | 1-2小时 | ⏳ 待执行 |
+| 阶段三 | 1-2小时 | ⏳ 进行中 |
 | 阶段四 | 30分钟 | ⏳ 待执行 |
 
 ---

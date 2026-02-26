@@ -149,6 +149,7 @@
 
 <script>
 import { useWebSocket } from '@/composables/useWebSocket'
+import ErrorHandler from '@/utils/errorHandler'
 
 const ws = useWebSocket()
 
@@ -256,7 +257,7 @@ export default {
       try {
         await this.$store.dispatch('notification/fetchNotifications', { page_size: 20 })
       } catch (e) {
-        console.error('Failed to load notifications:', e)
+        ErrorHandler.handle(e, 'NotificationCenter.loadNotifications')
       }
     },
 
@@ -275,7 +276,7 @@ export default {
       try {
         await this.$store.dispatch('notification/markAsRead', id)
       } catch (e) {
-        console.error('Failed to mark as read:', e)
+        ErrorHandler.handle(e, 'NotificationCenter.markAsRead')
       }
     },
 
@@ -283,7 +284,7 @@ export default {
       try {
         await this.$store.dispatch('notification/markAllAsRead')
       } catch (e) {
-        console.error('Failed to mark all as read:', e)
+        ErrorHandler.handle(e, 'NotificationCenter.markAllAsRead')
       }
     },
 
@@ -291,7 +292,7 @@ export default {
       try {
         await this.$store.dispatch('notification/deleteNotification', id)
       } catch (e) {
-        console.error('Failed to delete notification:', e)
+        ErrorHandler.handle(e, 'NotificationCenter.deleteNotification')
       }
     },
 

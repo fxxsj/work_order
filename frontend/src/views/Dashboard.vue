@@ -72,6 +72,7 @@ import {
   embossingPlateAPI
 } from '@/api/modules'
 import { hasRole, hasAnyRole } from '@/utils/userRole'
+import ErrorHandler from '@/utils/errorHandler'
 import NotificationAlerts from './dashboard/components/NotificationAlerts.vue'
 import WorkOrderStatistics from './dashboard/components/WorkOrderStatistics.vue'
 import TaskStatistics from './dashboard/components/TaskStatistics.vue'
@@ -172,7 +173,7 @@ export default {
               })
               this.myTasks = taskResponse.results || []
             } catch (error) {
-              console.error('加载我的任务失败:', error)
+              ErrorHandler.handle(error, 'Dashboard.loadMyTasks')
             }
           }
         }
@@ -182,7 +183,7 @@ export default {
           const unreadResponse = await notificationAPI.getUnreadCount()
           this.unreadNotificationCount = unreadResponse.unread_count || 0
         } catch (error) {
-          console.error('加载通知失败:', error)
+          ErrorHandler.handle(error, 'Dashboard.loadUnreadNotifications')
         }
 
         // 如果是设计员，加载待确认图稿和版型
@@ -263,7 +264,7 @@ export default {
             code: item.code || (item.base_code ? (item.base_code + (item.version > 1 ? '-v' + item.version : '')) : '-')
           }))
       } catch (error) {
-        console.error('加载待确认图稿失败:', error)
+        ErrorHandler.handle(error, 'Dashboard.loadPendingArtworks')
       }
 
       try {
@@ -275,7 +276,7 @@ export default {
           .filter(item => !item.confirmed)
           .slice(0, 10)
       } catch (error) {
-        console.error('加载待确认刀模失败:', error)
+        ErrorHandler.handle(error, 'Dashboard.loadPendingDies')
       }
 
       try {
@@ -287,7 +288,7 @@ export default {
           .filter(item => !item.confirmed)
           .slice(0, 10)
       } catch (error) {
-        console.error('加载待确认烫金版失败:', error)
+        ErrorHandler.handle(error, 'Dashboard.loadPendingFoilingPlates')
       }
 
       try {
@@ -299,7 +300,7 @@ export default {
           .filter(item => !item.confirmed)
           .slice(0, 10)
       } catch (error) {
-        console.error('加载待确认压凸版失败:', error)
+        ErrorHandler.handle(error, 'Dashboard.loadPendingEmbossingPlates')
       }
     },
     async handlePlateConfirm({ type, item }) {

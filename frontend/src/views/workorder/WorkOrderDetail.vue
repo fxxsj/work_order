@@ -447,6 +447,7 @@ import {
   processAPI,
   authAPI
 } from '@/api/modules'
+import ErrorHandler from '@/utils/errorHandler'
 import WorkOrderHeaderActions from './components/WorkOrderHeaderActions.vue'
 import WorkOrderBasicInfo from './components/WorkOrderBasicInfo.vue'
 import WorkOrderArtworkDie from './components/WorkOrderArtworkDie.vue'
@@ -748,7 +749,7 @@ export default {
         this.workOrder = await workOrderAPI.getDetail(id)
       } catch (error) {
         this.$message.error('加载数据失败')
-        console.error(error)
+        ErrorHandler.handle(error, 'WorkOrderDetail.loadData')
       } finally {
         this.loading = false
       }
@@ -779,7 +780,7 @@ export default {
 
         this.processList = allProcesses
       } catch (error) {
-        console.error('加载工序列表失败:', error)
+        ErrorHandler.handle(error, 'WorkOrderDetail.loadProcessList')
       }
     },
     async loadMaterialList() {
@@ -787,7 +788,7 @@ export default {
         const response = await materialAPI.getList({ page_size: 100 })
         this.materialList = response.results || []
       } catch (error) {
-        console.error('加载物料列表失败:', error)
+        ErrorHandler.handle(error, 'WorkOrderDetail.loadMaterialList')
       }
     },
     handleEdit() {
@@ -840,7 +841,7 @@ export default {
         const response = await departmentAPI.getList({ page_size: 100 })
         this.departmentList = response.results || []
       } catch (error) {
-        console.error('加载部门列表失败:', error)
+        ErrorHandler.handle(error, 'WorkOrderDetail.loadDepartmentList')
       }
     },
     loadDepartmentListForProcess(task) {
@@ -871,7 +872,7 @@ export default {
           this.userList = response || []
         }
       } catch (error) {
-        console.error('加载用户列表失败:', error)
+        ErrorHandler.handle(error, 'WorkOrderDetail.loadUserList')
         this.userList = []
       }
     },
@@ -1112,8 +1113,8 @@ export default {
         const response = await artworkAPI.getList({ page_size: 1000 })
         this.artworkList = response.results || []
       } catch (error) {
-        console.error('加载图稿列表失败:', error)
         this.$message.error('加载图稿列表失败')
+        ErrorHandler.handle(error, 'WorkOrderDetail.loadArtworkList')
       } finally {
         this.loadingArtworks = false
       }
@@ -1127,8 +1128,8 @@ export default {
         const response = await dieAPI.getList({ page_size: 1000 })
         this.dieList = response.results || []
       } catch (error) {
-        console.error('加载刀模列表失败:', error)
         this.$message.error('加载刀模列表失败')
+        ErrorHandler.handle(error, 'WorkOrderDetail.loadDieList')
       } finally {
         this.loadingDies = false
       }
@@ -1638,4 +1639,3 @@ export default {
   }
 }
 </style>
-
