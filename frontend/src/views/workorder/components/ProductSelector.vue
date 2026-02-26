@@ -24,6 +24,7 @@
 
 <script>
 import { productAPI } from '@/api/modules'
+import ErrorHandler from '@/utils/errorHandler'
 
 export default {
   name: 'ProductSelector',
@@ -54,7 +55,7 @@ export default {
         const response = await productAPI.getList({ is_active: true, page_size: 100 })
         this.productList = response.results || []
       } catch (error) {
-        console.error('加载产品列表失败:', error)
+        ErrorHandler.handle(error, 'ProductSelector.loadProductList')
         this.$message.error('加载产品列表失败')
       } finally {
         this.loading = false

@@ -322,7 +322,7 @@ export default {
         const response = await supplierAPI.getList({ page_size: 1000, status: 'active' })
         this.supplierList = response.results || []
       } catch (error) {
-        console.error('加载供应商列表失败:', error)
+        ErrorHandler.handle(error, 'MaterialList.loadSuppliers')
       }
     },
 

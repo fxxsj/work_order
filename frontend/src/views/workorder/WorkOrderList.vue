@@ -220,6 +220,7 @@ import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 import exportMixin from '@/mixins/exportMixin'
 import { debounce } from '@/utils/debounce'
 import ErrorHandler from '@/utils/errorHandler'
+import logger from '@/utils/logger'
 import SkeletonLoader from '@/components/SkeletonLoader.vue'
 import Pagination from '@/components/common/Pagination.vue'
 
@@ -320,7 +321,7 @@ export default {
       this.currentPage = 1
       if (Object.keys(this.$route.query).length > 0) {
         this.$router.replace({ query: {} }).catch(err => {
-          if (err.name !== 'NavigationDuplicated') console.error('导航错误:', err)
+          if (err.name !== 'NavigationDuplicated') logger.warn('导航错误', err)
         })
       }
       this.loadData()
@@ -379,4 +380,3 @@ export default {
 .filter-section { margin-bottom: 20px; }
 .el-table { cursor: pointer; }
 </style>
-

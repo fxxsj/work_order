@@ -238,7 +238,7 @@ export default {
         }
         this.draftTasks = allTasks
       } catch (error) {
-        console.error('加载草稿任务失败:', error)
+        ErrorHandler.handle(error, 'DraftTaskManagement.loadDraftTasks')
       }
     },
 

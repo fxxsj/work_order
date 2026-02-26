@@ -152,6 +152,7 @@ import { productAPI, processAPI, materialAPI, productMaterialAPI, productGroupAP
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 import ErrorHandler from '@/utils/errorHandler'
+import logger from '@/utils/logger'
 import Pagination from '@/components/common/Pagination.vue'
 import ProductFormDialog from './components/ProductFormDialog.vue'
 
@@ -319,7 +320,7 @@ export default {
             await productMaterialAPI.delete(material.id)
           }
         } catch (error) {
-          console.warn('删除现有物料失败:', error)
+          logger.warn('删除现有物料失败', error)
         }
       }
 
@@ -338,7 +339,7 @@ export default {
               sort_order: i
             })
           } catch (error) {
-            console.warn('保存物料失败:', error)
+            logger.warn('保存物料失败', error)
           }
         }
       }

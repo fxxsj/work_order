@@ -503,7 +503,7 @@ export default {
             }
           }
         } catch (error) {
-          console.error('获取销售订单详情失败:', error)
+          ErrorHandler.handle(error, 'Delivery.handleSalesOrderChange')
         }
       }
     },

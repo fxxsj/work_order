@@ -79,6 +79,7 @@
 
 <script>
 import { productAPI } from '@/api/modules'
+import ErrorHandler from '@/utils/errorHandler'
 import ProductSelector from './ProductSelector.vue'
 
 export default {
@@ -127,7 +128,7 @@ export default {
         const response = await productAPI.getList({ is_active: true, page_size: 1000 })
         this.productList = response.results || []
       } catch (error) {
-        console.error('加载产品列表失败:', error)
+        ErrorHandler.handle(error, 'ProductListEditor.loadProductList')
         this.$message.error('加载产品列表失败')
       }
     },
