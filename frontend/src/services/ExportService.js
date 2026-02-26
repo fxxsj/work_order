@@ -6,6 +6,7 @@
 
 import BaseService from './base/BaseService'
 import * as XLSX from 'xlsx'
+import logger from '@/utils/logger'
 
 /**
  * 导出服务类
@@ -69,7 +70,7 @@ class ExportService extends BaseService {
         message: `导出成功：${filename}.xlsx`
       }
     } catch (error) {
-      console.error('Export Error:', error)
+      logger.error('Export Error', error)
       return {
         success: false,
         error: '导出失败：' + error.message
@@ -115,7 +116,7 @@ class ExportService extends BaseService {
         message: `导出成功：${filename}.csv`
       }
     } catch (error) {
-      console.error('Export Error:', error)
+      logger.error('Export Error', error)
       return {
         success: false,
         error: '导出失败：' + error.message

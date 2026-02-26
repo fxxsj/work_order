@@ -2,6 +2,7 @@ import axios from 'axios'
 import { Message } from 'element-ui'
 import router from '@/router'
 import store from '@/store'
+import logger from '@/utils/logger'
 
 // 获取 CSRF Token
 function getCsrfToken() {
@@ -48,7 +49,7 @@ service.interceptors.request.use(
   },
   error => {
     // 对请求错误做些什么
-    console.error('Request error:', error)
+    logger.error('Request error', error)
     return Promise.reject(error)
   }
 )
@@ -58,7 +59,7 @@ service.interceptors.response.use(
   response => response.data,
   error => {
     // 对响应错误做点什么
-    console.error('Response error:', error)
+    logger.error('Response error', error)
 
     if (error.response) {
       const { status, data } = error.response
@@ -147,4 +148,3 @@ service.interceptors.response.use(
 )
 
 export default service
-

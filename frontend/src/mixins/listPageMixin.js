@@ -3,6 +3,7 @@
  * 提供统一的列表页面逻辑，包括分页、搜索、加载等
  */
 import { debounce } from 'lodash'
+import ErrorHandler from '@/utils/errorHandler'
 
 export default {
   data() {
@@ -71,7 +72,7 @@ export default {
         this.tableData = response.results || response.data || []
         this.total = response.count || response.total || 0
       } catch (error) {
-        console.error('加载数据失败:', error)
+        ErrorHandler.handle(error, 'listPageMixin.loadData')
         this.$message.error('加载数据失败')
       } finally {
         this.loading = false

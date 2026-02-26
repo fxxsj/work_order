@@ -28,6 +28,8 @@
 </template>
 
 <script>
+import ErrorHandler from '@/utils/errorHandler'
+
 export default {
   name: 'DataSelector',
   props: {
@@ -122,7 +124,7 @@ export default {
           this.options = []
         }
       } catch (error) {
-        console.error('DataSelector fetch error:', error)
+        ErrorHandler.handle(error, 'DataSelector.remoteMethod')
         this.$message.error('加载数据失败')
       } finally {
         this.loading = false

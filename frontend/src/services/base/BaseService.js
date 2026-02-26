@@ -9,6 +9,8 @@
  * 基础 Service 类
  * 提供通用的业务逻辑处理方法
  */
+import logger from '@/utils/logger'
+
 class BaseService {
   /**
    * 构造函数
@@ -26,7 +28,7 @@ class BaseService {
    * @returns {string} 用户友好的错误消息
    */
   handleError(error) {
-    console.error('Service Error:', error)
+    logger.error('Service Error', error)
 
     if (error.response) {
       // 服务器返回错误响应
@@ -90,7 +92,7 @@ class BaseService {
 
       if (showError) {
         // 可以在这里集成全局错误提示组件
-        console.error('API Error:', errorMsg)
+        logger.error('API Error', errorMsg)
       }
 
       return {

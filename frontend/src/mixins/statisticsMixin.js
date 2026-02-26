@@ -20,6 +20,8 @@
  *   }
  * }
  */
+import ErrorHandler from '@/utils/errorHandler'
+
 export default {
   data() {
     return {
@@ -42,7 +44,7 @@ export default {
       try {
         await this.fetchStatistics()
       } catch (error) {
-        console.error('加载统计数据失败:', error)
+        ErrorHandler.handle(error, 'statisticsMixin.loadStatistics')
         this.$message.error('加载统计数据失败')
       } finally {
         this.statsLoading = false

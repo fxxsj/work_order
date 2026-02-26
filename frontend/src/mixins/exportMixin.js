@@ -20,6 +20,7 @@
  * }
  */
 import * as XLSX from 'xlsx'
+import ErrorHandler from '@/utils/errorHandler'
 
 export default {
   data() {
@@ -69,7 +70,7 @@ export default {
 
         this.$message.success('导出成功')
       } catch (error) {
-        console.error('导出失败:', error)
+        ErrorHandler.handle(error, 'exportMixin.exportExcel')
         this.$message.error('导出失败')
       } finally {
         this.exporting = false
@@ -131,7 +132,7 @@ export default {
 
         this.$message.success('导出成功')
       } catch (error) {
-        console.error('导出失败:', error)
+        ErrorHandler.handle(error, 'exportMixin.exportCSV')
         this.$message.error('导出失败')
       } finally {
         this.exporting = false
@@ -174,7 +175,7 @@ export default {
 
         this.$message.success('导出成功')
       } catch (error) {
-        console.error('导出失败:', error)
+        ErrorHandler.handle(error, 'exportMixin.exportFromAPI')
         this.$message.error('导出失败')
       } finally {
         this.exporting = false

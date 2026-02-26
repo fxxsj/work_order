@@ -17,6 +17,8 @@
  *   }
  * }
  */
+import ErrorHandler from '@/utils/errorHandler'
+
 export default {
   data() {
     return {
@@ -128,7 +130,7 @@ export default {
 
         this.closeDialog()
       } catch (error) {
-        console.error('表单提交失败:', error)
+        ErrorHandler.handle(error, 'formDialogMixin.submitForm')
         this.formErrors = error.response?.data || []
       } finally {
         this.dialogLoading = false

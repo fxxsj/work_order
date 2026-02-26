@@ -98,6 +98,14 @@
 - `store/index.js`：移除 `console.*`，统一到 `ErrorHandler` + `logger`
 - `views/workorder/components/TaskSection.vue`：移除 `console.error`，改为 `ErrorHandler.handle`
 - `views/workorder/WorkOrderForm.vue`：移除 `console.warn`，改为 `logger.warn`
+- `services/base/BaseService.js`：移除 `console.*`，改为 `logger.error`
+- `services/ExportService.js`：移除 `console.error`，改为 `logger.error`
+- `api/index.js`：移除 `console.error`，改为 `logger.error`
+- `mixins/listPageMixin.js`：移除 `console.error`，改为 `ErrorHandler.handle`
+- `mixins/statisticsMixin.js`：移除 `console.error`，改为 `ErrorHandler.handle`
+- `mixins/exportMixin.js`：移除 `console.error`，改为 `ErrorHandler.handle`
+- `mixins/formDialogMixin.js`：移除 `console.error`，改为 `ErrorHandler.handle`
+- `components/common/DataSelector.vue`：移除 `console.error`，改为 `ErrorHandler.handle`
 
 ### 3.4 下一步建议（优先级）
 
