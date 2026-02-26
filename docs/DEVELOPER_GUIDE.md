@@ -1,7 +1,7 @@
 # 开发者指南
 
-> 版本：v1.0.0  
-> 更新时间：2026-02-25
+> 版本：v1.0.1  
+> 更新时间：2026-02-26
 
 ## 项目结构
 
@@ -132,8 +132,8 @@ python manage.py loaddata workorder/fixtures/initial_products.json
 | stock-in.js | 入库 |
 | stock-out.js | 出库 |
 | sales-order.js | 销售订单 |
- 采购 |
-|| purchase.js | notification.js | 通知 |
+| purchase.js | 采购 |
+| notification.js | 通知 |
 | task-assignment-rule.js | 任务分配规则 |
 
 **使用方式**：
@@ -186,6 +186,35 @@ await this.$store.dispatch('user/login', credentials)
 | formDialogMixin.js | 表单弹窗 |
 | exportMixin.js | 导出功能 |
 | statisticsMixin.js | 统计功能 |
+
+## 废弃文件说明
+
+以下文件已删除或废弃，请勿继续引用：
+
+- `frontend/src/api/auth.js`（废弃，已由 `frontend/src/api/modules/auth.js` 替代）
+- `frontend/src/api/user.js`（废弃，已由 `frontend/src/api/modules/auth.js` 替代）
+- `frontend/src/config/index.js.template`（废弃）
+- `frontend/src/views/workorder/Detail.vue`（废弃，已由 `WorkOrderDetail.vue` 统一承载）
+
+## Console 语句规范
+
+目标：生产环境不直接使用 `console.*`，统一走工具封装。
+
+建议做法：
+- 记录错误：`ErrorHandler.handle(error, 'Context')` 或 `ErrorHandler.showMessage(error, '描述')`
+- 记录日志：`logger.info/warn/error/debug`
+- WebSocket 日志：通过 `VUE_APP_WS_LOG=true` 启用
+- 保留范围：仅允许 `utils/logger.js` 内部使用 `console.*`（开发环境）
+
+## 组件拆分指南
+
+当组件超过 500 行或包含多个业务域时，建议拆分：
+
+1. 抽离 UI 子组件（表格/表单/对话框）
+2. 抽离业务逻辑到 `services/` 或 `api/modules/`
+3. 复用逻辑优先用 `mixins/` 或 `composables/`
+4. 组件通信通过 `props` + `events`，避免跨层级访问
+5. 拆分后优先保证功能回归测试通过
 
 ## 后端管理命令
 
