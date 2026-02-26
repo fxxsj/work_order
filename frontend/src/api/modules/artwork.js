@@ -18,7 +18,7 @@ class ArtworkAPI extends BaseAPI {
    */
   confirm(id) {
     return this.request({
-      url: `${this.baseURL}${id}/confirm/`,
+      url: `${this.baseUrl}${id}/confirm/`,
       method: 'post'
     })
   }
@@ -30,7 +30,7 @@ class ArtworkAPI extends BaseAPI {
    */
   createVersion(id) {
     return this.request({
-      url: `${this.baseURL}${id}/create_version/`,
+      url: `${this.baseUrl}${id}/create_version/`,
       method: 'post'
     })
   }

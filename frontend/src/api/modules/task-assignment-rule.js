@@ -18,7 +18,7 @@ class TaskAssignmentRuleAPI extends BaseAPI {
    */
   preview(params = {}) {
     return this.request({
-      url: `${this.baseURL}preview/`,
+      url: `${this.baseUrl}preview/`,
       method: 'get',
       params
     })
@@ -30,7 +30,7 @@ class TaskAssignmentRuleAPI extends BaseAPI {
    */
   getGlobalState() {
     return this.request({
-      url: `${this.baseURL}global_state/`,
+      url: `${this.baseUrl}global_state/`,
       method: 'get'
     })
   }
@@ -42,7 +42,7 @@ class TaskAssignmentRuleAPI extends BaseAPI {
    */
   setGlobalState(enabled) {
     return this.request({
-      url: `${this.baseURL}set_global_state/`,
+      url: `${this.baseUrl}set_global_state/`,
       method: 'post',
       data: { enabled }
     })

@@ -18,7 +18,7 @@ class StatementAPI extends BaseAPI {
    */
   confirm(id, data) {
     return this.request({
-      url: `${this.baseURL}${id}/confirm/`,
+      url: `${this.baseUrl}${id}/confirm/`,
       method: 'post',
       data
     })
@@ -31,7 +31,7 @@ class StatementAPI extends BaseAPI {
    */
   generate(params) {
     return this.request({
-      url: `${this.baseURL}generate/`,
+      url: `${this.baseUrl}generate/`,
       method: 'get',
       params
     })

@@ -17,7 +17,7 @@ class InvoiceAPI extends BaseAPI {
    */
   submit(id) {
     return this.request({
-      url: `${this.baseURL}${id}/submit/`,
+      url: `${this.baseUrl}${id}/submit/`,
       method: 'post'
     })
   }
@@ -30,7 +30,7 @@ class InvoiceAPI extends BaseAPI {
    */
   approve(id, data) {
     return this.request({
-      url: `${this.baseURL}${id}/approve/`,
+      url: `${this.baseUrl}${id}/approve/`,
       method: 'post',
       data
     })
@@ -42,7 +42,7 @@ class InvoiceAPI extends BaseAPI {
    */
   getSummary() {
     return this.request({
-      url: `${this.baseURL}summary/`,
+      url: `${this.baseUrl}summary/`,
       method: 'get'
     })
   }

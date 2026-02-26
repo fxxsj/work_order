@@ -16,7 +16,7 @@ class DieAPI extends BaseAPI {
    */
   confirm(id) {
     return this.request({
-      url: `${this.baseURL}${id}/confirm/`,
+      url: `${this.baseUrl}${id}/confirm/`,
       method: 'post'
     })
   }

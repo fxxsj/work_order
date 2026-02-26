@@ -60,132 +60,19 @@
         @submit="handleMaterialStatusSubmit"
       />
 
-      <!-- 更新任务数量对话框 -->
-      <el-dialog
-        title="更新任务"
+      <!-- 更新任务对话框 -->
+      <UpdateTaskDialog
         :visible.sync="updateTaskDialogVisible"
-        width="600px"
-      >
-        <el-form
-          ref="updateTaskForm"
-          :model="updateTaskForm"
-          label-width="120px"
-        >
-          <el-form-item label="任务内容">
-            <el-input :value="currentUpdateTask?.work_content" disabled />
-          </el-form-item>
-          <el-form-item label="生产数量">
-            <el-input-number
-              :value="currentUpdateTask?.production_quantity"
-              disabled
-              style="width: 100%;"
-            />
-          </el-form-item>
-          <el-form-item v-if="currentUpdateTask" label="当前完成数量">
-            <el-input-number
-              :value="currentUpdateTask.quantity_completed || 0"
-              disabled
-              style="width: 100%;"
-            />
-          </el-form-item>
-          <el-form-item label="本次完成数量" prop="quantity_completed" required>
-            <el-input-number
-              v-model="updateTaskForm.quantity_completed"
-              :min="0"
-              :max="currentUpdateTask ? (currentUpdateTask.production_quantity - (currentUpdateTask.quantity_completed || 0)) : 999999"
-              style="width: 100%;"
-            />
-            <div v-if="currentUpdateTask?.production_quantity" style="color: #909399; font-size: 12px; margin-top: 4px;">
-              计划数量：{{ currentUpdateTask.production_quantity }}，
-              当前完成：{{ currentUpdateTask.quantity_completed || 0 }}，
-              更新后：{{ (currentUpdateTask.quantity_completed || 0) + (updateTaskForm.quantity_completed || 0) }}
-              <span v-if="(currentUpdateTask.quantity_completed || 0) + (updateTaskForm.quantity_completed || 0) >= currentUpdateTask.production_quantity" style="color: #67C23A;">
-                （完成数量将达到计划数量，状态将自动标记为已完成）
-              </span>
-              <span v-else style="color: #E6A23C;">
-                （完成数量未达到计划数量，状态将保持为进行中）
-              </span>
-            </div>
-          </el-form-item>
-          <el-form-item label="本次不良品数量">
-            <el-input-number
-              v-model="updateTaskForm.quantity_defective"
-              :min="0"
-              style="width: 100%;"
-            />
-            <div style="color: #909399; font-size: 12px; margin-top: 4px;">
-              当前不良品：{{ currentUpdateTask?.quantity_defective || 0 }}，
-              更新后：{{ (currentUpdateTask?.quantity_defective || 0) + (updateTaskForm.quantity_defective || 0) }}
-            </div>
-          </el-form-item>
-          <el-form-item
-            v-if="currentUpdateTask && (currentUpdateTask.work_content && (currentUpdateTask.work_content.includes('设计图稿') || currentUpdateTask.work_content.includes('更新图稿')))"
-            label="选择图稿"
-            prop="artwork_ids"
-          >
-            <el-select
-              v-model="updateTaskForm.artwork_ids"
-              multiple
-              filterable
-              placeholder="请选择图稿"
-              style="width: 100%;"
-              :loading="loadingArtworks"
-              @focus="loadArtworkList"
-            >
-              <el-option
-                v-for="artwork in artworkList"
-                :key="artwork.id"
-                :label="`${artwork.code || artwork.base_code || ''} - ${artwork.name || ''}`"
-                :value="artwork.id"
-              />
-            </el-select>
-            <div style="color: #909399; font-size: 12px; margin-top: 5px;">
-              选中的图稿将自动关联到施工单
-            </div>
-          </el-form-item>
-          <el-form-item
-            v-if="currentUpdateTask && (currentUpdateTask.work_content && (currentUpdateTask.work_content.includes('设计刀模') || currentUpdateTask.work_content.includes('更新刀模')))"
-            label="选择刀模"
-            prop="die_ids"
-          >
-            <el-select
-              v-model="updateTaskForm.die_ids"
-              multiple
-              filterable
-              placeholder="请选择刀模"
-              style="width: 100%;"
-              :loading="loadingDies"
-              @focus="loadDieList"
-            >
-              <el-option
-                v-for="die in dieList"
-                :key="die.id"
-                :label="`${die.code} - ${die.name}`"
-                :value="die.id"
-              />
-            </el-select>
-            <div style="color: #909399; font-size: 12px; margin-top: 5px;">
-              选中的刀模将自动关联到施工单
-            </div>
-          </el-form-item>
-          <el-form-item label="任务备注">
-            <el-input
-              v-model="updateTaskForm.notes"
-              type="textarea"
-              :rows="3"
-              placeholder="请输入任务备注（可选）"
-            />
-          </el-form-item>
-        </el-form>
-        <div slot="footer">
-          <el-button @click="updateTaskDialogVisible = false">
-            取消
-          </el-button>
-          <el-button type="primary" :loading="updatingTask" @click="handleUpdateTaskFromDialog">
-            确定
-          </el-button>
-        </div>
-      </el-dialog>
+        :task="currentUpdateTask"
+        :artwork-list="artworkList"
+        :die-list="dieList"
+        :loading-artworks="loadingArtworks"
+        :loading-dies="loadingDies"
+        :loading="updatingTask"
+        @submit="handleUpdateTaskSubmit"
+        @load-artworks="loadArtworkList"
+        @load-dies="loadDieList"
+      />
 
       <!-- 完成工序对话框 -->
       <CompleteProcessDialog
@@ -499,234 +386,30 @@
       @submit="handleAddMaterial"
     />
 
-    <!-- 完成任务对话框（通用，设计任务额外选择图稿/刀模） -->
-    <el-dialog
-      title="完成任务"
+    <!-- 完成任务对话框 -->
+    <CompleteTaskDialog
       :visible.sync="completeTaskDialogVisible"
-      width="600px"
-      @close="resetCompleteTaskForm"
-    >
-      <el-form
-        ref="completeTaskForm"
-        :model="completeTaskForm"
-        label-width="120px"
-      >
-        <el-form-item label="状态">
-          <el-tag type="success">
-            已完成
-          </el-tag>
-          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
-            强制完成任务，状态将标记为已完成
-          </div>
-        </el-form-item>
-
-        <el-form-item
-          v-if="currentTask && currentTask.task_type === 'plate_making'"
-          label="完成数量"
-        >
-          <el-input-number
-            v-model="completeTaskForm.quantity_completed"
-            :min="1"
-            :max="1"
-            :step="1"
-            disabled
-            style="width: 100%;"
-          />
-          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
-            制版任务完成数量固定为1
-          </div>
-        </el-form-item>
-
-        <el-form-item
-          v-if="currentTask && currentTask.task_type !== 'plate_making'"
-          label="当前完成数量"
-        >
-          <el-input-number
-            :value="currentTask.quantity_completed || 0"
-            disabled
-            style="width: 100%;"
-          />
-          <div v-if="currentTask && currentTask.production_quantity" style="color: #909399; font-size: 12px; margin-top: 4px;">
-            计划数量：{{ currentTask.production_quantity }}
-            <span v-if="(currentTask.quantity_completed || 0) < currentTask.production_quantity" style="color: #E6A23C; margin-left: 10px;">
-              （当前完成数量小于计划数量，将强制标记为已完成）
-            </span>
-          </div>
-        </el-form-item>
-
-        <el-form-item label="完成理由">
-          <el-input
-            v-model="completeTaskForm.completion_reason"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入完成理由（可选，用于说明为什么在完成数量小于生产数量时强制完成）"
-          />
-        </el-form-item>
-
-        <el-form-item
-          v-if="currentTask && (currentTask.work_content.includes('设计图稿') || currentTask.work_content.includes('更新图稿'))"
-          label="选择图稿"
-          prop="artwork_ids"
-          :rules="[{ required: true, message: '请至少选择一个图稿', trigger: 'change' }]"
-        >
-          <el-select
-            v-model="completeTaskForm.artwork_ids"
-            multiple
-            filterable
-            placeholder="请选择图稿"
-            style="width: 100%;"
-            :loading="loadingArtworks"
-            @focus="loadArtworkList"
-          >
-            <el-option
-              v-for="artwork in artworkList"
-              :key="artwork.id"
-              :label="`${artwork.code || artwork.base_code || ''} - ${artwork.name || ''}`"
-              :value="artwork.id"
-            />
-          </el-select>
-          <div style="color: #909399; font-size: 12px; margin-top: 5px;">
-            选中的图稿将自动关联到施工单
-          </div>
-        </el-form-item>
-        <el-form-item
-          v-if="currentTask && (currentTask.work_content.includes('设计刀模') || currentTask.work_content.includes('更新刀模'))"
-          label="选择刀模"
-          prop="die_ids"
-          :rules="[{ required: true, message: '请至少选择一个刀模', trigger: 'change' }]"
-        >
-          <el-select
-            v-model="completeTaskForm.die_ids"
-            multiple
-            filterable
-            placeholder="请选择刀模"
-            style="width: 100%;"
-            :loading="loadingDies"
-            @focus="loadDieList"
-          >
-            <el-option
-              v-for="die in dieList"
-              :key="die.id"
-              :label="`${die.code} - ${die.name}`"
-              :value="die.id"
-            />
-          </el-select>
-          <div style="color: #909399; font-size: 12px; margin-top: 5px;">
-            选中的刀模将自动关联到施工单
-          </div>
-        </el-form-item>
-        <el-form-item label="任务备注">
-          <el-input
-            v-model="completeTaskForm.notes"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入任务备注（可选）"
-          />
-        </el-form-item>
-      </el-form>
-      <div slot="footer">
-        <el-button @click="completeTaskDialogVisible = false">
-          取消
-        </el-button>
-        <el-button type="primary" :loading="completingTask" @click="handleConfirmCompleteTask">
-          确定
-        </el-button>
-      </div>
-    </el-dialog>
+      :task="currentTask"
+      :artwork-list="artworkList"
+      :die-list="dieList"
+      :loading-artworks="loadingArtworks"
+      :loading-dies="loadingDies"
+      :loading="completingTask"
+      @submit="handleCompleteTaskSubmit"
+      @load-artworks="loadArtworkList"
+      @load-dies="loadDieList"
+    />
 
     <!-- 批量调整工序分派对话框 -->
-    <el-dialog
-      title="批量调整工序分派"
+    <ReassignProcessDialog
       :visible.sync="reassignProcessDialogVisible"
-      width="600px"
-    >
-      <el-form
-        ref="reassignProcessForm"
-        :model="reassignProcessForm"
-        label-width="140px"
-        :rules="{
-          reason: [{ required: true, message: '请填写调整原因', trigger: 'blur' }]
-        }"
-      >
-        <el-form-item label="工序名称">
-          <el-input :value="currentReassignProcess ? currentReassignProcess.process_name : ''" disabled />
-        </el-form-item>
-        <el-form-item label="任务数量">
-          <el-input :value="currentReassignProcess && currentReassignProcess.tasks ? currentReassignProcess.tasks.length : 0" disabled />
-          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
-            将调整该工序下所有任务的分派
-          </div>
-        </el-form-item>
-        <el-form-item label="新分派部门" prop="assigned_department">
-          <el-select
-            v-model="reassignProcessForm.assigned_department"
-            placeholder="请选择部门"
-            filterable
-            clearable
-            style="width: 100%;"
-            @change="handleReassignProcessDepartmentChange"
-          >
-            <el-option
-              v-for="dept in departmentList"
-              :key="dept.id"
-              :label="dept.name"
-              :value="dept.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="新分派操作员" prop="assigned_operator">
-          <el-select
-            v-model="reassignProcessForm.assigned_operator"
-            placeholder="请选择操作员（可选）"
-            filterable
-            clearable
-            style="width: 100%;"
-          >
-            <el-option
-              v-for="user in userList"
-              :key="user.id"
-              :label="user.username || `${(user.first_name || '')}${(user.last_name || '')}`.trim() || user.id"
-              :value="user.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="调整原因" prop="reason">
-          <el-input
-            v-model="reassignProcessForm.reason"
-            type="textarea"
-            :rows="3"
-            placeholder="请填写调整原因（必填，便于追溯）"
-          />
-          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
-            例如：包装车间设备故障，无法处理裱坑工序
-          </div>
-        </el-form-item>
-        <el-form-item label="备注">
-          <el-input
-            v-model="reassignProcessForm.notes"
-            type="textarea"
-            :rows="2"
-            placeholder="请输入备注（可选）"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-checkbox v-model="reassignProcessForm.update_process_department">
-            同时更新工序级别的部门（影响后续生成的任务）
-          </el-checkbox>
-          <div style="color: #909399; font-size: 12px; margin-top: 4px;">
-            如果勾选，后续生成的任务也会分派到新部门
-          </div>
-        </el-form-item>
-      </el-form>
-      <div slot="footer">
-        <el-button @click="reassignProcessDialogVisible = false">
-          取消
-        </el-button>
-        <el-button type="primary" :loading="reassigningProcess" @click="handleReassignProcess">
-          确定
-        </el-button>
-      </div>
-    </el-dialog>
+      :process="currentReassignProcess"
+      :department-list="departmentList"
+      :user-list="userList"
+      :loading="reassigningProcess"
+      @submit="handleReassignProcessSubmit"
+      @department-change="handleReassignProcessDepartmentChange"
+    />
 
     <!-- 任务分派对话框 -->
     <TaskAssignDialog
@@ -739,126 +422,14 @@
     />
 
     <!-- 拆分任务对话框 -->
-    <el-dialog
-      title="拆分任务"
+    <SplitTaskDialog
       :visible.sync="splitDialogVisible"
-      width="800px"
-      @close="resetSplitForm"
-    >
-      <el-form
-        ref="splitForm"
-        :model="splitForm"
-        label-width="120px"
-        :rules="splitRules"
-      >
-        <el-form-item label="父任务">
-          <el-input :value="currentSplitTask?.work_content" disabled />
-        </el-form-item>
-        <el-form-item label="生产数量">
-          <el-input-number
-            :value="currentSplitTask?.production_quantity"
-            disabled
-            style="width: 100%;"
-          />
-        </el-form-item>
-        <el-form-item label="子任务列表" prop="splits">
-          <div style="margin-bottom: 10px;">
-            <el-button type="primary" size="small" @click="addSplitItem">
-              添加子任务
-            </el-button>
-            <span style="color: #909399; font-size: 12px; margin-left: 10px;">
-              至少需要2个子任务，子任务数量总和不能超过父任务数量
-            </span>
-          </div>
-          <el-table :data="splitForm.splits" border style="width: 100%;">
-            <el-table-column label="序号" width="60" align="center">
-              <template slot-scope="scope">
-                {{ scope.$index + 1 }}
-              </template>
-            </el-table-column>
-            <el-table-column label="生产数量" width="150">
-              <template slot-scope="scope">
-                <el-input-number
-                  v-model="scope.row.production_quantity"
-                  :min="1"
-                  :max="currentSplitTask?.production_quantity || 999999"
-                  style="width: 100%;"
-                />
-              </template>
-            </el-table-column>
-            <el-table-column label="分派部门" width="180">
-              <template slot-scope="scope">
-                <el-select
-                  v-model="scope.row.assigned_department"
-                  placeholder="请选择部门"
-                  filterable
-                  clearable
-                  style="width: 100%;"
-                >
-                  <el-option
-                    v-for="dept in departmentList"
-                    :key="dept.id"
-                    :label="dept.name"
-                    :value="dept.id"
-                  />
-                </el-select>
-              </template>
-            </el-table-column>
-            <el-table-column label="分派操作员" width="180">
-              <template slot-scope="scope">
-                <el-select
-                  v-model="scope.row.assigned_operator"
-                  placeholder="请选择操作员"
-                  filterable
-                  clearable
-                  style="width: 100%;"
-                >
-                  <el-option
-                    v-for="user in userList"
-                    :key="user.id"
-                    :label="user.username || `${(user.first_name || '')}${(user.last_name || '')}`.trim() || user.id"
-                    :value="user.id"
-                  />
-                </el-select>
-              </template>
-            </el-table-column>
-            <el-table-column label="工作内容" min-width="200">
-              <template slot-scope="scope">
-                <el-input
-                  v-model="scope.row.work_content"
-                  placeholder="可选，默认使用父任务内容"
-                />
-              </template>
-            </el-table-column>
-            <el-table-column label="操作" width="80" align="center">
-              <template slot-scope="scope">
-                <el-button
-                  type="danger"
-                  size="mini"
-                  icon="el-icon-delete"
-                  :disabled="splitForm.splits.length <= 2"
-                  @click="removeSplitItem(scope.$index)"
-                />
-              </template>
-            </el-table-column>
-          </el-table>
-          <div style="margin-top: 10px; color: #909399; font-size: 12px;">
-            子任务数量总和：{{ getTotalSplitQuantity() }} / {{ currentSplitTask?.production_quantity || 0 }}
-            <span v-if="getTotalSplitQuantity() > (currentSplitTask?.production_quantity || 0)" style="color: #F56C6C;">
-              （超出父任务数量）
-            </span>
-          </div>
-        </el-form-item>
-      </el-form>
-      <div slot="footer">
-        <el-button @click="splitDialogVisible = false">
-          取消
-        </el-button>
-        <el-button type="primary" :loading="splittingTask" @click="handleSplitTask">
-          确定拆分
-        </el-button>
-      </div>
-    </el-dialog>
+      :task="currentSplitTask"
+      :department-list="departmentList"
+      :user-list="userList"
+      :loading="splittingTask"
+      @submit="handleSplitTaskSubmit"
+    />
   </div>
 </template>
 
@@ -889,6 +460,10 @@ import AddProcessDialog from './components/AddProcessDialog.vue'
 import MaterialStatusDialog from './components/MaterialStatusDialog.vue'
 import CompleteProcessDialog from './components/CompleteProcessDialog.vue'
 import TaskAssignDialog from './components/TaskAssignDialog.vue'
+import ReassignProcessDialog from './components/ReassignProcessDialog.vue'
+import UpdateTaskDialog from './components/UpdateTaskDialog.vue'
+import CompleteTaskDialog from './components/CompleteTaskDialog.vue'
+import SplitTaskDialog from './components/SplitTaskDialog.vue'
 // 配置文件（默认值）
 const config = {
   companyName: '肇庆市高要区新西彩包装有限公司'
@@ -909,7 +484,11 @@ export default {
     AddProcessDialog,
     MaterialStatusDialog,
     CompleteProcessDialog,
-    TaskAssignDialog
+    TaskAssignDialog,
+    ReassignProcessDialog,
+    UpdateTaskDialog,
+    CompleteTaskDialog,
+    SplitTaskDialog
   },
   filters: {
     formatDate(value) {
@@ -999,17 +578,10 @@ export default {
       // 批量调整工序分派对话框
       reassignProcessDialogVisible: false,
       reassigningProcess: false,
-      reassignProcessForm: {
-        assigned_department: null,
-        assigned_operator: null,
-        reason: '',
-        notes: '',
-        update_process_department: false
-      },
+      currentReassignProcess: null,
       // 任务分派对话框
       taskAssignDialogVisible: false,
       assigningTask: false,
-      currentReassignProcess: null,
       // 拆分任务对话框
       splitDialogVisible: false,
       splittingTask: false,
@@ -1307,56 +879,28 @@ export default {
     },
     showReassignProcessDialog(process) {
       this.currentReassignProcess = process
-      this.reassignProcessForm = {
-        assigned_department: process.department || null,
-        assigned_operator: null,
-        reason: '',
-        notes: '',
-        update_process_department: false
-      }
       // 如果工序已有部门，根据部门加载用户列表
       this.loadUserList(process.department || null)
       this.reassignProcessDialogVisible = true
-      this.$nextTick(() => {
-        if (this.$refs.reassignProcessForm) {
-          this.$refs.reassignProcessForm.clearValidate()
-        }
-      })
     },
-    async handleReassignProcess() {
-      this.$refs.reassignProcessForm.validate(async (valid) => {
-        if (!valid) {
-          return false
-        }
-
-        if (!this.reassignProcessForm.reason) {
-          this.$message.warning('请填写调整原因')
-          return
-        }
-
-        this.reassigningProcess = true
-        try {
-          const data = {
-            assigned_department: this.reassignProcessForm.assigned_department,
-            assigned_operator: this.reassignProcessForm.assigned_operator,
-            reason: this.reassignProcessForm.reason,
-            notes: this.reassignProcessForm.notes || '',
-            update_process_department: this.reassignProcessForm.update_process_department
-          }
-
-          await workOrderProcessAPI.reassign_tasks(this.currentReassignProcess.id, data)
-          this.$message.success('批量调整分派成功')
-          this.reassignProcessDialogVisible = false
-          this.loadData()
-        } catch (error) {
-          const errorMessage = error.response?.data?.error || error.response?.data?.detail ||
-                             (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
-          this.$message.error(errorMessage)
-          console.error('批量调整分派失败:', error)
-        } finally {
-          this.reassigningProcess = false
-        }
-      })
+    async handleReassignProcessSubmit({ processId, data }) {
+      this.reassigningProcess = true
+      try {
+        await workOrderProcessAPI.reassign_tasks(processId, data)
+        this.$message.success('批量调整分派成功')
+        this.reassignProcessDialogVisible = false
+        this.loadData()
+      } catch (error) {
+        const errorMessage = error.response?.data?.error || error.response?.data?.detail ||
+                           (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
+        this.$message.error(errorMessage)
+        console.error('批量调整分派失败:', error)
+      } finally {
+        this.reassigningProcess = false
+      }
+    },
+    handleReassignProcessDepartmentChange(departmentId) {
+      this.loadUserList(departmentId)
     },
     showTaskAssignDialog(task) {
       this.currentTask = { ...task }
@@ -1407,18 +951,6 @@ export default {
       this.loadDepartmentListForProcess(task)
       this.loadUserList()
     },
-    handleReassignProcessDepartmentChange() {
-      // 当批量调整分派的部门改变时，根据部门过滤操作员列表
-      const departmentId = this.reassignProcessForm.assigned_department
-      this.loadUserList(departmentId)
-      // 如果部门改变，清空已选的操作员（因为操作员可能不属于新部门）
-      if (departmentId) {
-        const currentOperator = this.userList.find(u => u.id === this.reassignProcessForm.assigned_operator)
-        if (!currentOperator) {
-          this.reassignProcessForm.assigned_operator = null
-        }
-      }
-    },
     handleTaskAssignDepartmentChange() {
       // 当任务分派的部门改变时，根据部门过滤操作员列表
       const departmentId = this.taskAssignForm.assigned_department
@@ -1458,47 +990,20 @@ export default {
         }
       })
     },
-    async handleSplitTask() {
-      this.$refs.splitForm.validate(async (valid) => {
-        if (!valid) {
-          return false
-        }
-
-        if (!this.currentSplitTask || !this.currentSplitTask.id) {
-          this.$message.error('任务信息不存在')
-          return
-        }
-
-        // 验证数量总和
-        const total = this.getTotalSplitQuantity()
-        if (total > this.currentSplitTask.production_quantity) {
-          this.$message.error('子任务数量总和不能超过父任务数量')
-          return
-        }
-
-        this.splittingTask = true
-        try {
-          const data = {
-            splits: this.splitForm.splits.map(split => ({
-              production_quantity: split.production_quantity,
-              assigned_department: split.assigned_department || null,
-              assigned_operator: split.assigned_operator || null,
-              work_content: split.work_content || ''
-            }))
-          }
-
-          await workOrderTaskAPI.split(this.currentSplitTask.id, data)
-          this.$message.success('任务拆分成功')
-          this.splitDialogVisible = false
-          this.loadData()
-        } catch (error) {
-          const errorMessage = error.response?.data?.error || error.response?.data?.detail || error.message || '操作失败'
-          this.$message.error(errorMessage)
-          console.error('拆分任务失败:', error)
-        } finally {
-          this.splittingTask = false
-        }
-      })
+    async handleSplitTaskSubmit({ taskId, data }) {
+      this.splittingTask = true
+      try {
+        await workOrderTaskAPI.split(taskId, data)
+        this.$message.success('任务拆分成功')
+        this.splitDialogVisible = false
+        this.loadData()
+      } catch (error) {
+        const errorMessage = error.response?.data?.error || error.response?.data?.detail || error.message || '操作失败'
+        this.$message.error(errorMessage)
+        console.error('拆分任务失败:', error)
+      } finally {
+        this.splittingTask = false
+      }
     },
     async handleStartProcess(process) {
       try {
@@ -1652,42 +1157,21 @@ export default {
         }
       })
     },
-    async handleConfirmCompleteTask() {
-      this.$refs.completeTaskForm.validate(async (valid) => {
-        if (!valid) {
-          return false
-        }
-
-        this.completingTask = true
-        try {
-          const data = {
-            completion_reason: this.completeTaskForm.completion_reason,
-            quantity_defective: this.completeTaskForm.quantity_defective || 0,
-            notes: this.completeTaskForm.notes
-          }
-
-          // 设计图稿/设计刀模任务：需要传递图稿或刀模ID
-          if (this.currentTask.work_content && (this.currentTask.work_content.includes('设计图稿') || this.currentTask.work_content.includes('更新图稿'))) {
-            data.artwork_ids = this.completeTaskForm.artwork_ids
-          }
-
-          if (this.currentTask.work_content && (this.currentTask.work_content.includes('设计刀模') || this.currentTask.work_content.includes('更新刀模'))) {
-            data.die_ids = this.completeTaskForm.die_ids
-          }
-
-          await workOrderTaskAPI.complete(this.currentTask.id, data)
-          this.$message.success('任务已强制完成')
-          this.completeTaskDialogVisible = false
-          this.loadData()
-        } catch (error) {
-          const errorMessage = error.response?.data?.error || error.response?.data?.detail ||
-                             (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
-          this.$message.error(errorMessage)
-          console.error('完成任务失败:', error)
-        } finally {
-          this.completingTask = false
-        }
-      })
+    async handleCompleteTaskSubmit({ taskId, data }) {
+      this.completingTask = true
+      try {
+        await workOrderTaskAPI.complete(taskId, data)
+        this.$message.success('任务已强制完成')
+        this.completeTaskDialogVisible = false
+        this.loadData()
+      } catch (error) {
+        const errorMessage = error.response?.data?.error || error.response?.data?.detail ||
+                           (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
+        this.$message.error(errorMessage)
+        console.error('完成任务失败:', error)
+      } finally {
+        this.completingTask = false
+      }
     },
     getStatusText(status) {
       const statusMap = {
@@ -1725,46 +1209,21 @@ export default {
         }
       })
     },
-    async handleUpdateTaskFromDialog() {
-      if (!this.currentUpdateTask) return
-
-      this.$refs.updateTaskForm.validate(async (valid) => {
-        if (!valid) {
-          return false
-        }
-
-        this.updatingTask = true
-        try {
-          // 传递增量值给后端（后端会累加）
-          const data = {
-            quantity_increment: this.updateTaskForm.quantity_completed || 0,  // 传递本次完成数量（增量）
-            quantity_defective: this.updateTaskForm.quantity_defective || 0,  // 传递本次不良品数量（增量）
-            version: this.currentUpdateTask.version,  // 传递版本号（乐观锁）
-            notes: this.updateTaskForm.notes
-          }
-
-          // 设计图稿/设计刀模任务：需要传递图稿或刀模ID
-          if (this.currentUpdateTask.work_content && (this.currentUpdateTask.work_content.includes('设计图稿') || this.currentUpdateTask.work_content.includes('更新图稿'))) {
-            data.artwork_ids = this.updateTaskForm.artwork_ids
-          }
-
-          if (this.currentUpdateTask.work_content && (this.currentUpdateTask.work_content.includes('设计刀模') || this.currentUpdateTask.work_content.includes('更新刀模'))) {
-            data.die_ids = this.updateTaskForm.die_ids
-          }
-
-          await workOrderTaskAPI.update_quantity(this.currentUpdateTask.id, data)
-          this.$message.success('更新成功')
-          this.updateTaskDialogVisible = false
-          this.loadData()
-        } catch (error) {
-          const errorMessage = error.response?.data?.error || error.response?.data?.detail ||
-                             (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '更新失败'
-          this.$message.error(errorMessage)
-          console.error('更新任务失败:', error)
-        } finally {
-          this.updatingTask = false
-        }
-      })
+    async handleUpdateTaskSubmit({ taskId, data }) {
+      this.updatingTask = true
+      try {
+        await workOrderTaskAPI.update_quantity(taskId, data)
+        this.$message.success('更新成功')
+        this.updateTaskDialogVisible = false
+        this.loadData()
+      } catch (error) {
+        const errorMessage = error.response?.data?.error || error.response?.data?.detail ||
+                           (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '更新失败'
+        this.$message.error(errorMessage)
+        console.error('更新任务失败:', error)
+      } finally {
+        this.updatingTask = false
+      }
     },
     showAddMaterialDialog() {
       this.addMaterialDialog = true

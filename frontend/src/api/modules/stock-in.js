@@ -17,7 +17,7 @@ class StockInAPI extends BaseAPI {
    */
   submit(id) {
     return this.request({
-      url: `${this.baseURL}${id}/submit/`,
+      url: `${this.baseUrl}${id}/submit/`,
       method: 'post'
     })
   }
@@ -29,7 +29,7 @@ class StockInAPI extends BaseAPI {
    */
   approve(id) {
     return this.request({
-      url: `${this.baseURL}${id}/approve/`,
+      url: `${this.baseUrl}${id}/approve/`,
       method: 'post'
     })
   }

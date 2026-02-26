@@ -18,7 +18,7 @@ class QualityInspectionAPI extends BaseAPI {
    */
   complete(id, data) {
     return this.request({
-      url: `${this.baseURL}${id}/complete/`,
+      url: `${this.baseUrl}${id}/complete/`,
       method: 'post',
       data
     })
@@ -30,7 +30,7 @@ class QualityInspectionAPI extends BaseAPI {
    */
   getSummary() {
     return this.request({
-      url: `${this.baseURL}summary/`,
+      url: `${this.baseUrl}summary/`,
       method: 'get'
     })
   }
