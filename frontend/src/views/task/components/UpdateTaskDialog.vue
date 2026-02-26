@@ -136,6 +136,7 @@
 
 <script>
 import { artworkAPI, dieAPI } from '@/api/modules'
+import ErrorHandler from '@/utils/errorHandler'
 
 export default {
   name: 'UpdateTaskDialog',
@@ -214,7 +215,7 @@ export default {
         const response = await artworkAPI.getList({ page_size: 1000 })
         this.artworkList = response.results || []
       } catch (error) {
-        console.error('加载图稿列表失败:', error)
+        ErrorHandler.handle(error, 'UpdateTaskDialog.loadArtworkList')
         this.$message.error('加载图稿列表失败')
       } finally {
         this.loadingArtworks = false
@@ -228,7 +229,7 @@ export default {
         const response = await dieAPI.getList({ page_size: 1000 })
         this.dieList = response.results || []
       } catch (error) {
-        console.error('加载刀模列表失败:', error)
+        ErrorHandler.handle(error, 'UpdateTaskDialog.loadDieList')
         this.$message.error('加载刀模列表失败')
       } finally {
         this.loadingDies = false

@@ -73,6 +73,7 @@
 
 <script>
 import { workOrderTaskAPI } from '@/api/modules'
+import logger from '@/utils/logger'
 
 export default {
   name: 'TaskStats',
@@ -152,7 +153,7 @@ export default {
         this.serverStats = response.data || response
       } catch (error) {
         // 服务端接口失败时，降级使用本地计算
-        console.warn('加载服务端统计失败，使用本地计算:', error.message)
+        logger.warn('加载服务端统计失败，使用本地计算', error?.message || error)
         this.serverStats = null
       } finally {
         this.statsLoading = false

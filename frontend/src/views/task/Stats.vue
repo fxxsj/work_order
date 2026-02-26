@@ -349,7 +349,7 @@ export default {
         const res = await departmentAPI.getList({ page_size: 1000 })
         this.departmentList = res.results || []
       } catch (error) {
-        console.error('加载部门列表失败:', error)
+        ErrorHandler.handle(error, 'TaskStats.loadDepartmentList')
         ErrorHandler.showMessage(error, '加载部门列表')
       }
     },
@@ -371,7 +371,7 @@ export default {
         this.statsList = res.results || []
         this.summary = res.summary || null
       } catch (error) {
-        console.error('加载统计数据失败:', error)
+        ErrorHandler.handle(error, 'TaskStats.loadStatistics')
         ErrorHandler.showMessage(error, '加载统计数据')
       } finally {
         this.loading = false
@@ -455,4 +455,3 @@ export default {
   color: #909399;
 }
 </style>
-

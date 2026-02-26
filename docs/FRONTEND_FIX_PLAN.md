@@ -114,6 +114,10 @@
 - `views/Profile.vue`：移除 `console.error`，改为 `ErrorHandler.handle`
 - `views/Layout.vue`：移除 `console.*`，改为 `logger.warn` + `ErrorHandler.handle`
 - `views/Login.vue`：移除 `console.error`，改为 `ErrorHandler.handle`
+- `views/task/components/UpdateTaskDialog.vue`：移除 `console.error`，改为 `ErrorHandler.handle`
+- `views/task/components/CompleteTaskDialog.vue`：移除 `console.error`，改为 `ErrorHandler.handle`
+- `views/task/components/TaskStats.vue`：移除 `console.warn`，改为 `logger.warn`
+- `views/task/Stats.vue`：移除 `console.error`，改为 `ErrorHandler.handle`
 
 ### 3.4 下一步建议（优先级）
 
