@@ -53,90 +53,12 @@
       />
 
       <!-- 物料状态更新对话框 -->
-      <el-dialog
-        title="更新物料采购状态"
+      <MaterialStatusDialog
         :visible.sync="materialStatusDialogVisible"
-        width="500px"
-        @close="resetMaterialStatusForm"
-      >
-        <el-form
-          ref="materialStatusForm"
-          :model="materialStatusForm"
-          :rules="materialStatusRules"
-          label-width="120px"
-        >
-          <el-form-item label="物料名称">
-            <el-input :value="materialStatusForm.material_name" disabled />
-          </el-form-item>
-          <el-form-item label="当前状态">
-            <el-tag :type="getPurchaseStatusType(materialStatusForm.current_status)" size="small">
-              {{ getPurchaseStatusDisplay(materialStatusForm.current_status) }}
-            </el-tag>
-          </el-form-item>
-          <el-form-item label="更新为" prop="purchase_status">
-            <el-select
-              v-model="materialStatusForm.purchase_status"
-              placeholder="请选择状态"
-              style="width: 100%;"
-              @change="handleMaterialStatusChange"
-            >
-              <el-option
-                v-for="status in availableStatuses"
-                :key="status.value"
-                :label="status.label"
-                :value="status.value"
-              />
-            </el-select>
-          </el-form-item>
-          <el-form-item
-            v-if="materialStatusForm.purchase_status === 'ordered'"
-            label="采购日期"
-            prop="purchase_date"
-          >
-            <el-date-picker
-              v-model="materialStatusForm.purchase_date"
-              type="date"
-              placeholder="选择采购日期"
-              style="width: 100%;"
-              value-format="yyyy-MM-dd"
-            />
-          </el-form-item>
-          <el-form-item
-            v-if="materialStatusForm.purchase_status === 'received'"
-            label="回料日期"
-            prop="received_date"
-          >
-            <el-date-picker
-              v-model="materialStatusForm.received_date"
-              type="date"
-              placeholder="选择回料日期"
-              style="width: 100%;"
-              value-format="yyyy-MM-dd"
-            />
-          </el-form-item>
-          <el-form-item
-            v-if="materialStatusForm.purchase_status === 'cut'"
-            label="开料日期"
-            prop="cut_date"
-          >
-            <el-date-picker
-              v-model="materialStatusForm.cut_date"
-              type="date"
-              placeholder="选择开料日期"
-              style="width: 100%;"
-              value-format="yyyy-MM-dd"
-            />
-          </el-form-item>
-        </el-form>
-        <div slot="footer" class="dialog-footer">
-          <el-button @click="materialStatusDialogVisible = false">
-            取消
-          </el-button>
-          <el-button type="primary" :loading="updatingMaterialStatus" @click="submitMaterialStatusUpdate">
-            确定
-          </el-button>
-        </div>
-      </el-dialog>
+        :material="currentMaterialStatus"
+        :loading="updatingMaterialStatus"
+        @submit="handleMaterialStatusSubmit"
+      />
 
       <!-- 更新任务数量对话框 -->
       <el-dialog
@@ -1105,6 +1027,7 @@ import WorkOrderApproval from './components/WorkOrderApproval.vue'
 import WorkOrderProcessTasks from './components/WorkOrderProcessTasks.vue'
 import AddMaterialDialog from './components/AddMaterialDialog.vue'
 import AddProcessDialog from './components/AddProcessDialog.vue'
+import MaterialStatusDialog from './components/MaterialStatusDialog.vue'
 // 配置文件（默认值）
 const config = {
   companyName: '肇庆市高要区新西彩包装有限公司'
@@ -1122,7 +1045,8 @@ export default {
     WorkOrderApproval,
     WorkOrderProcessTasks,
     AddMaterialDialog,
-    AddProcessDialog
+    AddProcessDialog,
+    MaterialStatusDialog
   },
   filters: {
     formatDate(value) {
@@ -1173,29 +1097,7 @@ export default {
       },
       materialStatusDialogVisible: false,
       updatingMaterialStatus: false,
-      materialStatusForm: {
-        id: null,
-        material_name: '',
-        current_status: '',
-        purchase_status: '',
-        purchase_date: '',
-        received_date: '',
-        cut_date: ''
-      },
-      materialStatusRules: {
-        purchase_status: [
-          { required: true, message: '请选择状态', trigger: 'change' }
-        ],
-        purchase_date: [
-          { required: true, message: '请选择采购日期', trigger: 'change' }
-        ],
-        received_date: [
-          { required: true, message: '请选择回料日期', trigger: 'change' }
-        ],
-        cut_date: [
-          { required: true, message: '请选择开料日期', trigger: 'change' }
-        ]
-      },
+      currentMaterialStatus: {},
       addMaterialDialog: false,
       addingMaterial: false,
       addingProcess: false,
@@ -2125,101 +2027,22 @@ export default {
       return typeMap[printingType] || printingType
     },
     handleUpdateMaterialStatus(row) {
-      this.materialStatusForm = {
-        id: row.id,
-        material_name: `${row.material_name} (${row.material_code})`,
-        current_status: row.purchase_status,
-        purchase_status: '',
-        purchase_date: row.purchase_date || '',
-        received_date: row.received_date || '',
-        cut_date: row.cut_date || ''
-      }
+      this.currentMaterialStatus = { ...row }
       this.materialStatusDialogVisible = true
     },
-    handleMaterialStatusChange() {
-      // 当物料状态改变时，自动设置日期为今天（如果为空）
-      const today = new Date().toISOString().split('T')[0]
-      if (this.materialStatusForm.purchase_status === 'ordered' && !this.materialStatusForm.purchase_date) {
-        this.materialStatusForm.purchase_date = today
-      } else if (this.materialStatusForm.purchase_status === 'received' && !this.materialStatusForm.received_date) {
-        this.materialStatusForm.received_date = today
-      } else if (this.materialStatusForm.purchase_status === 'cut' && !this.materialStatusForm.cut_date) {
-        this.materialStatusForm.cut_date = today
+    async handleMaterialStatusSubmit({ id, data }) {
+      this.updatingMaterialStatus = true
+      try {
+        await workOrderMaterialAPI.update(id, data)
+        this.$message.success('物料状态更新成功')
+        this.materialStatusDialogVisible = false
+        await this.loadData()
+      } catch (error) {
+        console.error('更新物料状态失败:', error)
+        this.$message.error('更新物料状态失败: ' + (error.response?.data?.detail || error.message))
+      } finally {
+        this.updatingMaterialStatus = false
       }
-    },
-    resetMaterialStatusForm() {
-      this.$refs.materialStatusForm && this.$refs.materialStatusForm.resetFields()
-      this.materialStatusForm = {
-        id: null,
-        material_name: '',
-        current_status: '',
-        purchase_status: '',
-        purchase_date: '',
-        received_date: '',
-        cut_date: ''
-      }
-    },
-    async submitMaterialStatusUpdate() {
-      this.$refs.materialStatusForm.validate(async (valid) => {
-        if (!valid) {
-          return false
-        }
-
-        this.updatingMaterialStatus = true
-        try {
-          const updateData = {
-            purchase_status: this.materialStatusForm.purchase_status
-          }
-
-          // 根据状态添加相应的日期
-          if (this.materialStatusForm.purchase_status === 'ordered' && this.materialStatusForm.purchase_date) {
-            updateData.purchase_date = this.materialStatusForm.purchase_date
-          }
-          if (this.materialStatusForm.purchase_status === 'received' && this.materialStatusForm.received_date) {
-            updateData.received_date = this.materialStatusForm.received_date
-            // 如果之前没有采购日期，也更新
-            if (!this.materialStatusForm.purchase_date) {
-              updateData.purchase_date = this.materialStatusForm.received_date
-            }
-          }
-          if (this.materialStatusForm.purchase_status === 'cut' && this.materialStatusForm.cut_date) {
-            updateData.cut_date = this.materialStatusForm.cut_date
-            // 如果之前没有回料日期，也更新
-            if (!this.materialStatusForm.received_date) {
-              updateData.received_date = this.materialStatusForm.cut_date
-            }
-            // 如果之前没有采购日期，也更新
-            if (!this.materialStatusForm.purchase_date) {
-              updateData.purchase_date = this.materialStatusForm.cut_date
-            }
-          }
-          if (this.materialStatusForm.purchase_status === 'completed') {
-            // 完成时，确保所有日期都已填写
-            if (!this.materialStatusForm.cut_date) {
-              updateData.cut_date = new Date().toISOString().split('T')[0]
-            }
-            if (!this.materialStatusForm.received_date) {
-              updateData.received_date = updateData.cut_date
-            }
-            if (!this.materialStatusForm.purchase_date) {
-              updateData.purchase_date = updateData.cut_date
-            }
-          }
-
-          await workOrderMaterialAPI.update(this.materialStatusForm.id, updateData)
-
-          this.$message.success('物料状态更新成功')
-          this.materialStatusDialogVisible = false
-
-          // 重新加载施工单数据
-          await this.loadData()
-        } catch (error) {
-          console.error('更新物料状态失败:', error)
-          this.$message.error('更新物料状态失败: ' + (error.response?.data?.detail || error.message))
-        } finally {
-          this.updatingMaterialStatus = false
-        }
-      })
     },
     async handleApprove(status) {
       // status: 'approved' 或 'rejected'
