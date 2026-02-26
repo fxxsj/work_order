@@ -596,7 +596,6 @@ export default {
 
     handleExport(row) {
       ErrorHandler.showInfo('导出功能开发中')
-      console.log('Export:', row.id)
     },
 
     handlePrint() {

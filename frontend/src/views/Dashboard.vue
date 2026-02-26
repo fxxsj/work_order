@@ -190,7 +190,6 @@ export default {
           await this.loadPendingPlates()
         }
       } catch (error) {
-        console.error('加载数据失败:', error)
         this.$message.error('加载数据失败，请刷新重试')
       } finally {
         this.loading = false
@@ -337,7 +336,6 @@ export default {
         // 重新加载待确认版型数据
         await this.loadPendingPlates()
       } catch (error) {
-        console.error(`确认${labelMap[type]}失败:`, error)
         this.$message.error(error.response?.data?.error || `确认${labelMap[type]}失败`)
       } finally {
         this.confirmingItem = null

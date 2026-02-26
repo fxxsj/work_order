@@ -817,7 +817,6 @@ export default {
         this.loadData()
       } catch (error) {
         this.$message.error('状态更新失败')
-        console.error(error)
       }
     },
     showAddProcessDialog() {
@@ -832,7 +831,6 @@ export default {
         this.loadData()
       } catch (error) {
         this.$message.error('添加失败')
-        console.error(error)
       } finally {
         this.addingProcess = false
       }
@@ -894,7 +892,6 @@ export default {
         const errorMessage = error.response?.data?.error || error.response?.data?.detail ||
                            (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
         this.$message.error(errorMessage)
-        console.error('批量调整分派失败:', error)
       } finally {
         this.reassigningProcess = false
       }
@@ -921,7 +918,6 @@ export default {
         const errorMessage = error.response?.data?.error || error.response?.data?.detail ||
                            (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
         this.$message.error(errorMessage)
-        console.error('分派任务失败:', error)
       } finally {
         this.assigningTask = false
       }
@@ -1000,7 +996,6 @@ export default {
       } catch (error) {
         const errorMessage = error.response?.data?.error || error.response?.data?.detail || error.message || '操作失败'
         this.$message.error(errorMessage)
-        console.error('拆分任务失败:', error)
       } finally {
         this.splittingTask = false
       }
@@ -1017,7 +1012,6 @@ export default {
         } else {
           this.$message.error('操作失败：' + (error.message || '未知错误'))
         }
-        console.error(error)
       }
     },
     showCompleteProcessDialog(process) {
@@ -1059,7 +1053,6 @@ export default {
         } else {
           this.$message.error(errorMessage)
         }
-        console.error('完成工序失败:', error)
       }
     },
     async handleUpdateTask(task) {
@@ -1070,7 +1063,6 @@ export default {
         // 不显示消息，避免频繁提示
       } catch (error) {
         this.$message.error('更新任务失败')
-        console.error(error)
       }
     },
     async handleCompleteTask(task) {
@@ -1168,7 +1160,6 @@ export default {
         const errorMessage = error.response?.data?.error || error.response?.data?.detail ||
                            (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '操作失败'
         this.$message.error(errorMessage)
-        console.error('完成任务失败:', error)
       } finally {
         this.completingTask = false
       }
@@ -1220,7 +1211,6 @@ export default {
         const errorMessage = error.response?.data?.error || error.response?.data?.detail ||
                            (error.response?.data ? JSON.stringify(error.response.data) : error.message) || '更新失败'
         this.$message.error(errorMessage)
-        console.error('更新任务失败:', error)
       } finally {
         this.updatingTask = false
       }
@@ -1237,7 +1227,6 @@ export default {
         this.loadData()
       } catch (error) {
         this.$message.error('添加失败')
-        console.error(error)
       } finally {
         this.addingMaterial = false
       }
@@ -1285,7 +1274,6 @@ export default {
         this.materialStatusDialogVisible = false
         await this.loadData()
       } catch (error) {
-        console.error('更新物料状态失败:', error)
         this.$message.error('更新物料状态失败: ' + (error.response?.data?.detail || error.message))
       } finally {
         this.updatingMaterialStatus = false
@@ -1339,7 +1327,6 @@ export default {
         } else {
           this.$message.error(errorMsg)
         }
-        console.error('审核失败:', error)
       } finally {
         this.approving = false
       }
@@ -1362,7 +1349,6 @@ export default {
         } catch (error) {
           const errorMsg = error.response?.data?.error || error.response?.data?.detail || '重新提交审核失败'
           this.$message.error(errorMsg)
-          console.error('重新提交审核失败:', error)
         } finally {
           this.resubmitting = false
         }
@@ -1392,7 +1378,6 @@ export default {
         } catch (error) {
           const errorMsg = error.response?.data?.error || error.response?.data?.detail || '请求重新审核失败'
           this.$message.error(errorMsg)
-          console.error('请求重新审核失败:', error)
         } finally {
           this.requestingReapproval = false
         }
