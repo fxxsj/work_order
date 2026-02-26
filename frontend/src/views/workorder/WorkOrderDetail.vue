@@ -671,36 +671,12 @@
 
 
     <!-- 添加物料对话框 -->
-    <el-dialog title="添加物料" :visible.sync="addMaterialDialog" width="500px">
-      <el-form :model="materialForm" label-width="80px">
-        <el-form-item label="物料">
-          <el-select v-model="materialForm.material_id" placeholder="请选择物料" style="width: 100%;">
-            <el-option
-              v-for="material in materialList"
-              :key="material.id"
-              :label="material.name"
-              :value="material.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="备注">
-          <el-input
-            v-model="materialForm.notes"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入备注（可选）"
-          />
-        </el-form-item>
-      </el-form>
-      <div slot="footer">
-        <el-button @click="addMaterialDialog = false">
-          取消
-        </el-button>
-        <el-button type="primary" @click="handleAddMaterial">
-          确定
-        </el-button>
-      </div>
-    </el-dialog>
+    <AddMaterialDialog
+      :visible.sync="addMaterialDialog"
+      :material-list="materialList"
+      :loading="addingMaterial"
+      @submit="handleAddMaterial"
+    />
 
     <!-- 完成任务对话框（通用，设计任务额外选择图稿/刀模） -->
     <el-dialog
@@ -1151,6 +1127,7 @@ import WorkOrderProducts from './components/WorkOrderProducts.vue'
 import WorkOrderMaterials from './components/WorkOrderMaterials.vue'
 import WorkOrderApproval from './components/WorkOrderApproval.vue'
 import WorkOrderProcessTasks from './components/WorkOrderProcessTasks.vue'
+import AddMaterialDialog from './components/AddMaterialDialog.vue'
 // 配置文件（默认值）
 const config = {
   companyName: '肇庆市高要区新西彩包装有限公司'
@@ -1166,7 +1143,8 @@ export default {
     WorkOrderProducts,
     WorkOrderMaterials,
     WorkOrderApproval,
-    WorkOrderProcessTasks
+    WorkOrderProcessTasks,
+    AddMaterialDialog
   },
   filters: {
     formatDate(value) {
@@ -1241,13 +1219,10 @@ export default {
         ]
       },
       addMaterialDialog: false,
+      addingMaterial: false,
       processForm: {
         process_id: null,
         sequence: 1
-      },
-      materialForm: {
-        material_id: null,
-        planned_quantity: 0
       },
       approving: false,
       resubmitting: false,
@@ -2133,26 +2108,20 @@ export default {
       })
     },
     showAddMaterialDialog() {
-      this.materialForm = {
-        material_id: null,
-        notes: ''
-      }
       this.addMaterialDialog = true
     },
-    async handleAddMaterial() {
-      if (!this.materialForm.material_id) {
-        this.$message.warning('请选择物料')
-        return
-      }
-
+    async handleAddMaterial({ material_id: materialId, notes }) {
+      this.addingMaterial = true
       try {
-        await workOrderAPI.addMaterial(this.workOrder.id, this.materialForm)
+        await workOrderAPI.addMaterial(this.workOrder.id, { material_id: materialId, notes })
         this.$message.success('添加成功')
         this.addMaterialDialog = false
         this.loadData()
       } catch (error) {
         this.$message.error('添加失败')
         console.error(error)
+      } finally {
+        this.addingMaterial = false
       }
     },
     getPurchaseStatusType(status) {
