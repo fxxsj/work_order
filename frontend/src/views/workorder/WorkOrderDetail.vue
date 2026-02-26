@@ -638,37 +638,13 @@
     />
 
     <!-- 添加工序对话框 -->
-    <el-dialog title="添加工序" :visible.sync="addProcessDialog" width="500px">
-      <el-form :model="processForm" label-width="80px">
-        <el-form-item label="工序">
-          <el-select v-model="processForm.process_id" placeholder="请选择工序" style="width: 100%;">
-            <el-option
-              v-for="process in processList"
-              :key="process.id"
-              :label="process.name"
-              :value="process.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="顺序">
-          <el-input-number
-            v-model="processForm.sequence"
-            :min="1"
-            :max="100"
-            style="width: 100%;"
-          />
-        </el-form-item>
-      </el-form>
-      <div slot="footer">
-        <el-button @click="addProcessDialog = false">
-          取消
-        </el-button>
-        <el-button type="primary" @click="handleAddProcess">
-          确定
-        </el-button>
-      </div>
-    </el-dialog>
-
+    <AddProcessDialog
+      :visible.sync="addProcessDialog"
+      :process-list="processList"
+      :next-sequence="workOrder ? workOrder.order_processes.length + 1 : 1"
+      :loading="addingProcess"
+      @submit="handleAddProcess"
+    />
 
     <!-- 添加物料对话框 -->
     <AddMaterialDialog
@@ -1128,6 +1104,7 @@ import WorkOrderMaterials from './components/WorkOrderMaterials.vue'
 import WorkOrderApproval from './components/WorkOrderApproval.vue'
 import WorkOrderProcessTasks from './components/WorkOrderProcessTasks.vue'
 import AddMaterialDialog from './components/AddMaterialDialog.vue'
+import AddProcessDialog from './components/AddProcessDialog.vue'
 // 配置文件（默认值）
 const config = {
   companyName: '肇庆市高要区新西彩包装有限公司'
@@ -1144,7 +1121,8 @@ export default {
     WorkOrderMaterials,
     WorkOrderApproval,
     WorkOrderProcessTasks,
-    AddMaterialDialog
+    AddMaterialDialog,
+    AddProcessDialog
   },
   filters: {
     formatDate(value) {
@@ -1220,10 +1198,7 @@ export default {
       },
       addMaterialDialog: false,
       addingMaterial: false,
-      processForm: {
-        process_id: null,
-        sequence: 1
-      },
+      addingProcess: false,
       approving: false,
       resubmitting: false,
       requestingReapproval: false,
@@ -1526,26 +1501,20 @@ export default {
       }
     },
     showAddProcessDialog() {
-      this.processForm = {
-        process_id: null,
-        sequence: this.workOrder.order_processes.length + 1
-      }
       this.addProcessDialog = true
     },
-    async handleAddProcess() {
-      if (!this.processForm.process_id) {
-        this.$message.warning('请选择工序')
-        return
-      }
-
+    async handleAddProcess({ process_id: processId, sequence }) {
+      this.addingProcess = true
       try {
-        await workOrderAPI.addProcess(this.workOrder.id, this.processForm)
+        await workOrderAPI.addProcess(this.workOrder.id, { process_id: processId, sequence })
         this.$message.success('添加成功')
         this.addProcessDialog = false
         this.loadData()
       } catch (error) {
         this.$message.error('添加失败')
         console.error(error)
+      } finally {
+        this.addingProcess = false
       }
     },
     async loadDepartmentList() {
