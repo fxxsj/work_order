@@ -648,7 +648,7 @@ export default {
           this.availableProcesses = response.data || []
         }
       } catch (error) {
-        console.error('加载工序列表失败:', error)
+        ErrorHandler.handle(error, 'TaskSection.loadAvailableProcesses')
         ErrorHandler.showMessage('加载工序列表失败')
       }
     },
@@ -683,7 +683,7 @@ export default {
         this.addTaskDialogVisible = false
 
       } catch (error) {
-        console.error('创建任务失败:', error)
+        ErrorHandler.handle(error, 'TaskSection.createTask')
         ErrorHandler.showMessage(error, '创建任务失败')
       } finally {
         this.creatingTask = false

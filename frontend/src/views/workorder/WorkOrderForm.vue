@@ -604,6 +604,7 @@ import { embossingPlateAPI } from '@/api/modules/embossing-plate'
 import { workOrderTaskAPI } from '@/api/modules/workorder-task'
 // 导入错误处理工具和 debounce
 import ErrorHandler from '@/utils/errorHandler'
+import logger from '@/utils/logger'
 import { debounce } from '@/utils/debounce'
 
 // 导入子组件
@@ -903,9 +904,7 @@ export default {
         this.tasks = response.results || response || []
       } catch (error) {
         // 加载任务失败时静默处理
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('加载任务失败:', error)
-        }
+        logger.warn('加载任务失败', error)
         this.tasks = []
       } finally {
         this.tasksLoading = false
@@ -1002,9 +1001,7 @@ export default {
         this.calculateTotalQuantity()
       } catch (error) {
         // 加载产品默认信息失败时静默处理，不影响用户操作
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('加载产品默认信息失败:', error)
-        }
+        logger.warn('加载产品默认信息失败', error)
       }
     },
 
@@ -1090,9 +1087,7 @@ export default {
         this.$message.success('已自动加载图稿关联信息')
       } catch (error) {
         // 加载图稿信息失败时静默处理
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('加载图稿信息失败:', error)
-        }
+        logger.warn('加载图稿信息失败', error)
       }
     },
 
@@ -1124,9 +1119,7 @@ export default {
         localStorage.setItem('workorder_draft', JSON.stringify(draft))
       } catch (error) {
         // 保存草稿失败时静默处理
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('保存草稿失败:', error)
-        }
+        logger.warn('保存草稿失败', error)
       }
     },
 
@@ -1158,9 +1151,7 @@ export default {
         this.$message.info('已恢复上次的草稿数据')
       } catch (error) {
         // 恢复草稿失败时静默处理并清除损坏的草稿
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('恢复草稿失败:', error)
-        }
+        logger.warn('恢复草稿失败', error)
         localStorage.removeItem('workorder_draft')
       }
     },
