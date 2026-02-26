@@ -53,12 +53,90 @@
       />
 
       <!-- 物料状态更新对话框 -->
-      <MaterialStatusDialog
+      <el-dialog
+        title="更新物料采购状态"
         :visible.sync="materialStatusDialogVisible"
-        :material="currentMaterialStatus"
-        :loading="updatingMaterialStatus"
-        @submit="handleMaterialStatusSubmit"
-      />
+        width="500px"
+        @close="resetMaterialStatusForm"
+      >
+        <el-form
+          ref="materialStatusForm"
+          :model="materialStatusForm"
+          :rules="materialStatusRules"
+          label-width="120px"
+        >
+          <el-form-item label="物料名称">
+            <el-input :value="materialStatusForm.material_name" disabled />
+          </el-form-item>
+          <el-form-item label="当前状态">
+            <el-tag :type="getPurchaseStatusType(materialStatusForm.current_status)" size="small">
+              {{ getPurchaseStatusDisplay(materialStatusForm.current_status) }}
+            </el-tag>
+          </el-form-item>
+          <el-form-item label="更新为" prop="purchase_status">
+            <el-select
+              v-model="materialStatusForm.purchase_status"
+              placeholder="请选择状态"
+              style="width: 100%;"
+              @change="handleMaterialStatusChange"
+            >
+              <el-option
+                v-for="status in availableStatuses"
+                :key="status.value"
+                :label="status.label"
+                :value="status.value"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item
+            v-if="materialStatusForm.purchase_status === 'ordered'"
+            label="采购日期"
+            prop="purchase_date"
+          >
+            <el-date-picker
+              v-model="materialStatusForm.purchase_date"
+              type="date"
+              placeholder="选择采购日期"
+              style="width: 100%;"
+              value-format="yyyy-MM-dd"
+            />
+          </el-form-item>
+          <el-form-item
+            v-if="materialStatusForm.purchase_status === 'received'"
+            label="回料日期"
+            prop="received_date"
+          >
+            <el-date-picker
+              v-model="materialStatusForm.received_date"
+              type="date"
+              placeholder="选择回料日期"
+              style="width: 100%;"
+              value-format="yyyy-MM-dd"
+            />
+          </el-form-item>
+          <el-form-item
+            v-if="materialStatusForm.purchase_status === 'cut'"
+            label="开料日期"
+            prop="cut_date"
+          >
+            <el-date-picker
+              v-model="materialStatusForm.cut_date"
+              type="date"
+              placeholder="选择开料日期"
+              style="width: 100%;"
+              value-format="yyyy-MM-dd"
+            />
+          </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="materialStatusDialogVisible = false">
+            取消
+          </el-button>
+          <el-button type="primary" :loading="updatingMaterialStatus" @click="submitMaterialStatusUpdate">
+            确定
+          </el-button>
+        </div>
+      </el-dialog>
 
       <!-- 更新任务数量对话框 -->
       <el-dialog
@@ -188,12 +266,89 @@
       </el-dialog>
 
       <!-- 完成工序对话框 -->
-      <CompleteProcessDialog
+      <el-dialog
+        title="完成工序"
         :visible.sync="completeProcessDialogVisible"
-        :process="currentProcess"
-        :loading="completingProcess"
-        @submit="handleCompleteProcessSubmit"
-      />
+        width="600px"
+      >
+        <el-form
+          ref="completeProcessForm"
+          :model="completeProcessForm"
+          label-width="120px"
+          :rules="completeProcessRules"
+        >
+          <el-form-item label="工序名称">
+            <el-input :value="currentProcess ? currentProcess.process_name : ''" disabled />
+          </el-form-item>
+          <el-form-item label="任务完成情况">
+            <div v-if="currentProcess && currentProcess.tasks">
+              <div style="margin-bottom: 10px;">
+                <span>总任务数：{{ currentProcess.tasks.length }}</span>
+                <span style="margin-left: 20px;">已完成：{{ getCompletedTaskCount(currentProcess.tasks) }}</span>
+                <span v-if="getIncompleteTaskCount(currentProcess.tasks) > 0" style="margin-left: 20px; color: #E6A23C;">
+                  未完成：{{ getIncompleteTaskCount(currentProcess.tasks) }}
+                </span>
+              </div>
+              <el-alert
+                v-if="getIncompleteTaskCount(currentProcess.tasks) > 0"
+                type="warning"
+                :closable="false"
+                style="margin-bottom: 10px;"
+              >
+                <div slot="title">
+                  <p>该工序还有 {{ getIncompleteTaskCount(currentProcess.tasks) }} 个任务未完成。</p>
+                  <p style="margin-top: 5px;">
+                    建议：先完成所有任务，工序会自动完成。如需强制完成，请勾选下方选项并填写原因。
+                  </p>
+                </div>
+              </el-alert>
+            </div>
+          </el-form-item>
+          <el-form-item label="完成数量">
+            <el-input-number
+              v-model="completeProcessForm.quantity_completed"
+              :min="0"
+              style="width: 100%;"
+            />
+          </el-form-item>
+          <el-form-item label="不良品数量">
+            <el-input-number
+              v-model="completeProcessForm.quantity_defective"
+              :min="0"
+              style="width: 100%;"
+            />
+          </el-form-item>
+          <el-form-item v-if="currentProcess && getIncompleteTaskCount(currentProcess.tasks) > 0">
+            <el-checkbox v-model="completeProcessForm.force_complete">
+              强制完成（即使任务未完成）
+            </el-checkbox>
+            <div style="color: #909399; font-size: 12px; margin-top: 5px;">
+              强制完成会将所有未完成的任务标记为已完成，请谨慎使用
+            </div>
+          </el-form-item>
+          <el-form-item
+            v-if="completeProcessForm.force_complete"
+            label="强制完成原因"
+            prop="force_reason"
+            :rules="[{ required: true, message: '请填写强制完成原因', trigger: 'blur' }]"
+          >
+            <el-input
+              v-model="completeProcessForm.force_reason"
+              type="textarea"
+              :rows="3"
+              placeholder="请说明为什么需要强制完成工序（必填）"
+            />
+          </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="completeProcessDialogVisible = false">
+            取消
+          </el-button>
+          <el-button type="primary" :loading="completingProcess" @click="handleCompleteProcess">
+            确定
+          </el-button>
+        </div>
+      </el-dialog>
 
       <!-- 其他信息 -->
       <WorkOrderNotes :notes="workOrder.notes" />
@@ -483,22 +638,69 @@
     />
 
     <!-- 添加工序对话框 -->
-    <AddProcessDialog
-      :visible.sync="addProcessDialog"
-      :process-list="processList"
-      :next-sequence="workOrder ? workOrder.order_processes.length + 1 : 1"
-      :loading="addingProcess"
-      @submit="handleAddProcess"
-    />
+    <el-dialog title="添加工序" :visible.sync="addProcessDialog" width="500px">
+      <el-form :model="processForm" label-width="80px">
+        <el-form-item label="工序">
+          <el-select v-model="processForm.process_id" placeholder="请选择工序" style="width: 100%;">
+            <el-option
+              v-for="process in processList"
+              :key="process.id"
+              :label="process.name"
+              :value="process.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="顺序">
+          <el-input-number
+            v-model="processForm.sequence"
+            :min="1"
+            :max="100"
+            style="width: 100%;"
+          />
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="addProcessDialog = false">
+          取消
+        </el-button>
+        <el-button type="primary" @click="handleAddProcess">
+          确定
+        </el-button>
+      </div>
+    </el-dialog>
 
 
     <!-- 添加物料对话框 -->
-    <AddMaterialDialog
-      :visible.sync="addMaterialDialog"
-      :material-list="materialList"
-      :loading="addingMaterial"
-      @submit="handleAddMaterial"
-    />
+    <el-dialog title="添加物料" :visible.sync="addMaterialDialog" width="500px">
+      <el-form :model="materialForm" label-width="80px">
+        <el-form-item label="物料">
+          <el-select v-model="materialForm.material_id" placeholder="请选择物料" style="width: 100%;">
+            <el-option
+              v-for="material in materialList"
+              :key="material.id"
+              :label="material.name"
+              :value="material.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input
+            v-model="materialForm.notes"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入备注（可选）"
+          />
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="addMaterialDialog = false">
+          取消
+        </el-button>
+        <el-button type="primary" @click="handleAddMaterial">
+          确定
+        </el-button>
+      </div>
+    </el-dialog>
 
     <!-- 完成任务对话框（通用，设计任务额外选择图稿/刀模） -->
     <el-dialog
@@ -949,10 +1151,6 @@ import WorkOrderProducts from './components/WorkOrderProducts.vue'
 import WorkOrderMaterials from './components/WorkOrderMaterials.vue'
 import WorkOrderApproval from './components/WorkOrderApproval.vue'
 import WorkOrderProcessTasks from './components/WorkOrderProcessTasks.vue'
-import AddMaterialDialog from './components/AddMaterialDialog.vue'
-import AddProcessDialog from './components/AddProcessDialog.vue'
-import MaterialStatusDialog from './components/MaterialStatusDialog.vue'
-import CompleteProcessDialog from './components/CompleteProcessDialog.vue'
 // 配置文件（默认值）
 const config = {
   companyName: '肇庆市高要区新西彩包装有限公司'
@@ -968,11 +1166,7 @@ export default {
     WorkOrderProducts,
     WorkOrderMaterials,
     WorkOrderApproval,
-    WorkOrderProcessTasks,
-    AddMaterialDialog,
-    AddProcessDialog,
-    MaterialStatusDialog,
-    CompleteProcessDialog
+    WorkOrderProcessTasks
   },
   filters: {
     formatDate(value) {
@@ -1007,11 +1201,54 @@ export default {
       departmentList: [],
       userList: [],
       addProcessDialog: false,
-      addingProcess: false,
       completeProcessDialogVisible: false,
       completingProcess: false,
       currentProcess: null,
+      completeProcessForm: {
+        quantity_completed: 0,
+        quantity_defective: 0,
+        force_complete: false,
+        force_reason: ''
+      },
+      completeProcessRules: {
+        force_reason: [
+          { required: true, message: '请填写强制完成原因', trigger: 'blur' }
+        ]
+      },
+      materialStatusDialogVisible: false,
+      updatingMaterialStatus: false,
+      materialStatusForm: {
+        id: null,
+        material_name: '',
+        current_status: '',
+        purchase_status: '',
+        purchase_date: '',
+        received_date: '',
+        cut_date: ''
+      },
+      materialStatusRules: {
+        purchase_status: [
+          { required: true, message: '请选择状态', trigger: 'change' }
+        ],
+        purchase_date: [
+          { required: true, message: '请选择采购日期', trigger: 'change' }
+        ],
+        received_date: [
+          { required: true, message: '请选择回料日期', trigger: 'change' }
+        ],
+        cut_date: [
+          { required: true, message: '请选择开料日期', trigger: 'change' }
+        ]
+      },
       addMaterialDialog: false,
+      processForm: {
+        process_id: null,
+        sequence: 1
+      },
+      materialForm: {
+        material_id: null,
+        planned_quantity: 0
+      },
       approving: false,
       resubmitting: false,
       requestingReapproval: false,
@@ -1140,6 +1377,25 @@ export default {
       // 检查是否有编辑权限（这里简化处理，实际应该检查权限）
       // 注意：前端无法准确判断权限，这里允许所有登录用户尝试，后端会验证
       return true
+    },
+    availableStatuses() {
+      const currentStatus = this.materialStatusForm.current_status
+      const statusMap = {
+        pending: [
+          { value: 'ordered', label: '已下单' }
+        ],
+        ordered: [
+          { value: 'received', label: '已回料' }
+        ],
+        received: [
+          { value: 'cut', label: '已开料' }
+        ],
+        cut: [
+          { value: 'completed', label: '已完成' }
+        ],
+        completed: []
+      }
+      return statusMap[currentStatus] || []
     },
     // 检查是否可以编辑
     canEdit() {
@@ -1295,20 +1551,26 @@ export default {
       }
     },
     showAddProcessDialog() {
+      this.processForm = {
+        process_id: null,
+        sequence: this.workOrder.order_processes.length + 1
+      }
       this.addProcessDialog = true
     },
-    async handleAddProcess({ process_id, sequence }) {
-      this.addingProcess = true
+    async handleAddProcess() {
+      if (!this.processForm.process_id) {
+        this.$message.warning('请选择工序')
+        return
+      }
+
       try {
-        await workOrderAPI.addProcess(this.workOrder.id, { process_id, sequence })
+        await workOrderAPI.addProcess(this.workOrder.id, this.processForm)
         this.$message.success('添加成功')
         this.addProcessDialog = false
         this.loadData()
       } catch (error) {
         this.$message.error('添加失败')
         console.error(error)
-      } finally {
-        this.addingProcess = false
       }
     },
     async loadDepartmentList() {
@@ -1587,7 +1849,18 @@ export default {
     },
     showCompleteProcessDialog(process) {
       this.currentProcess = process
+      this.completeProcessForm = {
+        quantity_completed: process.quantity_completed || 0,
+        quantity_defective: process.quantity_defective || 0,
+        force_complete: false,
+        force_reason: ''
+      }
       this.completeProcessDialogVisible = true
+      this.$nextTick(() => {
+        if (this.$refs.completeProcessForm) {
+          this.$refs.completeProcessForm.clearValidate()
+        }
+      })
     },
     getCompletedTaskCount(tasks) {
       if (!tasks || !Array.isArray(tasks)) return 0
@@ -1597,36 +1870,58 @@ export default {
       if (!tasks || !Array.isArray(tasks)) return 0
       return tasks.filter(task => task.status !== 'completed').length
     },
-    async handleCompleteProcessSubmit({ processId, data }) {
-      try {
-        const process = this.currentProcess
-        if (!process || !process.id) {
-          this.$message.error('工序信息不存在')
-          return
+    async handleCompleteProcess() {
+      this.$refs.completeProcessForm.validate(async (valid) => {
+        if (!valid) {
+          return false
         }
 
-        // 检查是否有未完成任务
-        const incompleteCount = this.getIncompleteTaskCount(process.tasks)
-        if (incompleteCount > 0 && !data.force_complete) {
-          this.$message.warning(`该工序还有 ${incompleteCount} 个任务未完成，请先完成任务或选择强制完成`)
-          return
-        }
+        try {
+          if (!this.currentProcess || !this.currentProcess.id) {
+            this.$message.error('工序信息不存在')
+            return
+          }
 
-        await workOrderProcessAPI.complete(processId, data)
-        this.$message.success('工序已完成')
-        this.completeProcessDialogVisible = false
-        this.loadData()
-      } catch (error) {
-        const errorMessage = error.response?.data?.error || error.response?.data?.detail || error.message || '操作失败'
+          this.completingProcess = true
 
-        // 如果是需要强制完成的错误，提示用户
-        if (error.response?.data?.requires_force) {
-          this.$message.warning(error.response.data.message || errorMessage)
-        } else {
-          this.$message.error(errorMessage)
+          // 检查是否有未完成任务
+          const incompleteCount = this.getIncompleteTaskCount(this.currentProcess.tasks)
+          if (incompleteCount > 0 && !this.completeProcessForm.force_complete) {
+            this.$message.warning(`该工序还有 ${incompleteCount} 个任务未完成，请先完成任务或选择强制完成`)
+            this.completingProcess = false
+            return
+          }
+
+          const data = {
+            quantity_completed: this.completeProcessForm.quantity_completed,
+            quantity_defective: this.completeProcessForm.quantity_defective
+          }
+
+          if (this.completeProcessForm.force_complete) {
+            data.force_complete = true
+            data.force_reason = this.completeProcessForm.force_reason
+          }
+
+          await workOrderProcessAPI.complete(this.currentProcess.id, data)
+          this.$message.success('工序已完成')
+          this.completeProcessDialogVisible = false
+          this.loadData()
+        } catch (error) {
+          const errorMessage = error.response?.data?.error || error.response?.data?.detail || error.message || '操作失败'
+
+          // 如果是需要强制完成的错误，提示用户
+          if (error.response?.data?.requires_force) {
+            this.$message.warning(error.response.data.message || errorMessage)
+            // 自动勾选强制完成选项
+            this.completeProcessForm.force_complete = true
+          } else {
+            this.$message.error(errorMessage)
+          }
+          console.error('完成工序失败:', error)
+        } finally {
+          this.completingProcess = false
         }
-        console.error('完成工序失败:', error)
-      }
+      })
     },
     async handleUpdateTask(task) {
       try {
@@ -1838,21 +2133,47 @@ export default {
       })
     },
     showAddMaterialDialog() {
+      this.materialForm = {
+        material_id: null,
+        notes: ''
+      }
       this.addMaterialDialog = true
     },
-    async handleAddMaterial({ material_id, notes }) {
-      this.addingMaterial = true
+    async handleAddMaterial() {
+      if (!this.materialForm.material_id) {
+        this.$message.warning('请选择物料')
+        return
+      }
+
       try {
-        await workOrderAPI.addMaterial(this.workOrder.id, { material_id, notes })
+        await workOrderAPI.addMaterial(this.workOrder.id, this.materialForm)
         this.$message.success('添加成功')
         this.addMaterialDialog = false
         this.loadData()
       } catch (error) {
         this.$message.error('添加失败')
         console.error(error)
-      } finally {
-        this.addingMaterial = false
       }
+    },
+    getPurchaseStatusType(status) {
+      const typeMap = {
+        pending: 'info',
+        ordered: 'primary',
+        received: 'success',
+        cut: 'warning',
+        completed: 'success'
+      }
+      return typeMap[status] || 'info'
+    },
+    getPurchaseStatusDisplay(status) {
+      const statusMap = {
+        pending: '待采购',
+        ordered: '已下单',
+        received: '已回料',
+        cut: '已开料',
+        completed: '已完成'
+      }
+      return statusMap[status] || status
     },
     getPrintingTypeDisplay(printingType) {
       const typeMap = {
@@ -1866,19 +2187,101 @@ export default {
       return typeMap[printingType] || printingType
     },
     handleUpdateMaterialStatus(row) {
-      this.currentMaterialStatus = { ...row }
+      this.materialStatusForm = {
+        id: row.id,
+        material_name: `${row.material_name} (${row.material_code})`,
+        current_status: row.purchase_status,
+        purchase_status: '',
+        purchase_date: row.purchase_date || '',
+        received_date: row.received_date || '',
+        cut_date: row.cut_date || ''
+      }
       this.materialStatusDialogVisible = true
     },
-    async handleMaterialStatusSubmit({ id, data }) {
-      try {
-        await workOrderMaterialAPI.update(id, data)
-        this.$message.success('物料状态更新成功')
-        this.materialStatusDialogVisible = false
-        await this.loadData()
-      } catch (error) {
-        console.error('更新物料状态失败:', error)
-        this.$message.error('更新物料状态失败: ' + (error.response?.data?.detail || error.message))
+    handleMaterialStatusChange() {
+      // 当物料状态改变时，自动设置日期为今天（如果为空）
+      const today = new Date().toISOString().split('T')[0]
+      if (this.materialStatusForm.purchase_status === 'ordered' && !this.materialStatusForm.purchase_date) {
+        this.materialStatusForm.purchase_date = today
+      } else if (this.materialStatusForm.purchase_status === 'received' && !this.materialStatusForm.received_date) {
+        this.materialStatusForm.received_date = today
+      } else if (this.materialStatusForm.purchase_status === 'cut' && !this.materialStatusForm.cut_date) {
+        this.materialStatusForm.cut_date = today
       }
+    },
+    resetMaterialStatusForm() {
+      this.$refs.materialStatusForm && this.$refs.materialStatusForm.resetFields()
+      this.materialStatusForm = {
+        id: null,
+        material_name: '',
+        current_status: '',
+        purchase_status: '',
+        purchase_date: '',
+        received_date: '',
+        cut_date: ''
+      }
+    },
+    async submitMaterialStatusUpdate() {
+      this.$refs.materialStatusForm.validate(async (valid) => {
+        if (!valid) {
+          return false
+        }
+
+        this.updatingMaterialStatus = true
+        try {
+          const updateData = {
+            purchase_status: this.materialStatusForm.purchase_status
+          }
+
+          // 根据状态添加相应的日期
+          if (this.materialStatusForm.purchase_status === 'ordered' && this.materialStatusForm.purchase_date) {
+            updateData.purchase_date = this.materialStatusForm.purchase_date
+          }
+          if (this.materialStatusForm.purchase_status === 'received' && this.materialStatusForm.received_date) {
+            updateData.received_date = this.materialStatusForm.received_date
+            // 如果之前没有采购日期，也更新
+            if (!this.materialStatusForm.purchase_date) {
+              updateData.purchase_date = this.materialStatusForm.received_date
+            }
+          }
+          if (this.materialStatusForm.purchase_status === 'cut' && this.materialStatusForm.cut_date) {
+            updateData.cut_date = this.materialStatusForm.cut_date
+            // 如果之前没有回料日期，也更新
+            if (!this.materialStatusForm.received_date) {
+              updateData.received_date = this.materialStatusForm.cut_date
+            }
+            // 如果之前没有采购日期，也更新
+            if (!this.materialStatusForm.purchase_date) {
+              updateData.purchase_date = this.materialStatusForm.cut_date
+            }
+          }
+          if (this.materialStatusForm.purchase_status === 'completed') {
+            // 完成时，确保所有日期都已填写
+            if (!this.materialStatusForm.cut_date) {
+              updateData.cut_date = new Date().toISOString().split('T')[0]
+            }
+            if (!this.materialStatusForm.received_date) {
+              updateData.received_date = updateData.cut_date
+            }
+            if (!this.materialStatusForm.purchase_date) {
+              updateData.purchase_date = updateData.cut_date
+            }
+          }
+
+          await workOrderMaterialAPI.update(this.materialStatusForm.id, updateData)
+
+          this.$message.success('物料状态更新成功')
+          this.materialStatusDialogVisible = false
+
+          // 重新加载施工单数据
+          await this.loadData()
+        } catch (error) {
+          console.error('更新物料状态失败:', error)
+          this.$message.error('更新物料状态失败: ' + (error.response?.data?.detail || error.message))
+        } finally {
+          this.updatingMaterialStatus = false
+        }
+      })
     },
     async handleApprove(status) {
       // status: 'approved' 或 'rejected'
@@ -2199,6 +2602,7 @@ export default {
       }
     }
   }
+}
 </script>
 
 <style scoped>
