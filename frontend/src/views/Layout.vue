@@ -224,6 +224,8 @@
 
 <script>
 import { authAPI } from '@/api/modules'
+import ErrorHandler from '@/utils/errorHandler'
+import logger from '@/utils/logger'
 import NotificationCenter from '@/components/NotificationCenter.vue'
 
 export default {
@@ -347,7 +349,7 @@ export default {
               await authAPI.logout()
             } catch (e) {
               // 忽略 logout API 错误，继续清除本地状态
-              console.warn('后端登出API调用失败，但继续清除本地状态:', e)
+              logger.warn('后端登出API调用失败，但继续清除本地状态', e)
             }
 
             // 清除用户状态（使用正确的 action 名称）
@@ -369,7 +371,7 @@ export default {
               window.location.href = '/login'
             }, 500)
           } catch (error) {
-            console.error('退出登录失败:', error)
+            ErrorHandler.handle(error, 'Layout.logout')
             this.$message.error('退出登录时发生错误，请刷新页面')
 
             // 即使出错，也清除本地状态并跳转
@@ -452,4 +454,3 @@ export default {
   overflow-y: auto;
 }
 </style>
-

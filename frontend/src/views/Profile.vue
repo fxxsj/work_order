@@ -130,6 +130,7 @@
 
 <script>
 import { authAPI } from '@/api/modules'
+import ErrorHandler from '@/utils/errorHandler'
 
 export default {
   name: 'Profile',
@@ -220,7 +221,7 @@ export default {
           duration: 2000
         })
       } catch (error) {
-        console.error('更新个人信息失败:', error)
+        ErrorHandler.handle(error, 'Profile.handleUpdateProfile')
         this.$message.error(error.response?.data?.error || '个人信息更新失败')
       } finally {
         this.updateLoading = false
@@ -262,7 +263,7 @@ export default {
           this.$router.push('/login')
         }, 2000)
       } catch (error) {
-        console.error('修改密码失败:', error)
+        ErrorHandler.handle(error, 'Profile.handleChangePassword')
         this.$message.error(error.response?.data?.error || '密码修改失败')
       } finally {
         this.passwordLoading = false

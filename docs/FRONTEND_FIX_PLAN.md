@@ -110,6 +110,10 @@
 - `store/modules/cache.js`：移除 `console.error`，改为 `logger.error`
 - `utils/mobile.js`：移除 `console.warn`，改为 `logger.warn`
 - `utils/vuexHelpers.js`：移除 `console.error`，改为 `logger.error`
+- `views/Notification.vue`：移除 `console.error`，改为 `ErrorHandler.handle`
+- `views/Profile.vue`：移除 `console.error`，改为 `ErrorHandler.handle`
+- `views/Layout.vue`：移除 `console.*`，改为 `logger.warn` + `ErrorHandler.handle`
+- `views/Login.vue`：移除 `console.error`，改为 `ErrorHandler.handle`
 
 ### 3.4 下一步建议（优先级）
 

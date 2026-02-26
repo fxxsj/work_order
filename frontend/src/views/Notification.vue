@@ -130,6 +130,7 @@
 
 <script>
 import { notificationAPI } from '@/api/modules'
+import ErrorHandler from '@/utils/errorHandler'
 
 export default {
   name: 'Notification',
@@ -175,7 +176,7 @@ export default {
         this.notificationList = response.results || []
         this.pagination.total = response.count || 0
       } catch (error) {
-        console.error('加载通知失败:', error)
+        ErrorHandler.handle(error, 'Notification.loadData')
         this.$message.error('加载通知失败')
       } finally {
         this.loading = false
@@ -186,7 +187,7 @@ export default {
         const response = await notificationAPI.getUnreadCount()
         this.unreadCount = response.unread_count || 0
       } catch (error) {
-        console.error('加载未读数量失败:', error)
+        ErrorHandler.handle(error, 'Notification.loadUnreadCount')
       }
     },
     async markRead(notification) {
@@ -196,7 +197,7 @@ export default {
         this.unreadCount = Math.max(0, this.unreadCount - 1)
         this.$message.success('已标记为已读')
       } catch (error) {
-        console.error('标记已读失败:', error)
+        ErrorHandler.handle(error, 'Notification.markRead')
         this.$message.error('标记已读失败')
       }
     },
@@ -208,7 +209,7 @@ export default {
         await this.loadData()
         await this.loadUnreadCount()
       } catch (error) {
-        console.error('标记全部已读失败:', error)
+        ErrorHandler.handle(error, 'Notification.markAllRead')
         this.$message.error('标记全部已读失败')
       } finally {
         this.markingAll = false
@@ -288,4 +289,3 @@ export default {
   background-color: #fff;
 }
 </style>
-

@@ -80,6 +80,7 @@
 
 <script>
 import { authAPI } from '@/api/modules'
+import ErrorHandler from '@/utils/errorHandler'
 
 export default {
   name: 'Login',
@@ -163,7 +164,7 @@ export default {
           this.handleLoginError('登录失败，请重试')
         }
       } catch (error) {
-        console.error('登录失败:', error)
+        ErrorHandler.handle(error, 'Login.handleLogin')
 
         // 根据错误类型提供更友好的提示
         let errorMessage = '登录失败'
@@ -270,4 +271,3 @@ export default {
   margin: 5px 0;
 }
 </style>
-
