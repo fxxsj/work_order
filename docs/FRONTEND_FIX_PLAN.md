@@ -125,6 +125,12 @@
 - `views/material/MaterialList.vue`：移除 `console.error`，改为 `ErrorHandler.handle`
 - `views/product/ProductList.vue`：移除 `console.warn`，改为 `logger.warn`
 - `views/inventory/Delivery.vue`：移除 `console.error`，改为 `ErrorHandler.handle`
+- `utils/errorHandler.js`：移除 `console.error`，改为 `logger.error`
+- `components/VIRTUAL_SCROLL_GUIDE.md`：示例改为 `logger.debug`
+
+### 3.5 保留说明
+
+- `utils/logger.js` 内部仍使用 `console.*`（仅开发环境），作为统一日志出口保留
 
 ### 3.4 下一步建议（优先级）
 

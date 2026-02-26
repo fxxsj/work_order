@@ -58,6 +58,7 @@ npm install vue-virtual-scroller@1.0.0-rc.2 --save
 
 <script>
 import VirtualList from '@/components/VirtualList.vue'
+import logger from '@/utils/logger'
 
 export default {
   components: { VirtualList },
@@ -68,7 +69,7 @@ export default {
   },
   methods: {
     handleRowClick(item, index) {
-      console.log('点击了:', item, index)
+      logger.debug('点击了', { item, index })
     }
   }
 }
@@ -135,6 +136,7 @@ export default {
 
 <script>
 import VirtualTaskList from '@/components/VirtualTaskList.vue'
+import logger from '@/utils/logger'
 
 export default {
   components: { VirtualTaskList },
@@ -149,13 +151,13 @@ export default {
   },
   methods: {
     handleTaskClick(task) {
-      console.log('点击任务:', task)
+      logger.debug('点击任务', task)
     },
     handleEdit(task) {
-      console.log('编辑任务:', task)
+      logger.debug('编辑任务', task)
     },
     handleComplete(task) {
-      console.log('完成任务:', task)
+      logger.debug('完成任务', task)
     },
     handlePageChange(page) {
       this.currentPage = page

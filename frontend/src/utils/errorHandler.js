@@ -3,6 +3,7 @@
  * 提供统一的错误处理和消息显示
  */
 import { Message, MessageBox } from 'element-ui'
+import logger from '@/utils/logger'
 
 export class ErrorHandler {
   /**
@@ -128,7 +129,7 @@ export class ErrorHandler {
   static handle(error, context = '') {
     // 开发环境打印错误详情
     if (process.env.NODE_ENV === 'development') {
-      console.error(`[Error${context ? ` in ${context}` : ''}]`, error)
+      logger.error(`[Error${context ? ` in ${context}` : ''}]`, error)
     }
 
     // 提取错误消息
