@@ -18,7 +18,25 @@
  * }
  */
 
+import logger from '@/utils/logger'
+
 const BROADCAST_CHANNEL_NAME = 'notification-sync'
+const WS_LOG_ENABLED = process.env.VUE_APP_WS_LOG === 'true'
+
+const logInfo = (message, data) => {
+  if (!WS_LOG_ENABLED) return
+  logger.info(message, data)
+}
+
+const logWarn = (message, data) => {
+  if (!WS_LOG_ENABLED) return
+  logger.warn(message, data)
+}
+
+const logError = (message, error) => {
+  if (!WS_LOG_ENABLED) return
+  logger.error(message, error)
+}
 
 export function useWebSocket() {
   // 返回 data 函数
@@ -49,7 +67,7 @@ export function useWebSocket() {
   const handleMessage = (data, component) => {
     switch (data.type) {
       case 'connection_established':
-        console.log('[WebSocket] Connection established for user:', data.user_id)
+        logInfo('[WebSocket] Connection established', { userId: data.user_id })
         break
       case 'notification':
         if (data.data) {
@@ -76,7 +94,7 @@ export function useWebSocket() {
     const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 60000)
     reconnectAttempts++
 
-    console.log(`[WebSocket] Reconnecting in ${delay}ms (attempt ${reconnectAttempts})`)
+    logInfo('[WebSocket] Reconnecting', { delay, attempt: reconnectAttempts })
 
     reconnectTimeout = setTimeout(() => {
       connect(component)
@@ -111,7 +129,7 @@ export function useWebSocket() {
       socket = new WebSocket(buildWebSocketUrl(component))
 
       socket.onopen = () => {
-        console.log('[WebSocket] Connected')
+        logInfo('[WebSocket] Connected')
         component.isConnected = true
         component.isConnecting = false
         component.hasError = false
@@ -125,12 +143,12 @@ export function useWebSocket() {
           const data = JSON.parse(event.data)
           handleMessage(data, component)
         } catch (e) {
-          console.error('[WebSocket] Failed to parse message:', e)
+          logWarn('[WebSocket] Failed to parse message', e)
         }
       }
 
       socket.onclose = (event) => {
-        console.log('[WebSocket] Disconnected:', event.code)
+        logInfo('[WebSocket] Disconnected', { code: event.code })
         component.isConnected = false
         component.isConnecting = false
         component.connectionState = 'disconnected'
@@ -139,14 +157,14 @@ export function useWebSocket() {
       }
 
       socket.onerror = (error) => {
-        console.error('[WebSocket] Error:', error)
+        logError('[WebSocket] Error', error)
         component.isConnected = false
         component.isConnecting = false
         component.hasError = true
         component.connectionState = 'error'
       }
     } catch (error) {
-      console.error('[WebSocket] Connection failed:', error)
+      logError('[WebSocket] Connection failed', error)
       component.isConnected = false
       component.isConnecting = false
       component.hasError = true
