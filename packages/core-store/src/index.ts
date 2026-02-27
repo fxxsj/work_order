@@ -31,9 +31,10 @@ export const createAuthState = (): AuthState => ({
 
 export const createAuthStore = (
   initialState: AuthState = createAuthState(),
-  storage?: AuthStorageAdapter
+  storage?: AuthStorageAdapter,
+  stateRef?: AuthState
 ): AuthStore => {
-  const state: AuthState = { ...initialState };
+  const state: AuthState = stateRef ?? { ...initialState };
 
   const setSession = (payload: LoginResponse): void => {
     state.token = payload.token;
