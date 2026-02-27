@@ -1,4 +1,5 @@
 <template>
+  <!-- eslint-disable vue/valid-v-for -->
   <div class="page">
     <header class="hero">
       <div>
@@ -38,19 +39,18 @@
           <span>状态</span>
           <span>交付</span>
         </div>
-        <template
-          v-for="(item, itemIndex) in items"
-          :key="itemIndex"
+        <div
+          v-for="item in items"
+          :key="item.id"
+          class="row"
         >
-          <div class="row">
-            <span>{{ item.order_number }}</span>
-            <span>{{ item.customer_name ?? "-" }}</span>
-            <span>{{ item.product_name ?? "-" }}</span>
-            <span>{{ item.quantity }} {{ item.unit }}</span>
-            <span>{{ item.status_display }}</span>
-            <span>{{ item.delivery_date ?? "-" }}</span>
-          </div>
-        </template>
+          <span>{{ item.order_number }}</span>
+          <span>{{ item.customer_name ?? "-" }}</span>
+          <span>{{ item.product_name ?? "-" }}</span>
+          <span>{{ item.quantity }} {{ item.unit }}</span>
+          <span>{{ item.status_display }}</span>
+          <span>{{ item.delivery_date ?? "-" }}</span>
+        </div>
         <div
           v-if="items.length === 0"
           class="empty"
@@ -60,6 +60,7 @@
       </div>
     </section>
   </div>
+  <!-- eslint-enable vue/valid-v-for -->
 </template>
 
 <script setup lang="ts">

@@ -1,8 +1,7 @@
 const path = require("node:path");
 const { FlatCompat } = require("@eslint/eslintrc");
 const js = require("@eslint/js");
-const vueParser = require("vue-eslint-parser");
-const tsParser = require("@typescript-eslint/parser");
+const vuePlugin = require("eslint-plugin-vue");
 
 const compat = new FlatCompat({
   baseDirectory: __dirname,
@@ -21,19 +20,14 @@ module.exports = [
   },
   {
     files: ["**/*.vue"],
-    languageOptions: {
-      parser: vueParser,
-      parserOptions: {
-        ecmaVersion: "latest",
-        sourceType: "module",
-        parser: tsParser
-      }
+    plugins: {
+      vue: vuePlugin
     },
     rules: {
       "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": "off",
-      "vue/script-setup-uses-vars": "off",
-      "vue/valid-v-for": "off"
+      "vue/no-unused-components": "error",
+      "vue/no-unused-vars": "error"
     }
   }
 ];

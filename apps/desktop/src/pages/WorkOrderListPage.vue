@@ -1,4 +1,5 @@
 <template>
+  <!-- eslint-disable vue/valid-v-for -->
   <div class="page">
     <header class="hero">
       <div>
@@ -39,8 +40,8 @@
           <span>交付</span>
         </div>
         <div
-          v-for="(item, index) in items"
-          :key="index"
+          v-for="item in items"
+          :key="item.id"
           class="row"
         >
           <span>{{ item.order_number }}</span>
@@ -59,6 +60,7 @@
       </div>
     </section>
   </div>
+  <!-- eslint-enable vue/valid-v-for -->
 </template>
 
 <script setup lang="ts">

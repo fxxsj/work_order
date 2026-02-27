@@ -1,4 +1,5 @@
 <template>
+  <!-- eslint-disable vue/valid-v-for -->
   <div class="page">
     <header class="hero">
       <div>
@@ -35,6 +36,7 @@
       </ul>
     </section>
   </div>
+  <!-- eslint-enable vue/valid-v-for -->
 </template>
 
 <script setup lang="ts">
