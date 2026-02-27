@@ -29,9 +29,12 @@
         <p class="muted">{{ permissionSummary }}</p>
         <div class="guard">
           <span>示例按钮（需超级权限）</span>
-          <button type="button" :disabled="!hasSuper">
-            管理入口
-          </button>
+          <PermissionGate :permissions="['*']" mode="any">
+            <button type="button">管理入口</button>
+            <template #fallback>
+              <button type="button" disabled>无权限</button>
+            </template>
+          </PermissionGate>
         </div>
       </div>
     </section>
@@ -46,6 +49,7 @@ import { createAuthApi } from "@work-order/core-api";
 import { apiTransport } from "../apiTransport";
 import { authState, authStore } from "../authStore";
 import { hasPermission } from "../permissions";
+import PermissionGate from "../components/PermissionGate.vue";
 
 const api = createAuthApi(apiTransport);
 const loading = ref(false);
@@ -61,8 +65,6 @@ const permissionSummary = computed(() => {
   }
   return `${perms.slice(0, 5).join(", ")} (+${perms.length - 5} 更多)`;
 });
-
-const hasSuper = computed(() => hasPermission(authState.user, ["*"]));
 
 const onLogout = async () => {
   if (!authState.token) {
