@@ -1,0 +1,16 @@
+{
+  "productName": "Work Order",
+  "version": "0.1.0",
+  "identifier": "com.workorder.desktop",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://127.0.0.1:5174"
+  },
+  "app": {
+    "withGlobalTauri": true
+  },
+  "bundle": {
+    "active": false,
+    "icon": []
+  }
+}

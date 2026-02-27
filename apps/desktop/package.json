@@ -4,6 +4,24 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "dev": "vite --port 5174",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc -p tsconfig.json --noEmit",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.0.3",
+    "@work-order/core-api": "workspace:*",
+    "@work-order/core-store": "workspace:*",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.6",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^5.4.12",
+    "vue-tsc": "^2.2.0"
   }
 }
