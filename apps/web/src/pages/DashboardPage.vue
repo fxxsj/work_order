@@ -37,6 +37,15 @@
           </PermissionGate>
         </div>
       </div>
+
+      <div class="card">
+        <h2>模块入口</h2>
+        <div class="links">
+          <PermissionGate v-for="item in moduleLinks" :key="item.path" :permissions="item.permissions" mode="any">
+            <router-link class="link" :to="item.path">{{ item.label }}</router-link>
+          </PermissionGate>
+        </div>
+      </div>
     </section>
 
     <p v-if="message" class="message">{{ message }}</p>
@@ -48,7 +57,6 @@ import { computed, ref } from "vue";
 import { createAuthApi } from "@work-order/core-api";
 import { apiTransport } from "../apiTransport";
 import { authState, authStore } from "../authStore";
-import { hasPermission } from "../permissions";
 import PermissionGate from "../components/PermissionGate.vue";
 
 const api = createAuthApi(apiTransport);
@@ -65,6 +73,18 @@ const permissionSummary = computed(() => {
   }
   return `${perms.slice(0, 5).join(", ")} (+${perms.length - 5} 更多)`;
 });
+
+const moduleLinks = computed(() => [
+  { label: "施工单", path: "/workorders", permissions: ["workorder.view_workorder"] },
+  { label: "任务", path: "/tasks", permissions: ["workorder.view_workorder"] },
+  { label: "客户", path: "/customers", permissions: ["workorder.view_customer"] },
+  { label: "产品", path: "/products", permissions: ["workorder.view_product"] },
+  { label: "物料", path: "/materials", permissions: ["workorder.view_material"] },
+  { label: "采购单", path: "/purchase-orders", permissions: ["workorder.view_purchaseorder"] },
+  { label: "销售订单", path: "/sales-orders", permissions: ["workorder.view_salesorder"] },
+  { label: "库存", path: "/inventory/stocks", permissions: ["workorder.view_productstock"] },
+  { label: "财务", path: "/finance/invoices", permissions: ["workorder.view_invoice"] }
+]);
 
 const onLogout = async () => {
   if (!authState.token) {
@@ -169,6 +189,22 @@ h1 {
   justify-content: space-between;
   gap: 12px;
   margin-top: 12px;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.link {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #1f2a44;
+  color: #1f2a44;
+  text-decoration: none;
+  font-weight: 600;
 }
 
 button {
