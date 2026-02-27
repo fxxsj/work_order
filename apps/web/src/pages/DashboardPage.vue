@@ -7,10 +7,10 @@
         <p>已登录，权限与角色已加载。</p>
       </div>
       <div class="actions">
-        <button type="button" @click="onCurrentUser" :disabled="loading">
+        <BaseButton :disabled="loading" @click="onCurrentUser">
           {{ loading ? "验证中..." : "验证登录" }}
-        </button>
-        <button type="button" class="ghost" @click="onLogout">登出</button>
+        </BaseButton>
+        <BaseButton variant="ghost" @click="onLogout">登出</BaseButton>
       </div>
     </header>
 
@@ -29,7 +29,7 @@
         <p class="muted">{{ permissionSummary }}</p>
         <div class="guard">
           <span>示例按钮（需超级权限）</span>
-          <button type="button" v-permission="{ anyOf: ['*'] }">管理入口</button>
+          <BaseButton v-permission="{ anyOf: ['*'] }">管理入口</BaseButton>
         </div>
       </div>
 
@@ -56,6 +56,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { createAuthApi } from "@work-order/core-api";
+import { BaseButton } from "@work-order/ui-base";
 import { apiTransport } from "../apiTransport";
 import { authState, authStore } from "../authStore";
 
@@ -207,26 +208,6 @@ h1 {
   font-weight: 600;
 }
 
-button {
-  border: none;
-  border-radius: 10px;
-  padding: 10px 14px;
-  background: #1f2a44;
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-button.ghost {
-  background: transparent;
-  color: #1f2a44;
-  border: 1px solid #1f2a44;
-}
-
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
 
 .message {
   color: #0e6b3a;

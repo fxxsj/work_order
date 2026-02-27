@@ -15,9 +15,9 @@
           密码
           <input v-model.trim="password" type="password" autocomplete="current-password" />
         </label>
-        <button type="submit" :disabled="loading">
+        <BaseButton type="submit" :disabled="loading">
           {{ loading ? "登录中..." : "登录" }}
-        </button>
+        </BaseButton>
       </form>
       <p v-if="message" class="message">{{ message }}</p>
     </section>
@@ -28,6 +28,7 @@
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { createAuthApi } from "@work-order/core-api";
+import { BaseButton } from "@work-order/ui-base";
 import { apiTransport } from "../apiTransport";
 import { authStore } from "../authStore";
 

@@ -1,8 +1,7 @@
 {
   "extends": "../../infra/ts-config/tsconfig.base.json",
   "compilerOptions": {
-    "noEmit": true,
-    "types": ["vite/client"]
+    "noEmit": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
 }

@@ -15,6 +15,7 @@
     "@tauri-apps/api": "^2.0.3",
     "@work-order/core-api": "workspace:*",
     "@work-order/core-store": "workspace:*",
+    "@work-order/ui-base": "workspace:*",
     "vue": "^3.5.13",
     "vue-router": "^4.5.1"
   },
