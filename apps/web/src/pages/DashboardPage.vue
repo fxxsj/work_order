@@ -29,21 +29,22 @@
         <p class="muted">{{ permissionSummary }}</p>
         <div class="guard">
           <span>示例按钮（需超级权限）</span>
-          <PermissionGate :permissions="['*']" mode="any">
-            <button type="button">管理入口</button>
-            <template #fallback>
-              <button type="button" disabled>无权限</button>
-            </template>
-          </PermissionGate>
+          <button type="button" v-permission="{ anyOf: ['*'] }">管理入口</button>
         </div>
       </div>
 
       <div class="card">
         <h2>模块入口</h2>
         <div class="links">
-          <PermissionGate v-for="item in moduleLinks" :key="item.path" :permissions="item.permissions" mode="any">
-            <router-link class="link" :to="item.path">{{ item.label }}</router-link>
-          </PermissionGate>
+          <router-link
+            v-for="item in moduleLinks"
+            :key="item.path"
+            class="link"
+            :to="item.path"
+            v-permission="{ anyOf: item.permissions }"
+          >
+            {{ item.label }}
+          </router-link>
         </div>
       </div>
     </section>
@@ -57,7 +58,6 @@ import { computed, ref } from "vue";
 import { createAuthApi } from "@work-order/core-api";
 import { apiTransport } from "../apiTransport";
 import { authState, authStore } from "../authStore";
-import PermissionGate from "../components/PermissionGate.vue";
 
 const api = createAuthApi(apiTransport);
 const loading = ref(false);
