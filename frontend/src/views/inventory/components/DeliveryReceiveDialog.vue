@@ -152,7 +152,7 @@ export default {
       })
     },
 
-    uploadReceipt(options) {
+    uploadReceipt(_options) {
       // 图片上传占位符 - 如需实现，请参考其他上传组件的模式
     }
   }

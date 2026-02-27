@@ -85,7 +85,7 @@
 </template>
 
 <script>
-import { departmentAPI, authAPI } from '@/api/modules'
+import { authAPI } from '@/api/modules'
 import ErrorHandler from '@/utils/errorHandler'
 
 export default {
