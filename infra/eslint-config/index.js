@@ -5,17 +5,14 @@ module.exports = {
     node: true,
     browser: true
   },
-  parser: "vue-eslint-parser",
-  plugins: ["@typescript-eslint", "vue"],
+  plugins: ["@typescript-eslint"],
   parserOptions: {
     ecmaVersion: "latest",
-    sourceType: "module",
-    parser: "@typescript-eslint/parser"
+    sourceType: "module"
   },
   extends: [
     "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:vue/vue3-recommended"
+    "plugin:@typescript-eslint/recommended"
   ],
   rules: {
     "no-console": "error"
