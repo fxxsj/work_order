@@ -6,6 +6,7 @@ import DashboardPage from "./pages/DashboardPage.vue";
 import LoginPage from "./pages/LoginPage.vue";
 import ForbiddenPage from "./pages/ForbiddenPage.vue";
 import PlaceholderPage from "./pages/PlaceholderPage.vue";
+import WorkOrderListPage from "./pages/WorkOrderListPage.vue";
 import NotificationsPage from "./pages/NotificationsPage.vue";
 import ProfilePage from "./pages/ProfilePage.vue";
 
@@ -41,7 +42,12 @@ const router = createRouter({
       component: DashboardPage,
       meta: { requiresAuth: true, title: "工作台", requiredPermissions: ["workorder.view_workorder"] }
     },
-    createPlaceholder("/workorders", "施工单列表"),
+    {
+      path: "/workorders",
+      name: "workorders",
+      component: WorkOrderListPage,
+      meta: { requiresAuth: true, title: "施工单列表", requiredPermissions: ["workorder.view_workorder"] }
+    },
     createPlaceholder("/workorders/create", "新建施工单"),
     createPlaceholder("/tasks", "任务管理"),
     createPlaceholder("/customers", "客户管理"),

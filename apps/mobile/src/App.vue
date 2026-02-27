@@ -14,12 +14,20 @@
         <li>接入 Tauri Mobile 设备能力</li>
       </ul>
       <div class="actions">
-        <BaseButton>开始集成</BaseButton>
-        <BaseButton variant="ghost">查看规划</BaseButton>
+        <BaseButton>
+          开始集成
+        </BaseButton>
+        <BaseButton variant="ghost">
+          查看规划
+        </BaseButton>
       </div>
     </section>
   </div>
 </template>
+
+<script setup lang="ts">
+import { BaseButton } from "@work-order/ui-base";
+</script>
 
 <style scoped>
 :global(body) {
@@ -77,7 +85,3 @@ li {
   margin: 6px 0;
 }
 </style>
-
-<script setup lang="ts">
-import { BaseButton } from "@work-order/ui-base";
-</script>

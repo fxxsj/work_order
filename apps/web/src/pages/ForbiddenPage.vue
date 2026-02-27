@@ -3,7 +3,12 @@
     <section class="card">
       <h1>访问受限</h1>
       <p>当前账号没有访问该页面的权限。</p>
-      <button type="button" @click="goBack">返回</button>
+      <button
+        type="button"
+        @click="goBack"
+      >
+        返回
+      </button>
     </section>
   </div>
 </template>

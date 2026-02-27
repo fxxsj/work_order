@@ -4,6 +4,7 @@ import { hasPermission } from "./permissions";
 import LoginPage from "./pages/LoginPage.vue";
 import DashboardPage from "./pages/DashboardPage.vue";
 import ForbiddenPage from "./pages/ForbiddenPage.vue";
+import WorkOrderListPage from "./pages/WorkOrderListPage.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -16,6 +17,12 @@ const router = createRouter({
       name: "dashboard",
       component: DashboardPage,
       meta: { requiresAuth: true, title: "桌面端工作台", requiredPermissions: ["workorder.view_workorder"] }
+    },
+    {
+      path: "/workorders",
+      name: "workorders",
+      component: WorkOrderListPage,
+      meta: { requiresAuth: true, title: "施工单列表", requiredPermissions: ["workorder.view_workorder"] }
     }
   ]
 });

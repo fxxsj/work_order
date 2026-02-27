@@ -6,14 +6,32 @@
         <h1>{{ title }}</h1>
         <p>此页面为业务模块占位，后续将接入真实功能。</p>
       </div>
-      <router-link class="back" to="/dashboard">返回工作台</router-link>
+      <router-link
+        class="back"
+        to="/dashboard"
+      >
+        返回工作台
+      </router-link>
     </header>
 
     <section class="card">
       <h2>权限要求</h2>
-      <p v-if="requiredPermissions.length === 0" class="muted">无</p>
-      <ul v-else class="perm-list">
-        <li v-for="perm in requiredPermissions" :key="perm">{{ perm }}</li>
+      <p
+        v-if="requiredPermissions.length === 0"
+        class="muted"
+      >
+        无
+      </p>
+      <ul
+        v-else
+        class="perm-list"
+      >
+        <li
+          v-for="perm in requiredPermissions"
+          :key="perm"
+        >
+          {{ perm }}
+        </li>
       </ul>
     </section>
   </div>

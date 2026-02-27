@@ -1,6 +1,9 @@
 <template>
   <slot v-if="allowed" />
-  <slot v-else name="fallback" />
+  <slot
+    v-else
+    name="fallback"
+  />
 </template>
 
 <script setup lang="ts">

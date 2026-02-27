@@ -7,10 +7,18 @@
         <p>已登录，权限与角色已加载。</p>
       </div>
       <div class="actions">
-        <BaseButton :disabled="loading" @click="onCurrentUser">
+        <BaseButton
+          :disabled="loading"
+          @click="onCurrentUser"
+        >
           {{ loading ? "验证中..." : "验证登录" }}
         </BaseButton>
-        <BaseButton variant="ghost" @click="onLogout">登出</BaseButton>
+        <BaseButton
+          variant="ghost"
+          @click="onLogout"
+        >
+          登出
+        </BaseButton>
       </div>
     </header>
 
@@ -18,18 +26,31 @@
       <div class="card">
         <h2>用户信息</h2>
         <div class="status">
-          <p><strong>用户名:</strong> {{ authState.user?.username ?? "-" }}</p>
-          <p><strong>邮箱:</strong> {{ authState.user?.email ?? "-" }}</p>
-          <p><strong>角色:</strong> {{ authState.user?.groups?.join(", ") || "-" }}</p>
+          <p>
+            <strong>用户名:</strong>
+            {{ authState.user?.username ?? "-" }}
+          </p>
+          <p>
+            <strong>邮箱:</strong>
+            {{ authState.user?.email ?? "-" }}
+          </p>
+          <p>
+            <strong>角色:</strong>
+            {{ authState.user?.groups?.join(", ") || "-" }}
+          </p>
         </div>
       </div>
 
       <div class="card">
         <h2>权限概览</h2>
-        <p class="muted">{{ permissionSummary }}</p>
+        <p class="muted">
+          {{ permissionSummary }}
+        </p>
         <div class="guard">
           <span>示例按钮（需超级权限）</span>
-          <BaseButton v-permission="{ anyOf: ['*'] }">管理入口</BaseButton>
+          <BaseButton v-permission="{ anyOf: ['*'] }">
+            管理入口
+          </BaseButton>
         </div>
       </div>
 
@@ -39,9 +60,9 @@
           <router-link
             v-for="item in moduleLinks"
             :key="item.path"
-            class="link"
-            :to="item.path"
             v-permission="{ anyOf: item.permissions }"
+            :to="item.path"
+            class="link"
           >
             {{ item.label }}
           </router-link>
@@ -49,7 +70,12 @@
       </div>
     </section>
 
-    <p v-if="message" class="message">{{ message }}</p>
+    <p
+      v-if="message"
+      class="message"
+    >
+      {{ message }}
+    </p>
   </div>
 </template>
 

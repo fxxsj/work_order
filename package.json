@@ -17,7 +17,14 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.1.0",
+    "@eslint/js": "^9.22.0",
+    "@typescript-eslint/eslint-plugin": "^8.23.0",
+    "@typescript-eslint/parser": "^8.23.0",
     "@playwright/test": "^1.58.2",
+    "eslint": "^9.22.0",
+    "vue-eslint-parser": "^9.4.3",
+    "eslint-plugin-vue": "^9.23.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "^3.8.1",

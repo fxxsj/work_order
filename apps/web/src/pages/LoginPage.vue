@@ -6,20 +6,38 @@
         <h1>登录</h1>
         <p>使用后端账号登录系统。</p>
       </header>
-      <form class="form" @submit.prevent="onLogin">
+      <form
+        class="form"
+        @submit.prevent="onLogin"
+      >
         <label>
           用户名
-          <input v-model.trim="username" autocomplete="username" />
+          <input
+            v-model.trim="username"
+            autocomplete="username"
+          >
         </label>
         <label>
           密码
-          <input v-model.trim="password" type="password" autocomplete="current-password" />
+          <input
+            v-model.trim="password"
+            type="password"
+            autocomplete="current-password"
+          >
         </label>
-        <BaseButton type="submit" :disabled="loading">
+        <BaseButton
+          type="submit"
+          :disabled="loading"
+        >
           {{ loading ? "登录中..." : "登录" }}
         </BaseButton>
       </form>
-      <p v-if="message" class="message">{{ message }}</p>
+      <p
+        v-if="message"
+        class="message"
+      >
+        {{ message }}
+      </p>
     </section>
   </div>
 </template>

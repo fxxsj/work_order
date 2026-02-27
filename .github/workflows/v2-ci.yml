@@ -21,6 +21,24 @@ on:
       - "turbo.json"
       - "package.json"
       - "package-lock.json"
+  workflow_dispatch:
+    inputs:
+      run_tauri_desktop:
+        description: "Run Tauri desktop build"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      run_tauri_mobile:
+        description: "Run Tauri mobile build (requires mobile toolchain)"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
 
 jobs:
   v2-pipeline:
@@ -55,3 +73,64 @@ jobs:
 
       - name: Build
         run: pnpm run build
+
+  tauri-desktop-build:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_tauri_desktop == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install pnpm
+        run: corepack prepare pnpm@10.4.0 --activate
+
+      - name: Install system dependencies (Tauri)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.0-dev libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build desktop app
+        run: pnpm -C apps/desktop tauri:build
+
+  tauri-mobile-build:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_tauri_mobile == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install pnpm
+        run: corepack prepare pnpm@10.4.0 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build mobile app
+        run: pnpm -C apps/mobile tauri:build

@@ -57,6 +57,13 @@ export type ApiRequest = {
 
 export type ApiTransport = <T>(request: ApiRequest) => Promise<ApiResult<T>>;
 
+export type PaginatedResponse<T> = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+};
+
 export type AuthEndpoints = {
   login: "/auth/login/";
   logout: "/auth/logout/";
@@ -94,6 +101,61 @@ export const createAuthApi = (transport: ApiTransport): AuthApi => ({
     transport<UserProfile>({
       method: "GET",
       path: AUTH_ENDPOINTS.currentUser,
+      headers: {
+        Authorization: `Token ${token}`
+      }
+    })
+});
+
+export type WorkOrderListItem = {
+  id: number;
+  order_number: string;
+  customer_name: string | null;
+  salesperson_name: string | null;
+  product_name: string | null;
+  quantity: number;
+  unit: string;
+  status: string;
+  status_display: string;
+  priority: string;
+  priority_display: string;
+  order_date: string | null;
+  delivery_date: string | null;
+  total_amount: string | number | null;
+  progress_percentage: number;
+  approval_status: string;
+  approval_status_display: string;
+  draft_task_count: number;
+  total_task_count: number;
+};
+
+export type WorkOrderListParams = {
+  page?: number;
+  search?: string;
+  status?: string;
+};
+
+export interface WorkOrderApi {
+  list(token: string, params?: WorkOrderListParams): Promise<ApiResult<PaginatedResponse<WorkOrderListItem>>>;
+}
+
+const buildQuery = (params?: Record<string, string | number | undefined>): string => {
+  if (!params) {
+    return "";
+  }
+  const entries = Object.entries(params).filter(([, value]) => value !== undefined && value !== "");
+  if (entries.length === 0) {
+    return "";
+  }
+  const query = entries.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`).join("&");
+  return `?${query}`;
+};
+
+export const createWorkOrderApi = (transport: ApiTransport): WorkOrderApi => ({
+  list: (token, params) =>
+    transport<PaginatedResponse<WorkOrderListItem>>({
+      method: "GET",
+      path: `/workorders/${buildQuery(params)}`,
       headers: {
         Authorization: `Token ${token}`
       }
