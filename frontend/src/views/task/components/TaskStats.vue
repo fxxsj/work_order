@@ -153,7 +153,8 @@ export default {
         this.serverStats = response.data || response
       } catch (error) {
         // 服务端接口失败时，降级使用本地计算
-        logger.warn('加载服务端统计失败，使用本地计算', error?.message || error)
+        const errorMessage = error && error.message ? error.message : error
+        logger.warn('加载服务端统计失败，使用本地计算', errorMessage)
         this.serverStats = null
       } finally {
         this.statsLoading = false

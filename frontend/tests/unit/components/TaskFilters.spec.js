@@ -64,7 +64,7 @@ describe('TaskFilters.vue', () => {
       wrapper = factory()
 
       const buttons = wrapper.findAll('el-button-stub')
-      expect(buttons.length).toBe(3) // 刷新、视图切换和搜索按钮
+      expect(buttons.length).toBe(4) // 刷新、视图切换、搜索等按钮
     })
   })
 

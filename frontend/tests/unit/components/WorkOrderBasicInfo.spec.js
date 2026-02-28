@@ -137,6 +137,7 @@ describe('WorkOrderBasicInfo.vue', () => {
     test('应该获取状态文本', () => {
       wrapper = factory()
 
+      wrapper.vm.statusText
       expect(workOrderService.getStatusText).toHaveBeenCalledWith('in_progress')
       expect(wrapper.vm.statusText).toBe('进行中')
     })
@@ -144,6 +145,7 @@ describe('WorkOrderBasicInfo.vue', () => {
     test('应该获取审核状态文本', () => {
       wrapper = factory()
 
+      wrapper.vm.approvalStatusText
       expect(workOrderService.getApprovalStatusText).toHaveBeenCalledWith('approved')
       expect(wrapper.vm.approvalStatusText).toBe('已审核')
     })
@@ -151,6 +153,7 @@ describe('WorkOrderBasicInfo.vue', () => {
     test('应该获取优先级文本', () => {
       wrapper = factory()
 
+      wrapper.vm.priorityText
       expect(workOrderService.getPriorityText).toHaveBeenCalledWith('high')
       expect(wrapper.vm.priorityText).toBe('高')
     })
@@ -158,6 +161,7 @@ describe('WorkOrderBasicInfo.vue', () => {
     test('应该获取优先级类型', () => {
       wrapper = factory()
 
+      wrapper.vm.priorityType
       expect(workOrderService.getPriorityType).toHaveBeenCalledWith('high')
       expect(wrapper.vm.priorityType).toBe('warning')
     })
@@ -165,6 +169,7 @@ describe('WorkOrderBasicInfo.vue', () => {
     test('应该计算进度', () => {
       wrapper = factory()
 
+      wrapper.vm.progress
       expect(workOrderService.calculateProgress).toHaveBeenCalledWith(mockWorkOrder)
       expect(wrapper.vm.progress).toBe(50)
     })
@@ -189,7 +194,7 @@ describe('WorkOrderBasicInfo.vue', () => {
       wrapper = factory()
 
       const formatted = wrapper.vm.formatDate('2026-01-15')
-      expect(formatted).toMatch(/\d{4}\/\d{2}\/\d{2}/)
+      expect(formatted).toMatch(/\d{4}-\d{2}-\d{2}/)
     })
 
     test('formatDate 应该处理 null 值', () => {

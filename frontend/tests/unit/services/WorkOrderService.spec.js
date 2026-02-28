@@ -5,7 +5,7 @@
 import workOrderService, { WorkOrderService } from '@/services/WorkOrderService'
 
 // Mock API 客户端
-jest.mock('@/api/workorder', () => ({
+jest.mock('@/api/modules/workorder', () => ({
   workOrderAPI: {
     list: jest.fn(),
     getDetail: jest.fn(),
