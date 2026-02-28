@@ -338,13 +338,13 @@ jobs:
         fi
 
         # Check test coverage
-        if [ "${{ needs.backend-test.outcome }}" != "success" ] || [ "${{ needs.frontend-test.outcome }}" != "success" ]; then
+        if [ "${{ needs.backend-test.result }}" != "success" ] || [ "${{ needs.frontend-test.result }}" != "success" ]; then
           echo "❌ Tests failed"
           exit 1
         fi
 
         # Check integration tests
-        if [ "${{ needs.integration-test.outcome }}" != "success" ]; then
+        if [ "${{ needs.integration-test.result }}" != "success" ]; then
           echo "❌ Integration tests failed"
           exit 1
         fi
