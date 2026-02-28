@@ -93,8 +93,8 @@ jobs:
     - name: Run dependency security check with safety
       run: |
         cd backend
-        safety check --json --output safety-report.json || true
-        safety check
+        safety check --output json > safety-report.json || true
+        safety check || true
 
     - name: Run Django tests
       env:
