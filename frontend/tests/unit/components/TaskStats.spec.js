@@ -5,6 +5,13 @@
 import { shallowMount, createLocalVue } from '@vue/test-utils'
 import TaskStats from '@/views/task/components/TaskStats.vue'
 
+jest.mock('@/utils/logger', () => ({
+  warn: jest.fn(),
+  error: jest.fn(),
+  info: jest.fn(),
+  debug: jest.fn()
+}))
+
 const localVue = createLocalVue()
 
 describe('TaskStats.vue', () => {
