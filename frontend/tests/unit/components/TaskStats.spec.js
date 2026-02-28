@@ -65,7 +65,7 @@ describe('TaskStats.vue', () => {
 
       wrapper = factory({ tasks })
 
-      expect(wrapper.vm.totalTasks).toBe(3)
+      expect(wrapper.vm.stats.total).toBe(3)
     })
 
     test('应该正确计算待开始任务数', () => {
@@ -77,7 +77,7 @@ describe('TaskStats.vue', () => {
 
       wrapper = factory({ tasks })
 
-      expect(wrapper.vm.pendingCount).toBe(2)
+      expect(wrapper.vm.stats.pending).toBe(2)
     })
 
     test('应该正确计算进行中任务数', () => {
@@ -89,7 +89,7 @@ describe('TaskStats.vue', () => {
 
       wrapper = factory({ tasks })
 
-      expect(wrapper.vm.inProgressCount).toBe(2)
+      expect(wrapper.vm.stats.in_progress).toBe(2)
     })
 
     test('应该正确计算已完成任务数', () => {
@@ -101,16 +101,16 @@ describe('TaskStats.vue', () => {
 
       wrapper = factory({ tasks })
 
-      expect(wrapper.vm.completedCount).toBe(2)
+      expect(wrapper.vm.stats.completed).toBe(2)
     })
 
     test('空任务数组应该返回 0', () => {
       wrapper = factory({ tasks: [] })
 
-      expect(wrapper.vm.totalTasks).toBe(0)
-      expect(wrapper.vm.pendingCount).toBe(0)
-      expect(wrapper.vm.inProgressCount).toBe(0)
-      expect(wrapper.vm.completedCount).toBe(0)
+      expect(wrapper.vm.stats.total).toBe(0)
+      expect(wrapper.vm.stats.pending).toBe(0)
+      expect(wrapper.vm.stats.in_progress).toBe(0)
+      expect(wrapper.vm.stats.completed).toBe(0)
     })
   })
 
@@ -141,7 +141,7 @@ describe('TaskStats.vue', () => {
       wrapper = factory({ tasks })
 
       // 不应该抛出错误
-      expect(wrapper.vm.totalTasks).toBe(3)
+      expect(wrapper.vm.stats.total).toBe(3)
     })
 
     test('应该处理未定义状态的任务', () => {
@@ -153,9 +153,9 @@ describe('TaskStats.vue', () => {
 
       wrapper = factory({ tasks })
 
-      expect(wrapper.vm.totalTasks).toBe(3)
-      expect(wrapper.vm.pendingCount).toBe(1)
-      expect(wrapper.vm.completedCount).toBe(1)
+      expect(wrapper.vm.stats.total).toBe(3)
+      expect(wrapper.vm.stats.pending).toBe(1)
+      expect(wrapper.vm.stats.completed).toBe(1)
     })
   })
 })

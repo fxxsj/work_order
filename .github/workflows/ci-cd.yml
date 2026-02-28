@@ -88,7 +88,7 @@ jobs:
       run: |
         cd backend
         bandit -r . -f json -o bandit-report.json || true
-        bandit -r . -f text
+        bandit -r . -f txt || true
 
     - name: Run dependency security check with safety
       run: |
