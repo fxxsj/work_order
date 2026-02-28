@@ -140,7 +140,7 @@ jobs:
           DEBUG: False
         run: |
           cd backend
-          gunicorn config.wsgi:application --bind 0.0.0.0:8000 --daemon --access-logfile - --error-logfile -
+          python manage.py runserver 0.0.0.0:8000 &
           # Wait for server to be ready
           sleep 5
 
@@ -183,6 +183,7 @@ jobs:
       - name: Stop Django server
         if: always()
         run: |
+          pkill -f runserver || true
           pkill -f gunicorn || true
 
   load-test-summary:
