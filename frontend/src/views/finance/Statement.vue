@@ -594,7 +594,7 @@ export default {
       }
     },
 
-    handleExport(row) {
+    handleExport() {
       ErrorHandler.showInfo('导出功能开发中')
     },
 

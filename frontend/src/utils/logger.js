@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * 统一日志工具
  * 提供统一的日志记录功能

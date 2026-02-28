@@ -104,7 +104,7 @@ jobs:
         DEBUG: True
       run: |
         cd backend
-        python -m coverage run --source='.' manage.py test --verbosity=2 --parallel=4
+        python -m coverage run --source='.' manage.py test --verbosity=2
         python -m coverage report
         python -m coverage xml -o coverage.xml
 
