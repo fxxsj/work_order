@@ -95,35 +95,36 @@ jobs:
           SECRET_KEY: test-secret-key-for-ci
         run: |
           cd backend
-          python -c "
-          from django.contrib.auth import get_user_model
+          python manage.py shell -c "
           from workorder.tests.factories import (
               WorkOrderFactory, UserFactory, DepartmentFactory,
-              ProcessFactory, WorkOrderTaskFactory
+              ProcessFactory, WorkOrderTaskFactory, WorkOrderProcessFactory
           )
-          import django
-          django.setup()
 
-          User = get_user_model()
+          # Create shared department/process
+          dept = DepartmentFactory(name='Test Dept')
+          process = ProcessFactory(name='Test Process')
 
-          # Create test users
-          supervisor = UserFactory(username='test_supervisor', role='supervisor')
-          operator = UserFactory(username='test_operator', role='operator')
-          maker = UserFactory(username='test_maker', role='maker')
+          # Create test users with department membership
+          supervisor = UserFactory(username='test_supervisor', departments=[dept])
+          operator = UserFactory(username='test_operator', departments=[dept])
+          maker = UserFactory(username='test_maker', departments=[dept])
 
           # Set passwords for token auth
           for user in [supervisor, operator, maker]:
               user.set_password('testpass123')
               user.save()
 
-          # Create test data
-          dept = DepartmentFactory(name='Test Dept')
-          process = ProcessFactory(name='Test Process')
-
           for _ in range(50):
               wo = WorkOrderFactory(approval_status='approved')
-              WorkOrderTaskFactory(
+              wop = WorkOrderProcessFactory(
                   work_order=wo,
+                  process=process,
+                  department=dept,
+                  tasks=0
+              )
+              WorkOrderTaskFactory(
+                  work_order_process=wop,
                   status='pending',
                   assigned_department=dept
               )
