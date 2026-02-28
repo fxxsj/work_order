@@ -86,7 +86,8 @@ jobs:
         run: |
           cd backend
           python manage.py migrate --noinput
-          python manage.py loaddata ../backend/workorder/fixtures/initial_data.json
+          python manage.py loaddata workorder/fixtures/initial_users.json
+          python manage.py loaddata workorder/fixtures/initial_products.json
 
       - name: Create test data
         env:
