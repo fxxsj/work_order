@@ -13,6 +13,10 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   # Backend testing and security checks
   backend-test:
@@ -209,7 +213,7 @@ jobs:
       run: |
         cd backend
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r requirements.txt pytest pytest-django
 
     - name: Set up Node.js
       uses: actions/setup-node@v6
@@ -230,7 +234,7 @@ jobs:
         DEBUG: True
       run: |
         cd backend
-        python manage.py test tests.integration --verbosity=2
+        pytest -m integration
 
   # Docker build and push
   docker-build:
