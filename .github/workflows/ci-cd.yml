@@ -315,6 +315,7 @@ jobs:
     steps:
     - name: Download security reports
       uses: actions/download-artifact@v4
+      if: needs.backend-test.result == 'success'
       with:
         name: security-reports
         path: security-reports/

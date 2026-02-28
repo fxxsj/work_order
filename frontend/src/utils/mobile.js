@@ -452,7 +452,6 @@ export const PWAUtils = {
    */
   checkInstallPrompt() {
     let deferredPrompt
-    let cleanupFn
 
     const installHandler = (e) => {
       e.preventDefault()
@@ -461,7 +460,7 @@ export const PWAUtils = {
 
     window.addEventListener('beforeinstallprompt', installHandler)
 
-    cleanupFn = () => {
+    const cleanupFn = () => {
       window.removeEventListener('beforeinstallprompt', installHandler)
     }
 
