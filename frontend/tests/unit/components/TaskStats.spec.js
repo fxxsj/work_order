@@ -2,15 +2,21 @@
  * TaskStats 组件单元测试
  */
 
-import { shallowMount, createLocalVue } from '@vue/test-utils'
-import TaskStats from '@/views/task/components/TaskStats.vue'
-
 jest.mock('@/utils/logger', () => ({
   warn: jest.fn(),
   error: jest.fn(),
   info: jest.fn(),
   debug: jest.fn()
 }))
+
+jest.mock('@/api/modules', () => ({
+  workOrderTaskAPI: {
+    getStats: jest.fn()
+  }
+}))
+
+import { shallowMount, createLocalVue } from '@vue/test-utils'
+import TaskStats from '@/views/task/components/TaskStats.vue'
 
 const localVue = createLocalVue()
 
