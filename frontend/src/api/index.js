@@ -99,9 +99,7 @@ service.interceptors.response.use(
         }).then(token => {
           originalRequest.headers['Authorization'] = `Bearer ${token}`
           return service(originalRequest)
-        }).catch(err => {
-          return Promise.reject(err)
-        })
+        }).catch(err => Promise.reject(err))
       }
 
       originalRequest._retry = true
