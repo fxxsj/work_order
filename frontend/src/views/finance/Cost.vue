@@ -169,8 +169,7 @@
         description="暂无成本数据"
         :image-size="200"
         style="margin-top: 50px;"
-      >
-      </el-empty>
+      />
     </el-card>
 
     <!-- 成本详情对话框 -->

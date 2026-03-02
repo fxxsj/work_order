@@ -42,7 +42,6 @@
             <el-option label="不合格" value="failed" />
             <el-option label="条件接收" value="conditional" />
           </el-select>
-          
         </div>
         <div class="action-group">
           <el-button
@@ -540,8 +539,7 @@ export default {
         conditional: 'warning'
       }
       return typeMap[result] || ''
-    },
-
+    }
   }
 }
 </script>
