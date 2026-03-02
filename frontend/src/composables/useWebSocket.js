@@ -60,6 +60,9 @@ export function useWebSocket() {
     // 优先使用环境变量，否则使用 localhost:8000 (ASGI 服务器端口)
     const host = process.env.VUE_APP_WS_HOST || 'localhost:8000'
     const token = component.$store.getters['user/authToken']
+    if (!token) {
+      return null
+    }
     return `${protocol}//${host}/ws/notifications/?token=${token}`
   }
 
@@ -87,6 +90,12 @@ export function useWebSocket() {
 
   // 指数退避重连 (1s, 2s, 4s, 8s, ... max 60s)
   const scheduleReconnect = (component) => {
+    if (!component.$store.getters['user/isAuthenticated']) {
+      return
+    }
+    if (!component.$store.getters['user/authToken']) {
+      return
+    }
     if (reconnectTimeout) {
       clearTimeout(reconnectTimeout)
     }
@@ -126,7 +135,15 @@ export function useWebSocket() {
     // component 参数从组件的 this 传入
 
     try {
-      socket = new WebSocket(buildWebSocketUrl(component))
+      const wsUrl = buildWebSocketUrl(component)
+      if (!wsUrl) {
+        component.isConnected = false
+        component.isConnecting = false
+        component.hasError = false
+        component.connectionState = 'disconnected'
+        return
+      }
+      socket = new WebSocket(wsUrl)
 
       socket.onopen = () => {
         logInfo('[WebSocket] Connected')

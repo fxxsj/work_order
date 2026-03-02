@@ -118,7 +118,10 @@ export default {
       }
     },
 
-    async fetchUnreadCount({ commit }) {
+    async fetchUnreadCount({ commit, rootGetters }) {
+      if (!rootGetters['user/isAuthenticated']) {
+        return 0
+      }
       try {
         const data = await notificationAPI.getUnreadCount()
         commit('SET_UNREAD_COUNT', data.unread_count)

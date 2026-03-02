@@ -175,6 +175,9 @@ export default {
     notifications() {
       return this.$store.state.notification.notifications
     },
+    isAuthenticated() {
+      return this.$store.getters['user/isAuthenticated']
+    },
     unreadCount() {
       return this.$store.state.notification.unreadCount
     },
@@ -220,6 +223,9 @@ export default {
   },
 
   watch: {
+    isAuthenticated() {
+      this.syncAuthState()
+    },
     unreadCount(newVal, oldVal) {
       if (newVal > oldVal) {
         // 有新通知，仅更新计数，不自动弹出（符合上下文决策）
@@ -228,12 +234,7 @@ export default {
   },
 
   mounted() {
-    this.setupWebSocket(this)
-    this.loadNotifications()
-    this.$store.dispatch('notification/fetchUnreadCount')
-    this.refreshInterval = setInterval(() => {
-      this.$store.dispatch('notification/fetchUnreadCount')
-    }, 60000)
+    this.syncAuthState()
   },
 
   beforeDestroy() {
@@ -245,6 +246,34 @@ export default {
 
   methods: {
     ...ws.methods,
+
+    syncAuthState() {
+      if (this.isAuthenticated) {
+        this.startNotificationServices()
+      } else {
+        this.stopNotificationServices()
+      }
+    },
+
+    startNotificationServices() {
+      if (this.refreshInterval) {
+        clearInterval(this.refreshInterval)
+      }
+      this.setupWebSocket(this)
+      this.loadNotifications()
+      this.$store.dispatch('notification/fetchUnreadCount')
+      this.refreshInterval = setInterval(() => {
+        this.$store.dispatch('notification/fetchUnreadCount')
+      }, 60000)
+    },
+
+    stopNotificationServices() {
+      this.cleanupWebSocket()
+      if (this.refreshInterval) {
+        clearInterval(this.refreshInterval)
+        this.refreshInterval = null
+      }
+    },
 
     toggleDropdown() {
       this.dropdownVisible = !this.dropdownVisible
