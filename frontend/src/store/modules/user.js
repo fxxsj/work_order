@@ -159,25 +159,27 @@ const actions = {
       // 调用认证 API
       const response = await authAPI.login({ username, password })
 
-      if (response.id) {
+      const payload = response?.data || response
+
+      if (response?.success && payload?.id) {
         // 登录成功，提取用户信息
         // 后端返回的 groups 是字符串数组，需要转换为角色数组
-        const roles = response.groups || []
-        const permissions = response.permissions || []
-        const access = response.access || null  // JWT access token
-        const refresh = response.refresh || null  // JWT refresh token
+        const roles = payload.groups || []
+        const permissions = payload.permissions || []
+        const access = payload.access || null  // JWT access token
+        const refresh = payload.refresh || null  // JWT refresh token
 
         const user = {
-          id: response.id,
-          username: response.username,
-          full_name: `${response.first_name || ''} ${response.last_name || ''}`.trim(),
-          email: response.email,
-          is_superuser: response.is_superuser,
-          is_staff: response.is_staff,
+          id: payload.id,
+          username: payload.username,
+          full_name: `${payload.first_name || ''} ${payload.last_name || ''}`.trim(),
+          email: payload.email,
+          is_superuser: payload.is_superuser,
+          is_staff: payload.is_staff,
           // 保持原始格式（字符串数组），以便前端使用
           groups: roles.map(roleName => ({ name: roleName })),
           permissions: permissions,
-          is_salesperson: response.is_salesperson || false
+          is_salesperson: payload.is_salesperson || false
         }
 
         commit('SET_CURRENT_USER', user)
@@ -190,7 +192,7 @@ const actions = {
 
         return { success: true, user }
       } else {
-        return { success: false, error: response.error || '登录失败' }
+        return { success: false, error: response?.message || '登录失败' }
       }
     } catch (error) {
       return { success: false, error: error.message }

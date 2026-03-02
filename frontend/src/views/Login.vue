@@ -47,6 +47,7 @@
 
         <el-form-item prop="password">
           <el-input
+            ref="passwordInput"
             v-model="loginForm.password"
             type="password"
             placeholder="密码"
@@ -106,11 +107,15 @@ export default {
     }
   },
   async mounted() {
-    // 页面加载时获取 CSRF token
-    try {
-      await authAPI.getCurrentUser()
-    } catch (error) {
-      // 忽略错误，只是为了获取 CSRF cookie
+    // 页面加载时获取 CSRF token（仅在已有 token 时尝试）
+    const hasToken = this.$store.getters['user/authToken'] ||
+      this.$store.getters['user/refreshToken']
+    if (hasToken) {
+      try {
+        await authAPI.getCurrentUser()
+      } catch (error) {
+        // 忽略错误，只是为了获取 CSRF cookie
+      }
     }
 
     // 检查是否有重定向参数，如果有则显示登录提示
@@ -142,11 +147,12 @@ export default {
 
       try {
         // 调用登录 API
-        const user = await authAPI.login(this.loginForm)
+        const response = await authAPI.login(this.loginForm)
+        const payload = response?.data || response
 
-        if (user && user.id) {
+        if (response?.success && payload && payload.id) {
           // 登录成功
-          this.$store.dispatch('user/initUser', user)
+          this.$store.dispatch('user/initUser', payload)
 
           // 显示成功提示
           this.showSuccessAlert = true
@@ -156,9 +162,9 @@ export default {
             const redirect = this.$route.query.redirect || '/'
             this.$router.push(redirect)
           }, 800)
-        } else if (user && user.error) {
+        } else if (response && response.success === false) {
           // 后端返回了错误信息
-          this.handleLoginError(user.error)
+          this.handleLoginError(response.message || '登录失败')
         } else {
           // 未知错误
           this.handleLoginError('登录失败，请重试')
@@ -177,7 +183,10 @@ export default {
           } else if (status === 403) {
             errorMessage = '账号已被禁用，请联系管理员'
           } else {
-            errorMessage = error.response.data?.detail || error.response.data?.error || '登录失败'
+            errorMessage = error.response.data?.message ||
+              error.response.data?.detail ||
+              error.response.data?.error ||
+              '登录失败'
           }
         } else if (error.message) {
           errorMessage = error.message
@@ -203,10 +212,8 @@ export default {
 
       // 聚焦到密码输入框
       this.$nextTick(() => {
-        const passwordInput = this.$refs.loginForm.fields.find(
-          field => field.prop === 'password'
-        )
-        if (passwordInput) {
+        const passwordInput = this.$refs.passwordInput
+        if (passwordInput && typeof passwordInput.focus === 'function') {
           passwordInput.focus()
         }
       })
