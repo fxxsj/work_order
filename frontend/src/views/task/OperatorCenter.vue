@@ -123,6 +123,7 @@
 <script>
 import { workOrderTaskAPI } from '@/api/modules'
 import ErrorHandler from '@/utils/errorHandler'
+import unwrapApiResponse from '@/utils/apiResponse'
 import OperatorTaskList from './components/OperatorTaskList.vue'
 import OperatorTaskUpdateDialog from './components/OperatorTaskUpdateDialog.vue'
 
@@ -173,7 +174,7 @@ export default {
       this.loading = true
       try {
         const response = await workOrderTaskAPI.getOperatorCenterData()
-        const payload = response?.data || response
+        const payload = unwrapApiResponse(response)
         this.myTasks = payload?.my_tasks || []
         this.claimableTasks = payload?.claimable_tasks || []
         this.summary = payload?.summary || {}

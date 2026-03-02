@@ -87,6 +87,7 @@
 <script>
 import { authAPI } from '@/api/modules'
 import ErrorHandler from '@/utils/errorHandler'
+import unwrapApiResponse from '@/utils/apiResponse'
 
 export default {
   name: 'BatchAssignDialog',
@@ -168,7 +169,7 @@ export default {
       this.loadingOperators = true
       try {
         const response = await authAPI.getUserList({ department: departmentId })
-        const payload = response?.data || response
+        const payload = unwrapApiResponse(response)
         this.operatorList = payload?.results || payload?.items || []
       } catch (error) {
         ErrorHandler.showMessage(error, '加载操作员列表')

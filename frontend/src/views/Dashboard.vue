@@ -73,6 +73,7 @@ import {
 } from '@/api/modules'
 import { hasRole, hasAnyRole } from '@/utils/userRole'
 import ErrorHandler from '@/utils/errorHandler'
+import unwrapApiResponse from '@/utils/apiResponse'
 import NotificationAlerts from './dashboard/components/NotificationAlerts.vue'
 import WorkOrderStatistics from './dashboard/components/WorkOrderStatistics.vue'
 import TaskStatistics from './dashboard/components/TaskStatistics.vue'
@@ -152,7 +153,7 @@ export default {
       try {
         // 加载统计数据
         const stats = await workOrderAPI.getStatistics()
-        this.statistics = stats?.data || stats || {}
+        this.statistics = unwrapApiResponse(stats) || {}
 
         // 加载最近的施工单
         const response = await workOrderAPI.getList({
@@ -181,7 +182,7 @@ export default {
         // 加载通知数据
         try {
           const unreadResponse = await notificationAPI.getUnreadCount()
-          const payload = unreadResponse?.data || unreadResponse
+          const payload = unwrapApiResponse(unreadResponse)
           this.unreadNotificationCount = payload?.unread_count || 0
         } catch (error) {
           ErrorHandler.handle(error, 'Dashboard.loadUnreadNotifications')

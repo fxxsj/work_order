@@ -140,6 +140,7 @@ import { departmentAPI, authAPI, workOrderTaskAPI } from '@/api/modules'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 import ErrorHandler from '@/utils/errorHandler'
+import unwrapApiResponse from '@/utils/apiResponse'
 import TaskStats from './components/TaskStats.vue'
 import TaskBoardView from './components/TaskBoardView.vue'
 import TaskListView from './components/TaskListView.vue'
@@ -251,7 +252,7 @@ export default {
     async loadUsers(departmentId) {
       try {
         const response = await authAPI.getUsersByDepartment(departmentId)
-        this.userList = response.data || response || []
+        this.userList = unwrapApiResponse(response) || []
       } catch (error) {
         ErrorHandler.showMessage(error, '加载用户列表')
       }

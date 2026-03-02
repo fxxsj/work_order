@@ -176,6 +176,7 @@
 <script>
 import { workOrderTaskAPI } from '@/api/modules'
 import ErrorHandler from '@/utils/errorHandler'
+import unwrapApiResponse from '@/utils/apiResponse'
 
 export default {
   name: 'DraftTaskManagement',
@@ -292,8 +293,7 @@ export default {
         }
 
         const response = await workOrderTaskAPI.bulkUpdate(updateData)
-        const payload = response?.data || response
-        const data = payload?.data || payload
+        const data = unwrapApiResponse(response)
         ErrorHandler.showSuccess(data?.message || '批量更新成功')
         this.bulkEditDialogVisible = false
         this.clearSelection()
@@ -338,8 +338,7 @@ export default {
 
         const taskIds = this.selectedDraftTasks.map(t => t.id)
         const response = await workOrderTaskAPI.bulkDelete(taskIds)
-        const payload = response?.data || response
-        const data = payload?.data || payload
+        const data = unwrapApiResponse(response)
         ErrorHandler.showSuccess(data?.message || '批量删除成功')
         this.clearSelection()
 

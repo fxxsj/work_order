@@ -424,6 +424,7 @@ import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 import exportMixin from '@/mixins/exportMixin'
 import Pagination from '@/components/common/Pagination.vue'
 import ErrorHandler from '@/utils/errorHandler'
+import unwrapApiResponse from '@/utils/apiResponse'
 import { debounce } from '@/utils/debounce'
 import taskService from '@/services/TaskService'
 import SkeletonLoader from '@/components/SkeletonLoader.vue'
@@ -662,7 +663,7 @@ export default {
       try {
         const params = departmentId ? { department: departmentId } : {}
         const response = await authAPI.getUserList(params)
-        const payload = response?.data || response
+        const payload = unwrapApiResponse(response)
         this.userList = payload?.results || payload?.items || []
       } catch (error) {
         ErrorHandler.showMessage(error, '加载用户列表')

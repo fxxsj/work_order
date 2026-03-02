@@ -227,6 +227,7 @@ import DeliveryFormDialog from './components/DeliveryFormDialog.vue'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 import ErrorHandler from '@/utils/errorHandler'
+import unwrapApiResponse from '@/utils/apiResponse'
 
 // 表单初始值常量
 const FORM_INITIAL = {
@@ -330,7 +331,7 @@ export default {
       try {
         // 使用后端 summary 接口获取统计数据
         const response = await this.apiService.getSummary()
-        const payload = response?.data || response
+        const payload = unwrapApiResponse(response)
         this.stats = {
           total: payload?.summary?.total_count || 0,
           pending: payload?.summary?.pending_count || 0,

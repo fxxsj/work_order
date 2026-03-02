@@ -4,6 +4,7 @@
  */
 import { notificationAPI } from '@/api/modules'
 import logger from '@/utils/logger'
+import unwrapApiResponse from '@/utils/apiResponse'
 
 const STATE_KEY = 'notification_state'
 
@@ -124,7 +125,7 @@ export default {
       }
       try {
         const response = await notificationAPI.getUnreadCount()
-        const payload = response?.data || response
+        const payload = unwrapApiResponse(response)
         commit('SET_UNREAD_COUNT', payload?.unread_count || 0)
         return payload?.unread_count || 0
       } catch (error) {

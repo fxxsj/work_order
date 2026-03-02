@@ -242,6 +242,7 @@ import { workOrderTaskAPI, departmentAPI, authAPI } from '@/api/modules'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 import ErrorHandler from '@/utils/errorHandler'
+import unwrapApiResponse from '@/utils/apiResponse'
 import Pagination from '@/components/common/Pagination.vue'
 
 // 筛选条件初始值常量
@@ -308,7 +309,7 @@ export default {
       })
 
       const response = await workOrderTaskAPI.getAssignmentHistory(params)
-      const payload = response?.data || response
+      const payload = unwrapApiResponse(response)
       const list = payload?.results || payload?.items || []
       const total = payload?.total || payload?.count || payload?.pagination?.total_items || 0
 
@@ -377,7 +378,7 @@ export default {
     async loadUserList() {
       try {
         const response = await authAPI.getUsersByDepartment(null)
-        this.userList = response?.data || response || []
+        this.userList = unwrapApiResponse(response) || []
       } catch (error) {
         ErrorHandler.showMessage(error, '加载用户列表')
         this.userList = []

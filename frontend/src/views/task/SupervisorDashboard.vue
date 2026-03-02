@@ -285,6 +285,7 @@
 <script>
 import { workOrderTaskAPI, departmentAPI, authAPI } from '@/api/modules'
 import ErrorHandler from '@/utils/errorHandler'
+import unwrapApiResponse from '@/utils/apiResponse'
 import TaskDragDropList from './components/TaskDragDropList.vue'
 
 export default {
@@ -364,7 +365,7 @@ export default {
         const response = await workOrderTaskAPI.getDepartmentWorkload({
           department_id: this.selectedDepartment
         })
-        this.workloadData = response?.data || response
+        this.workloadData = unwrapApiResponse(response)
 
         // 加载部门任务列表（用于拖拽视图）
         await this.loadDepartmentTasks()
@@ -410,7 +411,7 @@ export default {
 
       try {
         const response = await authAPI.getUsersByDepartment(this.selectedDepartment)
-        const users = response.data || response || []
+        const users = unwrapApiResponse(response) || []
         this.operators = users.map(user => ({
           id: user.id,
           name: `${user.first_name}${user.last_name}`.trim() || user.username

@@ -30,6 +30,7 @@
 <script>
 import { customerAPI } from '@/api/modules/customer'
 import ErrorHandler from '@/utils/errorHandler'
+import unwrapApiResponse from '@/utils/apiResponse'
 
 export default {
   name: 'CustomerSelector',
@@ -68,7 +69,7 @@ export default {
           params.search = search
         }
         const response = await customerAPI.getList(params)
-        const payload = response?.data || response
+        const payload = unwrapApiResponse(response)
         this.customerList = payload?.results || payload?.items || []
       } catch (error) {
         ErrorHandler.showMessage(error, '加载客户列表失败')

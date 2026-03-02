@@ -276,6 +276,7 @@ import StockAdjustDialog from './components/StockAdjustDialog.vue'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 import ErrorHandler from '@/utils/errorHandler'
+import unwrapApiResponse from '@/utils/apiResponse'
 
 export default {
   name: 'StockList',
@@ -343,7 +344,7 @@ export default {
       this.statsLoading = true
       try {
         const response = await productStockAPI.getSummary()
-        this.stats = response?.data || response || {}
+        this.stats = unwrapApiResponse(response) || {}
       } catch (error) {
         // 统计信息加载失败不阻塞页面，静默处理
         this.stats = {}
@@ -395,7 +396,7 @@ export default {
       this.loadingLowStock = true
       try {
         const response = await productStockAPI.getLowStock()
-        const payload = response?.data || response
+        const payload = unwrapApiResponse(response)
         this.lowStockList = payload?.results || []
       } catch (error) {
         ErrorHandler.showMessage(error, '获取库存预警失败')
@@ -409,7 +410,7 @@ export default {
       this.loadingExpired = true
       try {
         const response = await productStockAPI.getExpired()
-        const payload = response?.data || response
+        const payload = unwrapApiResponse(response)
         this.expiredList = payload?.results || []
       } catch (error) {
         ErrorHandler.showMessage(error, '获取过期库存失败')

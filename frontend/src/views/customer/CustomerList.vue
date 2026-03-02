@@ -163,6 +163,7 @@ import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 import formDialogMixin from '@/mixins/formDialogMixin'
 import ErrorHandler from '@/utils/errorHandler'
+import unwrapApiResponse from '@/utils/apiResponse'
 import Pagination from '@/components/common/Pagination.vue'
 
 // 表单初始值（避免重复定义）
@@ -245,7 +246,7 @@ export default {
     async loadSalespersons() {
       try {
         const salespersons = await authAPI.getSalespersons()
-        this.salespersonList = salespersons?.data || salespersons || []
+        this.salespersonList = unwrapApiResponse(salespersons) || []
       } catch (error) {
         ErrorHandler.showMessage(error, '加载业务员列表失败')
       }

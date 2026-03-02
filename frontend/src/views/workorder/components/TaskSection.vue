@@ -383,6 +383,7 @@ import { workOrderTaskAPI } from '@/api/modules/workorder-task'
 import { processAPI } from '@/api/modules'
 import permissionMixin from '@/mixins/permissionMixin'
 import ErrorHandler from '@/utils/errorHandler'
+import unwrapApiResponse from '@/utils/apiResponse'
 
 export default {
   name: 'TaskSection',
@@ -648,7 +649,7 @@ export default {
           is_active: true
         })
 
-        const payload = response?.data || response
+        const payload = unwrapApiResponse(response)
         if (payload?.results) {
           this.availableProcesses = payload.results
         } else {

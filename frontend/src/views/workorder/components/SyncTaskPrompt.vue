@@ -70,6 +70,7 @@
 <script>
 import { workOrderAPI } from '@/api/modules'
 import ErrorHandler from '@/utils/errorHandler'
+import unwrapApiResponse from '@/utils/apiResponse'
 
 export default {
   name: 'SyncTaskPrompt',
@@ -123,8 +124,7 @@ export default {
       this.loading = true
       try {
         const result = await workOrderAPI.syncTasksPreview(this.workOrderId, this.processIds)
-        const payload = result?.data || result
-        const data = payload?.data || payload
+        const data = unwrapApiResponse(result)
         if (data) {
           this.preview = data.preview || data
         }
@@ -161,8 +161,7 @@ export default {
       this.syncing = true
       try {
         const result = await workOrderAPI.syncTasksExecute(this.workOrderId, this.processIds)
-        const payload = result?.data || result
-        const data = payload?.data || payload
+        const data = unwrapApiResponse(result)
         if (data) {
           const message = data.message || '任务同步完成'
           ErrorHandler.showSuccess(message)

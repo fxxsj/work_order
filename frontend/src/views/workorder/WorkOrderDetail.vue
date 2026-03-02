@@ -448,6 +448,7 @@ import {
   authAPI
 } from '@/api/modules'
 import ErrorHandler from '@/utils/errorHandler'
+import unwrapApiResponse from '@/utils/apiResponse'
 import WorkOrderHeaderActions from './components/WorkOrderHeaderActions.vue'
 import WorkOrderBasicInfo from './components/WorkOrderBasicInfo.vue'
 import WorkOrderArtworkDie from './components/WorkOrderArtworkDie.vue'
@@ -865,11 +866,11 @@ export default {
         // 如果指定了部门，根据部门获取用户列表
         if (departmentId) {
           const response = await authAPI.getUsersByDepartment(departmentId)
-          this.userList = response?.data || response || []
+          this.userList = unwrapApiResponse(response) || []
         } else {
           // 如果没有指定部门，获取所有用户（排除超级管理员）
           const response = await authAPI.getUsersByDepartment(null)
-          this.userList = response?.data || response || []
+          this.userList = unwrapApiResponse(response) || []
         }
       } catch (error) {
         ErrorHandler.handle(error, 'WorkOrderDetail.loadUserList')

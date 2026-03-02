@@ -315,6 +315,7 @@ import Pagination from '@/components/common/Pagination.vue'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 import ErrorHandler from '@/utils/errorHandler'
+import unwrapApiResponse from '@/utils/apiResponse'
 
 // 表单初始值常量
 const FORM_INITIAL = {
@@ -411,7 +412,7 @@ export default {
       this.statsLoading = true
       try {
         const response = await paymentAPI.getSummary()
-        const payload = response?.data || response
+        const payload = unwrapApiResponse(response)
         const summary = payload?.summary || {}
         this.stats = {
           total_amount: summary.total_amount || 0,

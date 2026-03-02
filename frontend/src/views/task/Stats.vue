@@ -323,6 +323,7 @@
 <script>
 import { workOrderTaskAPI, departmentAPI } from '@/api/modules'
 import ErrorHandler from '@/utils/errorHandler'
+import unwrapApiResponse from '@/utils/apiResponse'
 
 export default {
   name: 'TaskStats',
@@ -368,7 +369,7 @@ export default {
         }
 
         const res = await workOrderTaskAPI.getCollaborationStats(params)
-        const payload = res?.data || res
+        const payload = unwrapApiResponse(res)
         this.statsList = payload?.results || []
         this.summary = payload?.summary || null
       } catch (error) {

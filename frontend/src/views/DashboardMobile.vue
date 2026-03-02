@@ -254,6 +254,7 @@
 
 <script>
 import { workOrderAPI, workOrderTaskAPI } from '@/api/modules'
+import unwrapApiResponse from '@/utils/apiResponse'
 import { taskService } from '@/services'
 
 export default {
@@ -286,7 +287,7 @@ export default {
           workOrderTaskAPI.getList({ status: 'pending', page_size: 5, ordering: '-created_at' })
         ])
 
-        const statsPayload = statsRes?.data || statsRes || {}
+        const statsPayload = unwrapApiResponse(statsRes) || {}
         const statusStats = statsPayload?.status_statistics || []
         const priorityStats = statsPayload?.priority_statistics || []
         const findCount = (list, key, value) => {

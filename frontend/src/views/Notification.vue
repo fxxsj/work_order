@@ -100,6 +100,7 @@
 <script>
 import { notificationAPI } from '@/api/modules'
 import ErrorHandler from '@/utils/errorHandler'
+import unwrapApiResponse from '@/utils/apiResponse'
 
 export default {
   name: 'Notification',
@@ -143,7 +144,7 @@ export default {
     async loadUnreadCount() {
       try {
         const response = await notificationAPI.getUnreadCount()
-        const payload = response?.data || response
+        const payload = unwrapApiResponse(response)
         this.unreadCount = payload?.unread_count || 0
       } catch (error) {
         ErrorHandler.handle(error, 'Notification.loadUnreadCount')
