@@ -14,8 +14,10 @@ cd "$PROJECT_DIR"
 
 cleanup() {
     echo -e "\n${YELLOW}正在关闭所有服务...${NC}"
-    [ -n "$BACKEND_PID" ] && kill $BACKEND_PID 2>/dev/null && echo "已关闭后端服务"
-    [ -n "$FRONTEND_PID" ] && kill $FRONTEND_PID 2>/dev/null && echo "已关闭前端服务"
+    # 清理后端进程
+    pkill -f "daphne.*config.asgi" 2>/dev/null && echo "已关闭后端服务"
+    # 清理前端进程
+    pkill -f "vue-cli-service.*serve" 2>/dev/null && echo "已关闭前端服务"
     exit 0
 }
 
@@ -23,7 +25,31 @@ trap cleanup SIGINT SIGTERM
 
 check_port() {
     local port=$1
-    lsof -t -i:$port 2>/dev/null | xargs -r kill -9 2>/dev/null
+    # 使用 netstat 或 lsof 检查端口
+    if command -v netstat &>/dev/null; then
+        netstat -an | grep ":$port.*LISTEN" | awk '{print $7}' | xargs -r kill -9 2>/dev/null
+    elif command -v lsof &>/dev/null; then
+        lsof -ti:$port 2>/dev/null | xargs -r kill -9 2>/dev/null
+    fi
+}
+
+wait_for_service() {
+    local pid=$1
+    local name=$2
+    local max_wait=10
+    local count=0
+    
+    while [ $count -lt $max_wait ]; do
+        if kill -0 $pid 2>/dev/null; then
+            echo -e "${GREEN}    $name 已启动 (PID: $pid)${NC}"
+            return 0
+        fi
+        sleep 1
+        count=$((count + 1))
+    done
+    
+    echo -e "${RED}    $name 启动超时${NC}"
+    return 1
 }
 
 echo -e "${GREEN}========================================${NC}"
@@ -40,37 +66,56 @@ echo ""
 echo -e "${GREEN}启动服务:${NC}"
 echo "  - 前端:    http://localhost:8080"
 echo "  - 后端:    http://localhost:8000"
+echo "  - API文档: http://localhost:8000/api/docs/"
 echo "  - WebSocket: ws://localhost:8000"
 echo ""
 
 # 启动后端 (Daphne 支持 HTTP + WebSocket)
 echo -e "${GREEN}[1/2]${NC} 启动后端服务..."
 cd "$PROJECT_DIR/backend"
-daphne -b 0.0.0.0 -p 8000 config.asgi:application > /dev/null 2>&1 &
+source venv/bin/activate
+
+# 启动 daphne 并重定向日志
+daphne -b 127.0.0.1 -p 8000 config.asgi:application > /tmp/workorder_backend.log 2>&1 &
 BACKEND_PID=$!
 cd ..
 
-sleep 2
-if kill -0 $BACKEND_PID 2>/dev/null; then
-    echo -e "${GREEN}    后端已启动 (PID: $BACKEND_PID)${NC}"
-else
+# 等待后端启动
+sleep 3
+if ! kill -0 $BACKEND_PID 2>/dev/null; then
+    echo -e "${RED}    后端启动失败，查看日志：${NC}"
+    tail -20 /tmp/workorder_backend.log
+    exit 1
+fi
+
+if ! wait_for_service $BACKEND_PID "后端"; then
     echo -e "${RED}    后端启动失败${NC}"
+    tail -20 /tmp/workorder_backend.log
     exit 1
 fi
 
 # 启动前端
 echo -e "${GREEN}[2/2]${NC} 启动前端服务..."
 cd "$PROJECT_DIR/frontend"
-npm run serve > /dev/null 2>&1 &
+
+# 启动前端并重定向日志
+npm run serve > /tmp/workorder_frontend.log 2>&1 &
 FRONTEND_PID=$!
 cd ..
 
-sleep 3
-if kill -0 $FRONTEND_PID 2>/dev/null; then
-    echo -e "${GREEN}    前端已启动 (PID: $FRONTEND_PID)${NC}"
-else
+# 等待前端启动
+sleep 5
+if ! kill -0 $FRONTEND_PID 2>/dev/null; then
+    echo -e "${RED}    前端启动失败，查看日志：${NC}"
+    tail -30 /tmp/workorder_frontend.log
+    cleanup
+    exit 1
+fi
+
+if ! wait_for_service $FRONTEND_PID "前端"; then
     echo -e "${RED}    前端启动失败${NC}"
-    kill $BACKEND_PID 2>/dev/null
+    tail -30 /tmp/workorder_frontend.log
+    cleanup
     exit 1
 fi
 
@@ -79,7 +124,16 @@ echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}  所有服务已启动！${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo ""
-echo "访问: http://localhost:8080"
+echo -e "${GREEN}访问地址:${NC}"
+echo "  前端:  http://localhost:8080"
+echo "  后端:  http://localhost:8000/api/v1/"
+echo "  文档:  http://localhost:8000/api/docs/"
+echo ""
+echo -e "${YELLOW}日志文件:${NC}"
+echo "  后端:  /tmp/workorder_backend.log"
+echo "  前端:  /tmp/workorder_frontend.log"
+echo ""
+echo -e "${YELLOW}按 Ctrl+C 停止所有服务${NC}"
 echo ""
 
 wait
