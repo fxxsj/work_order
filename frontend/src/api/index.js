@@ -23,7 +23,7 @@ function getCsrfToken() {
 
 // 创建 axios 实例
 const service = axios.create({
-  baseURL: '/api',
+  baseURL: '/api/v1',
   timeout: 30000,
   withCredentials: true,
   xsrfCookieName: 'csrftoken',
