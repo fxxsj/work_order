@@ -136,7 +136,6 @@ const mutations = {
       localStorage.setItem('access_token', access)
     }
   },
-  },
 
   // 清除用户信息（登出时使用）
   CLEAR_USER(state) {
