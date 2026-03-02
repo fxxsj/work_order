@@ -50,7 +50,7 @@ const service = axios.create({
 service.interceptors.request.use(
   config => {
     // 添加 JWT access token
-    const token = store.getters['user/authToken']
+    const token = store.getters['user/authToken'] || localStorage.getItem('access_token')
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`  // JWT Bearer token
     }
@@ -107,7 +107,7 @@ service.interceptors.response.use(
 
       try {
         // 获取 refresh token
-        const refreshToken = store.getters['user/refreshToken']
+        const refreshToken = store.getters['user/refreshToken'] || localStorage.getItem('refresh_token')
 
         if (!refreshToken) {
           throw new Error('No refresh token available')
