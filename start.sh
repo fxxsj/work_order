@@ -75,6 +75,36 @@ echo -e "${GREEN}[1/2]${NC} 启动后端服务..."
 cd "$PROJECT_DIR/backend"
 source venv/bin/activate
 
+# 确保后端依赖已安装
+if ! python - <<'PY' >/dev/null 2>&1
+import importlib
+importlib.import_module("pkg_resources")
+importlib.import_module("rest_framework_simplejwt")
+PY
+then
+    echo -e "${YELLOW}后端依赖缺失，正在安装...${NC}"
+    {
+        echo "===== $(date) ====="
+        # setuptools>=81 移除了 pkg_resources，这里固定到兼容版本
+        python -m pip install --disable-pip-version-check --upgrade pip "setuptools==70.0.0" wheel
+        python -m pip install --disable-pip-version-check -r requirements.txt
+    } >> /tmp/workorder_backend_install.log 2>&1 || {
+        echo -e "${RED}后端依赖安装失败，查看日志：${NC}"
+        tail -30 /tmp/workorder_backend_install.log
+        exit 1
+    }
+    if ! python - <<'PY' >/dev/null 2>&1
+import importlib
+importlib.import_module("pkg_resources")
+importlib.import_module("rest_framework_simplejwt")
+PY
+    then
+        echo -e "${RED}后端依赖安装后仍缺失，查看日志：${NC}"
+        tail -30 /tmp/workorder_backend_install.log
+        exit 1
+    fi
+fi
+
 # 启动 daphne 并重定向日志
 daphne -b 127.0.0.1 -p 8000 config.asgi:application > /tmp/workorder_backend.log 2>&1 &
 BACKEND_PID=$!
