@@ -21,8 +21,11 @@ const getters = {
   // 获取当前用户
   currentUser: (state) => state.currentUser,
 
-  // 是否已登录
-  isAuthenticated: (state) => state.isAuthenticated,
+  // 是否已登录（依赖 token + 用户信息，避免持久化脏状态）
+  isAuthenticated: (state) => {
+    const hasToken = !!state.authToken || !!state.refreshToken
+    return !!state.currentUser && hasToken
+  },
 
   // 获取权限列表
   permissions: (state) => state.permissions,
@@ -153,6 +156,20 @@ const mutations = {
 
 // Actions
 const actions = {
+  // 恢复会话（用于应用初始化）
+  restoreSession({ state, commit }) {
+    const access = localStorage.getItem('access_token')
+    const refresh = localStorage.getItem('refresh_token')
+
+    if (access || refresh) {
+      commit('SET_TOKENS', { access, refresh })
+    }
+
+    // 若没有 token，但仍有持久化的用户信息，清理掉避免误判登录
+    if (state.currentUser && !access && !refresh) {
+      commit('CLEAR_USER')
+    }
+  },
   // 登录
   async login({ commit }, { username, password }) {
     try {

@@ -75,10 +75,11 @@ Vue.filter('formatDateTime', function (value) {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 })
 
-new Vue({
-  name: 'App',
-  router,
-  store,
-  render: h => h(App)
-}).$mount('#app')
-
+store.dispatch('initApp').finally(() => {
+  new Vue({
+    name: 'App',
+    router,
+    store,
+    render: h => h(App)
+  }).$mount('#app')
+})
