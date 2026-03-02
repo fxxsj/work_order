@@ -315,8 +315,9 @@ router.beforeEach(async (to, from, next) => {
       isAuthChecking = true
       authCheckPromise = (async () => {
         try {
-          const userInfo = await authAPI.getCurrentUser()
-          if (userInfo && userInfo.id) {
+          const response = await authAPI.getCurrentUser()
+          const userInfo = response?.data || response
+          if (response?.success && userInfo && userInfo.id) {
             store.dispatch('user/initUser', userInfo)
             return true
           }
@@ -356,4 +357,3 @@ router.beforeEach(async (to, from, next) => {
 })
 
 export default router
-

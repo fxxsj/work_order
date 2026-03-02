@@ -244,7 +244,7 @@ const actions = {
   },
 
   // 初始化用户信息（从 localStorage 或其他来源）
-  initUser({ commit }, user) {
+  initUser({ commit, state }, user) {
     if (user) {
       // 处理两种可能的 groups 格式：
       // 1. 字符串数组（来自后端 API）: ['管理员']
@@ -275,7 +275,12 @@ const actions = {
       commit('SET_CURRENT_USER', normalizedUser)
       commit('SET_ROLES', roles)
       commit('SET_PERMISSIONS', permissions)
-      commit('SET_TOKENS', { access, refresh })  // 保存 JWT tokens
+      if (access || refresh) {
+        commit('SET_TOKENS', { access, refresh })  // 保存 JWT tokens
+      } else if (!state.authToken && !state.refreshToken) {
+        // 无 token 信息且当前也没有 token，保持为空
+        commit('SET_AUTHENTICATED', false)
+      }
 
       // 初始化 PermissionService
       permissionService.initUser(normalizedUser)
