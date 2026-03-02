@@ -69,8 +69,10 @@ export default {
       this.loading = true
       try {
         const response = await this.fetchData()
-        this.tableData = response.results || response.data || []
-        this.total = response.count || response.total || 0
+        const payload = response?.data || response
+        const listData = payload?.results || payload?.items || payload
+        this.tableData = Array.isArray(listData) ? listData : []
+        this.total = payload?.count || payload?.total || payload?.pagination?.total_items || 0
       } catch (error) {
         ErrorHandler.handle(error, 'listPageMixin.loadData')
         this.$message.error('加载数据失败')
