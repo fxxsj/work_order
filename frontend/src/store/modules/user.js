@@ -35,6 +35,8 @@ const getters = {
 
   // 获取认证令牌
   authToken: (state) => state.authToken,
+  // 获取刷新令牌
+  refreshToken: (state) => state.refreshToken,
 
   // 检查是否有指定权限
   hasPermission: (state) => (permission) => {
