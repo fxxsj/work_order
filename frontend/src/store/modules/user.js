@@ -12,7 +12,8 @@ const state = {
   isAuthenticated: false,
   permissions: [],
   roles: [],
-  authToken: localStorage.getItem('authToken') || null  // 从 localStorage 恢复 Token
+  authToken: localStorage.getItem('access_token') || null,  // JWT access token
+  refreshToken: localStorage.getItem('refresh_token') || null  // JWT refresh token
 }
 
 // Getters
@@ -115,13 +116,26 @@ const mutations = {
     state.roles = roles || []
   },
 
-  // 设置认证令牌
-  SET_AUTH_TOKEN(state, token) {
-    state.authToken = token
+  // 设置认证令牌（JWT tokens）
+  SET_TOKENS(state, { access, refresh }) {
+    state.authToken = access
+    state.refreshToken = refresh
     // 持久化到 localStorage
-    if (token) {
-      localStorage.setItem('authToken', token)
+    if (access) {
+      localStorage.setItem('access_token', access)
     }
+    if (refresh) {
+      localStorage.setItem('refresh_token', refresh)
+    }
+  },
+
+  // 仅更新 access token（用于刷新场景）
+  UPDATE_ACCESS_TOKEN(state, access) {
+    state.authToken = access
+    if (access) {
+      localStorage.setItem('access_token', access)
+    }
+  },
   },
 
   // 清除用户信息（登出时使用）
@@ -131,8 +145,10 @@ const mutations = {
     state.permissions = []
     state.roles = []
     state.authToken = null
-    // 清除 localStorage 中的 token
-    localStorage.removeItem('authToken')
+    state.refreshToken = null
+    // 清除 localStorage 中的 tokens
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
   }
 }
 
@@ -149,7 +165,8 @@ const actions = {
         // 后端返回的 groups 是字符串数组，需要转换为角色数组
         const roles = response.groups || []
         const permissions = response.permissions || []
-        const token = response.token || null  // 获取认证令牌
+        const access = response.access || null  // JWT access token
+        const refresh = response.refresh || null  // JWT refresh token
 
         const user = {
           id: response.id,
@@ -167,7 +184,7 @@ const actions = {
         commit('SET_CURRENT_USER', user)
         commit('SET_ROLES', roles)
         commit('SET_PERMISSIONS', permissions)
-        commit('SET_AUTH_TOKEN', token)  // 保存认证令牌
+        commit('SET_TOKENS', { access, refresh })  // 保存 JWT tokens
 
         // 初始化 PermissionService
         permissionService.initUser(user)
@@ -187,6 +204,14 @@ const actions = {
     permissionService.currentUser = null
     permissionService.userRoles = new Set()
     permissionService.userPermissions = new Set()
+  },
+
+  // 更新 tokens（用于刷新场景）
+  updateTokens({ commit }, { access, refresh }) {
+    commit('UPDATE_ACCESS_TOKEN', access)
+    if (refresh) {
+      commit('SET_TOKENS', { access, refresh })
+    }
   },
 
   // 清除用户信息（用于 401 错误等场景）
@@ -235,7 +260,8 @@ const actions = {
       }
 
       const permissions = user.permissions || []
-      const token = user.token || null  // 获取认证令牌
+      const access = user.access || null  // JWT access token
+      const refresh = user.refresh || null  // JWT refresh token
 
       // 标准化用户对象
       const normalizedUser = {
@@ -248,7 +274,7 @@ const actions = {
       commit('SET_CURRENT_USER', normalizedUser)
       commit('SET_ROLES', roles)
       commit('SET_PERMISSIONS', permissions)
-      commit('SET_AUTH_TOKEN', token)  // 保存认证令牌
+      commit('SET_TOKENS', { access, refresh })  // 保存 JWT tokens
 
       // 初始化 PermissionService
       permissionService.initUser(normalizedUser)

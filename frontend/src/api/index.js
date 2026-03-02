@@ -21,6 +21,22 @@ function getCsrfToken() {
   return cookieValue
 }
 
+// Token 刷新状态管理
+let isRefreshing = false
+let failedQueue = []
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error)
+    } else {
+      prom.resolve(token)
+    }
+  })
+
+  failedQueue = []
+}
+
 // 创建 axios 实例
 const service = axios.create({
   baseURL: '/api/v1',
@@ -33,10 +49,10 @@ const service = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
   config => {
-    // 添加认证 Token
+    // 添加 JWT access token
     const token = store.getters['user/authToken']
     if (token) {
-      config.headers['Authorization'] = `Token ${token}`
+      config.headers['Authorization'] = `Bearer ${token}`  // JWT Bearer token
     }
 
     // 添加 CSRF Token（用于 SessionAuthentication）
@@ -48,7 +64,6 @@ service.interceptors.request.use(
     return config
   },
   error => {
-    // 对请求错误做些什么
     logger.error('Request error', error)
     return Promise.reject(error)
   }
@@ -57,20 +72,76 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   response => response.data,
-  error => {
-    // 对响应错误做点什么
+  async error => {
+    const originalRequest = error.config
+
     logger.error('Response error', error)
 
-    if (error.response) {
-      const { status, data } = error.response
+    if (!error.response) {
+      // 网络错误或请求超时
+      Message({
+        message: '网络连接失败，请检查网络设置',
+        type: 'error',
+        duration: 3000,
+        showClose: true
+      })
+      return Promise.reject(error)
+    }
 
-      if (status === 401) {
-        // 清除用户信息（使用新的模块化 API）
+    const { status, data } = error.response
+
+    // 401 错误处理：尝试刷新 token
+    if (status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // 如果正在刷新，加入队列等待
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        }).then(token => {
+          originalRequest.headers['Authorization'] = `Bearer ${token}`
+          return service(originalRequest)
+        }).catch(err => {
+          return Promise.reject(err)
+        })
+      }
+
+      originalRequest._retry = true
+      isRefreshing = true
+
+      try {
+        // 获取 refresh token
+        const refreshToken = store.getters['user/refreshToken']
+
+        if (!refreshToken) {
+          throw new Error('No refresh token available')
+        }
+
+        // 调用刷新端点
+        const response = await axios.post('/api/v1/auth/refresh/', {
+          refresh: refreshToken
+        })
+
+        const { access, refresh: newRefresh } = response.data
+
+        // 更新 store 中的 tokens
+        store.dispatch('user/updateTokens', {
+          access,
+          refresh: newRefresh
+        })
+
+        // 处理队列中的请求
+        processQueue(null, access)
+
+        // 重试当前请求
+        originalRequest.headers['Authorization'] = `Bearer ${access}`
+        return service(originalRequest)
+
+      } catch (err) {
+        // 刷新失败，清除用户信息并跳转登录
+        processQueue(err, null)
         store.dispatch('user/clearUser')
 
-        // 如果不是登录页面且不是获取用户信息接口，跳转到登录页
-        if (router.currentRoute.path !== '/login' && !error.config?.url?.includes('/auth/user/')) {
-          // 显示友好的错误提示
+        // 如果不是登录页面，显示提示并跳转
+        if (router.currentRoute.path !== '/login' && !originalRequest?.url?.includes('/auth/user/')) {
           Message({
             message: '登录已过期，请重新登录',
             type: 'warning',
@@ -78,65 +149,61 @@ service.interceptors.response.use(
             showClose: true
           })
 
-          // 跳转到登录页，携带当前路径作为重定向参数
           router.push({
             path: '/login',
             query: { redirect: router.currentRoute.fullPath }
           })
         }
-      } else if (status === 403) {
-        // 如果不是登录页面，才显示错误提示
-        // 但对于某些辅助操作（如工序、物料），不显示错误消息，因为这些错误已经在业务逻辑中处理
-        if (router.currentRoute.path !== '/login') {
-          // 检查是否是辅助操作的 API（工序、物料等），这些错误已经在业务逻辑中静默处理
-          const url = error.config?.url || ''
-          const isAuxiliaryOperation = url.includes('/workorder-processes/') ||
-                                       url.includes('/workorder-materials/') ||
-                                       url.includes('/workorder-products/')
 
-          if (!isAuxiliaryOperation) {
-            Message({
-              message: data.detail || data.error || '没有权限执行此操作',
-              type: 'error',
-              duration: 3000,
-              showClose: true
-            })
-          }
-        }
-      } else if (status === 404) {
-        Message({
-          message: '请求的资源不存在',
-          type: 'error',
-          duration: 3000,
-          showClose: true
-        })
-      } else if (status === 500) {
-        Message({
-          message: '服务器错误，请稍后重试',
-          type: 'error',
-          duration: 3000,
-          showClose: true
-        })
-      } else {
-        Message({
-          message: data.detail || data.error || data.message || '请求失败',
-          type: 'error',
-          duration: 3000,
-          showClose: true
-        })
+        return Promise.reject(err)
+      } finally {
+        isRefreshing = false
       }
-    } else if (error.request) {
-      // 请求已发出但没有收到响应
+    }
+
+    // 403 错误处理
+    if (status === 403) {
+      if (router.currentRoute.path !== '/login') {
+        const url = error.config?.url || ''
+        const isAuxiliaryOperation = url.includes('/workorder-processes/') ||
+                                     url.includes('/workorder-materials/') ||
+                                     url.includes('/workorder-products/')
+
+        if (!isAuxiliaryOperation) {
+          Message({
+            message: data.detail || data.error || '没有权限执行此操作',
+            type: 'error',
+            duration: 3000,
+            showShow: true
+          })
+        }
+      }
+    }
+
+    // 404 错误处理
+    if (status === 404) {
       Message({
-        message: '网络连接失败，请检查网络设置',
+        message: '请求的资源不存在',
         type: 'error',
         duration: 3000,
         showClose: true
       })
-    } else {
-      // 请求配置出错
+    }
+
+    // 500 错误处理
+    if (status === 500) {
       Message({
-        message: '请求配置错误: ' + error.message,
+        message: '服务器错误，请稍后重试',
+        type: 'error',
+        duration: 3000,
+        showClose: true
+      })
+    }
+
+    // 其他错误
+    if (status !== 401) {
+      Message({
+        message: data.detail || data.error || data.message || '请求失败',
         type: 'error',
         duration: 3000,
         showClose: true
