@@ -44,7 +44,7 @@ class NotificationAPI extends BaseAPI {
   // 删除通知
   delete(id) {
     return this.request({
-      url: `${this.baseUrl}${id}/`,
+      url: `${this.baseUrl}${id}/delete/`,
       method: 'delete'
     })
   }
