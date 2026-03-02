@@ -119,7 +119,7 @@ export default {
     },
 
     async fetchUnreadCount({ commit, rootGetters }) {
-      if (!rootGetters['user/isAuthenticated']) {
+      if (!rootGetters['user/isAuthenticated'] || !rootGetters['user/authToken']) {
         return 0
       }
       try {

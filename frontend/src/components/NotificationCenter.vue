@@ -178,6 +178,9 @@ export default {
     isAuthenticated() {
       return this.$store.getters['user/isAuthenticated']
     },
+    hasAuthToken() {
+      return !!this.$store.getters['user/authToken']
+    },
     unreadCount() {
       return this.$store.state.notification.unreadCount
     },
@@ -226,6 +229,9 @@ export default {
     isAuthenticated() {
       this.syncAuthState()
     },
+    hasAuthToken() {
+      this.syncAuthState()
+    },
     unreadCount(newVal, oldVal) {
       if (newVal > oldVal) {
         // 有新通知，仅更新计数，不自动弹出（符合上下文决策）
@@ -248,7 +254,7 @@ export default {
     ...ws.methods,
 
     syncAuthState() {
-      if (this.isAuthenticated) {
+      if (this.isAuthenticated && this.hasAuthToken) {
         this.startNotificationServices()
       } else {
         this.stopNotificationServices()
