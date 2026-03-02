@@ -3,6 +3,7 @@ import { Message } from 'element-ui'
 import router from '@/router'
 import store from '@/store'
 import logger from '@/utils/logger'
+import unwrapApiResponse from '@/utils/apiResponse'
 
 // 获取 CSRF Token
 function getCsrfToken() {
@@ -92,6 +93,17 @@ service.interceptors.response.use(
 
     // 401 错误处理：尝试刷新 token
     if (status === 401 && !originalRequest._retry) {
+      // 避免刷新接口自身陷入循环
+      if (originalRequest?.url?.includes('/auth/refresh/')) {
+        store.dispatch('user/clearUser')
+        if (router.currentRoute.path !== '/login') {
+          router.push({
+            path: '/login',
+            query: { redirect: router.currentRoute.fullPath }
+          })
+        }
+        return Promise.reject(error)
+      }
       if (isRefreshing) {
         // 如果正在刷新，加入队列等待
         return new Promise((resolve, reject) => {
@@ -118,7 +130,11 @@ service.interceptors.response.use(
           refresh: refreshToken
         })
 
-        const { access, refresh: newRefresh } = response.data
+        const refreshPayload = unwrapApiResponse(response.data)
+        const { access, refresh: newRefresh } = refreshPayload || {}
+        if (!access) {
+          throw new Error('No access token in refresh response')
+        }
 
         // 更新 store 中的 tokens
         store.dispatch('user/updateTokens', {
@@ -157,6 +173,24 @@ service.interceptors.response.use(
       } finally {
         isRefreshing = false
       }
+    }
+
+    // 401 重试后仍失败：清理登录状态，避免持续 401
+    if (status === 401 && originalRequest._retry) {
+      store.dispatch('user/clearUser')
+      if (router.currentRoute.path !== '/login') {
+        Message({
+          message: '登录已过期，请重新登录',
+          type: 'warning',
+          duration: 2000,
+          showClose: true
+        })
+        router.push({
+          path: '/login',
+          query: { redirect: router.currentRoute.fullPath }
+        })
+      }
+      return Promise.reject(error)
     }
 
     // 403 错误处理
