@@ -79,7 +79,7 @@
             :data="departmentStatistics"
             style="width: 100%"
             :row-style="{ cursor: 'pointer' }"
-            @row-click="(row) => $emit('navigate-tasks', { assigned_department__name: row.department })"
+            @row-click="(row) => $emit('navigate-tasks', { department_name: row.department })"
           >
             <el-table-column prop="department" label="部门" min-width="150" />
             <el-table-column

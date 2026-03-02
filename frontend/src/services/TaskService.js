@@ -25,7 +25,10 @@ export const TaskType = {
   PLATE_MAKING: 'plate_making',
   CUTTING: 'cutting',
   PRINTING: 'printing',
-  POST_PROCESSING: 'post_processing'
+  FOILING: 'foiling',
+  EMBOSSING: 'embossing',
+  DIE_CUTTING: 'die_cutting',
+  PACKAGING: 'packaging'
 }
 
 /**
@@ -221,16 +224,31 @@ class TaskService extends BaseService {
   }
 
   /**
+   * 获取任务截止日期（兼容施工单交期）
+   * @param {Object} task - 任务对象
+   * @returns {string|null} 截止日期
+   */
+  getTaskDeadline(task) {
+    if (!task) return null
+    return (
+      task.deadline ||
+      task.work_order_process_info?.work_order?.delivery_date ||
+      null
+    )
+  }
+
+  /**
    * 计算任务是否逾期
    * @param {Object} task - 任务对象
    * @returns {boolean} 是否逾期
    */
   isOverdue(task) {
-    if (!task.deadline || task.status === TaskStatus.COMPLETED || task.status === TaskStatus.CANCELLED) {
+    const deadline = this.getTaskDeadline(task)
+    if (!deadline || task.status === TaskStatus.COMPLETED || task.status === TaskStatus.CANCELLED) {
       return false
     }
 
-    return new Date(task.deadline) < new Date()
+    return new Date(deadline) < new Date()
   }
 
   /**
@@ -239,11 +257,12 @@ class TaskService extends BaseService {
    * @returns {number|null} 剩余天数，null 表示无截止日期
    */
   getRemainingDays(task) {
-    if (!task.deadline || task.status === TaskStatus.COMPLETED || task.status === TaskStatus.CANCELLED) {
+    const deadlineValue = this.getTaskDeadline(task)
+    if (!deadlineValue || task.status === TaskStatus.COMPLETED || task.status === TaskStatus.CANCELLED) {
       return null
     }
 
-    const deadline = new Date(task.deadline)
+    const deadline = new Date(deadlineValue)
     const now = new Date()
     const diffTime = deadline - now
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
@@ -278,7 +297,10 @@ class TaskService extends BaseService {
       [TaskType.PLATE_MAKING]: '制版任务',
       [TaskType.CUTTING]: '开料任务',
       [TaskType.PRINTING]: '印刷任务',
-      [TaskType.POST_PROCESSING]: '后道任务'
+      [TaskType.FOILING]: '烫金任务',
+      [TaskType.EMBOSSING]: '压凸任务',
+      [TaskType.DIE_CUTTING]: '模切任务',
+      [TaskType.PACKAGING]: '包装任务'
     }
 
     return typeMap[type] || type
@@ -368,7 +390,10 @@ class TaskService extends BaseService {
       { value: TaskType.PLATE_MAKING, label: '制版任务' },
       { value: TaskType.CUTTING, label: '开料任务' },
       { value: TaskType.PRINTING, label: '印刷任务' },
-      { value: TaskType.POST_PROCESSING, label: '后道任务' }
+      { value: TaskType.FOILING, label: '烫金任务' },
+      { value: TaskType.EMBOSSING, label: '压凸任务' },
+      { value: TaskType.DIE_CUTTING, label: '模切任务' },
+      { value: TaskType.PACKAGING, label: '包装任务' }
     ]
   }
 

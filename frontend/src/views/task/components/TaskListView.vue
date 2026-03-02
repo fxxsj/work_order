@@ -61,7 +61,7 @@
       <el-table-column label="截止日期" width="120">
         <template slot-scope="scope">
           <span :class="{ 'text-overdue': isOverdue(scope.row) }">
-            {{ formatDate(scope.row.deadline) }}
+            {{ formatDate(getTaskDeadline(scope.row)) }}
           </span>
         </template>
       </el-table-column>
@@ -149,14 +149,21 @@ export default {
     getTaskTypeTagType(taskType) {
       const typeMap = {
         plate_making: 'success',
+        cutting: 'info',
         printing: 'primary',
-        post_press: 'warning',
-        material: 'info'
+        foiling: 'warning',
+        embossing: 'warning',
+        die_cutting: 'warning',
+        packaging: 'info',
+        general: 'info'
       }
       return typeMap[taskType] || ''
     },
     getStatusTagType(status) {
       return taskService.getStatusType(status)
+    },
+    getTaskDeadline(task) {
+      return taskService.getTaskDeadline(task)
     },
     calculateProgress(task) {
       return taskService.calculateProgress(task)

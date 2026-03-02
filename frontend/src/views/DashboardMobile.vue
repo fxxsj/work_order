@@ -48,7 +48,7 @@
         </div>
       </div>
 
-      <div class="stat-card urgent" @click="goToOrders('urgent')">
+      <div class="stat-card urgent" @click="goToUrgentPriority">
         <div class="stat-icon">
           <i class="el-icon-warning"></i>
         </div>
@@ -209,8 +209,8 @@
             </div>
             <div class="task-meta">
               <span class="task-type">{{ getTaskTypeLabel(task.task_type) }}</span>
-              <span v-if="task.deadline" class="task-deadline">
-                截止: {{ formatDate(task.deadline) }}
+              <span v-if="getTaskDeadline(task)" class="task-deadline">
+                截止: {{ formatDate(getTaskDeadline(task)) }}
               </span>
             </div>
           </div>
@@ -253,6 +253,9 @@
 </template>
 
 <script>
+import { workOrderAPI, workOrderTaskAPI } from '@/api/modules'
+import { taskService } from '@/services'
+
 export default {
   name: 'DashboardMobile',
   data() {
@@ -278,15 +281,28 @@ export default {
       try {
         // 并行加载所有数据
         const [statsRes, ordersRes, tasksRes] = await Promise.all([
-          this.$api.dashboard.getStatistics(),
-          this.$api.workorder.getList({ limit: 5, ordering: '-created_at' }),
-          this.$api.task.getList({ status: 'pending', limit: 5 })
+          workOrderAPI.getStatistics(),
+          workOrderAPI.getList({ page_size: 5, ordering: '-created_at' }),
+          workOrderTaskAPI.getList({ status: 'pending', page_size: 5, ordering: '-created_at' })
         ])
 
-        this.statistics = statsRes.data
-        this.recentOrders = ordersRes.data.results || []
-        this.pendingTasks = tasksRes.data.results || []
-        this.unreadTaskCount = tasksRes.data.count || 0
+        const statsPayload = statsRes?.data || statsRes || {}
+        const statusStats = statsPayload?.status_statistics || []
+        const priorityStats = statsPayload?.priority_statistics || []
+        const findCount = (list, key, value) => {
+          const item = list.find(row => row[key] === value)
+          return item ? item.count || 0 : 0
+        }
+
+        this.statistics = {
+          pending_orders: findCount(statusStats, 'status', 'pending'),
+          in_progress_orders: findCount(statusStats, 'status', 'in_progress'),
+          urgent_orders: findCount(priorityStats, 'priority', 'urgent'),
+          pending_approval: statsPayload?.pending_approval_count || 0
+        }
+        this.recentOrders = ordersRes.results || []
+        this.pendingTasks = tasksRes.results || []
+        this.unreadTaskCount = tasksRes.count || 0
 
       } catch (error) {
         this.$message.error('加载数据失败')
@@ -304,6 +320,13 @@ export default {
       this.$router.push({
         path: '/workorders',
         query: status ? { status } : {}
+      })
+    },
+
+    goToUrgentPriority() {
+      this.$router.push({
+        path: '/workorders',
+        query: { priority: 'urgent' }
       })
     },
 
@@ -394,6 +417,10 @@ export default {
         general: '通用'
       }
       return labelMap[taskType] || taskType
+    },
+
+    getTaskDeadline(task) {
+      return taskService.getTaskDeadline(task)
     },
 
     formatDate(dateStr) {

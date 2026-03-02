@@ -13,8 +13,16 @@
         width="80"
         align="center"
       />
-      <el-table-column prop="task_name" label="任务名称" min-width="150" />
-      <el-table-column prop="operator_name" label="操作员" width="100" />
+      <el-table-column label="任务名称" min-width="150">
+        <template slot-scope="scope">
+          {{ scope.row.work_content || scope.row.task_name || '-' }}
+        </template>
+      </el-table-column>
+      <el-table-column label="操作员" width="100">
+        <template slot-scope="scope">
+          {{ scope.row.assigned_operator_name || scope.row.operator_name || '-' }}
+        </template>
+      </el-table-column>
       <el-table-column label="状态" width="100" align="center">
         <template slot-scope="scope">
           <el-tag :type="getTaskStatusType(scope.row.status)" size="small">
@@ -40,10 +48,10 @@
           {{ scope.row.quantity_completed || 0 }} / {{ scope.row.production_quantity || 0 }}
         </template>
       </el-table-column>
-      <el-table-column prop="deadline" label="截止日期" width="110">
+      <el-table-column label="截止日期" width="110">
         <template slot-scope="scope">
           <span :class="{ 'text-danger': isTaskOverdue(scope.row) }">
-            {{ formatDate(scope.row.deadline) }}
+            {{ formatDate(getTaskDeadline(scope.row)) }}
           </span>
         </template>
       </el-table-column>
@@ -129,12 +137,12 @@
             <el-option
               v-for="artwork in availableArtworks"
               :key="artwork.id"
-              :label="`${artwork.artwork_number} - ${artwork.version}`"
+              :label="`${artwork.code || artwork.base_code || ''} - ${artwork.name || ''}`"
               :value="artwork.id"
             >
-              <span>{{ artwork.artwork_number }}</span>
+              <span>{{ artwork.code || artwork.base_code || '-' }}</span>
               <span style="float: right; color: #8492a6; font-size: 12px">
-                {{ artwork.version }}
+                {{ artwork.name || '' }}
               </span>
             </el-option>
           </el-select>
@@ -278,6 +286,9 @@ export default {
     },
     getTaskStatusType(status) {
       return taskService.getStatusType(status)
+    },
+    getTaskDeadline(task) {
+      return taskService.getTaskDeadline(task)
     },
     isTaskOverdue(task) {
       return taskService.isOverdue(task)

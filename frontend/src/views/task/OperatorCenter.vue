@@ -173,9 +173,10 @@ export default {
       this.loading = true
       try {
         const response = await workOrderTaskAPI.getOperatorCenterData()
-        this.myTasks = response.my_tasks || []
-        this.claimableTasks = response.claimable_tasks || []
-        this.summary = response.summary || {}
+        const payload = response?.data || response
+        this.myTasks = payload?.my_tasks || []
+        this.claimableTasks = payload?.claimable_tasks || []
+        this.summary = payload?.summary || {}
       } catch (error) {
         ErrorHandler.showMessage(error, '加载任务中心')
       } finally {

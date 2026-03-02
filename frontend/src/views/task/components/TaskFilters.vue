@@ -96,14 +96,20 @@
 const STATUS_OPTIONS = [
   { value: 'pending', label: '待开始' },
   { value: 'in_progress', label: '进行中' },
-  { value: 'completed', label: '已完成' }
+  { value: 'completed', label: '已完成' },
+  { value: 'cancelled', label: '已取消' }
 ]
 
 // 任务类型选项
 const TASK_TYPE_OPTIONS = [
-  { value: 'normal', label: '普通任务' },
-  { value: 'urgent', label: '紧急任务' },
-  { value: 'rework', label: '返工任务' }
+  { value: 'general', label: '通用任务' },
+  { value: 'plate_making', label: '制版任务' },
+  { value: 'cutting', label: '开料任务' },
+  { value: 'printing', label: '印刷任务' },
+  { value: 'foiling', label: '烫金任务' },
+  { value: 'embossing', label: '压凸任务' },
+  { value: 'die_cutting', label: '模切任务' },
+  { value: 'packaging', label: '包装任务' }
 ]
 
 export default {

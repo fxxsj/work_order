@@ -218,7 +218,7 @@ export default {
       }
 
       if (this.selectedDepartment) {
-        params.department = this.selectedDepartment
+        params.assigned_department = this.selectedDepartment
       }
 
       if (this.selectedStatus) {

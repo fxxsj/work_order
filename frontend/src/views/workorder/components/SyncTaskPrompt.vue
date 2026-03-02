@@ -123,8 +123,10 @@ export default {
       this.loading = true
       try {
         const result = await workOrderAPI.syncTasksPreview(this.workOrderId, this.processIds)
-        if (result.data) {
-          this.preview = result.data.preview || result.data
+        const payload = result?.data || result
+        const data = payload?.data || payload
+        if (data) {
+          this.preview = data.preview || data
         }
       } catch (error) {
         ErrorHandler.showMessage(error, '加载同步预览')
@@ -159,10 +161,12 @@ export default {
       this.syncing = true
       try {
         const result = await workOrderAPI.syncTasksExecute(this.workOrderId, this.processIds)
-        if (result.data) {
-          const message = result.data.message || '任务同步完成'
+        const payload = result?.data || result
+        const data = payload?.data || payload
+        if (data) {
+          const message = data.message || '任务同步完成'
           ErrorHandler.showSuccess(message)
-          this.$emit('synced', result.data)
+          this.$emit('synced', data)
           this.handleClose()
         }
       } catch (error) {

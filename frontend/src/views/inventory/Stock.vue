@@ -9,21 +9,6 @@
       <div class="header-section">
         <div class="filter-group">
           <el-select
-            v-model="filters.product"
-            placeholder="选择产品"
-            clearable
-            filterable
-            style="width: 160px; margin-right: 10px;"
-            @change="handleSearch"
-          >
-            <el-option
-              v-for="product in productList"
-              :key="product.id"
-              :label="product.name"
-              :value="product.id"
-            />
-          </el-select>
-          <el-select
             v-model="filters.status"
             placeholder="库存状态"
             clearable
@@ -35,16 +20,6 @@
             <el-option label="质检中" value="quality_check" />
             <el-option label="次品" value="defective" />
           </el-select>
-          <el-input
-            v-model="filters.batch_number"
-            placeholder="搜索批次号、库位"
-            style="width: 220px;"
-            clearable
-            @input="handleSearchDebounced"
-            @clear="handleSearch"
-          >
-            <el-button slot="append" icon="el-icon-search" @click="handleSearch" />
-          </el-input>
         </div>
         <div class="action-group">
           <el-button
@@ -294,7 +269,7 @@
 </template>
 
 <script>
-import { productStockAPI, productAPI } from '@/api/modules'
+import { productStockAPI } from '@/api/modules'
 import StockStats from './components/StockStats.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import StockAdjustDialog from './components/StockAdjustDialog.vue'
@@ -324,7 +299,6 @@ export default {
       adjustLoading: false,
 
       // 数据
-      productList: [],
       lowStockList: [],
       expiredList: [],
       currentStock: null,
@@ -338,26 +312,20 @@ export default {
 
       // 筛选条件
       filters: {
-        product: '',
-        status: '',
-        batch_number: ''
-      },
-
-      // 搜索防抖定时器
-      searchTimer: null
+        status: ''
+      }
     }
   },
 
   computed: {
     hasFilters() {
-      return this.filters.product || this.filters.status || this.filters.batch_number
+      return this.filters.status
     }
   },
 
   created() {
     this.loadData()
     this.fetchStockSummary()
-    this.fetchProducts()
   },
 
   methods: {
@@ -366,9 +334,7 @@ export default {
       const params = {
         page: this.currentPage,
         page_size: this.pageSize,
-        ...(this.filters.product && { product: this.filters.product }),
-        ...(this.filters.status && { status: this.filters.status }),
-        ...(this.filters.batch_number && { batch_number: this.filters.batch_number })
+        ...(this.filters.status && { status: this.filters.status })
       }
       return await this.apiService.getList(params)
     },
@@ -377,7 +343,7 @@ export default {
       this.statsLoading = true
       try {
         const response = await productStockAPI.getSummary()
-        this.stats = response || {}
+        this.stats = response?.data || response || {}
       } catch (error) {
         // 统计信息加载失败不阻塞页面，静默处理
         this.stats = {}
@@ -386,32 +352,13 @@ export default {
       }
     },
 
-    async fetchProducts() {
-      try {
-        const response = await productAPI.getList({ page_size: 100, is_active: true })
-        this.productList = response.results || []
-      } catch (error) {
-        ErrorHandler.showMessage(error, '获取产品列表失败')
-      }
-    },
-
-    // 搜索防抖处理（与 Board.vue 一致）
-    handleSearchDebounced() {
-      if (this.searchTimer) {
-        clearTimeout(this.searchTimer)
-      }
-      this.searchTimer = setTimeout(() => {
-        this.handleSearch()
-      }, 300)
-    },
-
     handleSearch() {
       this.currentPage = 1
       this.loadData()
     },
 
     handleReset() {
-      this.filters = { product: '', status: '', batch_number: '' }
+      this.filters = { status: '' }
       this.currentPage = 1
       this.loadData()
     },
@@ -448,7 +395,8 @@ export default {
       this.loadingLowStock = true
       try {
         const response = await productStockAPI.getLowStock()
-        this.lowStockList = response.results || []
+        const payload = response?.data || response
+        this.lowStockList = payload?.results || []
       } catch (error) {
         ErrorHandler.showMessage(error, '获取库存预警失败')
       } finally {
@@ -461,7 +409,8 @@ export default {
       this.loadingExpired = true
       try {
         const response = await productStockAPI.getExpired()
-        this.expiredList = response.results || []
+        const payload = response?.data || response
+        this.expiredList = payload?.results || []
       } catch (error) {
         ErrorHandler.showMessage(error, '获取过期库存失败')
       } finally {

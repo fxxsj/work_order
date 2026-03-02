@@ -365,7 +365,7 @@ export default {
       try {
         // 使用新的 getAll API
         const response = await departmentAPI.getAll()
-        this.allDepartments = response || []
+        this.allDepartments = response?.data || response || []
       } catch (error) {
         ErrorHandler.showMessage(error, '加载部门列表')
         this.allDepartments = []

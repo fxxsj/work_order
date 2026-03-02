@@ -22,6 +22,7 @@
               v-model="localForm.sales_order"
               placeholder="请选择销售订单"
               filterable
+              :disabled="isEdit"
               style="width: 100%"
               @change="handleSalesOrderChange"
             >
@@ -40,6 +41,7 @@
               v-model="localForm.customer"
               placeholder="请选择客户"
               filterable
+              :disabled="isEdit"
               style="width: 100%"
               @change="handleCustomerChange"
             >
@@ -188,6 +190,11 @@
             />
           </template>
         </el-table-column>
+        <el-table-column label="库存批次" width="160">
+          <template slot-scope="scope">
+            <el-input v-model="scope.row.stock_batch" placeholder="批次号（可选）" />
+          </template>
+        </el-table-column>
         <el-table-column label="单位" width="100">
           <template slot-scope="scope">
             <el-input v-model="scope.row.unit" placeholder="单位" />
@@ -247,9 +254,11 @@ import ErrorHandler from '@/utils/errorHandler'
 // 明细项初始值
 const ITEM_INITIAL = {
   product: null,
+  sales_order_item: null,
   quantity: 1,
   unit: '件',
   unit_price: 0,
+  stock_batch: '',
   notes: ''
 }
 

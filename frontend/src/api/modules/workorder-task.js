@@ -52,7 +52,7 @@ class WorkOrderTaskAPI extends BaseAPI {
   // 分配任务给指定操作员（主管分配）
   assignToOperator(id, data) {
     return this.customAction(`${this.baseUrl}${id}/assign/`, 'post', {
-      operator_id: data.operator_id,
+      assigned_operator: data.operator_id,
       notes: data.notes || ''
     })
   }
@@ -94,15 +94,6 @@ class WorkOrderTaskAPI extends BaseAPI {
   // 分割任务
   split(id, data) {
     return this.customAction(`${this.baseUrl}${id}/split/`, 'post', data)
-  }
-
-  // 获取任务统计数据
-  getStats(params) {
-    return this.request({
-      url: `${this.baseUrl}stats/`,
-      method: 'get',
-      params
-    })
   }
 
   // 获取协作统计数据
@@ -154,6 +145,7 @@ class WorkOrderTaskAPI extends BaseAPI {
     return this.request({
       url: `${this.baseUrl}export/`,
       method: 'post',
+      params: options.params || options.filters || {},
       data: {
         task_ids: options.task_ids || [],
         filters: options.filters || {},
@@ -168,27 +160,49 @@ class WorkOrderTaskAPI extends BaseAPI {
     })
   }
 
-  // 批量更新草稿任务
+  // 批量更新草稿任务（对齐后端 /draft-tasks/bulk_update/）
   bulkUpdate(data) {
+    const updates = data.updates || {
+      production_quantity: data.production_quantity,
+      priority: data.priority,
+      production_requirements: data.production_requirements
+    }
     return this.request({
-      url: `${this.baseUrl}bulk_update/`,
-      method: 'post',
+      url: '/draft-tasks/bulk_update/',
+      method: 'patch',
       data: {
         task_ids: data.task_ids,
-        production_quantity: data.production_quantity,
-        priority: data.priority,
-        production_requirements: data.production_requirements
+        updates
       }
     })
   }
 
-  // 批量删除草稿任务
-  bulkDelete(taskIds) {
-    return this.request({
-      url: `${this.baseUrl}bulk_delete/`,
-      method: 'post',
-      data: { task_ids: taskIds }
-    })
+  // 批量删除草稿任务（后端无批量接口，逐条删除）
+  async bulkDelete(taskIds) {
+    if (!taskIds || taskIds.length === 0) {
+      return { data: { message: '未选择任务', deleted_count: 0, failed_count: 0 } }
+    }
+    const results = await Promise.all(taskIds.map(async id => {
+      try {
+        await this.request({
+          url: `/draft-tasks/${id}/`,
+          method: 'delete'
+        })
+        return { id, success: true }
+      } catch (error) {
+        return { id, success: false, error }
+      }
+    }))
+    const deleted = results.filter(r => r.success).length
+    const failed = results.filter(r => !r.success)
+    return {
+      data: {
+        message: `成功删除 ${deleted} 个草稿任务`,
+        deleted_count: deleted,
+        failed_count: failed.length,
+        failed_tasks: failed.map(item => ({ id: item.id }))
+      }
+    }
   }
 
   // 带错误处理的任务认领
@@ -245,6 +259,12 @@ class WorkOrderTaskAPI extends BaseAPI {
         reason: data.reason,
         notes: data.notes
       }
+    }).catch(error => {
+      const payload = error?.response?.data
+      if (payload?.data && typeof payload.data.assigned_count === 'number') {
+        return payload.data
+      }
+      throw error
     })
   }
 

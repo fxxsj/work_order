@@ -68,7 +68,8 @@ export default {
           params.search = search
         }
         const response = await customerAPI.getList(params)
-        this.customerList = response.results || response.data || response
+        const payload = response?.data || response
+        this.customerList = payload?.results || payload?.items || []
       } catch (error) {
         ErrorHandler.showMessage(error, '加载客户列表失败')
       } finally {

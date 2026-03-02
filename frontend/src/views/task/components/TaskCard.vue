@@ -132,9 +132,13 @@ export default {
     taskTypeTagType() {
       const typeMap = {
         plate_making: 'success',
+        cutting: 'info',
         printing: 'primary',
-        post_press: 'warning',
-        material: 'info'
+        foiling: 'warning',
+        embossing: 'warning',
+        die_cutting: 'warning',
+        packaging: 'info',
+        general: 'info'
       }
       return typeMap[this.task.task_type] || ''
     },

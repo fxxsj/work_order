@@ -168,7 +168,8 @@ export default {
       this.loadingOperators = true
       try {
         const response = await authAPI.getUserList({ department: departmentId })
-        this.operatorList = response.results || []
+        const payload = response?.data || response
+        this.operatorList = payload?.results || payload?.items || []
       } catch (error) {
         ErrorHandler.showMessage(error, '加载操作员列表')
       } finally {

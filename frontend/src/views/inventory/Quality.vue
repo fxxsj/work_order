@@ -25,10 +25,10 @@
             style="width: 120px; margin-right: 10px;"
             @change="handleSearch"
           >
-            <el-option label="入库检验" value="incoming" />
-            <el-option label="过程检验" value="in_process" />
-            <el-option label="最终检验" value="final" />
-            <el-option label="出货检验" value="outgoing" />
+            <el-option label="来料检验" value="incoming" />
+            <el-option label="过程检验" value="process" />
+            <el-option label="成品检验" value="final" />
+            <el-option label="客诉检验" value="customer" />
           </el-select>
           <el-select
             v-model="filters.result"
@@ -37,21 +37,12 @@
             style="width: 120px; margin-right: 10px;"
             @change="handleSearch"
           >
+            <el-option label="待检验" value="pending" />
             <el-option label="合格" value="passed" />
             <el-option label="不合格" value="failed" />
             <el-option label="条件接收" value="conditional" />
           </el-select>
-          <el-select
-            v-model="filters.status"
-            placeholder="状态"
-            clearable
-            style="width: 100px;"
-            @change="handleSearch"
-          >
-            <el-option label="待检验" value="pending" />
-            <el-option label="检验中" value="in_progress" />
-            <el-option label="已完成" value="completed" />
-          </el-select>
+          
         </div>
         <div class="action-group">
           <el-button
@@ -88,23 +79,23 @@
           width="200"
           show-overflow-tooltip
         />
-        <el-table-column prop="batch_number" label="批次号" width="150" />
+        <el-table-column prop="batch_no" label="批次号" width="150" />
         <el-table-column prop="inspection_date" label="检验日期" width="120" />
         <el-table-column prop="inspector_name" label="检验员" width="100" />
         <el-table-column
-          prop="sample_quantity"
-          label="抽样数量"
+          prop="inspection_quantity"
+          label="检验数量"
           width="100"
           align="right"
         />
         <el-table-column
-          prop="qualified_quantity"
+          prop="passed_quantity"
           label="合格数量"
           width="100"
           align="right"
         />
         <el-table-column
-          prop="defective_quantity"
+          prop="failed_quantity"
           label="不合格数量"
           width="100"
           align="right"
@@ -128,35 +119,19 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="status_display" label="状态" width="100">
-          <template slot-scope="scope">
-            <el-tag :type="getStatusType(scope.row.status)">
-              {{ scope.row.status_display }}
-            </el-tag>
-          </template>
-        </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template slot-scope="scope">
             <el-button type="text" size="small" @click="handleView(scope.row)">
               查看
             </el-button>
             <el-button
-              v-if="canEdit() && (scope.row.status === 'pending' || scope.row.status === 'in_progress')"
+              v-if="canEdit() && scope.row.result === 'pending'"
               type="text"
               size="small"
               style="color: #409EFF;"
               @click="handleInspect(scope.row)"
             >
               检验
-            </el-button>
-            <el-button
-              v-if="canEdit() && scope.row.status === 'in_progress'"
-              type="text"
-              size="small"
-              style="color: #67C23A;"
-              @click="handleComplete(scope.row)"
-            >
-              完成
             </el-button>
           </template>
         </el-table-column>
@@ -203,16 +178,11 @@
           <el-descriptions-item label="检验类型">
             {{ currentQuality.inspection_type_display }}
           </el-descriptions-item>
-          <el-descriptions-item label="状态">
-            <el-tag :type="getStatusType(currentQuality.status)">
-              {{ currentQuality.status_display }}
-            </el-tag>
-          </el-descriptions-item>
           <el-descriptions-item label="产品名称">
             {{ currentQuality.product_name }}
           </el-descriptions-item>
           <el-descriptions-item label="批次号">
-            {{ currentQuality.batch_number || '-' }}
+            {{ currentQuality.batch_no || '-' }}
           </el-descriptions-item>
           <el-descriptions-item label="检验日期">
             {{ currentQuality.inspection_date }}
@@ -221,7 +191,7 @@
             {{ currentQuality.inspector_name || '-' }}
           </el-descriptions-item>
           <el-descriptions-item label="检验标准">
-            {{ currentQuality.standard || '-' }}
+            {{ currentQuality.inspection_standard || '-' }}
           </el-descriptions-item>
           <el-descriptions-item label="检验结果">
             <el-tag :type="getResultTagType(currentQuality.result)">
@@ -249,10 +219,10 @@
               <el-card>
                 <div class="data-item">
                   <div class="data-label">
-                    抽样数量
+                    检验数量
                   </div>
                   <div class="data-value">
-                    {{ currentQuality.sample_quantity || '-' }}
+                    {{ currentQuality.inspection_quantity || '-' }}
                   </div>
                 </div>
               </el-card>
@@ -264,7 +234,7 @@
                     合格数量
                   </div>
                   <div class="data-value success">
-                    {{ currentQuality.qualified_quantity || '-' }}
+                    {{ currentQuality.passed_quantity || '-' }}
                   </div>
                 </div>
               </el-card>
@@ -276,7 +246,7 @@
                     不合格数量
                   </div>
                   <div class="data-value danger">
-                    {{ currentQuality.defective_quantity || '-' }}
+                    {{ currentQuality.failed_quantity || '-' }}
                   </div>
                 </div>
               </el-card>
@@ -308,14 +278,14 @@
         :rules="rules"
         label-width="100px"
       >
-        <el-form-item label="抽样数量" prop="sample_quantity">
-          <el-input-number v-model="form.sample_quantity" :min="0" style="width: 100%;" />
+        <el-form-item label="检验数量" prop="inspection_quantity">
+          <el-input-number v-model="form.inspection_quantity" :min="0" style="width: 100%;" />
         </el-form-item>
-        <el-form-item label="合格数量" prop="qualified_quantity">
-          <el-input-number v-model="form.qualified_quantity" :min="0" style="width: 100%;" />
+        <el-form-item label="合格数量" prop="passed_quantity">
+          <el-input-number v-model="form.passed_quantity" :min="0" style="width: 100%;" />
         </el-form-item>
-        <el-form-item label="不合格数量" prop="defective_quantity">
-          <el-input-number v-model="form.defective_quantity" :min="0" style="width: 100%;" />
+        <el-form-item label="不合格数量" prop="failed_quantity">
+          <el-input-number v-model="form.failed_quantity" :min="0" style="width: 100%;" />
         </el-form-item>
         <el-form-item label="检验结果" prop="result">
           <el-radio-group v-model="form.result">
@@ -332,7 +302,7 @@
         </el-form-item>
         <el-form-item label="检验备注">
           <el-input
-            v-model="form.inspection_notes"
+            v-model="form.notes"
             type="textarea"
             :rows="3"
             placeholder="请输入检验备注"
@@ -353,7 +323,7 @@
 </template>
 
 <script>
-import { qualityInspectionAPI, productAPI } from '@/api/modules'
+import { qualityInspectionAPI } from '@/api/modules'
 import QualityStats from './components/QualityStats.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import listPageMixin from '@/mixins/listPageMixin'
@@ -362,11 +332,11 @@ import ErrorHandler from '@/utils/errorHandler'
 
 // 表单初始值常量
 const FORM_INITIAL = {
-  sample_quantity: null,
-  qualified_quantity: null,
-  defective_quantity: null,
+  inspection_quantity: null,
+  passed_quantity: null,
+  failed_quantity: null,
   result: 'passed',
-  inspection_notes: ''
+  notes: ''
 }
 
 export default {
@@ -388,7 +358,6 @@ export default {
       submitting: false,
 
       // 数据
-      productList: [],
       currentQuality: null,
       stats: {},
 
@@ -401,19 +370,17 @@ export default {
 
       // 表单验证规则
       rules: {
-        sample_quantity: [{ required: true, message: '请输入抽样数量', trigger: 'blur' }],
-        qualified_quantity: [{ required: true, message: '请输入合格数量', trigger: 'blur' }],
-        defective_quantity: [{ required: true, message: '请输入不合格数量', trigger: 'blur' }],
+        inspection_quantity: [{ required: true, message: '请输入检验数量', trigger: 'blur' }],
+        passed_quantity: [{ required: true, message: '请输入合格数量', trigger: 'blur' }],
+        failed_quantity: [{ required: true, message: '请输入不合格数量', trigger: 'blur' }],
         result: [{ required: true, message: '请选择检验结果', trigger: 'change' }]
       },
 
       // 筛选条件
       filters: {
         inspection_number: '',
-        product: '',
         inspection_type: '',
-        result: '',
-        status: ''
+        result: ''
       },
 
       // 搜索防抖定时器
@@ -423,15 +390,14 @@ export default {
 
   computed: {
     hasFilters() {
-      return this.filters.inspection_number || this.filters.product ||
-        this.filters.inspection_type || this.filters.result || this.filters.status
+      return this.filters.inspection_number ||
+        this.filters.inspection_type || this.filters.result
     }
   },
 
   created() {
     this.loadData()
     this.fetchStats()
-    this.fetchProducts()
   },
 
   methods: {
@@ -440,11 +406,9 @@ export default {
       const params = {
         page: this.currentPage,
         page_size: this.pageSize,
-        ...(this.filters.inspection_number && { inspection_number: this.filters.inspection_number }),
-        ...(this.filters.product && { product: this.filters.product }),
-        ...(this.filters.inspection_type && { inspection_type: this.filters.inspection_type }),
+        ...(this.filters.inspection_type && { type: this.filters.inspection_type }),
         ...(this.filters.result && { result: this.filters.result }),
-        ...(this.filters.status && { status: this.filters.status })
+        ...(this.filters.inspection_number && { search: this.filters.inspection_number })
       }
       return await this.apiService.getList(params)
     },
@@ -452,28 +416,37 @@ export default {
     async fetchStats() {
       this.statsLoading = true
       try {
-        // 基于本地数据计算统计
-        const response = await this.apiService.getList({ page_size: 1000 })
-        const list = response.results || []
+        const response = await qualityInspectionAPI.getSummary()
+        const payload = response?.data || response
+        const summary = payload?.summary || {}
+        const byResult = payload?.by_result || []
+        const findCount = (result) => {
+          const item = byResult.find(row => row.result === result)
+          return item ? item.count || 0 : 0
+        }
+
         this.stats = {
-          total_count: list.length,
-          pending_count: list.filter(q => q.status === 'pending').length,
-          passed_count: list.filter(q => q.result === 'passed' && q.status === 'completed').length,
-          failed_count: list.filter(q => q.result === 'failed' && q.status === 'completed').length
+          total_count: summary.total_count || 0,
+          pending_count: findCount('pending'),
+          passed_count: findCount('passed'),
+          failed_count: findCount('failed')
         }
       } catch (error) {
-        this.stats = {}
+        // 降级：基于本地数据计算统计
+        try {
+          const response = await this.apiService.getList({ page_size: 1000 })
+          const list = response.results || []
+          this.stats = {
+            total_count: list.length,
+            pending_count: list.filter(q => q.result === 'pending').length,
+            passed_count: list.filter(q => q.result === 'passed').length,
+            failed_count: list.filter(q => q.result === 'failed').length
+          }
+        } catch (e) {
+          this.stats = {}
+        }
       } finally {
         this.statsLoading = false
-      }
-    },
-
-    async fetchProducts() {
-      try {
-        const response = await productAPI.getList({ page_size: 1000 })
-        this.productList = response.results || []
-      } catch (error) {
-        // 静默处理
       }
     },
 
@@ -495,10 +468,8 @@ export default {
     handleReset() {
       this.filters = {
         inspection_number: '',
-        product: '',
         inspection_type: '',
-        result: '',
-        status: ''
+        result: ''
       }
       this.currentPage = 1
       this.loadData()
@@ -521,11 +492,11 @@ export default {
     handleInspect(row) {
       this.currentQuality = row
       this.form = {
-        sample_quantity: row.sample_quantity || 0,
-        qualified_quantity: row.qualified_quantity || 0,
-        defective_quantity: row.defective_quantity || 0,
+        inspection_quantity: row.inspection_quantity || 0,
+        passed_quantity: row.passed_quantity || 0,
+        failed_quantity: row.failed_quantity || 0,
         result: row.result || 'passed',
-        inspection_notes: row.inspection_notes || ''
+        notes: row.notes || ''
       }
       this.inspectDialogVisible = true
     },
@@ -549,20 +520,6 @@ export default {
       })
     },
 
-    async handleComplete(row) {
-      try {
-        await ErrorHandler.confirm('确认完成该质检单？')
-        await qualityInspectionAPI.complete(row.id, {})
-        ErrorHandler.showSuccess('完成成功')
-        this.loadData()
-        this.fetchStats()
-      } catch (error) {
-        if (error !== 'cancel') {
-          ErrorHandler.showMessage(error, '完成失败')
-        }
-      }
-    },
-
     handlePrint() {
       window.print()
     },
@@ -576,6 +533,7 @@ export default {
 
     getResultTagType(result) {
       const typeMap = {
+        pending: 'info',
         passed: 'success',
         failed: 'danger',
         conditional: 'warning'
@@ -583,14 +541,6 @@ export default {
       return typeMap[result] || ''
     },
 
-    getStatusType(status) {
-      const typeMap = {
-        pending: 'info',
-        in_progress: 'warning',
-        completed: 'success'
-      }
-      return typeMap[status] || ''
-    }
   }
 }
 </script>

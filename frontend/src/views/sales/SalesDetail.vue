@@ -485,6 +485,7 @@ export default {
         draft: 'info',
         submitted: 'warning',
         approved: 'primary',
+        rejected: 'danger',
         in_production: 'success',
         completed: 'success',
         cancelled: 'danger'

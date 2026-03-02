@@ -368,8 +368,9 @@ export default {
         }
 
         const res = await workOrderTaskAPI.getCollaborationStats(params)
-        this.statsList = res.results || []
-        this.summary = res.summary || null
+        const payload = res?.data || res
+        this.statsList = payload?.results || []
+        this.summary = payload?.summary || null
       } catch (error) {
         ErrorHandler.handle(error, 'TaskStats.loadStatistics')
         ErrorHandler.showMessage(error, '加载统计数据')

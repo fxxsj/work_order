@@ -152,7 +152,7 @@ export default {
       try {
         // 加载统计数据
         const stats = await workOrderAPI.getStatistics()
-        this.statistics = stats
+        this.statistics = stats?.data || stats || {}
 
         // 加载最近的施工单
         const response = await workOrderAPI.getList({
@@ -181,7 +181,8 @@ export default {
         // 加载通知数据
         try {
           const unreadResponse = await notificationAPI.getUnreadCount()
-          this.unreadNotificationCount = unreadResponse.unread_count || 0
+          const payload = unreadResponse?.data || unreadResponse
+          this.unreadNotificationCount = payload?.unread_count || 0
         } catch (error) {
           ErrorHandler.handle(error, 'Dashboard.loadUnreadNotifications')
         }
@@ -197,14 +198,10 @@ export default {
       }
     },
     goToPendingApprovals() {
-      const userInfo = this.$store.getters['user/currentUser']
-      if (!userInfo || !userInfo.id) return
-
       this.$router.push({
         path: '/workorders',
         query: {
-          approval_status: 'pending',
-          customer__salesperson: userInfo.id
+          approval_status: 'pending'
         }
       })
     },
@@ -216,13 +213,10 @@ export default {
       })
     },
     goToUpcomingDeadline() {
-      const today = new Date()
-      const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
       this.$router.push({
         path: '/workorders',
         query: {
-          delivery_date__gte: today.toISOString().split('T')[0],
-          delivery_date__lte: nextWeek.toISOString().split('T')[0]
+          ordering: 'delivery_date'
         }
       })
     },

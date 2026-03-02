@@ -116,10 +116,13 @@ export default {
           ...this.params
         })
 
-        if (Array.isArray(response)) {
-          this.options = response
-        } else if (response.results) {
-          this.options = response.results
+        const payload = response?.data ?? response
+        if (Array.isArray(payload)) {
+          this.options = payload
+        } else if (payload?.results) {
+          this.options = payload.results
+        } else if (payload?.items) {
+          this.options = payload.items
         } else {
           this.options = []
         }

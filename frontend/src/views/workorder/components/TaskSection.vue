@@ -587,6 +587,12 @@ export default {
     },
     async handleSaveBulkEdit() {
       try {
+        const hasNonDraft = this.selectedTasks.some(task => task && task.status !== 'draft')
+        if (hasNonDraft) {
+          ErrorHandler.showWarning('仅支持批量编辑草稿任务')
+          return
+        }
+
         // 验证是否至少修改了一个字段
         if (!this.bulkEditForm.production_quantity &&
             !this.bulkEditForm.priority &&
@@ -639,13 +645,14 @@ export default {
       try {
         const response = await processAPI.getList({
           page_size: 100,
-          status: 'active'
+          is_active: true
         })
 
-        if (response.data && response.data.results) {
-          this.availableProcesses = response.data.results
+        const payload = response?.data || response
+        if (payload?.results) {
+          this.availableProcesses = payload.results
         } else {
-          this.availableProcesses = response.data || []
+          this.availableProcesses = payload || []
         }
       } catch (error) {
         ErrorHandler.handle(error, 'TaskSection.loadAvailableProcesses')

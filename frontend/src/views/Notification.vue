@@ -25,37 +25,6 @@
         </div>
       </div>
 
-      <!-- 筛选 -->
-      <div class="filter-section">
-        <el-radio-group v-model="filters.is_read" size="small" @change="handleFilterChange">
-          <el-radio-button :label="null">
-            全部
-          </el-radio-button>
-          <el-radio-button :label="false">
-            未读
-          </el-radio-button>
-          <el-radio-button :label="true">
-            已读
-          </el-radio-button>
-        </el-radio-group>
-        <el-select
-          v-model="filters.notification_type"
-          placeholder="通知类型"
-          clearable
-          size="small"
-          style="width: 200px; margin-left: 10px;"
-          @change="handleFilterChange"
-        >
-          <el-option label="审核通过" value="approval_passed" />
-          <el-option label="审核拒绝" value="approval_rejected" />
-          <el-option label="任务分派" value="task_assigned" />
-          <el-option label="任务取消" value="task_cancelled" />
-          <el-option label="工序完成" value="process_completed" />
-          <el-option label="施工单完成" value="workorder_completed" />
-          <el-option label="系统通知" value="system" />
-        </el-select>
-      </div>
-
       <!-- 通知列表 -->
       <el-table
         v-loading="loading"
@@ -140,10 +109,6 @@ export default {
       loading: false,
       markingAll: false,
       unreadCount: 0,
-      filters: {
-        is_read: null,
-        notification_type: null
-      },
       pagination: {
         page: 1,
         page_size: 20,
@@ -165,13 +130,6 @@ export default {
           ordering: '-created_at'
         }
 
-        if (this.filters.is_read !== null) {
-          params.is_read = this.filters.is_read
-        }
-        if (this.filters.notification_type) {
-          params.notification_type = this.filters.notification_type
-        }
-
         const response = await notificationAPI.getList(params)
         this.notificationList = response.results || []
         this.pagination.total = response.count || 0
@@ -185,14 +143,15 @@ export default {
     async loadUnreadCount() {
       try {
         const response = await notificationAPI.getUnreadCount()
-        this.unreadCount = response.unread_count || 0
+        const payload = response?.data || response
+        this.unreadCount = payload?.unread_count || 0
       } catch (error) {
         ErrorHandler.handle(error, 'Notification.loadUnreadCount')
       }
     },
     async markRead(notification) {
       try {
-        await notificationAPI.markRead(notification.id)
+        await notificationAPI.markAsRead(notification.id)
         notification.is_read = true
         this.unreadCount = Math.max(0, this.unreadCount - 1)
         this.$message.success('已标记为已读')
@@ -204,7 +163,7 @@ export default {
     async markAllRead() {
       this.markingAll = true
       try {
-        await notificationAPI.markAllRead()
+        await notificationAPI.markAllAsRead()
         this.$message.success('已标记全部为已读')
         await this.loadData()
         await this.loadUnreadCount()
@@ -214,10 +173,6 @@ export default {
       } finally {
         this.markingAll = false
       }
-    },
-    handleFilterChange() {
-      this.pagination.page = 1
-      this.loadData()
     },
     handleSizeChange(size) {
       this.pagination.page_size = size

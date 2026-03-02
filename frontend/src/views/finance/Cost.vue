@@ -7,37 +7,6 @@
     <el-card>
       <!-- 头部搜索栏（与 Board.vue 一致） -->
       <div class="header-section">
-        <div class="filter-group">
-          <el-select
-            v-model="filters.work_order"
-            placeholder="选择施工单"
-            clearable
-            filterable
-            style="width: 180px; margin-right: 10px;"
-            @change="handleSearch"
-          >
-            <el-option
-              v-for="order in workOrderList"
-              :key="order.id"
-              :label="order.order_number"
-              :value="order.id"
-            />
-          </el-select>
-          <el-select
-            v-model="filters.cost_center"
-            placeholder="成本中心"
-            clearable
-            style="width: 140px;"
-            @change="handleSearch"
-          >
-            <el-option
-              v-for="center in costCenterList"
-              :key="center.id"
-              :label="center.name"
-              :value="center.id"
-            />
-          </el-select>
-        </div>
         <div class="action-group">
           <el-button
             :loading="loading"
@@ -201,9 +170,6 @@
         :image-size="200"
         style="margin-top: 50px;"
       >
-        <el-button v-if="hasFilters" type="primary" @click="handleReset">
-          重置筛选
-        </el-button>
       </el-empty>
     </el-card>
 
@@ -364,7 +330,7 @@
 </template>
 
 <script>
-import { productionCostAPI, workOrderAPI } from '@/api/modules'
+import { productionCostAPI } from '@/api/modules'
 import CostStats from './components/CostStats.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import listPageMixin from '@/mixins/listPageMixin'
@@ -400,8 +366,6 @@ export default {
       submitting: false,
 
       // 数据
-      workOrderList: [],
-      costCenterList: [],
       currentCost: null,
       stats: {},
 
@@ -415,26 +379,13 @@ export default {
       // 表单验证规则
       rules: {
         adjust_reason: [{ required: true, message: '请输入调整原因', trigger: 'blur' }]
-      },
-
-      // 筛选条件
-      filters: {
-        work_order: '',
-        cost_center: ''
       }
-    }
-  },
-
-  computed: {
-    hasFilters() {
-      return this.filters.work_order || this.filters.cost_center
     }
   },
 
   created() {
     this.loadData()
     this.fetchStats()
-    this.fetchWorkOrders()
   },
 
   methods: {
@@ -442,9 +393,7 @@ export default {
     async fetchData() {
       const params = {
         page: this.currentPage,
-        page_size: this.pageSize,
-        ...(this.filters.work_order && { work_order: this.filters.work_order }),
-        ...(this.filters.cost_center && { cost_center: this.filters.cost_center })
+        page_size: this.pageSize
       }
       return await this.apiService.getList(params)
     },
@@ -459,26 +408,6 @@ export default {
       } finally {
         this.statsLoading = false
       }
-    },
-
-    async fetchWorkOrders() {
-      try {
-        const response = await workOrderAPI.getList({ page_size: 1000 })
-        this.workOrderList = response.results || []
-      } catch (error) {
-        // 静默处理
-      }
-    },
-
-    handleSearch() {
-      this.currentPage = 1
-      this.loadData()
-    },
-
-    handleReset() {
-      this.filters = { work_order: '', cost_center: '' }
-      this.currentPage = 1
-      this.loadData()
     },
 
     async handleView(row) {

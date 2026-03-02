@@ -25,6 +25,7 @@
             <el-option label="草稿" value="draft" />
             <el-option label="已提交" value="submitted" />
             <el-option label="已审核" value="approved" />
+            <el-option label="已拒绝" value="rejected" />
             <el-option label="生产中" value="in_production" />
             <el-option label="已完成" value="completed" />
             <el-option label="已取消" value="cancelled" />
@@ -553,6 +554,7 @@ export default {
         draft: 'info',
         submitted: 'warning',
         approved: 'primary',
+        rejected: 'danger',
         in_production: 'success',
         completed: 'success',
         cancelled: 'danger'
@@ -564,6 +566,7 @@ export default {
         draft: '草稿',
         submitted: '已提交',
         approved: '已审核',
+        rejected: '已拒绝',
         in_production: '生产中',
         completed: '已完成',
         cancelled: '已取消'

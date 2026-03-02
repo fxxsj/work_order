@@ -364,7 +364,7 @@ export default {
         const response = await workOrderTaskAPI.getDepartmentWorkload({
           department_id: this.selectedDepartment
         })
-        this.workloadData = response
+        this.workloadData = response?.data || response
 
         // 加载部门任务列表（用于拖拽视图）
         await this.loadDepartmentTasks()

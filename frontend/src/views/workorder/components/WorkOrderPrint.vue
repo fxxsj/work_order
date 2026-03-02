@@ -106,8 +106,8 @@
               <th>工序名称</th>
               <th>负责部门</th>
               <th>操作员</th>
-              <th>生产数量</th>
               <th>完成数量</th>
+              <th>不良品数量</th>
               <th>状态</th>
             </tr>
           </thead>
@@ -117,8 +117,8 @@
               <td>{{ process.process_name }}</td>
               <td>{{ process.department_name || '-' }}</td>
               <td>{{ process.operator_name || '-' }}</td>
-              <td>{{ process.production_quantity || 0 }}</td>
               <td>{{ process.quantity_completed || 0 }}</td>
+              <td>{{ process.quantity_defective || 0 }}</td>
               <td>{{ process.status_display }}</td>
             </tr>
           </tbody>
@@ -156,16 +156,16 @@
         <table class="print-table">
           <thead>
             <tr>
-              <th>图稿编号</th>
-              <th>版本</th>
+              <th>图稿编码</th>
+              <th>图稿名称</th>
               <th>确认状态</th>
               <th>确认时间</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="artwork in workOrder.artworks" :key="artwork.id">
-              <td>{{ artwork.artwork_number }}</td>
-              <td>{{ artwork.version }}</td>
+            <tr v-for="artwork in artworkDetails" :key="artwork.id">
+              <td>{{ artwork.code }}</td>
+              <td>{{ artwork.name || '-' }}</td>
               <td>{{ artwork.confirmed ? '已确认' : '待确认' }}</td>
               <td>{{ formatDateTime(artwork.confirmed_at) }}</td>
             </tr>
@@ -243,17 +243,20 @@ export default {
       return this.workOrder.products && this.workOrder.products.length > 0
     },
     hasProcesses() {
-      return this.workOrder.processes && this.workOrder.processes.length > 0
+      return this.workOrder.order_processes && this.workOrder.order_processes.length > 0
     },
     hasMaterials() {
       return this.workOrder.materials && this.workOrder.materials.length > 0
     },
     hasArtworks() {
-      return this.workOrder.artworks && this.workOrder.artworks.length > 0
+      return this.artworkDetails.length > 0
+    },
+    artworkDetails() {
+      return this.workOrder.artwork_details || []
     },
     sortedProcesses() {
-      if (!this.workOrder.processes) return []
-      return [...this.workOrder.processes].sort((a, b) => a.sequence - b.sequence)
+      if (!this.workOrder.order_processes) return []
+      return [...this.workOrder.order_processes].sort((a, b) => a.sequence - b.sequence)
     },
     totalAmount() {
       if (!this.hasProducts) return this.workOrder.total_amount || 0

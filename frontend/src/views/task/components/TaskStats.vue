@@ -72,7 +72,6 @@
 </template>
 
 <script>
-import { workOrderTaskAPI } from '@/api/modules'
 import logger from '@/utils/logger'
 
 export default {
@@ -149,8 +148,8 @@ export default {
     async loadStats() {
       this.statsLoading = true
       try {
-        const response = await workOrderTaskAPI.getStats(this.filterParams)
-        this.serverStats = response.data || response
+        // 后端无 /workorder-tasks/stats/ 接口，保持本地统计
+        this.serverStats = null
       } catch (error) {
         // 服务端接口失败时，降级使用本地计算
         const errorMessage = error && error.message ? error.message : error

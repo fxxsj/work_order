@@ -865,11 +865,11 @@ export default {
         // 如果指定了部门，根据部门获取用户列表
         if (departmentId) {
           const response = await authAPI.getUsersByDepartment(departmentId)
-          this.userList = response || []
+          this.userList = response?.data || response || []
         } else {
           // 如果没有指定部门，获取所有用户（排除超级管理员）
           const response = await authAPI.getUsersByDepartment(null)
-          this.userList = response || []
+          this.userList = response?.data || response || []
         }
       } catch (error) {
         ErrorHandler.handle(error, 'WorkOrderDetail.loadUserList')
@@ -885,7 +885,7 @@ export default {
     async handleReassignProcessSubmit({ processId, data }) {
       this.reassigningProcess = true
       try {
-        await workOrderProcessAPI.reassign_tasks(processId, data)
+        await workOrderProcessAPI.reassignTasks(processId, data)
         this.$message.success('批量调整分派成功')
         this.reassignProcessDialogVisible = false
         this.loadData()
@@ -1204,7 +1204,7 @@ export default {
     async handleUpdateTaskSubmit({ taskId, data }) {
       this.updatingTask = true
       try {
-        await workOrderTaskAPI.update_quantity(taskId, data)
+        await workOrderTaskAPI.updateQuantity(taskId, data)
         this.$message.success('更新成功')
         this.updateTaskDialogVisible = false
         this.loadData()

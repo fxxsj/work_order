@@ -291,11 +291,11 @@ export default {
      * 获取数据（listPageMixin 要求实现）
      */
     async fetchData() {
+      const search = this.searchText || this.filters.supplier_name || undefined
       const params = {
         page: this.currentPage,
         page_size: this.pageSize,
-        search: this.searchText || undefined,
-        supplier_name: this.filters.supplier_name || undefined,
+        search,
         status: this.filters.status || undefined
       }
       return await this.apiService.getList(params)
@@ -313,14 +313,24 @@ export default {
     /**
      * 显示编辑对话框
      */
-    showEditDialog(row) {
+    async showEditDialog(row) {
       this.isEditMode = true
+      let detail = row
+      if (detail.work_order === undefined && row.id) {
+        try {
+          detail = await this.apiService.getDetail(row.id)
+        } catch (error) {
+          ErrorHandler.showMessage(error, '获取采购单详情失败')
+          return
+        }
+      }
       this.form = {
-        id: row.id,
-        supplier: row.supplier,
-        work_order_number: row.work_order_number || '',
-        notes: row.notes || '',
-        items: (row.items || []).map(item => ({
+        id: detail.id,
+        supplier: detail.supplier,
+        work_order: detail.work_order || null,
+        work_order_number: detail.work_order_number || '',
+        notes: detail.notes || '',
+        items: (detail.items || []).map(item => ({
           id: item.id,
           material: item.material,
           quantity: item.quantity,
@@ -346,7 +356,7 @@ export default {
         // 准备提交数据
         const data = {
           supplier: formData.supplier,
-          work_order_number: formData.work_order_number,
+          work_order: formData.work_order || null,
           notes: formData.notes,
           items_data: formData.items.map(item => ({
             material: item.material,

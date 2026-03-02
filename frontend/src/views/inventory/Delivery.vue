@@ -320,7 +320,7 @@ export default {
         page_size: this.pageSize,
         ...(this.filters.status && { status: this.filters.status }),
         ...(this.filters.customer && { customer: this.filters.customer }),
-        ...(this.filters.tracking_number && { tracking_number: this.filters.tracking_number })
+        ...(this.filters.tracking_number && { search: this.filters.tracking_number })
       }
       return await this.apiService.getList(params)
     },
@@ -330,11 +330,12 @@ export default {
       try {
         // 使用后端 summary 接口获取统计数据
         const response = await this.apiService.getSummary()
+        const payload = response?.data || response
         this.stats = {
-          total: response.summary?.total_count || 0,
-          pending: response.summary?.pending_count || 0,
-          in_transit: (response.summary?.shipped_count || 0) + (response.summary?.in_transit_count || 0),
-          received: response.summary?.received_count || 0
+          total: payload?.summary?.total_count || 0,
+          pending: payload?.summary?.pending_count || 0,
+          in_transit: (payload?.summary?.shipped_count || 0) + (payload?.summary?.in_transit_count || 0),
+          received: payload?.summary?.received_count || 0
         }
       } catch (error) {
         // 降级：基于本地数据计算统计
@@ -428,8 +429,17 @@ export default {
       this.loadData()
     },
 
-    handleView(row) {
-      this.currentDelivery = row
+    async handleView(row) {
+      let detail = row
+      if (detail && detail.items === undefined && detail.id) {
+        try {
+          detail = await deliveryOrderAPI.getDetail(detail.id)
+        } catch (error) {
+          ErrorHandler.showMessage(error, '获取发货单详情失败')
+          return
+        }
+      }
+      this.currentDelivery = detail
       this.detailDialogVisible = true
     },
 
@@ -439,27 +449,38 @@ export default {
       this.formDialogVisible = true
     },
 
-    handleEdit(row) {
+    async handleEdit(row) {
       this.isEdit = true
+      let detail = row
+      if (detail && detail.items === undefined && detail.id) {
+        try {
+          detail = await deliveryOrderAPI.getDetail(detail.id)
+        } catch (error) {
+          ErrorHandler.showMessage(error, '获取发货单详情失败')
+          return
+        }
+      }
       this.form = {
-        id: row.id,
-        sales_order: row.sales_order,
-        customer: row.customer,
-        delivery_date: row.delivery_date || '',
-        receiver_name: row.receiver_name || '',
-        receiver_phone: row.receiver_phone || '',
-        delivery_address: row.delivery_address || '',
-        logistics_company: row.logistics_company || '',
-        tracking_number: row.tracking_number || '',
-        freight: row.freight || 0,
-        package_count: row.package_count || 1,
-        package_weight: row.package_weight || '',
-        notes: row.notes || '',
-        items_data: row.items ? row.items.map(item => ({
+        id: detail.id,
+        sales_order: detail.sales_order,
+        customer: detail.customer,
+        delivery_date: detail.delivery_date || '',
+        receiver_name: detail.receiver_name || '',
+        receiver_phone: detail.receiver_phone || '',
+        delivery_address: detail.delivery_address || '',
+        logistics_company: detail.logistics_company || '',
+        tracking_number: detail.tracking_number || '',
+        freight: detail.freight || 0,
+        package_count: detail.package_count || 1,
+        package_weight: detail.package_weight || '',
+        notes: detail.notes || '',
+        items_data: detail.items ? detail.items.map(item => ({
           product: item.product,
+          sales_order_item: item.sales_order_item || null,
           quantity: item.quantity,
           unit: item.unit,
           unit_price: item.unit_price,
+          stock_batch: item.stock_batch || '',
           notes: item.notes || ''
         })) : []
       }
@@ -494,6 +515,7 @@ export default {
               quantity: item.quantity - (item.delivered_quantity || 0), // 待发货数量
               unit: item.unit || '件',
               unit_price: item.unit_price || 0,
+              stock_batch: '',
               notes: ''
             })).filter(item => item.quantity > 0) // 只显示待发货的产品
 
@@ -524,6 +546,9 @@ export default {
         delete data.id
 
         if (this.isEdit) {
+          // 更新接口不接受 sales_order / customer 字段
+          delete data.sales_order
+          delete data.customer
           await deliveryOrderAPI.update(this.form.id, data)
           ErrorHandler.showSuccess('发货单更新成功')
         } else {
@@ -596,8 +621,23 @@ export default {
     async handleConfirmReceive(formData) {
       this.receiving = true
       try {
-        await deliveryOrderAPI.receive(this.currentDelivery.id, formData)
-        ErrorHandler.showSuccess('签收成功')
+        if (formData.received === 'rejected') {
+          await deliveryOrderAPI.reject(this.currentDelivery.id, {
+            reject_reason: formData.received_notes
+          })
+          ErrorHandler.showSuccess('拒收处理成功，库存已回退')
+        } else {
+          const payload = { received_notes: formData.received_notes }
+          if (formData.receiver_signature) {
+            const fd = new FormData()
+            fd.append('received_notes', payload.received_notes || '')
+            fd.append('receiver_signature', formData.receiver_signature)
+            await deliveryOrderAPI.receive(this.currentDelivery.id, fd)
+          } else {
+            await deliveryOrderAPI.receive(this.currentDelivery.id, payload)
+          }
+          ErrorHandler.showSuccess('签收成功')
+        }
         this.receiveDialogVisible = false
         this.loadData()
         this.fetchStats()

@@ -24,10 +24,11 @@
             clearable
             filterable
             style="width: 160px; margin-right: 10px;"
+            :disabled="!filters.statement_type"
             @change="handleSearch"
           >
             <el-option
-              v-for="(partner, index) in partnerList"
+              v-for="(partner, index) in filterPartnerOptions"
               :key="`filter-partner-${partner.type}-${partner.id}-${index}`"
               :label="partner.name"
               :value="partner.id"
@@ -41,8 +42,9 @@
             @change="handleSearch"
           >
             <el-option label="草稿" value="draft" />
+            <el-option label="已发送" value="sent" />
             <el-option label="已确认" value="confirmed" />
-            <el-option label="已作废" value="cancelled" />
+            <el-option label="有异议" value="disputed" />
           </el-select>
         </div>
         <div class="action-group">
@@ -132,7 +134,7 @@
               查看
             </el-button>
             <el-button
-              v-if="canEdit() && scope.row.status === 'draft'"
+              v-if="canEdit() && (scope.row.status === 'draft' || scope.row.status === 'sent')"
               type="text"
               size="small"
               style="color: #409EFF;"
@@ -458,6 +460,15 @@ export default {
     hasFilters() {
       return this.filters.statement_type || this.filters.partner || this.filters.status
     },
+    filterPartnerOptions() {
+      if (this.filters.statement_type === 'customer') {
+        return this.customerList
+      }
+      if (this.filters.statement_type === 'supplier') {
+        return this.supplierList
+      }
+      return []
+    },
     filteredPartnerList() {
       if (this.form.statement_type === 'customer') {
         return this.customerList
@@ -465,6 +476,19 @@ export default {
         return this.supplierList
       }
       return this.partnerList
+    }
+  },
+
+  watch: {
+    'filters.statement_type'(value) {
+      if (!value) {
+        this.filters.partner = ''
+        return
+      }
+      const list = value === 'supplier' ? this.supplierList : this.customerList
+      if (!list.find(item => item.id === this.filters.partner)) {
+        this.filters.partner = ''
+      }
     }
   },
 
@@ -477,11 +501,13 @@ export default {
   methods: {
     // 实现 fetchData 方法（listPageMixin 要求）
     async fetchData() {
+      const isSupplier = this.filters.statement_type === 'supplier'
       const params = {
         page: this.currentPage,
         page_size: this.pageSize,
         ...(this.filters.statement_type && { statement_type: this.filters.statement_type }),
-        ...(this.filters.partner && { partner: this.filters.partner }),
+        ...(this.filters.partner && !isSupplier && { partner: this.filters.partner }),
+        ...(this.filters.partner && isSupplier && { supplier: this.filters.partner }),
         ...(this.filters.status && { status: this.filters.status })
       }
       return await this.apiService.getList(params)
@@ -495,7 +521,7 @@ export default {
         const list = response.results || []
         this.stats = {
           total_count: list.length,
-          draft_count: list.filter(s => s.status === 'draft').length,
+          draft_count: list.filter(s => s.status === 'draft' || s.status === 'sent').length,
           confirmed_count: list.filter(s => s.status === 'confirmed').length,
           total_balance: list.reduce((sum, s) => sum + (s.closing_balance || 0), 0)
         }
@@ -605,8 +631,9 @@ export default {
     getStatusType(status) {
       const typeMap = {
         draft: 'info',
+        sent: 'warning',
         confirmed: 'success',
-        cancelled: 'danger'
+        disputed: 'danger'
       }
       return typeMap[status] || ''
     }

@@ -476,11 +476,13 @@ export default {
 
       // 额外的筛选条件
       filters: {
+        status: '',
         task_type: '',
         work_order_process: '',
         assigned_department: '',
         priority: ''
       },
+      routeFilters: {},
 
       // 选项数据
       processList: [],
@@ -546,7 +548,8 @@ export default {
              this.filters.task_type ||
              this.filters.assigned_department ||
              this.filters.work_order_process ||
-             this.filters.priority
+             this.filters.priority ||
+             Object.keys(this.routeFilters).length > 0
     },
 
     /**
@@ -558,6 +561,7 @@ export default {
   },
 
   created() {
+    this.applyRouteFilters()
     this.initData()
   },
 
@@ -586,7 +590,8 @@ export default {
         task_type: this.filters.task_type || undefined,
         work_order_process: this.filters.work_order_process || undefined,
         assigned_department: this.filters.assigned_department || undefined,
-        priority: this.filters.priority || undefined
+        priority: this.filters.priority || undefined,
+        ...this.routeFilters
       }
       return await this.apiService.getList(params)
     },
@@ -620,6 +625,35 @@ export default {
       }
     },
 
+    applyRouteFilters() {
+      const query = this.$route.query || {}
+      const extra = {}
+
+      if (query.search) this.searchText = query.search
+      if (query.status) this.filters.status = query.status
+      if (query.task_type) this.filters.task_type = query.task_type
+      if (query.priority) this.filters.priority = query.priority
+
+      if (query.assigned_department) {
+        const value = Number(query.assigned_department)
+        if (!Number.isNaN(value)) this.filters.assigned_department = value
+      }
+      if (query.work_order_process) {
+        const value = Number(query.work_order_process)
+        if (!Number.isNaN(value)) this.filters.work_order_process = value
+      }
+      if (query.assigned_operator) {
+        const value = Number(query.assigned_operator)
+        if (!Number.isNaN(value)) extra.assigned_operator = value
+      }
+      if (query.department_name) extra.department_name = query.department_name
+      if (query.operator_name) extra.operator_name = query.operator_name
+      if (query.work_order_number) extra.work_order_number = query.work_order_number
+      if (query.is_draft) extra.is_draft = query.is_draft
+
+      this.routeFilters = extra
+    },
+
     /**
      * 加载用户列表
      */
@@ -628,7 +662,8 @@ export default {
       try {
         const params = departmentId ? { department: departmentId } : {}
         const response = await authAPI.getUserList(params)
-        this.userList = response.results || []
+        const payload = response?.data || response
+        this.userList = payload?.results || payload?.items || []
       } catch (error) {
         ErrorHandler.showMessage(error, '加载用户列表')
       } finally {
@@ -642,6 +677,23 @@ export default {
     handleSearchDebounced: debounce(function () {
       this.handleSearch()
     }, 300),
+
+    resetFilters() {
+      this.filters = {
+        status: '',
+        task_type: '',
+        work_order_process: '',
+        assigned_department: '',
+        priority: ''
+      }
+      this.routeFilters = {}
+      this.searchText = ''
+      this.currentPage = 1
+      if (Object.keys(this.$route.query || {}).length > 0) {
+        this.$router.replace({ query: {} }).catch(() => {})
+      }
+      this.loadData()
+    },
 
     /**
      * 排序变化
@@ -1006,6 +1058,15 @@ export default {
         // 调用后端导出API
         const response = await this.apiService.exportExcel({
           task_ids: taskIds,
+          filters: this.selectedTasks.length > 0 ? {} : {
+            search: this.searchText || undefined,
+            status: this.filters.status || undefined,
+            task_type: this.filters.task_type || undefined,
+            work_order_process: this.filters.work_order_process || undefined,
+            assigned_department: this.filters.assigned_department || undefined,
+            priority: this.filters.priority || undefined,
+            ...this.routeFilters
+          },
           columns: [
             'id', 'work_order_number', 'process_name', 'task_type',
             'work_content', 'assigned_department', 'assigned_operator',

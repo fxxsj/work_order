@@ -35,6 +35,7 @@
             <el-option label="已发送" value="sent" />
             <el-option label="已收到" value="received" />
             <el-option label="已作废" value="cancelled" />
+            <el-option label="已红冲" value="refunded" />
           </el-select>
           <el-input
             v-model="filters.invoice_number"
@@ -107,12 +108,7 @@
             ¥{{ scope.row.total_amount ? scope.row.total_amount.toLocaleString() : '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="invoice_date" label="开票日期" width="120" />
-        <el-table-column prop="due_date" label="到期日期" width="120">
-          <template slot-scope="scope">
-            {{ scope.row.due_date || '-' }}
-          </template>
-        </el-table-column>
+        <el-table-column prop="issue_date" label="开票日期" width="120" />
         <el-table-column label="状态" width="100">
           <template slot-scope="scope">
             <el-tag :type="getStatusType(scope.row.status)">
@@ -205,13 +201,10 @@
           ¥{{ currentInvoice.total_amount ? currentInvoice.total_amount.toLocaleString() : '-' }}
         </el-descriptions-item>
         <el-descriptions-item label="开票日期">
-          {{ currentInvoice.invoice_date || '-' }}
-        </el-descriptions-item>
-        <el-descriptions-item label="到期日期">
-          {{ currentInvoice.due_date || '-' }}
+          {{ currentInvoice.issue_date || '-' }}
         </el-descriptions-item>
         <el-descriptions-item label="关联单号" :span="2">
-          {{ currentInvoice.related_order_number || '-' }}
+          {{ currentInvoice.sales_order_number || currentInvoice.work_order_number || '-' }}
         </el-descriptions-item>
         <el-descriptions-item label="备注" :span="2">
           {{ currentInvoice.notes || '-' }}
@@ -260,9 +253,9 @@
             <el-option label="电子发票" value="electronic" />
           </el-select>
         </el-form-item>
-        <el-form-item label="开票日期" prop="invoice_date">
+        <el-form-item label="开票日期" prop="issue_date">
           <el-date-picker
-            v-model="form.invoice_date"
+            v-model="form.issue_date"
             type="date"
             placeholder="请选择日期"
             style="width: 100%;"
@@ -283,9 +276,6 @@
             :max="100"
             style="width: 100%;"
           />
-        </el-form-item>
-        <el-form-item label="关联单号">
-          <el-input v-model="form.related_order_number" placeholder="请输入关联单号" />
         </el-form-item>
         <el-form-item label="备注">
           <el-input
@@ -322,10 +312,9 @@ const FORM_INITIAL = {
   id: null,
   customer: null,
   invoice_type: 'vat_special',
-  invoice_date: '',
+  issue_date: '',
   amount: null,
   tax_rate: 13,
-  related_order_number: '',
   notes: ''
 }
 
@@ -364,7 +353,7 @@ export default {
       rules: {
         customer: [{ required: true, message: '请选择客户', trigger: 'change' }],
         invoice_type: [{ required: true, message: '请选择发票类型', trigger: 'change' }],
-        invoice_date: [{ required: true, message: '请选择开票日期', trigger: 'change' }],
+        issue_date: [{ required: true, message: '请选择开票日期', trigger: 'change' }],
         amount: [{ required: true, message: '请输入金额', trigger: 'blur' }]
       },
 
@@ -399,7 +388,7 @@ export default {
         page_size: this.pageSize,
         ...(this.filters.status && { status: this.filters.status }),
         ...(this.filters.customer && { customer: this.filters.customer }),
-        ...(this.filters.invoice_number && { invoice_number: this.filters.invoice_number })
+        ...(this.filters.invoice_number && { search: this.filters.invoice_number })
       }
       return await this.apiService.getList(params)
     },
@@ -407,21 +396,56 @@ export default {
     async fetchStats() {
       this.statsLoading = true
       try {
-        // 基于本地数据计算统计
-        const response = await this.apiService.getList({ page_size: 1000 })
-        const list = response.results || []
-        this.stats = {
-          total_count: list.length,
-          draft_count: list.filter(i => i.status === 'draft').length,
-          pending_amount: list
+        const response = await invoiceAPI.getSummary()
+        const payload = response?.data || response
+        const summary = payload?.summary || {}
+        const byStatus = payload?.by_status || []
+        const findCount = (status) => {
+          const item = byStatus.find(row => row.status === status)
+          return item ? item.count || 0 : 0
+        }
+
+        // 金额维度后端未按状态汇总，使用列表计算（受分页限制）
+        let pendingAmount = 0
+        let receivedAmount = 0
+        try {
+          const listResponse = await this.apiService.getList({ page_size: 1000 })
+          const list = listResponse.results || []
+          pendingAmount = list
             .filter(i => i.status === 'issued' || i.status === 'sent')
-            .reduce((sum, i) => sum + (i.total_amount || 0), 0),
-          received_amount: list
+            .reduce((sum, i) => sum + (i.total_amount || 0), 0)
+          receivedAmount = list
             .filter(i => i.status === 'received')
             .reduce((sum, i) => sum + (i.total_amount || 0), 0)
+        } catch (e) {
+          pendingAmount = 0
+          receivedAmount = 0
+        }
+
+        this.stats = {
+          total_count: summary.total_count || 0,
+          draft_count: findCount('draft'),
+          pending_amount: pendingAmount,
+          received_amount: receivedAmount
         }
       } catch (error) {
-        this.stats = {}
+        // 降级：基于本地数据计算统计
+        try {
+          const response = await this.apiService.getList({ page_size: 1000 })
+          const list = response.results || []
+          this.stats = {
+            total_count: list.length,
+            draft_count: list.filter(i => i.status === 'draft').length,
+            pending_amount: list
+              .filter(i => i.status === 'issued' || i.status === 'sent')
+              .reduce((sum, i) => sum + (i.total_amount || 0), 0),
+            received_amount: list
+              .filter(i => i.status === 'received')
+              .reduce((sum, i) => sum + (i.total_amount || 0), 0)
+          }
+        } catch (e) {
+          this.stats = {}
+        }
       } finally {
         this.statsLoading = false
       }
@@ -481,10 +505,9 @@ export default {
         id: row.id,
         customer: row.customer,
         invoice_type: row.invoice_type,
-        invoice_date: row.invoice_date,
+        issue_date: row.issue_date,
         amount: row.amount,
         tax_rate: row.tax_rate,
-        related_order_number: row.related_order_number || '',
         notes: row.notes || ''
       }
       this.formDialogVisible = true
@@ -541,7 +564,8 @@ export default {
         issued: 'warning',
         sent: 'primary',
         received: 'success',
-        cancelled: 'danger'
+        cancelled: 'danger',
+        refunded: 'danger'
       }
       return typeMap[status] || ''
     }

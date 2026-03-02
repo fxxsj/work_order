@@ -106,7 +106,7 @@ export default {
   methods: {
     initForm() {
       this.form = {
-        operator_id: this.task?.assigned_operator?.id || null,
+        operator_id: this.task?.assigned_operator || null,
         notes: ''
       }
       this.$nextTick(() => {

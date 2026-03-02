@@ -31,11 +31,21 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="关联施工单">
-            <el-input
-              v-model="localForm.work_order_number"
-              placeholder="请输入施工单号"
-              disabled
-            />
+            <el-select
+              v-model="localForm.work_order"
+              placeholder="请选择施工单"
+              clearable
+              filterable
+              style="width: 100%"
+              @change="handleWorkOrderChange"
+            >
+              <el-option
+                v-for="item in workOrderOptions"
+                :key="item.id"
+                :label="item.order_number"
+                :value="item.id"
+              />
+            </el-select>
           </el-form-item>
         </el-col>
       </el-row>
@@ -121,12 +131,13 @@
 </template>
 
 <script>
-import { supplierAPI, materialAPI } from '@/api/modules'
+import { supplierAPI, materialAPI, workOrderAPI } from '@/api/modules'
 import ErrorHandler from '@/utils/errorHandler'
 
 // 表单初始值常量
 const FORM_INITIAL = {
   supplier: null,
+  work_order: null,
   work_order_number: '',
   notes: '',
   items: []
@@ -156,6 +167,7 @@ export default {
       localForm: { ...FORM_INITIAL, items: [] },
       supplierOptions: [],
       materialOptions: [],
+      workOrderOptions: [],
       rules: {
         supplier: [{ required: true, message: '请选择供应商', trigger: 'change' }]
       }
@@ -195,14 +207,36 @@ export default {
      */
     async fetchOptions() {
       try {
-        const [supplierRes, materialRes] = await Promise.all([
+        const [supplierRes, materialRes, workOrderRes] = await Promise.all([
           supplierAPI.getList({ page_size: 1000, status: 'active' }),
-          materialAPI.getList({ page_size: 1000 })
+          materialAPI.getList({ page_size: 1000 }),
+          workOrderAPI.getList({
+            page_size: 1000,
+            ordering: '-created_at',
+            approval_status: 'approved'
+          })
         ])
         this.supplierOptions = supplierRes.results || []
         this.materialOptions = materialRes.results || []
+        this.workOrderOptions = (workOrderRes.results || []).filter(order =>
+          !['completed', 'cancelled'].includes(order.status)
+        )
+        this.syncWorkOrderNumber()
       } catch (error) {
         ErrorHandler.showMessage(error, '获取选项数据')
+      }
+    },
+
+    handleWorkOrderChange(value) {
+      const selected = this.workOrderOptions.find(item => item.id === value)
+      this.localForm.work_order_number = selected ? selected.order_number : ''
+    },
+
+    syncWorkOrderNumber() {
+      if (!this.localForm.work_order) return
+      const selected = this.workOrderOptions.find(item => item.id === this.localForm.work_order)
+      if (selected) {
+        this.localForm.work_order_number = selected.order_number
       }
     },
 

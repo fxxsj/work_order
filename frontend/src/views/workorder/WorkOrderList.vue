@@ -54,22 +54,7 @@
               <el-option label="已拒绝" value="rejected" />
             </el-select>
           </el-col>
-          <el-col :span="3">
-            <el-select
-              v-model="filters.customer__salesperson"
-              placeholder="业务员"
-              clearable
-              @change="handleSearchDebounced"
-            >
-              <el-option
-                v-for="salesperson in salespersons"
-                :key="salesperson.id"
-                :label="salesperson.username"
-                :value="salesperson.id"
-              />
-            </el-select>
-          </el-col>
-          <el-col :span="isSalesperson ? 7 : 10" style="text-align: right;">
+          <el-col :span="isSalesperson ? 10 : 10" style="text-align: right;">
             <el-button
               icon="el-icon-refresh"
               circle
@@ -214,7 +199,7 @@
 </template>
 
 <script>
-import { workOrderAPI, authAPI } from '@/api/modules'
+import { workOrderAPI } from '@/api/modules'
 import listPageMixin from '@/mixins/listPageMixin'
 import crudPermissionMixin from '@/mixins/crudPermissionMixin'
 import exportMixin from '@/mixins/exportMixin'
@@ -235,16 +220,13 @@ export default {
       permissionPrefix: 'workorder',
 
       // 自定义数据
-      salespersons: [],
       filters: {
         search: '',
         status: '',
         priority: '',
-        approval_status: '',
-        customer__salesperson: '',
-        delivery_date__gte: '',
-        delivery_date__lte: ''
-      }
+        approval_status: ''
+      },
+      ordering: '-created_at'
     }
   },
   computed: {
@@ -255,15 +237,9 @@ export default {
     }
   },
   async created() {
-    // 加载业务员列表
-    await this.loadSalespersons()
-
     // 检查URL参数中是否有筛选条件
     if (this.$route.query.approval_status) {
       this.filters.approval_status = this.$route.query.approval_status
-    }
-    if (this.$route.query.customer__salesperson) {
-      this.filters.customer__salesperson = this.$route.query.customer__salesperson
     }
     if (this.$route.query.status) {
       this.filters.status = this.$route.query.status
@@ -271,11 +247,16 @@ export default {
     if (this.$route.query.priority) {
       this.filters.priority = this.$route.query.priority
     }
-    if (this.$route.query.delivery_date__gte) {
-      this.filters.delivery_date__gte = this.$route.query.delivery_date__gte
-    }
-    if (this.$route.query.delivery_date__lte) {
-      this.filters.delivery_date__lte = this.$route.query.delivery_date__lte
+    if (this.$route.query.ordering) {
+      const allowedOrdering = new Set([
+        'created_at', '-created_at',
+        'order_date', '-order_date',
+        'delivery_date', '-delivery_date',
+        'order_number', '-order_number'
+      ])
+      if (allowedOrdering.has(this.$route.query.ordering)) {
+        this.ordering = this.$route.query.ordering
+      }
     }
     this.loadData()
   },
@@ -287,24 +268,13 @@ export default {
       const params = {
         page: this.currentPage,
         page_size: this.pageSize,
-        ordering: '-created_at'
+        ordering: this.ordering
       }
       if (this.filters.search) params.search = this.filters.search
       if (this.filters.status) params.status = this.filters.status
       if (this.filters.priority) params.priority = this.filters.priority
       if (this.filters.approval_status) params.approval_status = this.filters.approval_status
-      if (this.filters.customer__salesperson) params.customer__salesperson = this.filters.customer__salesperson
-      if (this.filters.delivery_date__gte) params.delivery_date__gte = this.filters.delivery_date__gte
-      if (this.filters.delivery_date__lte) params.delivery_date__lte = this.filters.delivery_date__lte
       return await this.apiService.getList(params)
-    },
-    async loadSalespersons() {
-      try {
-        this.salespersons = await authAPI.getSalespersons() || []
-      } catch (error) {
-        ErrorHandler.showMessage(error, '加载业务员列表')
-        this.salespersons = []
-      }
     },
     handleSearch() { this.currentPage = 1; this.loadData() },
     handleSearchDebounced: debounce(function () { this.currentPage = 1; this.loadData() }, 300),
@@ -313,11 +283,9 @@ export default {
         search: '',
         status: '',
         priority: '',
-        approval_status: '',
-        customer__salesperson: '',
-        delivery_date__gte: '',
-        delivery_date__lte: ''
+        approval_status: ''
       }
+      this.ordering = '-created_at'
       this.currentPage = 1
       if (Object.keys(this.$route.query).length > 0) {
         this.$router.replace({ query: {} }).catch(err => {
@@ -346,9 +314,6 @@ export default {
         if (this.filters.status) params.status = this.filters.status
         if (this.filters.priority) params.priority = this.filters.priority
         if (this.filters.approval_status) params.approval_status = this.filters.approval_status
-        if (this.filters.customer__salesperson) params.customer__salesperson = this.filters.customer__salesperson
-        if (this.filters.delivery_date__gte) params.delivery_date__gte = this.filters.delivery_date__gte
-        if (this.filters.delivery_date__lte) params.delivery_date__lte = this.filters.delivery_date__lte
         const now = new Date()
         const filename = `施工单列表_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}.xlsx`
         params.filename = filename

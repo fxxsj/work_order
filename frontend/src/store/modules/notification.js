@@ -123,9 +123,10 @@ export default {
         return 0
       }
       try {
-        const data = await notificationAPI.getUnreadCount()
-        commit('SET_UNREAD_COUNT', data.unread_count)
-        return data.unread_count
+        const response = await notificationAPI.getUnreadCount()
+        const payload = response?.data || response
+        commit('SET_UNREAD_COUNT', payload?.unread_count || 0)
+        return payload?.unread_count || 0
       } catch (error) {
         logger.error('Failed to fetch unread count', error)
       }

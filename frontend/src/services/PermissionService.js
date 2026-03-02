@@ -112,7 +112,7 @@ class PermissionService {
 
     // 检查施工单是否有任务分派到用户的部门
     return workOrder.order_processes?.some(process => process.tasks?.some(task => userDepartments.some(dept =>
-      dept.id === task.assigned_department?.id
+      dept.id === task.assigned_department
     )))
   }
 
@@ -196,14 +196,14 @@ class PermissionService {
     // 查看权限
     if (action === 'view') {
       // 可以查看自己分派的任务或本部门的任务
-      if (task.assigned_operator?.id === this.currentUser.id) {
+      if (task.assigned_operator === this.currentUser.id) {
         return true
       }
 
       if (this.hasRole('生产主管') && task.assigned_department) {
         const userDepartments = this.currentUser.profile?.departments || []
         return userDepartments.some(dept =>
-          dept.id === task.assigned_department.id
+          dept.id === task.assigned_department
         )
       }
 
@@ -218,7 +218,7 @@ class PermissionService {
     // 更新/完成权限
     if (action === 'update' || action === 'complete') {
       // 只能操作自己分派的任务
-      if (task.assigned_operator?.id === this.currentUser.id) {
+      if (task.assigned_operator === this.currentUser.id) {
         return true
       }
 
@@ -227,7 +227,7 @@ class PermissionService {
         if (task.assigned_department) {
           const userDepartments = this.currentUser.profile?.departments || []
           return userDepartments.some(dept =>
-            dept.id === task.assigned_department.id
+            dept.id === task.assigned_department
           )
         }
       }

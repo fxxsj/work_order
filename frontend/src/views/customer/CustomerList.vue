@@ -245,7 +245,7 @@ export default {
     async loadSalespersons() {
       try {
         const salespersons = await authAPI.getSalespersons()
-        this.salespersonList = salespersons || []
+        this.salespersonList = salespersons?.data || salespersons || []
       } catch (error) {
         ErrorHandler.showMessage(error, '加载业务员列表失败')
       }

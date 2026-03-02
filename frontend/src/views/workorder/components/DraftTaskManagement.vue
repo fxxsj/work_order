@@ -225,8 +225,8 @@ export default {
       try {
         // 从所有工序中筛选草稿任务
         const allTasks = []
-        if (this.workOrder.processes && Array.isArray(this.workOrder.processes)) {
-          this.workOrder.processes.forEach(process => {
+        if (this.workOrder.order_processes && Array.isArray(this.workOrder.order_processes)) {
+          this.workOrder.order_processes.forEach(process => {
             if (process.tasks && Array.isArray(process.tasks)) {
               process.tasks.forEach(task => {
                 if (task.status === 'draft') {
@@ -292,7 +292,9 @@ export default {
         }
 
         const response = await workOrderTaskAPI.bulkUpdate(updateData)
-        ErrorHandler.showSuccess(response.data.message || '批量更新成功')
+        const payload = response?.data || response
+        const data = payload?.data || payload
+        ErrorHandler.showSuccess(data?.message || '批量更新成功')
         this.bulkEditDialogVisible = false
         this.clearSelection()
 
@@ -336,7 +338,9 @@ export default {
 
         const taskIds = this.selectedDraftTasks.map(t => t.id)
         const response = await workOrderTaskAPI.bulkDelete(taskIds)
-        ErrorHandler.showSuccess(response.data.message || '批量删除成功')
+        const payload = response?.data || response
+        const data = payload?.data || payload
+        ErrorHandler.showSuccess(data?.message || '批量删除成功')
         this.clearSelection()
 
         // 重新加载草稿任务

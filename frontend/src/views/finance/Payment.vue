@@ -203,6 +203,12 @@
         <el-descriptions-item label="交易流水号" :span="2">
           {{ currentPayment.transaction_number || '-' }}
         </el-descriptions-item>
+        <el-descriptions-item label="关联发票">
+          {{ currentPayment.invoice_number || '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="关联销售订单">
+          {{ currentPayment.sales_order_number || '-' }}
+        </el-descriptions-item>
         <el-descriptions-item label="备注" :span="2">
           {{ currentPayment.notes || '-' }}
         </el-descriptions-item>
@@ -210,29 +216,9 @@
           {{ currentPayment.created_at }}
         </el-descriptions-item>
         <el-descriptions-item label="创建人">
-          {{ currentPayment.created_by_name || '-' }}
+          {{ currentPayment.recorded_by_name || '-' }}
         </el-descriptions-item>
       </el-descriptions>
-
-      <!-- 关联发票 -->
-      <div v-if="currentPayment && currentPayment.invoices && currentPayment.invoices.length > 0" class="related-section">
-        <h4>关联发票</h4>
-        <el-table :data="currentPayment.invoices" border style="width: 100%; margin-top: 10px;">
-          <el-table-column prop="invoice_number" label="发票号码" width="150" />
-          <el-table-column prop="invoice_date" label="发票日期" width="120" />
-          <el-table-column prop="total_amount" label="发票金额" width="120">
-            <template slot-scope="scope">
-              ¥{{ scope.row.total_amount ? scope.row.total_amount.toLocaleString() : '-' }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="applied_amount" label="核销金额" width="120">
-            <template slot-scope="scope">
-              ¥{{ scope.row.applied_amount ? scope.row.applied_amount.toLocaleString() : '-' }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="status_display" label="状态" width="100" />
-        </el-table>
-      </div>
 
       <template slot="footer">
         <el-button @click="detailDialogVisible = false">
@@ -415,8 +401,8 @@ export default {
         ...(this.filters.payment_method && { payment_method: this.filters.payment_method })
       }
       if (this.filters.date_range && this.filters.date_range.length === 2) {
-        params.payment_date_start = this.filters.date_range[0]
-        params.payment_date_end = this.filters.date_range[1]
+        params.start_date = this.filters.date_range[0]
+        params.end_date = this.filters.date_range[1]
       }
       return await this.apiService.getList(params)
     },
@@ -425,7 +411,14 @@ export default {
       this.statsLoading = true
       try {
         const response = await paymentAPI.getSummary()
-        this.stats = response || {}
+        const payload = response?.data || response
+        const summary = payload?.summary || {}
+        this.stats = {
+          total_amount: summary.total_amount || 0,
+          applied_amount: summary.applied_amount || 0,
+          unapplied_amount: summary.remaining_amount || 0,
+          total_count: summary.total_count || 0
+        }
       } catch (error) {
         this.stats = {}
       } finally {

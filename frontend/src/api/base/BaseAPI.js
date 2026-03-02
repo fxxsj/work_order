@@ -40,6 +40,11 @@ export class BaseAPI {
       url: this.baseUrl,
       method: 'get',
       params
+    }).then(response => {
+      if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        return response.data
+      }
+      return response
     })
   }
 
