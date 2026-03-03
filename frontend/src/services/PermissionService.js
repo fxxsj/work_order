@@ -188,6 +188,10 @@ class PermissionService {
       return false
     }
 
+    const assignedOperatorId = typeof task.assigned_operator === 'object'
+      ? task.assigned_operator?.id
+      : task.assigned_operator
+
     // 超级管理员可以操作所有
     if (this.currentUser.is_superuser) {
       return true
@@ -196,7 +200,7 @@ class PermissionService {
     // 查看权限
     if (action === 'view') {
       // 可以查看自己分派的任务或本部门的任务
-      if (task.assigned_operator === this.currentUser.id) {
+      if (assignedOperatorId === this.currentUser.id) {
         return true
       }
 
@@ -218,7 +222,7 @@ class PermissionService {
     // 更新/完成权限
     if (action === 'update' || action === 'complete') {
       // 只能操作自己分派的任务
-      if (task.assigned_operator === this.currentUser.id) {
+      if (assignedOperatorId === this.currentUser.id) {
         return true
       }
 
