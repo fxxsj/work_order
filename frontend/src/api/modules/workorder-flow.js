@@ -18,6 +18,15 @@ class WorkOrderFlowAPI extends BaseAPI {
   createFromSalesOrder(data) {
     return this.customAction(`${this.baseUrl}create_from_sales_order/`, 'post', data)
   }
+
+  /**
+   * 批量从销售订单创建施工单
+   * @param {Object} data - { sales_order_ids, production_quantity?, delivery_date?, priority?, notes? }
+   * @returns {Promise} 创建结果
+   */
+  createFromSalesOrders(data) {
+    return this.customAction(`${this.baseUrl}create_from_sales_orders/`, 'post', data)
+  }
 }
 
 export const workOrderFlowAPI = new WorkOrderFlowAPI()

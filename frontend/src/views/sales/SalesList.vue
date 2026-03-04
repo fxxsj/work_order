@@ -47,6 +47,14 @@
             刷新
           </el-button>
           <el-button
+            type="success"
+            icon="el-icon-s-operation"
+            :disabled="!canBatchConvert"
+            @click="handleBatchConvert"
+          >
+            批量转换
+          </el-button>
+          <el-button
             v-if="canCreate()"
             type="primary"
             icon="el-icon-plus"
@@ -60,9 +68,11 @@
       <!-- 数据表格 -->
       <el-table
         v-if="tableData.length > 0"
+        ref="salesTable"
         v-loading="loading"
         :data="tableData"
         style="width: 100%; margin-top: 20px;"
+        @selection-change="handleSelectionChange"
         @sort-change="handleSortChange"
       >
         <el-table-column type="selection" width="55" />
@@ -342,12 +352,16 @@ export default {
       approveVisible: false,
       approveOrder: null,
       detailVisible: false,
-      currentOrderId: null
+      currentOrderId: null,
+      selectedRows: []
     }
   },
   computed: {
     hasFilters() {
       return this.filters.search || this.filters.status || this.filters.payment_status
+    },
+    canBatchConvert() {
+      return this.selectedRows.some(row => row.status === 'approved')
     }
   },
   mounted() {
@@ -372,6 +386,7 @@ export default {
         const response = await this.fetchData()
         this.tableData = response.results || []
         this.total = response.count || 0
+        this.selectedRows = []
       } catch (error) {
         ErrorHandler.showMessage(error, '获取销售订单列表失败')
       } finally {
@@ -399,6 +414,9 @@ export default {
     },
     handleSortChange(column) {
       if (!column.prop) return
+    },
+    handleSelectionChange(rows) {
+      this.selectedRows = rows || []
     },
     handleView(row) {
       this.currentOrderId = row.id
@@ -474,6 +492,38 @@ export default {
         await this.loadData()
       } catch (error) {
         ErrorHandler.showMessage(error, '转换施工单失败')
+      }
+    },
+    async handleBatchConvert() {
+      const approvedRows = this.selectedRows.filter(row => row.status === 'approved')
+      if (approvedRows.length === 0) {
+        ErrorHandler.showMessage(null, '请选择已审核的销售订单')
+        return
+      }
+      try {
+        const confirmed = await ErrorHandler.confirm(
+          `确定将选中的 ${approvedRows.length} 个销售订单转换为施工单吗？`,
+          '批量转换确认'
+        )
+        if (!confirmed) return
+
+        const response = await workOrderFlowAPI.createFromSalesOrders({
+          sales_order_ids: approvedRows.map(row => row.id)
+        })
+        const createdCount = response.created ? response.created.length : 0
+        const failedCount = response.failed ? response.failed.length : 0
+        const message = `成功 ${createdCount} 个，失败 ${failedCount} 个`
+        if (failedCount > 0) {
+          ErrorHandler.showMessage(null, message)
+        } else {
+          ErrorHandler.showSuccess(message)
+        }
+        if (this.$refs.salesTable) {
+          this.$refs.salesTable.clearSelection()
+        }
+        await this.loadData()
+      } catch (error) {
+        ErrorHandler.showMessage(error, '批量转换失败')
       }
     },
     async handleFormSubmit(formData) {
