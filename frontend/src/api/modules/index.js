@@ -22,6 +22,7 @@ export { foilingPlateAPI } from './foiling-plate'
 export { embossingPlateAPI } from './embossing-plate'
 export { productMaterialAPI } from './product-material'
 export { supplierAPI } from './supplier'
+export { auditLogAPI } from './audit-log'
 
 // Authentication API (认证和授权)
 export { authAPI } from './auth'

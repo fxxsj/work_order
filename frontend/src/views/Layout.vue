@@ -146,7 +146,7 @@
         </el-submenu>
 
         <!-- ========== 系统设置（高权限，低频使用） ========== -->
-        <el-submenu v-if="canViewCustomer || canViewSupplier || canViewDepartment || canViewProcess" index="/system">
+        <el-submenu v-if="canViewCustomer || canViewSupplier || canViewDepartment || canViewProcess || canViewAuditLog" index="/system">
           <template slot="title">
             <i class="el-icon-setting"></i>
             <span>系统设置</span>
@@ -170,6 +170,10 @@
           <el-menu-item index="/tasks/assignment-rules">
             <i class="el-icon-s-operation"></i>
             <span>分派规则配置</span>
+          </el-menu-item>
+          <el-menu-item v-if="canViewAuditLog" index="/audit-logs">
+            <i class="el-icon-document-checked"></i>
+            <span>审计日志</span>
           </el-menu-item>
         </el-submenu>
       </el-menu>
@@ -260,6 +264,9 @@ export default {
       if (path.startsWith('/finance')) {
         return '/finance'
       }
+      if (path.startsWith('/audit-logs')) {
+        return '/audit-logs'
+      }
       return path
     },
     currentUsername() {
@@ -316,6 +323,10 @@ export default {
     // 检查是否有查看销售订单的权限
     canViewSalesOrder() {
       return this.hasPermission('workorder.view_salesorder')
+    },
+    // 检查是否有查看审计日志的权限
+    canViewAuditLog() {
+      return this.hasPermission('workorder.view_auditlog')
     }
   },
   methods: {

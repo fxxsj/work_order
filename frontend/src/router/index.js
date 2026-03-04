@@ -271,6 +271,14 @@ const routes = [
         name: 'Profile',
         component: () => import(/* webpackChunkName: "profile" */ '@/views/Profile.vue'),
         meta: { title: '个人信息', requiresAuth: true }
+      },
+
+      // 审计日志
+      {
+        path: 'audit-logs',
+        name: 'AuditLogList',
+        component: () => import(/* webpackChunkName: "audit-log" */ '@/views/audit/AuditLogList.vue'),
+        meta: { title: '审计日志', requiresAuth: true }
       }
     ]
   }
