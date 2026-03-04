@@ -30,6 +30,13 @@ export class BaseAPI {
     this.request = request
   }
 
+  _unwrap(response) {
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+      return response.data
+    }
+    return response
+  }
+
   /**
    * 获取列表数据
    * @param {Object} params - 查询参数
@@ -40,12 +47,7 @@ export class BaseAPI {
       url: this.baseUrl,
       method: 'get',
       params
-    }).then(response => {
-      if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-        return response.data
-      }
-      return response
-    })
+    }).then(response => this._unwrap(response))
   }
 
   /**
@@ -60,7 +62,7 @@ export class BaseAPI {
     return this.request({
       url: `${this.baseUrl}${id}/`,
       method: 'get'
-    })
+    }).then(response => this._unwrap(response))
   }
 
   /**
@@ -76,7 +78,7 @@ export class BaseAPI {
       url: this.baseUrl,
       method: 'post',
       data
-    })
+    }).then(response => this._unwrap(response))
   }
 
   /**
@@ -96,7 +98,7 @@ export class BaseAPI {
       url: `${this.baseUrl}${id}/`,
       method: 'put',
       data
-    })
+    }).then(response => this._unwrap(response))
   }
 
   /**
@@ -116,7 +118,7 @@ export class BaseAPI {
       url: `${this.baseUrl}${id}/`,
       method: 'patch',
       data
-    })
+    }).then(response => this._unwrap(response))
   }
 
   /**
@@ -131,7 +133,7 @@ export class BaseAPI {
     return this.request({
       url: `${this.baseUrl}${id}/`,
       method: 'delete'
-    })
+    }).then(response => this._unwrap(response))
   }
 
   /**
@@ -147,7 +149,7 @@ export class BaseAPI {
       url: `${this.baseUrl}batch_action/`,
       method: 'post',
       data
-    })
+    }).then(response => this._unwrap(response))
   }
 
   /**
@@ -184,7 +186,7 @@ export class BaseAPI {
     if (params) {
       config.params = params
     }
-    return this.request(config)
+    return this.request(config).then(response => this._unwrap(response))
   }
 }
 
