@@ -533,15 +533,15 @@ export default {
     async handleExport() {
       this.exportLoading = true
       try {
-        const [start_date, end_date] = this.exportRange || []
+        const [startDate, endDate] = this.exportRange || []
         const filters = {}
         if (this.exportFilters.action_type) filters.action_type = this.exportFilters.action_type
         if (this.exportFilters.model) filters.model = this.exportFilters.model
         if (this.exportFilters.user_id) filters.user_id = this.exportFilters.user_id
 
         const payload = {
-          start_date,
-          end_date,
+          start_date: startDate,
+          end_date: endDate,
           filters
         }
 
