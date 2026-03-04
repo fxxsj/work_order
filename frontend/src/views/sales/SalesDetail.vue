@@ -295,6 +295,9 @@
         <el-button v-if="canApprove" type="danger" @click="handleReject">
           拒绝
         </el-button>
+        <el-button v-if="canConvert" type="success" @click="handleConvertToWorkOrder">
+          转换施工单
+        </el-button>
         <el-button v-if="canStartProduction" type="primary" @click="handleStartProduction">
           开始生产
         </el-button>
@@ -313,7 +316,7 @@
 </template>
 
 <script>
-import { salesOrderAPI } from '@/api/modules'
+import { salesOrderAPI, workOrderFlowAPI } from '@/api/modules'
 import ErrorHandler from '@/utils/errorHandler'
 
 export default {
@@ -341,6 +344,9 @@ export default {
       return this.detailData.status === 'submitted'
     },
     canStartProduction() {
+      return this.detailData.status === 'approved'
+    },
+    canConvert() {
       return this.detailData.status === 'approved'
     },
     canComplete() {
@@ -473,6 +479,21 @@ export default {
           ErrorHandler.showMessage(error, '取消失败')
         }
       }).catch(() => {})
+    },
+    async handleConvertToWorkOrder() {
+      try {
+        const confirmed = await ErrorHandler.confirm('确定将该销售订单转换为施工单吗？', '转换确认')
+        if (!confirmed) return
+
+        const response = await workOrderFlowAPI.createFromSalesOrder({
+          sales_order_id: this.orderId
+        })
+        ErrorHandler.showSuccess(`已创建施工单 ${response.order_number || ''}`)
+        this.$emit('refresh')
+        this.fetchData()
+      } catch (error) {
+        ErrorHandler.showMessage(error, '转换施工单失败')
+      }
     },
     handleRefresh() {
       this.fetchData()

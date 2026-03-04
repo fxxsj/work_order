@@ -50,6 +50,7 @@ export { workOrderProcessAPI } from './workorder-process'
 export { workOrderMaterialAPI } from './workorder-material'
 export { workOrderProductAPI } from './workorder-product'
 export { purchaseOrderAPI } from './purchase'
+export { workOrderFlowAPI } from './workorder-flow'
 
 // Notification API (包含自定义操作)
 export { notificationAPI } from './notification'

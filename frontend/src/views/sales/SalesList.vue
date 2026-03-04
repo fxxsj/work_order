@@ -157,6 +157,14 @@
                   @click="handleEdit(scope.row)"
                 />
               </el-tooltip>
+              <el-tooltip v-if="canConvert(scope.row)" content="转换为施工单" placement="top">
+                <el-button
+                  size="mini"
+                  type="success"
+                  icon="el-icon-s-operation"
+                  @click="handleConvert(scope.row)"
+                />
+              </el-tooltip>
               <el-tooltip v-if="scope.row.status === 'draft'" content="提交审核" placement="top">
                 <el-button
                   size="mini"
@@ -294,7 +302,7 @@
 </template>
 
 <script>
-import { salesOrderAPI } from '@/api/modules'
+import { salesOrderAPI, workOrderFlowAPI } from '@/api/modules'
 import ErrorHandler from '@/utils/errorHandler'
 import SalesOrderForm from './SalesForm.vue'
 import SalesOrderDetail from './SalesDetail.vue'
@@ -446,6 +454,26 @@ export default {
           const errors = error.response?.data?.errors || []
           ErrorHandler.showMessage(error, errors[0] || '提交失败')
         }
+      }
+    },
+    canConvert(row) {
+      return row.status === 'approved'
+    },
+    async handleConvert(row) {
+      try {
+        const confirmed = await ErrorHandler.confirm(
+          `确定将销售订单"${row.order_number}"转换为施工单吗？`,
+          '转换确认'
+        )
+        if (!confirmed) return
+
+        const response = await workOrderFlowAPI.createFromSalesOrder({
+          sales_order_id: row.id
+        })
+        ErrorHandler.showSuccess(`已创建施工单 ${response.order_number || ''}`)
+        await this.loadData()
+      } catch (error) {
+        ErrorHandler.showMessage(error, '转换施工单失败')
       }
     },
     async handleFormSubmit(formData) {
