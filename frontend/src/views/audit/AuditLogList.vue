@@ -464,6 +464,25 @@ export default {
       }
     }
   },
+  computed: {
+    formattedDiff() {
+      if (!this.diffData || !this.diffData.changes) return '-'
+      try {
+        const masked = this.maskSensitiveFields(this.diffData.changes)
+        return JSON.stringify(masked, null, 2)
+      } catch (e) {
+        return String(this.diffData.changes)
+      }
+    },
+    canExportAuditLog() {
+      const hasPermission = this.$store.getters['user/hasPermission']
+      return hasPermission('workorder.add_auditlogexport')
+    },
+    canViewAuditExport() {
+      const hasPermission = this.$store.getters['user/hasPermission']
+      return hasPermission('workorder.view_auditlogexport')
+    }
+  },
   created() {
     this.loadData()
     this.loadStats()
@@ -661,25 +680,6 @@ export default {
       }
 
       return walk(input)
-    }
-  },
-  computed: {
-    formattedDiff() {
-      if (!this.diffData || !this.diffData.changes) return '-'
-      try {
-        const masked = this.maskSensitiveFields(this.diffData.changes)
-        return JSON.stringify(masked, null, 2)
-      } catch (e) {
-        return String(this.diffData.changes)
-      }
-    },
-    canExportAuditLog() {
-      const hasPermission = this.$store.getters['user/hasPermission']
-      return hasPermission('workorder.add_auditlogexport')
-    },
-    canViewAuditExport() {
-      const hasPermission = this.$store.getters['user/hasPermission']
-      return hasPermission('workorder.view_auditlogexport')
     }
   }
 }
